@@ -16,14 +16,14 @@ function slotMeta(s){const ag=typeof AGES!=='undefined'&&AGES[s.age||0];return {
   if(ACC.db&&Date.now()-ACC.lastPush>45000)accPush(id);};}
 addEventListener('pagehide',()=>{try{save();const id=curSlot();if(ACC.db&&id)accPush(id,true);}catch(e){}});
 async function accPush(id,force){if(!ACC.db||ACC.busy||!id)return;const raw=accLS(SKEY+'#'+id);if(!raw)return;ACC.busy=true;ACC.lastPush=Date.now();
-  try{const base='data/users/'+ACC.uid;const n=Math.ceil(raw.length/PART);for(let i=0;i<n;i++)await ACC.db.doc(`${base}/parts/${id}_${i}`).set({s:raw.slice(i*PART,(i+1)*PART)});
+  try{const base='data/users/'+ACC.uid+'/save';const n=Math.ceil(raw.length/PART);for(let i=0;i<n;i++)await ACC.db.doc(`${base}/parts/${id}_${i}`).set({s:raw.slice(i*PART,(i+1)*PART)});
     const m=Object.assign({},slotsLocal()[id]||slotMeta(S),{parts:n,len:raw.length});await ACC.db.doc(`${base}/chars/${id}`).set(m);ACC.cloud[id]=m;}catch(e){console.warn('lưu máy chủ',e);}ACC.busy=false;}
-async function accPull(id){const m=ACC.cloud[id];if(!ACC.db||!m)return null;try{const base='data/users/'+ACC.uid;let s='';for(let i=0;i<(m.parts||1);i++){const d=await ACC.db.doc(`${base}/parts/${id}_${i}`).get();if(!d.exists)return null;s+=d.data().s||'';}return s.length===m.len?s:null;}catch(e){return null;}}
-async function accDelCloud(id){if(!ACC.db)return;const m=ACC.cloud[id];const base='data/users/'+ACC.uid;try{await ACC.db.doc(`${base}/chars/${id}`).delete();for(let i=0;i<((m&&m.parts)||1);i++)await ACC.db.doc(`${base}/parts/${id}_${i}`).delete();}catch(e){}delete ACC.cloud[id];}
+async function accPull(id){const m=ACC.cloud[id];if(!ACC.db||!m)return null;try{const base='data/users/'+ACC.uid+'/save';let s='';for(let i=0;i<(m.parts||1);i++){const d=await ACC.db.doc(`${base}/parts/${id}_${i}`).get();if(!d.exists)return null;s+=d.data().s||'';}return s.length===m.len?s:null;}catch(e){return null;}}
+async function accDelCloud(id){if(!ACC.db)return;const m=ACC.cloud[id];const base='data/users/'+ACC.uid+'/save';try{await ACC.db.doc(`${base}/chars/${id}`).delete();for(let i=0;i<((m&&m.parts)||1);i++)await ACC.db.doc(`${base}/parts/${id}_${i}`).delete();}catch(e){}delete ACC.cloud[id];}
 // kết nối tài khoản claude.ai (nếu trang mở trên claude.ai)
 (async function accInit(){try{if(!window.claude||!window.claude.use)return;const user=await window.claude.use('user');if(!user)return;const db=await window.claude.use('db');ACC.user=user;
     try{ACC.uid=await user.id();const me=await user.me();ACC.name=(me&&me.name)||'';}catch(e){}if(!db||!ACC.uid){accRefresh();return;}ACC.db=db;
-    const tm=setTimeout(()=>{ACC.ready=true;accRefresh();},10000);const q=await db.collection('data/users/'+ACC.uid+'/chars').get();clearTimeout(tm);(q.docs||[]).forEach(d=>{ACC.cloud[d.id]=d.data();});
+    const tm=setTimeout(()=>{ACC.ready=true;accRefresh();},10000);const q=await db.collection('data/users/'+ACC.uid+'/save'+'/chars').get();clearTimeout(tm);(q.docs||[]).forEach(d=>{ACC.cloud[d.id]=d.data();});
     ACC.ready=true;accRefresh();}catch(e){console.warn('tài khoản',e);ACC.ready=true;accRefresh();}})();
 function accRefresh(){if(document.querySelector('.ov-card.acc'))uiStart({cont:true});}
 function accChars(){const L=slotsLocal(),out={};for(const id in L)out[id]=Object.assign({id,where:'local'},L[id]);for(const id in ACC.cloud){const c=ACC.cloud[id];if(!out[id]||(c.ts||0)>(out[id].ts||0)+5000)out[id]=Object.assign({id,where:out[id]?'both':'cloud'},c);else out[id].where='both';}

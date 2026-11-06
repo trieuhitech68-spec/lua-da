@@ -267,6 +267,231 @@ function texCanvas(kind){if(TEXC[kind])return TEXC[kind];const N=128,cv=mkCanvas
   else if(kind==='asphalt'){for(let i=0;i<500;i++){c.fillStyle=R()<.5?dk(.08):lt(.06);c.fillRect(R()*N,R()*N,1.5,1.5);}}
   else if(kind==='rice'){for(let y=4;y<N;y+=8)for(let x=(y%16?4:0);x<N;x+=8){c.strokeStyle='rgba(40,90,20,.5)';c.lineWidth=1.2;c.beginPath();c.moveTo(x,y+3);c.lineTo(x-1,y-3);c.moveTo(x,y+3);c.lineTo(x+2,y-2);c.stroke();}}
   TEXC[kind]=cv;return cv;}
+/* ===================== MÁY CHỦ RIÊNG CHO BẢN WEB (lanhdia.app) =====================
+   Trên claude.ai trang đã có sẵn window.claude.use('user'|'db'|'room'). Ở nơi khác (lanhdia.app) không có,
+   nên tệp này dựng một window.claude.use() giống hệt, chạy bằng Supabase (đăng nhập email + kho dữ liệu + phòng thời gian thực),
+   để account.js, mp.js, realm.js, creator.js chạy nguyên như cũ.
+   - Cấu hình: window.LD_SUPA = {url, key} (key là "publishable key" — công khai theo thiết kế; KHÔNG BAO GIỜ dùng khóa secret / service_role).
+   - Bảng `docs(path, owner, coll, data)` + luật RLS: xem supabase_setup.sql.
+   - Chưa đăng nhập: use() chờ; đăng nhập xong mới trả về; chọn "Chơi ngoại tuyến" thì trả về null (game tự chơi trên máy).
+   - Mở tệp trên máy (file://): không làm gì cả (chơi như cũ). */
+window.LD_SUPA=window.LD_SUPA||{
+  url:'https://xadzlwhovydkgegageek.supabase.co',
+  key:'sb_publishable_nUlN2MCtZVDR5c7H9yNEPQ_TfM_42D3',   // Project Settings → API Keys: "Publishable key" (sb_publishable_…) hoặc khóa cũ "anon public" — KHÔNG dùng secret / service_role
+  google:false // true khi đã bật Google trong Authentication → Providers
+};
+const LDB={mode:'off',cfg:null,configured:false,sb:null,uid:null,name:'',email:'',peer:'',gate:null,gateR:null,user:null,db:null,room:null,
+  ls:new Set(),rt:new Map(),delCh:null,resyncT:0,names:new Map()};
+const LDB_LIB=['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js','https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.js'];
+const LDB_SEG=/^[A-Za-z0-9_.:@+~-]{1,128}$/,LDB_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,LDB_ROOM='lanhdia-room';
+(function ldbMode(){const c=window.LD_SUPA||{};LDB.cfg=c;
+  LDB.configured=typeof c.url==='string'&&/^https?:\/\/[^\s/]+/.test(c.url)&&typeof c.key==='string'&&c.key.length>20&&!/YOUR|xxx/i.test(c.key+c.url)&&!/^sb_secret_/.test(c.key);
+  if(window.claude){LDB.mode='claude';return;}
+  // chỉ trang mở qua mạng (lanhdia.app, localhost…) mới dùng máy chủ; tệp mở trên máy (file://) chơi như cũ, trừ khi kiểm thử bật LD_FORCE_LOGIN
+  if(/^https?:$/.test(location.protocol)||window.LD_FORCE_LOGIN)LDB.mode='web';
+  if(LDB.mode!=='web')return;
+  LDB.peer=Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
+  LDB.gate=new Promise(r=>{LDB.gateR=r;});
+  const use=async n=>{const ok=await LDB.gate;if(!ok)return null;return n==='user'?LDB.user:n==='db'?LDB.db:n==='room'?LDB.room:null;};
+  window.claude=Object.freeze({use});})();
+const ldbTO=(p,ms,code)=>Promise.race([p,new Promise((_,rj)=>setTimeout(()=>rj({code:code||'unavailable',message:'hết thời gian chờ máy chủ'}),ms))]);
+const ldbClone=v=>v===undefined?undefined:JSON.parse(JSON.stringify(v));
+function ldbErr(e){if(e&&typeof e.code==='string'&&/^[a-z_]+$/.test(e.code)&&!e.details&&!e.hint)return e;const c=String(e&&e.code||''),m=String(e&&e.message||e||'');
+  if(/ld_quota/.test(m))return {code:'quota_exceeded',message:m};
+  if(c==='42501'||c==='PGRST301'||/row-level security|permission denied|JWT/i.test(m))return {code:'invalid_argument',message:'không có quyền: '+m};
+  if(/^(22|23|42)/.test(c)||c==='PGRST116'||c==='PGRST102')return {code:'invalid_argument',message:m};
+  return {code:'unavailable',message:m};}
+// gọi máy chủ: {data,error} → data, lỗi → {code,message} theo db.d.ts
+async function ldbQ(p,ms){let r;try{r=await ldbTO(Promise.resolve(p),ms||15000);}catch(e){throw ldbErr(e);}if(r&&r.error)throw ldbErr(r.error);return r?r.data:null;}
+/* ---------- tải thư viện (chỉ ở bản web), tạo kết nối ---------- */
+function ldbScript(src,ms){return new Promise((res,rj)=>{const s=document.createElement('script');s.src=src;s.async=true;s.crossOrigin='anonymous';
+  const t=setTimeout(()=>{s.remove();rj(new Error('timeout'));},ms);s.onload=()=>{clearTimeout(t);res();};s.onerror=()=>{clearTimeout(t);s.remove();rj(new Error('load'));};document.head.appendChild(s);});}
+LDB.init=async function(){if(LDB.sb)return LDB.sb;if(!LDB.configured)throw {code:'config',message:'Máy chủ chưa được cấu hình'};
+  for(const u of LDB_LIB){if(window.supabase&&window.supabase.createClient)break;try{await ldbScript(u,15000);}catch(e){console.warn('tải thư viện máy chủ',u,e&&e.message);}}
+  if(!(window.supabase&&window.supabase.createClient))throw {code:'cdn',message:'Không tải được thư viện máy chủ'};
+  LDB.sb=window.supabase.createClient(LDB.cfg.url,LDB.cfg.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'ld-auth',flowType:'implicit'},
+    realtime:{params:{eventsPerSecond:20}}});
+  return LDB.sb;};
+LDB.session=async function(){const sb=await LDB.init();const r=await ldbTO(sb.auth.getSession(),12000).catch(()=>({data:{session:null}}));return r&&r.data&&r.data.session||null;};
+/* ---------- tên hiển thị ---------- */
+function ldbCleanName(n){return String(n||'').replace(/[\u0000-\u001f\u007f-\u009f­​-‏‪-‮⁠-⁯﻿<>"\\\/@]/g,'').replace(/\s+/g,' ').trim().slice(0,24).trim();}
+LDB.nameFree=async function(n){try{const sb=await LDB.init();const r=await ldbTO(sb.rpc('ld_name_free',{n}),8000);return r.error?null:!!r.data;}catch(e){return null;}};
+/* ---------- đăng nhập / đăng ký (login.js gọi) ---------- */
+function ldbAuthMsg(e){const m=String(e&&(e.message||e.msg||e.error_description)||e||''),st=e&&e.status;
+  if(/invalid login credentials/i.test(m))return 'Sai email hoặc mật khẩu.';
+  if(/email not confirmed/i.test(m))return 'Email chưa được xác nhận. Mở thư xác nhận (xem cả mục Spam/Quảng cáo) rồi đăng nhập lại.';
+  if(/already registered|already been registered|user already exists/i.test(m))return 'Email này đã có tài khoản. Hãy đăng nhập.';
+  if(/password should be|password.*(at least|characters)|weak/i.test(m))return 'Mật khẩu cần ít nhất 6 ký tự (nên dài hơn, có cả chữ và số).';
+  if(/invalid.*email|email.*invalid|unable to validate email/i.test(m))return 'Email không hợp lệ.';
+  if(st===429||/rate limit|too many|security purposes/i.test(m))return 'Bạn thử quá nhiều lần. Đợi vài phút rồi thử lại.';
+  if(/signups? not allowed|signup is disabled/i.test(m))return 'Máy chủ đang tạm khóa đăng ký mới.';
+  if(/provider is not enabled|unsupported provider/i.test(m))return 'Cách đăng nhập này chưa được bật trên máy chủ.';
+  if(/failed to fetch|network|load failed|timeout|hết thời gian/i.test(m)||st===0)return 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.';
+  return 'Có lỗi: '+m.slice(0,140);}
+LDB.signIn=async function(email,pw){const sb=await LDB.init();const r=await ldbTO(sb.auth.signInWithPassword({email,password:pw}),20000).catch(e=>({error:e}));
+  if(r.error)throw {msg:ldbAuthMsg(r.error)};return r.data.session;};
+LDB.signUp=async function(email,pw,name){const sb=await LDB.init();const r=await ldbTO(sb.auth.signUp({email,password:pw,options:{data:{name},emailRedirectTo:location.origin+location.pathname}}),20000).catch(e=>({error:e}));
+  if(r.error)throw {msg:ldbAuthMsg(r.error)};const d=r.data||{};
+  // Supabase trả về người dùng "giả" (không có identities) khi email đã đăng ký mà đang bật xác nhận email
+  if(d.user&&Array.isArray(d.user.identities)&&!d.user.identities.length)throw {msg:'Email này đã có tài khoản. Hãy đăng nhập.'};
+  return d.session||null;};
+LDB.reset=async function(email){const sb=await LDB.init();const r=await ldbTO(sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname}),20000).catch(e=>({error:e}));if(r.error)throw {msg:ldbAuthMsg(r.error)};};
+LDB.newPassword=async function(pw){const sb=await LDB.init();const r=await ldbTO(sb.auth.updateUser({password:pw}),20000).catch(e=>({error:e}));if(r.error)throw {msg:ldbAuthMsg(r.error)};};
+LDB.google=async function(){const sb=await LDB.init();const r=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}}).catch(e=>({error:e}));if(r&&r.error)throw {msg:ldbAuthMsg(r.error)};};
+LDB.signOut=async function(){try{for(const ch of LDB.rt.values())try{LDB.sb.removeChannel(ch.ch);}catch(e){}if(LDB.sb)await ldbTO(LDB.sb.auth.signOut(),6000);}catch(e){try{localStorage.removeItem('ld-auth');}catch(er){}}};
+LDB.onRecovery=null;
+// vào game: lấy tên, dựng user/db/room, mở cổng cho use()
+LDB.enter=async function(session){const sb=LDB.sb,u=session.user;LDB.uid=u.id;LDB.email=u.email||'';
+  let name='';try{const p=await ldbQ(sb.from('profiles').select('name').eq('id',u.id).maybeSingle(),8000);name=p&&p.name||'';}catch(e){}
+  if(!name){const md=u.user_metadata||{};name=ldbCleanName(md.name||md.full_name||(u.email||'').split('@')[0])||'Người chơi';}
+  LDB.name=name;LDB.names.set(u.id,name);try{localStorage.setItem('ld-last-uid',u.id);}catch(e){}
+  LDB.user=ldbUserNS();LDB.db=ldbDbNS();LDB.room=ldbRoomNS('');
+  sb.auth.onAuthStateChange((ev,s)=>{if(ev==='SIGNED_OUT'&&LDB.uid&&!LDB.leaving){LDB.uid=null;try{uiToast('Phiên đăng nhập đã hết. Tải lại trang để đăng nhập lại.','bad');}catch(e){}}});
+  LDB.gateR(true);};
+LDB.offline=function(){if(LDB.gateR)LDB.gateR(false);};
+/* ---------- user ---------- */
+const LDB_COL=['#e5532c','#f2c55a','#5aa0e6','#7ac46a','#b06ad8','#e66aa8','#4ac0b8','#d89a5a'];
+const ldbColOf=id=>{let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))|0;return LDB_COL[Math.abs(h)%LDB_COL.length];};
+function ldbUserNS(){const prof=(id,name)=>({id,name:name||'',avatarUrl:'',color:ldbColOf(id),email:id===LDB.uid?LDB.email:null,isMe:id===LDB.uid,guest:false});
+  return Object.freeze({
+    id:async()=>LDB.uid,isOwner:async()=>false,canEdit:async()=>!!LDB.uid,can:async()=>!!LDB.uid,
+    me:async()=>({id:LDB.uid,name:LDB.name,avatarUrl:'',color:ldbColOf(LDB.uid),email:LDB.email||null,isOwner:false,canEdit:true}),
+    name:async()=>LDB.name,avatarUrl:async()=>null,email:async()=>LDB.email||null,search:async()=>[],
+    profiles:async function(ids){ids=[...new Set([].concat(ids||[]).filter(i=>typeof i==='string'))];const out={},need=[];
+      for(const id of ids){if(LDB.names.has(id))out[id]=prof(id,LDB.names.get(id));else if(LDB_UUID.test(id))need.push(id);}
+      for(let i=0;i<need.length;i+=100){const part=need.slice(i,i+100);const rows=await ldbQ(LDB.sb.from('profiles').select('id,name').in('id',part),12000);
+        for(const r of rows||[]){if(r&&typeof r.name==='string'){LDB.names.set(r.id,r.name);out[r.id]=prof(r.id,r.name);}}}
+      return out;}});}
+/* ---------- db: tài liệu & bộ sưu tập trên bảng docs ---------- */
+function ldbPath(p,coll){if(typeof p!=='string'||p.length>400)throw new TypeError('đường dẫn không hợp lệ');const s=p.split('/');
+  if(!s.every(x=>LDB_SEG.test(x)))throw new TypeError('đường dẫn không hợp lệ: '+p);if((s.length%2===1)!==coll)throw new TypeError((coll?'bộ sưu tập':'tài liệu')+' sai số đoạn: '+p);return p;}
+const ldbParent=p=>p.slice(0,p.lastIndexOf('/')),ldbId=p=>p.slice(p.lastIndexOf('/')+1);
+function ldbData(d){if(!d||typeof d!=='object'||Array.isArray(d))throw {code:'invalid_argument',message:'dữ liệu phải là một đối tượng'};const s=JSON.stringify(d);
+  if(s.length>500000)throw {code:'invalid_argument',message:'tài liệu quá lớn'};return JSON.parse(s);}
+function ldbMerge(a,b){const o=Object.assign({},a);for(const k in b){const v=b[k];o[k]=v&&typeof v==='object'&&!Array.isArray(v)&&o[k]&&typeof o[k]==='object'&&!Array.isArray(o[k])?ldbMerge(o[k],v):v;}return o;}
+const LDB_MD=Object.freeze({fromCache:false,hasPendingWrites:false});
+function ldbDS(path,data){const ex=data!==undefined&&data!==null,j=ex?JSON.stringify(data):'';return Object.freeze({id:ldbId(path),exists:ex,data:()=>ex?JSON.parse(j):undefined,metadata:LDB_MD});}
+async function ldbGet(path){const r=await ldbQ(LDB.sb.from('docs').select('data').eq('path',path).maybeSingle());return r?r.data:null;}
+async function ldbSet(path,data){await ldbQ(LDB.sb.from('docs').upsert({path,data},{onConflict:'path'}));ldbLocal(path,data);}
+async function ldbDel(path){await ldbQ(LDB.sb.from('docs').delete().eq('path',path));ldbLocal(path,null);}
+async function ldbAcquire(path,o){o=o||{};const holder=String(o.holder||LDB.uid||'').slice(0,128),ttl=Math.max(500,Math.min(60000,+o.ttlMs||30000));
+  const r=await ldbQ(LDB.sb.rpc('ld_acquire',{p_path:path,p_holder:holder,p_ttl_ms:ttl}));return r&&typeof r==='object'?{acquired:!!r.acquired,version:r.version,expiresAt:r.expiresAt,holder:r.holder}:{acquired:false};}
+function ldbDoc(path){ldbPath(path,false);return Object.freeze({id:ldbId(path),path,
+  get:()=>ldbGet(path).then(d=>ldbDS(path,d)),
+  set:async d=>ldbSet(path,ldbData(d)),
+  update:async d=>{const x=ldbData(d);const cur=await ldbGet(path);if(!cur)throw {code:'invalid_argument',message:'tài liệu chưa có: '+path};await ldbSet(path,ldbData(ldbMerge(cur,x)));},
+  delete:async()=>ldbDel(path),
+  acquire:o=>ldbAcquire(path,o),
+  onSnapshot:(next,err)=>ldbListen({kind:'doc',path,next,err}),
+  collection:p=>ldbColl(path+'/'+p)});}
+const LDB_OPS=new Set(['==','!=','<','<=','>','>=','in','not-in','array-contains']);
+function ldbQuery(coll,w,ord,lim){return Object.freeze({
+  where:(f,op,v)=>{if(typeof f!=='string'||!LDB_OPS.has(op))throw new TypeError('điều kiện không hợp lệ');return ldbQuery(coll,w.concat([[f,op,v]]),ord,lim);},
+  orderBy:(f,dir)=>ldbQuery(coll,w,[f,dir==='desc'?'desc':'asc'],lim),
+  limit:n=>ldbQuery(coll,w,ord,Math.max(1,Math.min(1000,n|0))),
+  get:async()=>{const L={kind:'q',coll,w,ord,lim,map:new Map()};await ldbFetch(L);return ldbQS(L,null).snap;},
+  onSnapshot:(next,err)=>ldbListen({kind:'q',coll,w,ord,lim,next,err})});}
+function ldbColl(path){ldbPath(path,true);return Object.freeze(Object.assign({},ldbQuery(path,[],null,0),{path,
+  doc:id=>ldbDoc(path+'/'+(id||(Date.now().toString(36)+Math.random().toString(36).slice(2,12)))),
+  add:async d=>{const r=ldbDoc(path+'/'+Date.now().toString(36)+Math.random().toString(36).slice(2,12));await r.set(d);return r;}}));}
+function ldbDbNS(){return Object.freeze({doc:ldbDoc,collection:ldbColl});}
+// điều kiện lọc chạy ở máy (và một phần ở máy chủ khi được)
+const ldbField=(d,f)=>f.split('.').reduce((o,k)=>o&&typeof o==='object'?o[k]:undefined,d);
+const ldbEq=(a,b)=>a===b||JSON.stringify(a)===JSON.stringify(b);
+function ldbMatch(d,w){for(const [f,op,v] of w){const x=ldbField(d,f);
+    if(op==='=='){if(!ldbEq(x,v))return false;}else if(op==='!='){if(x===undefined||ldbEq(x,v))return false;}
+    else if(op==='in'){if(!Array.isArray(v)||!v.some(y=>ldbEq(x,y)))return false;}else if(op==='not-in'){if(x===undefined||!Array.isArray(v)||v.some(y=>ldbEq(x,y)))return false;}
+    else if(op==='array-contains'){if(!Array.isArray(x)||!x.some(y=>ldbEq(y,v)))return false;}
+    else{if(x===undefined||x===null||typeof x!==typeof v)return false;if(op==='<'&&!(x<v)||op==='<='&&!(x<=v)||op==='>'&&!(x>v)||op==='>='&&!(x>=v))return false;}}return true;}
+async function ldbFetch(L){if(L.kind==='doc'){const d=await ldbGet(L.path);L.map=new Map(d?[[L.path,JSON.stringify(d)]]:[]);return;}
+  let q=LDB.sb.from('docs').select('path,data').eq('coll',L.coll);let exact=!L.ord;
+  for(const [f,op,v] of L.w){if(op==='=='&&/^[A-Za-z0-9_]{1,64}$/.test(f)&&(typeof v==='string'||typeof v==='number'||typeof v==='boolean'))q=q.eq('data->>'+f,String(v));else exact=false;}
+  q=q.order('path',{ascending:true}).limit(exact&&L.lim?L.lim:1000);
+  const rows=await ldbQ(q,20000);const m=new Map();for(const r of rows||[])if(r&&r.data&&ldbMatch(r.data,L.w))m.set(r.path,JSON.stringify(r.data));L.map=m;}
+function ldbQS(L,prev){let E=[...L.map].map(([p,j])=>({p,j,d:JSON.parse(j)}));
+  if(L.ord){const [f,dir]=L.ord,s=dir==='desc'?-1:1;E.sort((a,b)=>{const x=ldbField(a.d,f),y=ldbField(b.d,f);if(x===undefined&&y===undefined)return a.p<b.p?-1:1;if(x===undefined)return 1;if(y===undefined)return -1;return (x<y?-1:x>y?1:(a.p<b.p?-1:1))*s;});}
+  else E.sort((a,b)=>a.p<b.p?-1:a.p>b.p?1:0);if(L.lim)E=E.slice(0,L.lim);
+  const docs=E.map(e=>ldbDS(e.p,e.d)),idx=new Map(E.map((e,i)=>[e.p,i])),pj=prev?prev.j:new Map(),pi=prev?prev.i:new Map();
+  const ch=[];for(const [p,i] of pi)if(!idx.has(p))ch.push({type:'removed',doc:ldbDS(p,JSON.parse(pj.get(p))),oldIndex:i,newIndex:-1});
+  E.forEach((e,i)=>{if(!pi.has(e.p))ch.push({type:'added',doc:docs[i],oldIndex:-1,newIndex:i});else if(pj.get(e.p)!==e.j||pi.get(e.p)!==i)ch.push({type:'modified',doc:docs[i],oldIndex:pi.get(e.p),newIndex:i});});
+  const snap=Object.freeze({docs,size:docs.length,empty:!docs.length,docChanges:()=>ch.slice(),metadata:LDB_MD});
+  return {snap,j:new Map(E.map(e=>[e.p,e.j])),i:idx,key:E.map(e=>e.p+'\u0001'+e.j).join('\u0002')};}
+function ldbEmit(L){if(L.dead)return;if(L.kind==='doc'){const j=L.map.get(L.path)||'';if(L.sent&&L.last===j)return;L.sent=true;L.last=j;try{L.next(ldbDS(L.path,j?JSON.parse(j):null));}catch(e){console.warn('máy chủ: nghe',e);}return;}
+  const r=ldbQS(L,L.prev);if(L.sent&&r.key===L.prevKey)return;L.sent=true;L.prev=r;L.prevKey=r.key;try{L.next(r.snap);}catch(e){console.warn('máy chủ: nghe',e);}}
+// ghi xong: các bộ nghe trên máy này thấy ngay (như Firestore)
+function ldbLocal(path,data){const coll=ldbParent(path);for(const L of LDB.ls){if(L.dead||!L.ready)continue;
+    if(L.kind==='doc'?L.path!==path:L.coll!==coll)continue;if(data&&(L.kind==='doc'||ldbMatch(data,L.w)))L.map.set(path,JSON.stringify(data));else L.map.delete(path);ldbEmit(L);}}
+// thay đổi từ máy chủ (Realtime postgres_changes)
+function ldbRtEvent(pl){const t=pl&&pl.eventType;if(t==='DELETE'){const p=pl.old&&pl.old.path;if(typeof p==='string')ldbLocalRemote(p,null);return;}
+  const n=pl&&pl.new;if(!n||typeof n.path!=='string')return;if(n.data&&typeof n.data==='object')ldbLocalRemote(n.path,n.data);else ldbRefetchFor(n.path);}
+function ldbLocalRemote(path,data){const coll=ldbParent(path);for(const L of LDB.ls){if(L.dead||!L.ready)continue;if(L.kind==='doc'?L.path!==path:L.coll!==coll)continue;
+    const j=data?JSON.stringify(data):null;if(data&&(L.kind==='doc'||ldbMatch(data,L.w)))L.map.set(path,j);else L.map.delete(path);ldbEmit(L);}}
+function ldbRefetchFor(path){const coll=ldbParent(path);for(const L of LDB.ls)if(!L.dead&&(L.kind==='doc'?L.path===path:L.coll===coll))ldbRefetch(L);}
+function ldbRefetch(L){if(L.rf)return;L.rf=setTimeout(async()=>{L.rf=null;if(L.dead)return;try{await ldbFetch(L);L.ready=true;ldbEmit(L);}catch(e){}},250);}
+function ldbRtKey(L){return L.kind==='doc'?'path=eq.'+L.path:'coll=eq.'+L.coll;}
+function ldbRtSub(key){let c=LDB.rt.get(key);if(c){c.n++;return;}c={n:1,ch:null,up:false};LDB.rt.set(key,c);
+  const ch=LDB.sb.channel('ld-db-'+key.replace(/[^A-Za-z0-9_.:-]/g,'_')+'-'+Math.random().toString(36).slice(2,6));c.ch=ch;
+  ch.on('postgres_changes',{event:'*',schema:'public',table:'docs',filter:key},ldbRtEvent);
+  ch.subscribe(st=>{if(st==='SUBSCRIBED'){if(c.up){for(const L of LDB.ls)if(!L.dead&&ldbRtKey(L)===key)ldbRefetch(L);}c.up=true;}});
+  if(!LDB.delCh){LDB.delCh=LDB.sb.channel('ld-db-del-'+Math.random().toString(36).slice(2,6));LDB.delCh.on('postgres_changes',{event:'DELETE',schema:'public',table:'docs'},ldbRtEvent).subscribe();}
+  if(!LDB.resyncT)LDB.resyncT=setInterval(()=>{if(document.hidden)return;for(const L of LDB.ls)if(!L.dead&&L.kind==='q')ldbRefetch(L);},120000);}
+function ldbRtUnsub(key){const c=LDB.rt.get(key);if(!c)return;if(--c.n>0)return;LDB.rt.delete(key);try{LDB.sb.removeChannel(c.ch);}catch(e){}}
+function ldbListen(L){if(typeof L.next!=='function')throw new TypeError('cần hàm nhận');if(L.kind==='doc')ldbPath(L.path,false);L.map=new Map();LDB.ls.add(L);const key=ldbRtKey(L);
+  try{ldbRtSub(key);}catch(e){console.warn('máy chủ: realtime',e);}
+  (async()=>{for(let k=0;k<3&&!L.dead;k++){try{await ldbFetch(L);L.ready=true;ldbEmit(L);return;}catch(e){if(k===2||e.code!=='unavailable'){if(L.err&&!L.dead)try{L.err(e);}catch(er){}return;}await new Promise(r=>setTimeout(r,1500*(k+1)));}}})();
+  return ()=>{if(L.dead)return;L.dead=true;LDB.ls.delete(L);if(L.rf)clearTimeout(L.rf);ldbRtUnsub(key);};}
+/* ---------- room: kênh Realtime "lanhdia-room" (presence = ai đang ở đây, broadcast = vị trí + chủ đề) ---------- */
+const LDB_PEER=/^[a-z0-9]{6,32}$/,LDB_ID=/^[A-Za-z0-9_\-.:@+~]{1,128}$/;
+function ldbRoomNS(name){const R={name,peers:new Map(),mine:{},seq:0,ch:null,ready:null,conn:false,hp:new Set(),ht:new Map(),hc:new Set(),pend:null,lastB:0,bT:null,lastT:0,pruneT:null,joinedOnce:false};
+  const topic=name?LDB_ROOM+':'+name:LDB_ROOM;
+  const self=()=>({peer:LDB.peer,by:LDB.uid,isMe:true,sameTab:true,kind:'viewer',guest:false,presence:Object.freeze(Object.assign({},R.mine)),updatedAt:R.myAt||Date.now()});
+  const mkPeer=(peer,by,pres,at)=>({peer,by,isMe:by===LDB.uid,sameTab:false,kind:'viewer',guest:false,presence:Object.freeze(pres),updatedAt:at});
+  function change(kind,p){if(!R.pend){R.pend={joined:[],left:[],updated:[]};queueMicrotask(flush);}R.pend[kind].push(p);}
+  function flush(){const c=R.pend;R.pend=null;if(!c)return;const peers=list();const ev={peers,joined:c.joined,left:c.left,updated:c.updated};for(const h of [...R.hp])try{h(ev);}catch(e){console.warn('phòng: onPeers',e);}}
+  function list(){const L=[self()];for(const p of R.peers.values())L.push(p.o);return Object.freeze(L);}
+  function okPres(o){if(!o||typeof o!=='object'||Array.isArray(o))return null;try{if(JSON.stringify(o).length>4096)return null;}catch(e){return null;}return o;}
+  function upsert(peer,by,pres,seq,fromP){if(peer===LDB.peer||!LDB_PEER.test(peer)||!LDB_ID.test(by))return;const now=Date.now();let e=R.peers.get(peer);
+    if(!e){e={seq:-1,at:now,o:null,by};R.peers.set(peer,e);e.o=mkPeer(peer,by,okPres(pres)||{},now);e.seq=seq|0;e.lastP=fromP?now:0;change('joined',e.o);return;}
+    if(fromP)e.lastP=now;if(e.by!==by)return;const s=seq|0;if(pres&&s>e.seq){const ok=okPres(pres);if(!ok)return;e.seq=s;e.at=now;e.o=mkPeer(peer,by,ok,now);change('updated',e.o);}}
+  function drop(peer){const e=R.peers.get(peer);if(!e)return;R.peers.delete(peer);change('left',e.o);}
+  function onSync(){if(!R.ch)return;const st=R.ch.presenceState()||{},seen=new Set();
+    for(const k in st){const m=(st[k]||[])[0];if(!m||typeof m!=='object')continue;seen.add(k);upsert(k,m.by,m.p,m.s,false);}
+    const now=Date.now();for(const [k,e] of R.peers)if(!seen.has(k)&&now-(e.lastP||0)>30000)drop(k);}
+  function onLeave(x){for(const m of (x&&x.leftPresences)||[]){const k=m&&m.presence_ref&&x.key;if(k&&R.peers.has(k)){const e=R.peers.get(k);if(Date.now()-(e.lastP||0)>2500)drop(k);}}}
+  function onJoin(x){if(x&&x.key&&x.key!==LDB.peer&&R.hasMine)sendState(true);}
+  function onP(m){const p=m&&m.payload;if(!p||typeof p!=='object'||typeof p.peer!=='string'||typeof p.by!=='string')return;upsert(p.peer,p.by,p.p,p.s,true);}
+  function onMsg(m){const p=m&&m.payload;if(!p||typeof p!=='object'||typeof p.topic!=='string'||typeof p.peer!=='string'||!LDB_ID.test(String(p.by)))return;deliver(p,false);}
+  function deliver(p,mine){const H=R.ht.get(p.topic);if(!H||!H.size)return;const msg=Object.freeze({topic:p.topic,data:p.data===undefined?undefined:ldbClone(p.data),peer:p.peer,by:p.by,isMe:p.by===LDB.uid,sameTab:mine,kind:'viewer',guest:false});
+    for(const h of [...H])try{h(msg);}catch(e){console.warn('phòng: on',e);}}
+  function setConn(c){if(c===R.conn)return;R.conn=c;for(const h of [...R.hc])try{h(c);}catch(e){}}
+  function ensure(){if(R.ready)return R.ready;const ch=LDB.sb.channel(topic,{config:{presence:{key:LDB.peer},broadcast:{self:false,ack:false}}});R.ch=ch;
+    ch.on('presence',{event:'sync'},onSync).on('presence',{event:'join'},onJoin).on('presence',{event:'leave'},onLeave)
+      .on('broadcast',{event:'p'},onP).on('broadcast',{event:'m'},onMsg);
+    R.ready=new Promise(res=>{ch.subscribe(st=>{if(st==='SUBSCRIBED'){setConn(true);R.joinedOnce=true;track(true);if(R.hasMine)sendState(true);res();}else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED')setConn(false);});});
+    R.pruneT=setInterval(()=>{const now=Date.now();let st={};try{st=ch.presenceState()||{};}catch(e){}for(const [k,e] of R.peers)if(!st[k]&&now-(e.lastP||0)>45000)drop(k);},15000);
+    queueMicrotask(()=>{change('joined',self());});return R.ready;}
+  // presence của Supabase nặng: chỉ "ghi danh" thưa (≤ 1 lần/10 giây); vị trí gửi bằng broadcast (≤ 1 lần/0,35 giây)
+  function track(force){if(!R.ch||!R.conn)return;const now=Date.now();if(!force&&now-R.lastT<10000)return;R.lastT=now;R.ch.track({by:LDB.uid,p:R.mine,s:R.seq}).catch(()=>{});}
+  function sendState(now){if(!R.ch||!R.conn)return;const go=()=>{R.bT=null;R.lastB=Date.now();R.ch.send({type:'broadcast',event:'p',payload:{peer:LDB.peer,by:LDB.uid,p:R.mine,s:R.seq}}).catch(()=>{});track(false);};
+    const wait=350-(Date.now()-R.lastB);if(now&&wait<=0){if(R.bT){clearTimeout(R.bT);}go();return;}if(!R.bT)R.bT=setTimeout(go,Math.max(0,wait));}
+  const api={name,
+    presence:async patch=>{if(!patch||typeof patch!=='object'||Array.isArray(patch))throw {code:'invalid_argument',message:'presence cần một đối tượng'};const m=Object.assign({},R.mine);
+      for(const k in patch){if(patch[k]===null)delete m[k];else m[k]=ldbClone(patch[k]);}if(JSON.stringify(m).length>4096)throw {code:'invalid_argument',message:'presence quá 4 KiB'};
+      R.mine=m;R.seq++;R.myAt=Date.now();R.hasMine=true;ensure();change('updated',self());sendState(true);},
+    peers:()=>list(),
+    onPeers:(h,err)=>{R.hp.add(h);ensure();queueMicrotask(()=>{if(R.hp.has(h))try{h({peers:list(),joined:list(),left:[],updated:[]});}catch(e){}});return ()=>{R.hp.delete(h);};},
+    emit:async(topic,data)=>{if(typeof topic!=='string'||!/^[A-Za-z0-9_.:-]{1,64}$/.test(topic))throw {code:'invalid_argument',message:'chủ đề không hợp lệ'};
+      const d=data===undefined?undefined:ldbClone(data);if(JSON.stringify(d===undefined?null:d).length>4096)throw {code:'invalid_argument',message:'tin quá 4 KiB'};
+      await ldbTO(ensure(),15000,'upstream_error');const p={topic,data:d,peer:LDB.peer,by:LDB.uid};const r=await R.ch.send({type:'broadcast',event:'m',payload:p});
+      if(r&&r!=='ok')throw {code:r==='rate limited'?'rate_limited':'upstream_error',message:String(r)};deliver(p,true);},
+    on:(topic,h,err)=>{let H=R.ht.get(topic);if(!H){H=new Set();R.ht.set(topic,H);}H.add(h);ensure();return ()=>{H.delete(h);};},
+    connected:()=>R.conn,
+    onConnection:(h)=>{R.hc.add(h);ensure();queueMicrotask(()=>{if(R.hc.has(h))try{h(R.conn);}catch(e){}});return ()=>{R.hc.delete(h);};},
+    sendToClaudeSession:async()=>{throw {code:'claude_unavailable',message:'không có trên bản web'};},canSendToClaudeSession:async()=>'unsupported'};
+  if(!name){api.join=async n=>{if(typeof n!=='string'||!/^[A-Za-z0-9_-]{1,64}$/.test(n))throw {code:'invalid_argument',message:'tên phòng không hợp lệ'};return ldbRoomNS(n);};}
+  else api.leave=async()=>{clearInterval(R.pruneT);if(R.ch){try{await R.ch.untrack();}catch(e){}try{LDB.sb.removeChannel(R.ch);}catch(e){}}R.ch=null;R.ready=null;setConn(false);};
+  addEventListener('pagehide',()=>{try{if(R.ch)R.ch.untrack();}catch(e){}});
+  return Object.freeze(api);}
 /* ===================== DỮ LIỆU: VẬT PHẨM, TÀI NGUYÊN, CHẾ TẠO, XÂY DỰNG, CƠ THỂ, MÙA, THÚ VẬT, MỤC TIÊU ===================== */
 /* Đơn vị thế giới: du (nhân vật cao ~36 du, 1 mét ≈ 20 du). Ô xây dựng: 40 du = 2 m. */
 const CELL=40;
@@ -11981,6 +12206,315 @@ try{G.rlLayer=localStorage.getItem('ldtt-rllayer')==='1';}catch(e){}
 .rl-card p{margin:3px 0}.rl-t{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px;align-items:baseline}.rl-cs{display:flex;flex-wrap:wrap;gap:4px;margin:5px 0}
 .rl-c{display:inline-block;font-size:12px;padding:2px 7px;border-radius:9px;margin:1px 3px 1px 0}.rl-c.rich{background:rgba(70,160,70,.3);color:#c8f0b8}.rl-c.poor{background:rgba(190,60,40,.28);color:#ffc0b0;text-decoration:line-through}
 .rl-y{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:4px 0}.rl-good{color:#ffd27a}.rl-bad{color:#ff9a7a}.rl-tr{margin-top:4px}.rl-help summary{cursor:pointer;font-weight:700;margin:8px 0 4px}.rl-card .row{flex-wrap:wrap;gap:6px}`;document.head.appendChild(s);})();
+/* ===================== 📖 BÁCH KHOA: VÙNG ĐẤT · PHÂN BỐ · VẬT PHẨM · MUÔNG THÚ · XÂY DỰNG =====================
+   Sổ tra cứu mở từ Nhật ký, từ nút 📖 trên đầu bảng Bản đồ, hoặc chạm nhãn "đây là gì" (peek) có dấu 📖.
+   Dữ liệu lấy thẳng từ thế giới đã sinh: RES (vị trí cây cỏ, đá, quặng), REG (vùng), RLPROF (giàu / nghèo), ANIMALS (vùng, sinh cảnh),
+   H3NODE (tổ chim, ốc, củ…), RECIPES/BUILD (chế tạo, xây). Tính lười một lần khi mở, giữ trong bộ nhớ; không chạy gì mỗi khung hình
+   (chỉ một lượt quét nhỏ 2 giây một lần để ghi "đã gặp" và báo "Đã ghi vào Bách khoa", gộp lại, tối đa một lần mỗi 25 giây).
+   Tôn trọng khám phá: vùng chưa tới hiện "???" kèm lời đồn về hướng, sinh cảnh; bản đồ phân bố chỉ tô chi tiết ở phần đã khám phá.
+   Lưu: S.cxk (khóa đã gặp) — bản lưu cũ không có thì tạo rỗng.
+   GÁN LẠI (bọc, không sửa tệp cũ): uiOpen, journalHtml, exploreTick, uiRegion, peekLabel, peekShow, peekMouse. */
+const CX={dv:'fit',ri:null,d:null,src:null,ent:null,nm:null,rimg:{},dc:{},tab:'reg',reg:null,sel:null,pend:[],toastT:-1e9,scanT:0,quiet:0,last:null};
+const cxNorm=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[đĐ]/g,'d').toLowerCase();
+function cxS(){if(!S.cxk||typeof S.cxk!=='object')S.cxk={};return S.cxk;}
+const CXE_RT={pine:'🌲',pineY:'🌲',pineG:'🌲',oak:'🌳',oakG:'🌳',young:'🌱',birch:'🌳',birchY:'🌱',dead:'🪵',log:'🪵',deadLog:'🪵',savannaTree:'🌳',berry:'🫐',shrub:'🌿',flax:'🌾',reeds:'🌾',reedBed:'🌾',
+  wildgrain:'🌾',gourdwild:'🍐',boulder:'🪨',rock:'🪨',pebble:'🪨',scree:'🪨',pathStone:'🪨',flintRock:'💠',tinRock:'⛏️',copperRock:'🟢',clay:'🟤',mushroom:'🍄',mushroomR:'🍄',stick:'🥢',fern:'🌿',
+  flowerW:'🌼',flowerP:'🌸',flowerY:'🌼',flowerR:'🌺',tallgrass:'🌾',ginger:'🫚',mint:'🌱',centella:'☘️',mugwort:'🌿',turmeric:'🧡',aloe:'🪴',beehive:'🍯',bamboo:'🎋',banana:'🍌',palm:'🌴',lotus:'🪷',
+  bones:'🦴',saltPan:'🧂',shellBed:'🐚'};
+const CXE_AN={rabbit:'🐇',deer:'🦌',boar:'🐗',wolf:'🐺',tiger:'🐅',gaur:'🐃',monkey:'🐒',crocodile:'🐊',snake:'🐍',junglefowl:'🐓',bear:'🐻',raider:'⚔️'};
+const CXE_N={nest:'🪺',snail:'🐌',yam:'🍠',wildrice:'🌾',taro:'🥔'};
+const CXB={water:'mặt nước',beach:'bãi cát',meadow:'đồng cỏ',edge:'bìa rừng',forest:'rừng rậm',bank:'bờ nước, đầm lầy',rock:'đá núi',peak:'đỉnh núi tuyết'};
+const CXDIR={B:'Bắc','ĐB':'Đông Bắc','Đ':'Đông','ĐN':'Đông Nam',N:'Nam',TN:'Tây Nam',T:'Tây',TB:'Tây Bắc'};
+const CXDG=[['An toàn','#8ce07a'],['Ít nguy hiểm','#c8e07a'],['Cẩn thận','#f2c55a'],['Nguy hiểm','#ff9a5a'],['Rất nguy hiểm','#ff5a4a']];
+const CXCAT={tree:'🌲 Cây gỗ',plant:'🌿 Cây cỏ, hoa quả',min:'🪨 Đá, khoáng, đất',an:'🐾 Muông thú',nd:'🪺 Hái lượm khác',it:'📦 Sản vật'};
+const CXAG={never:'Hiền lành: thấy người là chạy.',defend:'Bị đánh mới quay lại húc.',night:'Ban đêm hoặc mùa đông thì tấn công người.',stalk:'Rình mồi: chiều tối, đêm, rạng sáng rất nguy hiểm; ban ngày hay nằm ngủ.',territory:'Giữ lãnh thổ: lại gần là tấn công.'};
+const CXSRC={fish:'Câu bằng cần câu tre, đâm bằng giáo hoặc quăng chài ở sông, hồ, biển. Vùng giàu cá và Vực cá cho nhiều hơn.',waterDirty:'Múc ở sông, suối, hồ bằng bầu rỗng.',
+  birdRaw:'Bắn, ném đá hoặc vồ chim khi chúng sà xuống đất kiếm ăn.',pearl:'Thỉnh thoảng có trong con trai khi mò ở bãi sò (nhiều nhất ở Bãi ngọc trai Vịnh Đá).',sinew:'Xẻ thịt thú lớn (từ 30 kg trở lên).',
+  meatRot:'Thịt sống để lâu sẽ ôi, đừng ăn.',flower:'Hái hoa dại ở đồng hoa, bìa rừng.'};
+const cxM=d=>{const m=d/20;return m>=1000?(m/1000).toFixed(1).replace('.',',')+' km':Math.max(1,Math.round(m))+' m';};
+const cxDir=(x,z)=>CXDIR[rlDir(x,z)]||'';
+function cxRe(t){const D=RT[t];return CXE_RT[t]||(D&&D.yield&&EMO[Object.keys(D.yield)[0]])||'🌿';}
+const CXTE={res:'📦',food:'🍽️',drink:'💧',herb:'🌿',med:'💊',tool:'🛠️',wear:'👕',seed:'🌱',boat:'🛶',sap:'🌱'};
+function cxIc(id){const u=ICO.url[id];return `<span class="ic" data-ic="${id}">${u?`<img src="${u}" alt="" draggable="false">`:`<b>${EMO[id]||(ITEMS[id]&&CXTE[ITEMS[id].t])||'❔'}</b>`}</span>`;}
+function cxChip(id,n){return `<span class="chip">${cxIc(id)}${n!=null?n:''}${n==null&&ITEMS[id]?esc(ITEMS[id].n):''}</span>`;}
+function cxCost(c){return Object.entries(c||{}).filter(([i])=>ITEMS[i]).map(([i,v])=>`<span class="chip" title="${esc(ITEMS[i].n)}">${cxIc(i)}${v}</span>`).join('');}
+function cxRtCat(t){const D=RT[t];if(!D)return 'plant';if(D.tool==='pick'||D.sk==='mine'||/Rock$|^(clay|saltPan|pebble|scree|pathStone|bones|shellBed)$/.test(t))return 'min';if(D.tool==='axe'||D.uproot||/^(log|deadLog|bamboo|palm)$/.test(t))return 'tree';return 'plant';}
+function cxDisc(id){return !!(S.disc&&S.disc[id]);}
+function cxSeenXZ(x,z){const c=WSIZE/FOGN,i=Math.floor((x+WSIZE/2)/c),j=Math.floor((z+WSIZE/2)/c);return i>=0&&j>=0&&i<FOGN&&j<FOGN&&fogSeen(i,j);}
+function cxStName(st){return st?(ST_N[st]||(pieceDef(st)||{}).n||st):'Làm bằng tay';}
+/* ---------- dữ liệu phân bố: lấy mẫu RES một lần vào lưới thô (trùng lưới sương mù 64×64) + đếm theo vùng ---------- */
+function cxD(){const key=(S.seed|0)+'|'+WV+'|'+RES.length+'|'+REG.length;let D=CX.d;if(D&&D.key===key)return D;
+  const N=FOGN,cw=WSIZE/N,H=WSIZE/2,grid={},tot={},byReg={};
+  for(let n=0;n<RES.length;n++){const q=RES[n],t=q.t;if(!RT[t])continue;let g=grid[t];if(!g)g=grid[t]=new Uint16Array(N*N);const i=Math.floor((q.x+H)/cw),j=Math.floor((q.z+H)/cw);
+    if(i>=0&&j>=0&&i<N&&j<N&&g[j*N+i]<65535)g[j*N+i]++;tot[t]=(tot[t]||0)+1;const r=regionAt(q.x,q.z);if(r){const m=byReg[r.id]||(byReg[r.id]={});m[t]=(m[t]||0)+1;}}
+  CX.dc={};return CX.d={key,grid,tot,byReg};}
+/* ---------- hồ sơ một vùng: địa hình, khí hậu, thú, độ nguy hiểm, đồ nên mang ---------- */
+function cxRI(r){const key=(S.seed|0)+'|'+WV+'|'+REG.length;if(!CX.ri||CX.ri.key!==key)CX.ri={key};const D=CX.ri;if(D[r.id])return D[r.id];const bc={};let n=0,hs=0,hn=0,hm=-1e9;
+  const pts=[[0,0]];for(const f of [0.33,0.66,0.92])for(let a=0;a<12;a++)pts.push([Math.cos(a*0.5236+f)*f,Math.sin(a*0.5236+f)*f]);
+  for(const [u,v] of pts){const x=r.x+u*r.r,z=r.z+v*r.r;if(Math.abs(x)>WSIZE/2||Math.abs(z)>WSIZE/2)continue;const b=wdAt(x,z)>0.3?'water':bAt(x,z);bc[b]=(bc[b]||0)+1;n++;const h=hAt(x,z);if(b!=='water'){hs+=h;hn++;}if(h>hm)hm=h;}
+  for(const k in bc)bc[k]/=n||1;const hav=hn?hs/hn:0,wet=(bc.water||0)+(bc.bank||0);
+  const an=[];for(const k in ANIMALS){const A=ANIMALS[k];if(!A.n0||!A.bio||!A.bio.length)continue;const strong=!!(A.reg&&A.reg.includes(r.id));let bf=0;for(const b of A.bio)bf+=bc[b]||0;
+    let lv=strong?2:bf>=0.3?1:0;if(k==='crocodile'&&!strong&&wet<0.12)lv=0;if(r.id==='start'&&A.aggro!=='never')lv=0;if(lv)an.push([k,lv]);}
+  an.sort((a,b)=>b[1]-a[1]||(ANIMALS[b[0]].dmg||0)-(ANIMALS[a[0]].dmg||0));
+  const nd=[];if(typeof H3NODE==='object')for(const k in H3NODE){const N3=H3NODE[k];let f=0;if(N3.water)f=wet>0.08?1:0;else for(const b of N3.bio||[])f+=bc[BCODE[b]]||0;if(f>=0.25)nd.push(k);}
+  let dg=0;for(const [k,lv] of an){const A=ANIMALS[k],dm=A.dmg||0;const w=dm>=20&&A.aggro!=='defend'?1.4:dm>=20?0.6:A.aggro==='night'?0.8:A.aggro==='territory'?0.35:0;dg+=w*(lv===2?1:0.5);}
+  const sites=(typeof RL==='object'&&RL.sites||[]).filter(s=>s.reg===r.id);for(const s of sites)if(s.def.tribe&&RLTRIBE[s.def.tribe]&&RLTRIBE[s.def.tribe].mood<0)dg+=1.5;
+  const cold=hav>280||(bc.peak||0)>0.12,cool=!cold&&hav>170;if(r.id==='camp')dg+=2.5;if(cold)dg+=0.8;if(/chasm|canyon|cliffs|gorge/.test(r.id))dg+=0.6;
+  const lvl=Math.max(0,Math.min(4,Math.round(dg)));
+  const clim=cold?'Lạnh buốt, gió núi; mùa đông tuyết phủ. Cần áo lông thú và lửa.':cool?'Mát, sương mù sớm chiều, đêm lạnh: nên mang áo ấm.':r.id==='hotspring'?'Ấm áp quanh năm nhờ mạch nước nóng, hơi nước bốc nghi ngút.':
+    (bc.beach||0)>0.1?'Gió biển lộng, nắng gắt; nước biển mặn, phải tìm suối.':(bc.forest||0)>0.45?'Nóng ẩm dưới tán rừng, mưa nhiều, muỗi và rắn.':wet>0.3?'Mát mẻ ven nước, sáng sớm có sương; mùa hạ nhiều muỗi.':
+    (bc.meadow||0)>0.45?'Khô thoáng, nắng nhiều; mùa hạ nóng, ít bóng râm.':'Ôn hoà, bốn mùa rõ rệt.';
+  const terr=Object.entries(bc).filter(([,v])=>v>=0.12).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([b,v])=>`${CXB[b]||b} ${Math.round(v*100)}%`).join(', ')+(hav<20?' · thấp, ngang mặt nước':` · cao ~${Math.round(hav/20)} m`);
+  const g=[];if(cold||cool)g.push('furcoat');if(lvl>=3)g.push(ITEMS.bronzeSpear?'bronzeSpear':'spear','bow');else if(lvl>=2)g.push('spear');if(an.some(v=>v[0]==='snake'))g.push('mintwater');
+  if(wet>0.3)g.push('canoe');if(rlLvl(r,'ore')===3||rlLvl(r,'flint')===3)g.push('pick');if(rlLvl(r,'timber')===3)g.push('axe');if(rlLvl(r,'fish')===3)g.push('rod');if(rlLvl(r,'herb')===3)g.push('sickle');
+  const gear=[...new Set(g)].filter(i=>ITEMS[i]).slice(0,6),era=Math.min(AGES.length-1,[0,0,1,2,3][lvl]+(rlLvl(r,'ore')===3&&lvl>=2?1:0));
+  return D[r.id]={bc,hav,an,nd,sites,lvl,clim,terr,gear,era,wet};}
+/* ---------- nguồn gốc & công dụng vật phẩm ---------- */
+function cxSrc(){const sig=Object.keys(ITEMS).length+'|'+RECIPES.length+'|'+BUILD.length;if(CX.src&&CX.src.sig===sig)return CX.src;const g={},u={},add=(o,id,v)=>{(o[id]||(o[id]=[])).push(v);};
+  for(const t in RT){const y=RT[t].yield;if(y)for(const i in y)add(g,i,{k:'rt',t});}
+  if(typeof H3NODE==='object')for(const k in H3NODE)for(const i in H3NODE[k].yield||{})add(g,i,{k:'nd',t:k});
+  for(const k in ANIMALS)for(const i in ANIMALS[k].drop||{})add(g,i,{k:'an',t:k,n:ANIMALS[k].drop[i]});
+  for(const r of RECIPES){for(const i in r.out||{})add(g,i,{k:'rc',r});for(const i in r.in||{})add(u,i,{k:'rc',r});}
+  for(const b of BUILD)for(const i in b.cost||{})add(u,i,{k:'bd',b});
+  if(typeof TRADES==='object')for(const role in TRADES)(TRADES[role]||[]).forEach(([a,b])=>{for(const i in b)add(g,i,{k:'tr',who:((typeof ROLEN==='object'&&ROLEN[role])||role)+' · làng Suối Tây',a,b});});
+  if(typeof RLTRIBE==='object')for(const tid in RLTRIBE)(RLTRIBE[tid].trade||[]).forEach(([a,b])=>{for(const i in b)add(g,i,{k:'tr',who:RLTRIBE[tid].n,a,b});});
+  for(const id in ITEMS){const I=ITEMS[id];if(I.t==='seed'&&I.crop&&ITEMS[I.crop])add(g,I.crop,{k:'farm',s:id});}
+  CX.ent=null;return CX.src={sig,g,u};}
+/* ---------- danh mục để tra phân bố ---------- */
+function cxEntries(){const sg=cxSrc();if(CX.ent&&CX.ent.sig===sg.sig)return CX.ent.L;const L=[];
+  for(const t in RT){if(t==='pathStone')continue;const D=RT[t],ys=Object.keys(D.yield||{}).filter(i=>ITEMS[i]).map(i=>ITEMS[i].n).join(' ');L.push({k:'r:'+t,n:D.n,e:cxRe(t),c:cxRtCat(t),s:cxNorm(D.n+' '+ys)});}
+  for(const k in ANIMALS){const A=ANIMALS[k];if(!A.n0||!A.bio||!A.bio.length)continue;L.push({k:'a:'+k,n:A.n,e:CXE_AN[k]||'🐾',c:'an',s:cxNorm(A.n+' thu')});}
+  if(typeof H3NODE==='object')for(const k in H3NODE){const N3=H3NODE[k];L.push({k:'n:'+k,n:N3.n,e:CXE_N[k]||'🌿',c:'nd',s:cxNorm(N3.n+' '+Object.keys(N3.yield||{}).filter(i=>ITEMS[i]).map(i=>ITEMS[i].n).join(' '))});}
+  for(const id in ITEMS){const s=(sg.g[id]||[]).filter(v=>v.k==='rt'||v.k==='nd');if(s.length)L.push({k:'i:'+id,n:ITEMS[id].n,e:EMO[id]||'❔',c:'it',s:cxNorm(ITEMS[id].n+' san vat')});}
+  CX.ent={sig:sg.sig,L};return L;}
+function cxEntry(k){return cxEntries().find(e=>e.k===k)||null;}
+function cxTypes(key){const p=key[0],id=key.slice(2);if(p==='r')return {rt:[id],nd:[]};if(p==='n')return {rt:[],nd:[id]};if(p==='a')return {rt:[],nd:[],an:id};
+  const s=cxSrc().g[id]||[];return {rt:[...new Set(s.filter(v=>v.k==='rt').map(v=>v.t))],nd:[...new Set(s.filter(v=>v.k==='nd').map(v=>v.t))]};}
+// tổ chim, ốc, củ… sinh theo ô (hunt3): chỉ lấy ô đã khám phá quanh người chơi
+function cxNodes(kinds){const out=[];if(typeof h3cellNodes!=='function'||!kinds.length)return out;const C=typeof H3CELL==='number'?H3CELL:320,R=3600,i0=Math.floor((P.x-R)/C),i1=Math.floor((P.x+R)/C),j0=Math.floor((P.z-R)/C),j1=Math.floor((P.z+R)/C);
+  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const cx=(i+0.5)*C,cz=(j+0.5)*C;if(Math.hypot(cx-P.x,cz-P.z)>R+C||!cxSeenXZ(cx,cz))continue;let L;try{L=h3cellNodes(i,j);}catch(e){continue;}for(const n of L)if(kinds.includes(n.kind))out.push(n);}return out;}
+function cxDist(key){if(CX.dc[key])return CX.dc[key];const D=cxD(),T=cxTypes(key),N=FOGN,cw=WSIZE/N,H=WSIZE/2,cell=new Float32Array(N*N),ts=new Set(T.rt);
+  for(const t of T.rt){const g=D.grid[t];if(!g)continue;for(let n=0;n<N*N;n++)if(g[n])cell[n]+=g[n];}
+  const pts=[];let best=null,bd=1e18;const cand=(x,z,n)=>{const d=(x-P.x)*(x-P.x)+(z-P.z)*(z-P.z);if(d<bd){bd=d;best={x,z,n};}};
+  for(const q of RES){if(!ts.has(q.t))continue;const i=Math.floor((q.x+H)/cw),j=Math.floor((q.z+H)/cw);if(i<0||j<0||i>=N||j>=N||!fogSeen(i,j))continue;if(pts.length<3000)pts.push(q.x,q.z);cand(q.x,q.z,RT[q.t].n);}
+  for(const n of cxNodes(T.nd)){const i=Math.floor((n.x+H)/cw),j=Math.floor((n.z+H)/cw);cell[j*N+i]+=1;pts.push(n.x,n.z);cand(n.x,n.z,H3NODE[n.kind].n);}
+  const live=[];if(T.an)for(const a of (G.animals||[])){if(!a.alive||a.kind!==T.an||!cxSeenXZ(a.x,a.z))continue;live.push(a.x,a.z);cand(a.x,a.z,a.n||ANIMALS[T.an].n);}
+  let mx=0,known=0;for(let n=0;n<N*N;n++){if(!cell[n])continue;if(fogSeen(n%N,(n/N)|0)){known++;if(cell[n]>mx)mx=cell[n];}}
+  const regs=[];for(const r of REG){let c=0;if(T.an){const a=cxRI(r).an.find(v=>v[0]===T.an);c=a?a[1]*8:0;}else{const m=D.byReg[r.id]||{};for(const t of T.rt)c+=m[t]||0;if(T.nd.length&&cxRI(r).nd.some(k=>T.nd.includes(k)))c+=4;}if(c>0)regs.push([r,c]);}
+  regs.sort((a,b)=>b[1]-a[1]);return CX.dc[key]={T,cell,mx,known,pts,live,best:best&&Object.assign(best,{d:Math.sqrt(bd)}),regs};}
+/* ---------- vẽ bản đồ (dùng tranh bản đồ sẵn có; sương mù như bảng Bản đồ) ---------- */
+function cxCanvas(cv,V,img){const box=cv.parentElement.getBoundingClientRect(),W=Math.max(220,Math.floor(Math.min(box.width||330,440))),pr=Math.min(2,devicePixelRatio||1);
+  if(cv.width!==W*pr){cv.width=W*pr;cv.height=W*pr;cv.style.width=W+'px';cv.style.height=W+'px';}const c=cv.getContext('2d');c.setTransform(pr,0,0,pr,0,0);c.fillStyle='#d9c49a';c.fillRect(0,0,W,W);c.imageSmoothingEnabled=true;
+  if(img)c.drawImage(img,0,0,W,W);else{const mb=mapBase(),N=mb.width;c.drawImage(mb,(V.x0+WSIZE/2)/WSIZE*N,(V.z0+WSIZE/2)/WSIZE*N,V.span/WSIZE*N,V.span/WSIZE*N,0,0,W,W);}
+  const sx=x=>(x-V.x0)/V.span*W,sy=z=>(z-V.z0)/V.span*W,cw=WSIZE/FOGN;cxGridImg(c,cxFogCv(),V,W);
+  const i0=Math.max(0,Math.floor((V.x0+WSIZE/2)/cw)),j0=Math.max(0,Math.floor((V.z0+WSIZE/2)/cw)),i1=Math.min(FOGN-1,Math.ceil((V.x0+V.span+WSIZE/2)/cw)),j1=Math.min(FOGN-1,Math.ceil((V.z0+V.span+WSIZE/2)/cw));
+  cv._V=V;return {c,W,sx,sy,k:W/V.span,i0,j0,i1,j1,cw};}
+// lưới 64×64 vẽ thành ảnh nhỏ rồi phóng to có làm mịn (sương mù, bản đồ nhiệt mềm mép, không có đường kẻ)
+function cxGridImg(c,img,V,W){const N=FOGN;c.imageSmoothingEnabled=true;c.drawImage(img,(V.x0+WSIZE/2)/WSIZE*N,(V.z0+WSIZE/2)/WSIZE*N,V.span/WSIZE*N,V.span/WSIZE*N,0,0,W,W);}
+function cxFogCv(){const N=FOGN,cv=CX.fogCv||(CX.fogCv=mkCanvas(N,N)),c=cv.getContext('2d'),im=c.createImageData(N,N),d=im.data;
+  for(let j=0;j<N;j++)for(let i=0;i<N;i++)if(!fogSeen(i,j)){const k=(j*N+i)*4;d[k]=214;d[k+1]=192;d[k+2]=148;d[k+3]=214;}c.putImageData(im,0,0);return cv;}
+// khung nhìn vừa khít phần đã khám phá
+function cxFitView(){const N=FOGN,cw=WSIZE/N;let a=N,b=N,e=-1,f=-1;for(let j=0;j<N;j++)for(let i=0;i<N;i++)if(fogSeen(i,j)){if(i<a)a=i;if(i>e)e=i;if(j<b)b=j;if(j>f)f=j;}
+  if(e<0)return {x0:P.x-1500,z0:P.z-1500,span:3000};const x0=-WSIZE/2+(a-1)*cw,x1=-WSIZE/2+(e+2)*cw,z0=-WSIZE/2+(b-1)*cw,z1=-WSIZE/2+(f+2)*cw,sp=Math.min(WSIZE,Math.max(3000,x1-x0,z1-z0)),cx=(x0+x1)/2,cz=(z0+z1)/2;
+  return {x0:clamp(cx-sp/2,-WSIZE/2,WSIZE/2-sp),z0:clamp(cz-sp/2,-WSIZE/2,WSIZE/2-sp),span:sp};}
+const cxView=()=>CX.dv==='all'?{x0:-WSIZE/2,z0:-WSIZE/2,span:WSIZE}:cxFitView();
+const cxVBtn=()=>`<div class="mapz"><button data-a="cxdv" data-v="${CX.dv==='all'?'fit':'all'}" aria-label="Đổi tầm nhìn">${CX.dv==='all'?'◎':'⤢'}</button></div>`;
+function cxLbl(c,t,x,y,f){c.font=f;c.lineWidth=3;c.strokeStyle='rgba(255,246,226,.9)';c.strokeText(t,x,y);c.fillStyle='#3a2410';c.fillText(t,x,y);}
+function cxMe(o){const {c,sx,sy}=o;if(S.mark){c.font='16px system-ui';c.textAlign='center';c.fillText('📍',sx(S.mark.x),sy(S.mark.z)-2);}const px=sx(P.x),py=sy(P.z);
+  c.save();c.translate(px,py);c.rotate(Math.PI-camYaw());c.beginPath();c.moveTo(0,-8);c.lineTo(5.5,6);c.lineTo(0,2.5);c.lineTo(-5.5,6);c.closePath();c.fillStyle='#e8402a';c.fill();c.lineWidth=2;c.strokeStyle='#fff';c.stroke();c.restore();}
+function cxRegMarks(o,sel){const {c,sx,sy,k}=o;c.textAlign='center';for(const r of REG){const x=sx(r.x),y=sy(r.z),kn=cxDisc(r.id);if(x<-40||y<-40||x>o.W+40||y>o.W+40)continue;
+    if(r.id===sel){c.beginPath();c.arc(x,y,Math.max(9,r.r*k),0,7);c.setLineDash([6,4]);c.lineWidth=2.5;c.strokeStyle='#c8301a';c.stroke();c.setLineDash([]);c.fillStyle='rgba(242,197,90,.18)';c.fill();}
+    if(!kn&&!cxSeenXZ(r.x,r.z)){if(r.id===sel){c.font='700 13px system-ui';c.fillStyle='#3a2410';c.fillText('?',x,y+4);}continue;}
+    c.font='13px system-ui';c.fillStyle='#000';c.fillText(kn?r.ic:'❔',x,y+4);if(kn&&(o.W/o.k<9000||r.id===sel))cxLbl(c,r.n,x,y+17,'700 9.5px "Be Vietnam Pro",system-ui,sans-serif');}}
+function cxDrawOverview(){const cv=$('#cxmap');if(!cv)return;const o=cxCanvas(cv,cxView());cxRegMarks(o,CX.reg);cxMe(o);cxTap(cv,(x,z)=>{const r=regionAt(x,z);if(r){CX.reg=r.id;sfx('pick');uiOpenRefresh();}});}
+function cxRegView(r){const sp=Math.max(900,r.r*2.7);return {x0:r.x-sp/2,z0:r.z-sp/2,span:sp};}
+function cxDrawRegion(){const cv=$('#cxrmap'),r=REG.find(q=>q.id===CX.reg);if(!cv||!r)return;const V=cxRegView(r);let img=CX.rimg[r.id];
+  if(!img){try{img=CX.rimg[r.id]=mapRender(V.x0,V.z0,V.span,150);}catch(e){img=null;}}const o=cxCanvas(cv,V,img);cxRegMarks(o,r.id);const {c,sx,sy}=o;
+  if(typeof RL==='object'&&S.rlm)for(const s of RL.sites){if(!S.rlm.kn||!S.rlm.kn[s.id])continue;const x=sx(s.x),y=sy(s.z);c.beginPath();c.arc(x,y,10,0,7);c.fillStyle='rgba(30,18,8,.75)';c.fill();c.font='12px system-ui';c.fillStyle='#fff';c.fillText(s.def.ic,x,y+4);}
+  cxMe(o);}
+function cxDrawDist(){const cv=$('#cxdmap');if(!cv||!CX.sel)return;const R=cxDist(CX.sel),V=cxView();
+  const o=cxCanvas(cv,V),{c,sx,sy,k,cw}=o,N=FOGN;let heat=0,dots=0,rg=0;
+  // vùng đã biết có thứ này: viền đứt nét (thú: tô nhạt theo mức thường gặp)
+  const top=R.regs.length?R.regs[0][1]:1;for(const [r,v] of R.regs){if(!cxDisc(r.id))continue;rg++;const x=sx(r.x),y=sy(r.z),rr=Math.max(8,r.r*k*0.9);c.beginPath();c.arc(x,y,rr,0,7);
+    if(R.T.an){c.fillStyle=v>=16?'rgba(214,64,24,.30)':'rgba(214,64,24,.15)';c.fill();}c.setLineDash([5,4]);c.lineWidth=1.5+2*Math.min(1,v/top);c.strokeStyle='rgba(150,34,10,.75)';c.stroke();c.setLineDash([]);}
+  // mật độ: chỉ ô đã khám phá
+  if(R.mx>0){const hc=CX.heatCv||(CX.heatCv=mkCanvas(N,N)),hx=hc.getContext('2d'),im=hx.createImageData(N,N),dd=im.data;
+    for(let j=0;j<N;j++)for(let i=0;i<N;i++){const v=R.cell[j*N+i];if(!v||!fogSeen(i,j))continue;const q=(j*N+i)*4;dd[q]=232;dd[q+1]=72;dd[q+2]=18;dd[q+3]=Math.round(255*(0.3+0.6*Math.sqrt(v/R.mx)));if(i>=o.i0&&i<=o.i1&&j>=o.j0&&j<=o.j1)heat++;}
+    hx.putImageData(im,0,0);cxGridImg(c,hc,V,o.W);}
+  const P2=R.pts,ds=V.span<6000?3:2.2;c.fillStyle='rgba(40,14,4,.85)';for(let n=0;n<P2.length;n+=2){const x=sx(P2[n]),y=sy(P2[n+1]);if(x<0||y<0||x>o.W||y>o.W)continue;c.fillRect(x-ds/2,y-ds/2,ds,ds);dots++;}
+  const L=R.live;for(let n=0;n<L.length;n+=2){const x=sx(L[n]),y=sy(L[n+1]);c.beginPath();c.arc(x,y,3.4,0,7);c.fillStyle='#d8452a';c.fill();c.lineWidth=1.2;c.strokeStyle='#fff';c.stroke();dots++;}
+  cxRegMarks(o,null);if(R.best){const x=sx(R.best.x),y=sy(R.best.z);c.beginPath();c.arc(x,y,9,0,7);c.lineWidth=2.5;c.strokeStyle='#1a6ad8';c.stroke();c.beginPath();c.arc(x,y,13,0,7);c.lineWidth=1;c.stroke();}
+  cxMe(o);CX.last={key:CX.sel,heat,dots,regs:rg,known:R.known,best:!!R.best};}
+function cxTap(cv,fn){if(cv._cx)return;cv._cx=1;let st=null;cv.addEventListener('pointerdown',e=>{st=[e.clientX,e.clientY];});
+  cv.addEventListener('pointerup',e=>{if(!st||Math.hypot(e.clientX-st[0],e.clientY-st[1])>8)return;st=null;const r=cv.getBoundingClientRect(),V=cv._V;if(!V)return;fn(V.x0+(e.clientX-r.left)/r.width*V.span,V.z0+(e.clientY-r.top)/r.height*V.span);});}
+/* ---------- thẻ Vùng đất ---------- */
+function cxDangerB(l){const [t,c]=CXDG[l];return `<span class="cx-dg" style="--c:${c}">${'●'.repeat(l+1)}${'○'.repeat(4-l)} ${t}</span>`;}
+function cxRumor(r){const ri=cxRI(r),top=Object.entries(ri.bc).sort((a,b)=>b[1]-a[1])[0],d=Math.hypot(r.x-P.x,r.z-P.z);
+  return `Nghe nói ở phía ${cxDir(r.x,r.z)}, cách chừng ${cxM(d)}, có một vùng ${top?CXB[top[0]]||'đất lạ':'đất lạ'}${ri.lvl>=3?', người đi về kể là nguy hiểm':''}.`;}
+function cxRegList(){const cur=regionAt(P.x,P.z),L=REG.slice().sort((a,b)=>(cxDisc(b.id)-cxDisc(a.id))||((b===cur)-(a===cur))||Math.hypot(a.x-P.x,a.z-P.z)-Math.hypot(b.x-P.x,b.z-P.z));
+  return L.map(r=>{const kn=cxDisc(r.id),d=Math.hypot(r.x-P.x,r.z-P.z);if(!kn)return `<button class="cx-row dim" data-a="cxreg" data-r="${r.id}"><span class="cx-e">❔</span><span class="cx-rt"><b>???</b><small>${esc(cxRumor(r))}</small></span></button>`;
+    const ri=cxRI(r);return `<button class="cx-row${r===cur?' cur':''}" data-a="cxreg" data-r="${r.id}"><span class="cx-e">${r.ic}</span><span class="cx-rt"><b>${esc(r.n)}${r===cur?' · <em>bạn đang ở đây</em>':''}</b><small>${cxDangerB(ri.lvl)} · ${r===cur?'quanh đây':cxM(d)+' '+cxDir(r.x,r.z)}</small></span></button>`;}).join('');}
+function cxResRows(r){if(!RLPS[r.id])return '<span class="small muted">Mọi thứ ở mức thường.</span>';const by={3:[],2:[],1:[]};for(const c in RLC)by[rlLvl(r,c)].push(c);
+  const row=(lv,lab,cls)=>by[lv].length?`<div class="cx-rl"><span class="small muted">${lab}</span><div>${by[lv].map(c=>`<span class="rl-c ${cls}">${RLC[c][1]} ${RLC[c][0]}</span>`).join('')}</div></div>`:'';
+  return row(3,'Giàu','rich')+row(1,'Nghèo','poor')+row(2,'Thường','cx-mid');}
+function cxTypeChips(m,cat,max){const L=Object.entries(m||{}).filter(([t,n])=>RT[t]&&t!=='pathStone'&&cxRtCat(t)===cat&&n>0).sort((a,b)=>b[1]-a[1]).slice(0,max||12);
+  if(!L.length)return '<span class="small muted">Hầu như không có.</span>';const top=L[0][1];
+  return L.map(([t,n])=>`<button class="cx-tag" data-a="cxdist" data-k="r:${t}"><i>${cxRe(t)}</i>${esc(RT[t].n)}<em>${n>=top*0.5?'nhiều':n>=top*0.15?'vừa':'ít'}</em></button>`).join('');}
+function cxRegDetail(r){const back='<button class="btn sm ghost" data-a="cxback">← Tất cả vùng</button>';
+  if(!cxDisc(r.id))return `${back}<div class="cx-card"><h3 class="cx-h">❔ Vùng chưa biết</h3><p>${esc(cxRumor(r))}</p><p class="small muted">Đi tới đó để ghi vào Bách khoa: tên vùng, cây cỏ, muông thú, tài nguyên giàu nghèo.</p></div>`;
+  const ri=cxRI(r),D=cxD(),m=D.byReg[r.id]||{},d=Math.hypot(r.x-P.x,r.z-P.z),cur=regionAt(P.x,P.z)===r;
+  const an=ri.an.length?ri.an.map(([k,lv])=>{const A=ANIMALS[k],bad=A.aggro&&A.aggro!=='never'&&A.aggro!=='defend';return `<button class="cx-tag${bad?' bad':''}" data-a="cxani" data-k="${k}"><i>${CXE_AN[k]||'🐾'}</i>${esc(A.n)}<em>${lv===2?'thường gặp':'đôi khi'}</em></button>`;}).join(''):'<span class="small muted">Ít thú lớn.</span>';
+  const nd=ri.nd.length?ri.nd.map(k=>`<button class="cx-tag" data-a="cxdist" data-k="n:${k}"><i>${CXE_N[k]||'🌿'}</i>${esc(H3NODE[k].n)}</button>`).join(''):'';
+  const sites=[];for(const s of ri.sites){const kn=S.rlm&&S.rlm.kn&&S.rlm.kn[s.id];if(kn){const T=s.def.tribe&&RLTRIBE[s.def.tribe];sites.push(`<li>${s.def.ic} <b>${esc(s.def.n)}</b> ${'★'.repeat(s.def.rich)}${T?` · <span style="color:${T.col}">${esc(T.n)}</span> ${T.mood<0?'(thù địch)':'(trao đổi được)'}`:''}<br><span class="small muted">${esc(s.def.d)}</span></li>`);}
+    else sites.push(`<li>❔ <span class="small">Có lời đồn về một điểm giàu ở đây. Đứng trong vùng, dùng <b>🔍 Thăm dò</b> (Bản đồ → Lãnh địa) để tìm.</span></li>`);}
+  if(r.id==='village')sites.push('<li>🛖 <b>Làng Suối Tây</b> · bộ lạc láng giềng hiếu khách: trao đổi đồ, học nghề, mời người về ở.</li>');
+  if(r.id==='camp')sites.push('<li>⚔️ <b>Trại Núi Đá</b> · bộ lạc hiếu chiến, hay đi cướp ban đêm. Kho chiến lợi phẩm có đồng thau, mũi tên.</li>');
+  if(r.id==='cave')sites.push('<li>🕳️ <b>Hang đá</b> · chỗ trú khô ráo, tranh vẽ trên vách.</li>');if(r.id==='hotspring')sites.push('<li>♨️ <b>Suối nóng</b> · ngâm mình hồi ấm, hồi sức.</li>');
+  if(r.id==='vista')sites.push('<li>🔭 <b>Ụ đá ngắm cảnh</b> · nhìn ra cả một vùng trời.</li>');if(r.id==='start')sites.push('<li>🔥 <b>Nơi bạn tỉnh dậy</b> · đá, cành, sợi, đá lửa đủ cho những ngày đầu.</li>');
+  const eraN=AGES[ri.era]?AGES[ri.era].n:'';
+  return `${back}<div class="cx-card cx-reg"><div class="cx-mapw"><canvas id="cxrmap"></canvas></div>
+    <h3 class="cx-h">${r.ic} ${esc(r.n)}</h3><p class="small">${esc(r.d)}</p>
+    <div class="cx-facts"><div><span>🧭 Vị trí</span><b>${cur?'Bạn đang ở đây':cxM(d)+' về phía '+cxDir(r.x,r.z)}</b></div><div><span>⛰️ Địa hình</span><b>${esc(ri.terr)}</b></div>
+      <div><span>🌤️ Khí hậu</span><b>${esc(ri.clim)}</b></div><div><span>⚠️ Nguy hiểm</span><b>${cxDangerB(ri.lvl)}</b></div></div>
+    <h4>⛏️ Tài nguyên</h4>${cxResRows(r)}${S.rlm&&S.rlm.pro&&S.rlm.pro[r.id]?'':'<p class="small muted">Thăm dò tại chỗ còn tìm ra điểm giàu có tên.</p>'}
+    <h4>🌲 Cây gỗ</h4><div class="cx-tags">${cxTypeChips(m,'tree',10)}</div>
+    <h4>🌿 Cây cỏ, hoa quả, thảo dược</h4><div class="cx-tags">${cxTypeChips(m,'plant',14)}</div>
+    <h4>🪨 Đá, khoáng, đất</h4><div class="cx-tags">${cxTypeChips(m,'min',8)}</div>
+    <h4>🐾 Muông thú</h4><div class="cx-tags">${an}</div>${nd?`<h4>🪺 Hái lượm khác</h4><div class="cx-tags">${nd}</div>`:''}
+    ${sites.length?`<h4>🏴 Điểm đặc biệt, làng trại</h4><ul class="cx-ul">${sites.join('')}</ul>`:''}
+    <h4>🎒 Nên mang</h4><p class="small">Hợp từ <b>${esc(eraN)}</b> trở đi.</p><div class="chips">${ri.gear.map(i=>cxChip(i)).join('')||'<span class="small muted">Đồ cơ bản là đủ.</span>'}</div>
+    <div class="row cx-act"><button class="btn sm" data-a="cxmark" data-x="${r.x.toFixed(1)}" data-z="${r.z.toFixed(1)}" data-n="${esc(r.n)}">📍 Đánh dấu</button></div></div>`;}
+function cxRegHtml(){if(CX.reg){const r=REG.find(q=>q.id===CX.reg);if(r)return cxRegDetail(r);CX.reg=null;}const n=REG.filter(r=>cxDisc(r.id)).length;
+  return `<div class="cx-mapw"><canvas id="cxmap"></canvas>${cxVBtn()}</div><p class="small muted">Đã khám phá <b>${n}/${REG.length}</b> vùng. Chạm một vùng trên bản đồ hoặc trong danh sách để xem.</p><div class="cx-list">${cxRegList()}</div>`;}
+/* ---------- thẻ Phân bố ---------- */
+function cxHints(R,name){const out=[];for(const [r,v] of R.regs){if(cxDisc(r.id)||out.length>=3)continue;if(v<(R.T.an?8:3))continue;const d=Math.hypot(r.x-P.x,r.z-P.z);
+    out.push(`<li>Nghe nói ở phía <b>${cxDir(r.x,r.z)}</b>, cách chừng ${cxM(d)}, có ${R.T.an?'':'nhiều '}${esc(name.toLowerCase())}…</li>`);}return out;}
+function cxDistPanel(){const e=CX.sel&&cxEntry(CX.sel);if(!e)return `<div class="cx-card cx-empty"><b>🔎 Chọn một thứ bên dưới</b><p class="small muted">Gõ tên (không dấu cũng được): "dong" ra quặng đồng, "nam" ra các loại nấm, "ho" ra hổ… Bản đồ sẽ tô nơi có thứ đó.</p></div>`;
+  const R=cxDist(CX.sel),b=R.best,hints=cxHints(R,e.n),kr=R.regs.filter(([r])=>cxDisc(r.id)).slice(0,6);
+  return `<div class="cx-card"><div class="cx-dh"><span class="cx-e">${e.e}</span><div><b>${esc(e.n)}</b><small class="muted">${CXCAT[e.c]||''}</small></div>${e.k[0]==='a'?`<button class="btn sm ghost" data-a="cxani" data-k="${e.k.slice(2)}">Xem thú</button>`:e.k[0]==='i'?`<button class="btn sm ghost" data-a="cxitem" data-k="${e.k.slice(2)}">Vật phẩm</button>`:''}</div>
+    <div class="cx-mapw"><canvas id="cxdmap"></canvas>${cxVBtn()}</div>
+    <div class="cx-leg"><span><i class="h"></i>mật độ (ít → nhiều)</span><span><i class="d"></i>chỗ đã thấy</span><span><i class="r"></i>vùng có</span><span><i class="n"></i>gần nhất</span><span><i class="f"></i>chưa khám phá</span></div>
+    ${b?`<div class="cx-near"><div><b>Gần nhất: ${esc(b.n)}</b><small>${b.d<60?'ngay quanh đây':cxM(b.d)+' về phía '+cxDir(b.x,b.z)}${R.T.an?' · thú di chuyển, có thể đã đi chỗ khác':''}</small></div><button class="btn sm" data-a="cxmark" data-x="${b.x.toFixed(1)}" data-z="${b.z.toFixed(1)}" data-n="${esc(b.n)}">📍 Đánh dấu</button></div>`
+      :`<p class="small muted">Chưa thấy ở vùng đã khám phá${R.T.nd.length?' quanh bạn':''}.</p>`}
+    ${kr.length?`<p class="small"><span class="muted">Vùng đã biết có:</span> ${kr.map(([r])=>`<button class="cx-tag" data-a="cxreg" data-r="${r.id}"><i>${r.ic}</i>${esc(r.n)}</button>`).join('')}</p>`:''}
+    ${hints.length?`<ul class="cx-ul cx-rum">${hints.join('')}</ul>`:''}</div>`;}
+function cxDistHtml(){const L=cxEntries(),k=cxS(),f=G.cxCat||'';const cats=['','tree','plant','min','an','nd','it'];
+  return `${cxDistPanel()}<div class="cx-search"><input id="cxq" type="search" placeholder="🔍 Tìm tài nguyên, cây, thú, quặng…" value="${esc(G.cxq||'')}" autocomplete="off"></div>
+    <div class="chipsel">${cats.map(c=>`<button class="tb sm${f===c?' on':''}" data-a="cxcat" data-c="${c}">${c?CXCAT[c]:'Tất cả'}</button>`).join('')}</div>
+    <div class="cx-list cx-ents">${L.filter(e=>!f||e.c===f).map(e=>`<button class="cx-row sm${CX.sel===e.k?' cur':''}" data-a="cxsel" data-k="${e.k}" data-s="${esc(e.s)}"><span class="cx-e">${e.e}</span><span class="cx-rt"><b>${esc(e.n)}</b><small>${CXCAT[e.c]||''}${k[e.k]||(e.k[0]==='i'&&S.seen[e.k.slice(2)])?' · ✓ đã gặp':''}</small></span></button>`).join('')}</div><p class="muted small cx-none" hidden>Không thấy gì khớp.</p>`;}
+/* ---------- thẻ Vật phẩm ---------- */
+const CXIT={res:'Nguyên liệu',food:'Đồ ăn',drink:'Đồ uống',herb:'Thảo dược',med:'Thuốc',tool:'Công cụ',wear:'Đồ mặc',seed:'Hạt giống',boat:'Thuyền',sap:'Cây giống'};
+function cxItemHtml(){const ids=Object.keys(ITEMS),ord=Object.keys(CXIT);ids.sort((a,b)=>{const ta=ord.indexOf(ITEMS[a].t),tb=ord.indexOf(ITEMS[b].t);return (ta<0?99:ta)-(tb<0?99:tb)||ITEMS[a].n.localeCompare(ITEMS[b].n,'vi');});
+  const f=G.cxIt||'';const ts=ord.filter(t=>ids.some(i=>ITEMS[i].t===t));
+  return `<div class="cx-search"><input id="cxiq" type="search" placeholder="🔍 Tìm vật phẩm (gõ không dấu cũng được)" value="${esc(G.cxiq||'')}" autocomplete="off"></div>
+    <div class="chipsel">${['',...ts].map(t=>`<button class="tb sm${f===t?' on':''}" data-a="cxit" data-t="${t}">${t?CXIT[t]:'Tất cả'}</button>`).join('')}</div><p class="small muted">${ids.length} vật phẩm · ✓ là đã có trong tay. Chạm để xem nguồn gốc, công dụng.</p>
+    <div class="cx-list cx-items">${ids.filter(i=>!f||ITEMS[i].t===f).map(i=>`<div class="cx-it" data-s="${esc(cxNorm(ITEMS[i].n+' '+(CXIT[ITEMS[i].t]||'')))}"><button class="cx-row sm${G.cxItem===i?' cur':''}" data-a="cxitem" data-k="${i}">${cxIc(i)}<span class="cx-rt"><b>${esc(ITEMS[i].n)}</b><small>${CXIT[ITEMS[i].t]||'Khác'}${S.seen[i]?' · ✓':''}</small></span></button>${G.cxItem===i?cxItemDet(i):''}</div>`).join('')}</div><p class="muted small cx-none" hidden>Không thấy vật phẩm nào.</p>`;}
+function cxItemDet(id){const I=ITEMS[id],sg=cxSrc(),g=sg.g[id]||[],u=sg.u[id]||[],li=[];
+  const info=[I.food?`+${I.food} no`:'',I.drink?`+${I.drink} nước`:'',I.hp?`+${I.hp*2} máu`:'',I.warm?`+${I.warm} ấm`:'',I.cure&&STATUS[I.cure]?`chữa ${STATUS[I.cure].n}`:'',I.raw?'ăn sống dễ ngộ độc':'',I.poison?'CÓ ĐỘC':'',I.pow?`sức ${I.pow}`:''].filter(Boolean).join(' · ');
+  const rt=[...new Set(g.filter(v=>v.k==='rt').map(v=>v.t))];if(rt.length)li.push(`<li><b>Thu hái:</b> ${rt.map(t=>`<button class="cx-tag" data-a="cxdist" data-k="r:${t}"><i>${cxRe(t)}</i>${esc(RT[t].n)}<em>${RT[t].tool==='axe'?'chặt':RT[t].tool==='pick'||RT[t].sk==='mine'?'đào':'hái'}</em></button>`).join('')}</li>`);
+  const nd=[...new Set(g.filter(v=>v.k==='nd').map(v=>v.t))];if(nd.length)li.push(`<li><b>Tìm:</b> ${nd.map(k=>`<button class="cx-tag" data-a="cxdist" data-k="n:${k}"><i>${CXE_N[k]||'🌿'}</i>${esc(H3NODE[k].n)}</button>`).join('')}</li>`);
+  const an=g.filter(v=>v.k==='an');if(an.length)li.push(`<li><b>Săn:</b> ${an.map(v=>`<button class="cx-tag" data-a="cxani" data-k="${v.t}"><i>${CXE_AN[v.t]||'🐾'}</i>${esc(ANIMALS[v.t].n)}<em>×${v.n}</em></button>`).join('')}</li>`);
+  for(const v of g.filter(v=>v.k==='rc').slice(0,4))li.push(`<li><b>Chế tạo</b> · ${esc(cxStName(v.r.st))}${v.r.tool&&ITEMS[v.r.tool]?' · cần '+esc(ITEMS[v.r.tool].n.toLowerCase()):''}: <span class="chips">${cxCost(v.r.in)}</span></li>`);
+  for(const v of g.filter(v=>v.k==='farm'))li.push(`<li><b>Trồng:</b> gieo ${cxChip(v.s)} trên luống đất.</li>`);
+  const tr=g.filter(v=>v.k==='tr');if(tr.length)li.push(`<li><b>Đổi chác:</b> ${tr.slice(0,4).map(v=>`<span class="small">${esc(v.who)}: </span><span class="chips">${cxCost(v.a)} → ${cxCost(v.b)}</span>`).join('<br>')}</li>`);
+  if(CXSRC[id])li.push(`<li>${esc(CXSRC[id])}</li>`);if(!li.length)li.push('<li class="muted">Chưa rõ nguồn: có thể nhận được từ việc đặc biệt (lễ hội, trao đổi, sự kiện).</li>');
+  const ur=[...new Map(u.filter(v=>v.k==='rc').map(v=>[Object.keys(v.r.out)[0],v.r])).values()],ub=u.filter(v=>v.k==='bd').map(v=>v.b);
+  const uses=[];if(ur.length)uses.push(`<li><b>Nguyên liệu để làm:</b> <span class="chips">${ur.slice(0,14).map(r=>{const o=Object.keys(r.out)[0];return ITEMS[o]?`<button class="chip cx-ch" data-a="cxitem" data-k="${o}">${cxIc(o)}${esc(ITEMS[o].n)}</button>`:'';}).join('')}</span>${ur.length>14?` <span class="small muted">+${ur.length-14}</span>`:''}</li>`);
+  if(ub.length)uses.push(`<li><b>Xây:</b> ${ub.slice(0,12).map(b=>esc(b.n)).join(', ')}${ub.length>12?` +${ub.length-12}`:''}</li>`);
+  const canDist=rt.length||nd.length;
+  return `<div class="cx-det"><div class="cx-dh">${icon(id,'big')}<div><b>${esc(I.n)}</b><small class="muted">${CXIT[I.t]||'Khác'}${S.seen[id]?' · ✓ đã có':''}</small></div></div>${I.ds?`<p class="small">${esc(I.ds)}</p>`:''}${info?`<p class="small cx-stat">${esc(info)}</p>`:''}<h4>Có được từ</h4><ul class="cx-ul">${li.join('')}</ul>${uses.length?`<h4>Dùng để</h4><ul class="cx-ul">${uses.join('')}</ul>`:''}
+    ${canDist?`<div class="row"><button class="btn sm ghost" data-a="cxdist" data-k="i:${id}">🗺️ Xem phân bố</button></div>`:''}</div>`;}
+/* ---------- thẻ Muông thú ---------- */
+function cxAnimHtml(){const ks=Object.keys(ANIMALS).filter(k=>ANIMALS[k].n0&&ANIMALS[k].bio&&ANIMALS[k].bio.length),seen=cxS(),foc=G.cxAni;
+  return `<p class="small muted">Tập tính, độ nguy hiểm, cách săn và nơi sống của muông thú. Thú đã gặp có dấu ✓.</p>`+ks.map(k=>{const A=ANIMALS[k],dm=A.dmg||0,lv=A.aggro==='never'?0:A.aggro==='defend'?(dm>=20?2:1):dm>=20?4:A.aggro==='night'?3:2;
+    return `<details class="cx-card cx-an" id="cxa-${k}"${foc===k?' open':''}><summary><span class="cx-e">${CXE_AN[k]||'🐾'}</span><span class="cx-rt"><b>${esc(A.n)}${seen['a:'+k]?' ✓':''}</b><small>${cxDangerB(lv)}</small></span></summary>${cxAnimDet(k)}</details>`;}).join('');}
+function cxAnimDet(k){const A=ANIMALS[k],dm=A.dmg||0,L=typeof L3==='object'?L3:{},beh=[];beh.push(CXAG[A.aggro]||'');
+  if(A.herd)beh.push(`Đi thành đàn chừng ${A.herd} con${A.herd>=3?', con đầu đàn cảnh giác':''}.`);if(A.pack)beh.push(`Săn theo bầy ${A.pack}+ con.`);
+  if(k==='tiger'||k==='wolf')beh.push('Hoạt động mạnh lúc chiều tối và ban đêm.');else beh.push('Ban ngày kiếm ăn, đêm nằm ngủ'+(k==='deer'?' (vài con thức canh)':'')+'.');
+  if(L.drink&&L.drink[k])beh.push('Ra suối uống nước lúc rạng sáng và chạng vạng: chỗ phục kích tốt.');if(A.winterSleep)beh.push('Mùa đông ngủ trong hang.');if(A.venom)beh.push('Có nọc độc: mang nước bạc hà, thuốc.');
+  if(k==='monkey')beh.push('Leo cây, buổi trưa và ban đêm ở trên cao.');if(k==='crocodile')beh.push('Rình dưới nước, trưa nắng bò lên bờ phơi mình.');
+  const prey=L.prey&&L.prey[k],pred=L.prey?Object.keys(L.prey).filter(p=>L.prey[p].includes(k)):[];
+  if(prey)beh.push('Săn: '+prey.map(p=>ANIMALS[p]?ANIMALS[p].n.toLowerCase():p).join(', ')+'.');if(pred.length)beh.push('Kẻ săn nó: '+pred.map(p=>ANIMALS[p]?ANIMALS[p].n.toLowerCase():p).join(', ')+'.');
+  if(L.det&&L.det[k])beh.push(`Phát hiện người từ ~${Math.round(L.det[k]/20)} m: ngồi rón rén, đi xuôi gió để lại gần.`);
+  const wt=typeof H3WT==='object'&&H3WT[k],T=typeof TAME==='object'&&TAME[k],big=(A.hp||1)>=6;
+  const tips=A.aggro==='never'?(big?'Rón rén lại gần, bắn cung hoặc ném giáo; con bị thương sẽ chạy, lần theo vết máu.':'Ném đá, bắn cung, hoặc rón rén vồ bằng tay không.'):
+    dm>=20?'Rất mạnh: đi nhiều người, dùng giáo (tốt nhất giáo đồng) và cung, đánh từ xa; tránh ban đêm, đứng gần lửa.':(typeof L3==='object'&&L3.charger&&L3.charger[k])?'Thấy nó cúi đầu lấy đà thì né sang ngang rồi đâm giáo.':'Cầm giáo, đánh lúc nó thủ thế xong; đừng quay lưng chạy.';
+  const regs=REG.filter(r=>A.reg&&A.reg.includes(r.id));
+  const dirs=[...new Set(regs.filter(r=>!cxDisc(r.id)).map(r=>cxDir(r.x,r.z)))];const where=regs.filter(r=>cxDisc(r.id)).map(r=>`<button class="cx-tag" data-a="cxreg" data-r="${r.id}"><i>${r.ic}</i>${esc(r.n)}</button>`).join('')+dirs.map(d=>`<span class="cx-tag dim"><i>❔</i>vùng chưa biết phía ${d}</span>`).join('');
+  return `<div class="cx-det"><div class="cx-facts"><div><span>❤️ Sức</span><b>${A.hp} máu${dm?` · đánh ${dm}`:''}${wt?` · ~${wt} kg`:''}</b></div><div><span>🌍 Sinh cảnh</span><b>${A.bio.map(b=>CXB[b]||b).join(', ')}</b></div></div>
+    <h4>Tập tính</h4><ul class="cx-ul">${beh.filter(Boolean).map(t=>`<li>${esc(t)}</li>`).join('')}</ul><h4>Rơi ra</h4><div class="chips">${cxCost(A.drop)}${wt>=30&&ITEMS.sinew?cxChip('sinew',1):''}</div>
+    <h4>Cách săn</h4><p class="small">${esc(tips)}</p>${T?`<h4>Thuần hoá</h4><p class="small">Ngồi rón rén lại gần, cho ăn ${T.food.filter(f=>ITEMS[f]).slice(0,3).map(f=>ITEMS[f].n.toLowerCase()).join(' / ')} ba lần: thành ${esc((typeof PETN==='object'&&PETN[T.to])||T.n)}.</p>`:''}
+    <h4>Nơi sống</h4><div class="cx-tags">${where||'<span class="small muted">Khắp nơi có '+A.bio.map(b=>CXB[b]||b).join(', ')+'.</span>'}</div><div class="row"><button class="btn sm ghost" data-a="cxdist" data-k="a:${k}">🗺️ Xem trên bản đồ</button></div></div>`;}
+/* ---------- thẻ Xây dựng (đọc BUILD lúc mở: mảnh mới thêm sau cũng hiện) ---------- */
+function cxBuildHtml(){const cn={};(BCAT||[]).forEach(([c,n])=>cn[c]=n);const cats=[...new Set([...(BCAT||[]).map(c=>c[0]),...BUILD.map(b=>b.cat)])].filter(c=>BUILD.some(b=>b.cat===c));
+  const kind={floor:'nền',edge:'tường/cạnh',roof:'mái',obj:'đồ đặt'};
+  return `<div class="cx-search"><input id="cxbq" type="search" placeholder="🔍 Tìm công trình" value="${esc(G.cxbq||'')}" autocomplete="off"></div><p class="small muted">${BUILD.length} công trình trong ${cats.length} nhóm. Mở bảng Xây (phím B) để dựng.</p>`+
+    cats.map((c,ci)=>{const L=BUILD.filter(b=>b.cat===c);return `<details class="cx-bc"${ci===0||G.cxbq?' open':''}><summary><b>${esc(cn[c]||c)}</b> <span class="small muted">${L.length}</span></summary>${L.map(b=>{const ok=typeof buildKnown==='function'&&buildKnown(b);
+      const meta=[b.st?'trạm '+cxStName(b.st):'',b.need?'cần có '+((pieceDef(b.need)||{}).n||b.need):'',b.lv?Object.entries(b.lv).map(([s,v])=>(SKILL[s]||s)+' '+v).join(', '):'',b.store?'cất '+b.store+' ô':'',b.bed?'ngủ được':'',b.warm?'sưởi ấm':'',b.shelter?'che mưa':'',b.light?'thắp sáng':''].filter(Boolean).join(' · ');
+      return `<div class="cx-b" data-s="${esc(cxNorm(b.n+' '+(b.d||'')+' '+(cn[c]||'')))}"><div class="cx-bh"><b>${esc(b.n)}</b><span class="small muted">${kind[b.kind]||''}${ok?' · ✓ đã mở':''}</span></div>${b.d?`<p class="small">${esc(b.d)}</p>`:''}<div class="chips">${cxCost(b.cost)}</div>${meta?`<p class="small muted">${esc(meta)}</p>`:''}</div>`;}).join('')}</details>`;}).join('')+'<p class="muted small cx-none" hidden>Không thấy công trình nào.</p>';}
+/* ---------- bảng ---------- */
+const CXTABS=[['reg','🗺️ Vùng đất'],['dist','📍 Phân bố'],['item','📦 Vật phẩm'],['an','🐾 Muông thú'],['bld','🏠 Xây dựng']];
+function cxBody(){const t=CX.tab;try{return t==='dist'?cxDistHtml():t==='item'?cxItemHtml():t==='an'?cxAnimHtml():t==='bld'?cxBuildHtml():cxRegHtml();}catch(e){console.warn('bách khoa',e);return '<p class="warn">Không mở được mục này.</p>';}}
+function cxAfter(keep){try{if(CX.tab==='reg'){if(CX.reg)cxDrawRegion();else cxDrawOverview();}else if(CX.tab==='dist')cxDrawDist();}catch(e){console.warn('bách khoa: vẽ',e);}
+  const bd=$('#panel .p-body');if(!bd)return;for(const [id,key,sel] of [['cxq','cxq','.cx-ents [data-s]'],['cxiq','cxiq','.cx-items [data-s]'],['cxbq','cxbq','.cx-b[data-s]']]){const inp=bd.querySelector('#'+id);if(!inp)continue;
+    const run=()=>{const q=cxNorm(inp.value).trim();let n=0;bd.querySelectorAll(sel).forEach(el=>{const ok=!q||q.split(/\s+/).every(w=>el.dataset.s.includes(w));el.style.display=ok?'':'none';if(ok)n++;});
+      if(id==='cxbq')bd.querySelectorAll('.cx-bc').forEach(d=>{const any=[...d.querySelectorAll('.cx-b')].some(el=>el.style.display!=='none');d.style.display=any?'':'none';if(q&&any)d.open=true;});const no=bd.querySelector('.cx-none');if(no)no.hidden=!!n||!q;};
+    inp.addEventListener('input',()=>{G[key]=inp.value;run();});inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')inp.blur();});inp.addEventListener('keyup',e=>e.stopPropagation());run();}
+  if(!keep&&CX.tab==='an'&&G.cxAni){const el=bd.querySelector('#cxa-'+G.cxAni);if(el)el.scrollIntoView({block:'start'});}}
+{const _uo=uiOpen;uiOpen=function(k,o,keep){if(k!=='cx'){const r=_uo(k,o,keep);if(G.panel==='map')try{const h=$('#panel .p-head');if(h&&!h.querySelector('.cx-hb'))h.querySelector('.p-x').insertAdjacentHTML('beforebegin','<button class="btn sm ghost cx-hb" data-a="cxopen" data-t="reg" aria-label="Bách khoa">📖 Bách khoa</button>');}catch(e){}return r;}
+  if(!G.on)return;if(G.build)buildEnd();o=o||{};G.popt=o;if(!keep){CX.dc={};}G.panel='cx';const p=$('#panel');p.hidden=false;document.body.classList.add('pan');
+  const sc=p.querySelector('.p-body')?p.querySelector('.p-body').scrollTop:0;
+  p.innerHTML=`<div class="p-head"><h2>📖 Bách khoa</h2><button class="p-x" data-ui="close" aria-label="Đóng">✕</button></div><div class="p-body cx-body"><div class="tabs cx-tabs">${CXTABS.map(([t,n])=>`<button class="tb sm${CX.tab===t?' on':''}" data-a="cxtab" data-t="${t}">${n}</button>`).join('')}</div>${cxBody()}</div>`;
+  if(keep)p.querySelector('.p-body').scrollTop=sc;if(document.pointerLockElement)document.exitPointerLock();cxAfter(keep);};}
+function cxOpen(tab,o){o=o||{};CX.tab=tab||CX.tab||'reg';if(o.reg!==undefined)CX.reg=o.reg;if(o.sel)CX.sel=o.sel;if(o.ani)G.cxAni=o.ani;if(o.item)G.cxItem=o.item;uiOpen('cx',{});const bd=$('#panel .p-body');if(bd)bd.scrollTop=0;}
+function cxOpenKey(k){if(!k)return;if(k.startsWith('g:'))cxOpen('reg',{reg:k.slice(2)});else if(k.startsWith('a:'))cxOpen('an',{ani:k.slice(2)});else cxOpen('dist',{sel:k});}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a^="cx"]');if(!b||!S||!G.on)return;const a=b.dataset.a,d=b.dataset;if(!/^cx[a-z]+$/.test(a))return;e.stopImmediatePropagation();e.preventDefault();sfx('pick');
+  const go=()=>{if(G.panel==='cx')uiOpenRefresh();};
+  switch(a){case 'cxopen':cxOpen(d.t||null,G.panel==='map'?{reg:null}:{});return;case 'cxtab':CX.tab=d.t;uiOpen('cx',{});return;case 'cxreg':cxOpen('reg',{reg:d.r});return;case 'cxback':CX.reg=null;uiOpen('cx',{});return;
+    case 'cxdist':cxOpen('dist',{sel:d.k});return;case 'cxsel':{CX.sel=d.k;uiOpen('cx',{});const bd=$('#panel .p-body');if(bd)bd.scrollTop=0;return;}case 'cxcat':G.cxCat=d.c;go();return;case 'cxdv':CX.dv=d.v;go();return;
+    case 'cxit':G.cxIt=d.t;go();return;case 'cxani':cxOpen('an',{ani:d.k});return;
+    case 'cxitem':{if(CX.tab!=='item'||!b.classList.contains('cx-row')){G.cxItem=d.k;if(G.cxIt&&ITEMS[d.k]&&ITEMS[d.k].t!==G.cxIt)G.cxIt='';G.cxiq='';cxOpen('item');requestAnimationFrame(()=>{const el=$('#panel [data-a="cxitem"][data-k="'+d.k+'"]');if(el)el.scrollIntoView({block:'start'});});return;}
+      const row=b.closest('.cx-it');if(!row)return;const old=$('#panel .cx-items .cx-det');const same=G.cxItem===d.k;if(old)old.remove();$('#panel .cx-items .cx-row.cur')&&$('#panel .cx-items .cx-row.cur').classList.remove('cur');
+      if(same){G.cxItem=null;return;}G.cxItem=d.k;b.classList.add('cur');try{b.insertAdjacentHTML('afterend',cxItemDet(d.k));}catch(er){console.warn('bách khoa: vật phẩm',er);}return;}
+    case 'cxmark':{const x=+d.x,z=+d.z;if(!isFinite(x)||!isFinite(z))return;S.mark={x,z};save();uiClose();uiToast('📍 Đã cắm cờ: '+(d.n||'điểm đánh dấu')+'. La bàn chỉ đường.','');return;}}},true);
+/* ---------- nối vào trò chơi: Nhật ký, nhãn "đây là gì", báo "Đã ghi vào Bách khoa" ---------- */
+{const _jh=journalHtml;journalHtml=function(){return `<div class="row cxjl"><button class="btn sm" data-a="cxopen" data-t="reg">📖 Bách khoa: vùng đất, phân bố, muông thú</button></div>`+_jh();};}
+function cxKeyOf(lab){const M=CX.nm||(CX.nm=(()=>{const m={};for(const t in RT)if(RT[t].n&&!m[RT[t].n])m[RT[t].n]='r:'+t;for(const k in ANIMALS)if(ANIMALS[k].n0&&!m[ANIMALS[k].n])m[ANIMALS[k].n]='a:'+k;
+    if(typeof H3NODE==='object')for(const k in H3NODE)if(!m[H3NODE[k].n])m[H3NODE[k].n]='n:'+k;return m;})());return M[lab]||M[String(lab).split(' · ')[0]]||null;}
+{const _pl=peekLabel;peekLabel=function(x,z,rad){const L=_pl(x,z,rad);try{let k=null;if(L){if(L.tag==='gnd'){const r=regionAt(x,z);if(r&&cxDisc(r.id))k='g:'+r.id;}else if(L.tag!=='npc'&&L.tag!=='bld'&&L.tag!=='pet')k=cxKeyOf(L.lab);}G.cxPk=k;}catch(e){G.cxPk=null;}return L;};}
+{const _ps=peekShow;peekShow=function(sx,sy,ms){G.cxPk=null;_ps(sx,sy,ms);try{const el=$('#peek');if(!el||el.hidden)return;const k=G.cxPk;el.classList.toggle('cxl',!!k);if(k){el.dataset.cx=k;el.textContent+=' · 📖';}else delete el.dataset.cx;
+  if(!el._cx){el._cx=1;el.addEventListener('click',ev=>{if(!el.classList.contains('cxl')||!el.dataset.cx)return;ev.stopPropagation();el.hidden=true;sfx('pick');cxOpenKey(el.dataset.cx);});}}catch(e){}};}
+{const _pm=peekMouse;peekMouse=function(e){if(e&&e.target&&e.target.closest&&e.target.closest('#peek.cxl'))return;return _pm(e);};}
+function cxNote(names){for(const n of names)if(!CX.pend.includes(n))CX.pend.push(n);}
+function cxFlush(){if(!CX.pend.length)return;if(G.t<CX.quiet||G.panel==='cx'){if(G.t<CX.quiet)CX.pend.length=0;return;}if(G.t-CX.toastT<25)return;CX.toastT=G.t;const L=CX.pend.splice(0);
+  uiToast('📖 Đã ghi vào Bách khoa: '+L.slice(0,3).join(', ')+(L.length>3?` (+${L.length-3})`:''),'');}
+function cxScan(){const k=cxS(),nw=[];for(const i of near(P.x,P.z,90)){const q=RES[i];if(!q||!RT[q.t]||q.t==='pathStone')continue;const key='r:'+q.t;if(!k[key]){k[key]=1;nw.push(cxRe(q.t)+' '+RT[q.t].n);}}
+  for(const a of (G.animals||[])){if(!a.alive||!ANIMALS[a.kind]||!ANIMALS[a.kind].n0)continue;const key='a:'+a.kind;if(k[key])continue;if(Math.abs(a.x-P.x)>170||Math.abs(a.z-P.z)>170||Math.hypot(a.x-P.x,a.z-P.z)>170)continue;k[key]=1;nw.push((CXE_AN[a.kind]||'🐾')+' '+ANIMALS[a.kind].n);}
+  if(nw.length)cxNote(nw);}
+{const _et=exploreTick;exploreTick=function(){_et();if(!S||!G.on)return;if(!CX.quiet)CX.quiet=G.t+20;if(G.t-CX.scanT<2)return;CX.scanT=G.t;try{cxScan();cxFlush();}catch(e){}};}
+{const _ur=uiRegion;uiRegion=function(r,first){_ur(r,first);if(first&&r)try{cxNote(['🗺️ '+r.n]);}catch(e){}};}
+(function cxCss(){const s=document.createElement('style');s.textContent=`.cx-body{padding-top:10px}.cx-tabs{position:sticky;top:-12px;z-index:2;background:var(--pn2,#34251a);margin:-10px -14px 10px;padding:8px 14px}
+.cx-mapw{position:relative;display:flex;justify-content:center;margin:4px 0 8px}.cx-mapw canvas{border-radius:10px;border:2px solid #7a5530;max-width:100%;touch-action:manipulation;box-shadow:inset 0 0 30px rgba(80,50,20,.4)}
+.cx-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px}.cx-row{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.22);color:var(--fg);min-height:48px}
+.cx-row.sm{min-height:42px;padding:5px 8px}.cx-row.cur{border-color:var(--acc);background:rgba(242,197,90,.12)}.cx-row.dim{opacity:.72}.cx-row .ic{width:30px;height:30px}.cx-row .ic b{font-size:20px}
+.cx-e{font-size:22px;width:30px;text-align:center;flex:none}.cx-rt{display:flex;flex-direction:column;min-width:0;line-height:1.3}.cx-rt b{font-size:13.5px}.cx-rt b em{font-style:normal;color:var(--acc);font-weight:600;font-size:12px}.cx-rt small{font-size:11.5px;color:var(--muted)}
+.cx-dg{color:var(--c);font-weight:700;font-size:11.5px;letter-spacing:-.5px}.cx-card{border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:6px 0 10px;background:rgba(0,0,0,.2)}
+.cx-card h4,.cx-det h4{margin:12px 0 5px;font:700 12.5px var(--body);color:var(--acc);text-transform:uppercase;letter-spacing:.4px}.cx-h{margin:4px 0 2px!important;font:400 17px var(--disp)!important;color:var(--acc)}
+.cx-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;margin:8px 0}.cx-facts div{background:rgba(0,0,0,.25);border-radius:10px;padding:6px 8px;display:flex;flex-direction:column;gap:2px}.cx-facts span{font-size:11px;color:var(--muted)}.cx-facts b{font-size:12.5px;font-weight:600}
+.cx-tags{display:flex;flex-wrap:wrap;gap:5px}.cx-tag{display:inline-flex;align-items:center;gap:4px;padding:4px 9px 4px 6px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:var(--fg);font-size:12.5px;min-height:30px}
+.cx-tag i{font-style:normal;font-size:15px}.cx-tag em{font-style:normal;font-size:10.5px;color:var(--muted);margin-left:2px}.cx-tag.bad{border-color:rgba(255,90,60,.5)}.cx-tag.dim{opacity:.7}.cx-tag *{pointer-events:none}
+.cx-rl{display:flex;gap:8px;align-items:baseline;margin:3px 0}.cx-rl>span{width:46px;flex:none}.cx-rl>div{display:flex;flex-wrap:wrap}.rl-c.cx-mid{background:rgba(255,255,255,.08);color:var(--muted)}
+.cx-ul{margin:4px 0;padding-left:18px;font-size:12.5px}.cx-ul li{margin:4px 0}.cx-rum li{color:#e8d6b4;font-style:italic}.cx-act{margin-top:12px}
+.cx-search{margin:2px 0 8px}.cx-search input{width:100%;min-height:42px;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--fg);font:15px var(--body);user-select:text;-webkit-user-select:text}
+.cx-dh{display:flex;align-items:center;gap:8px}.cx-dh>div{flex:1;display:flex;flex-direction:column}.cx-dh small{font-size:11.5px}
+.cx-leg{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11px;color:var(--muted);margin:2px 0 6px}.cx-leg i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+.cx-leg .h{background:linear-gradient(90deg,rgba(232,72,18,.3),rgba(232,72,18,.85))}.cx-leg .d{width:5px;height:5px;background:#2a0e04;vertical-align:1px}.cx-leg .r{border:2px dashed rgba(150,34,10,.8);border-radius:50%}.cx-leg .n{border:2px solid #1a6ad8;border-radius:50%}.cx-leg .f{background:#d6c094}
+.cx-near{display:flex;align-items:center;gap:8px;justify-content:space-between;background:rgba(26,106,216,.14);border:1px solid rgba(90,150,240,.4);border-radius:12px;padding:6px 8px 6px 10px;margin:6px 0}.cx-near div{display:flex;flex-direction:column}.cx-near small{font-size:11.5px;color:var(--muted)}
+.cx-it{display:contents}.cx-det{grid-column:1/-1;border:1px solid var(--acc);border-radius:12px;padding:6px 10px 10px;background:rgba(242,197,90,.06)}.cx-stat{color:var(--good)}.cx-ch{border:0;color:var(--fg)}
+details.cx-an>summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none}details.cx-an>summary::-webkit-details-marker{display:none}details.cx-an[open]>summary{margin-bottom:4px}details.cx-an .cx-det{border:0;padding:0;background:none}
+.cx-bc{margin:6px 0}.cx-bc>summary{cursor:pointer;padding:8px 4px;font-size:14px}.cx-b{border:1px solid var(--line);border-radius:12px;padding:7px 10px;margin:5px 0;background:rgba(0,0,0,.2)}.cx-b p{margin:3px 0}.cx-bh{display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+.cx-hb{min-height:32px;padding:4px 10px;margin-left:auto;margin-right:8px}.cxjl{margin:0 0 6px}.cx-empty{text-align:center}
+.peek.cxl{pointer-events:auto;cursor:pointer;border-color:#f2c55a;color:#ffe9b0}`;document.head.appendChild(s);})();
 /* ===================== DỌN ĐẤT, SAN NỀN KHU Ở =====================
    Phát quang, đào gốc, san phẳng và nện chặt một khoảng đất tròn.
    Cây cỏ trong khu đã san không mọc lại; mặt đất phẳng, màu đất nện.
@@ -12964,6 +13498,173 @@ function hlTick(){if(!G.sc||!G.on)return;if(!G.hl)hlInit();const im=G.hl;if(G.hl
 function camYaw(){if(!G.cam)return viewYaw();const v=G.camDirV||(G.camDirV=new THREE.Vector3());G.cam.getWorldDirection(v);if(Math.hypot(v.x,v.z)<1e-3)return viewYaw();return Math.atan2(v.x,v.z);}
 /* la bàn: chỉ vẽ lại khi hướng nhìn đổi hoặc 0,25 s một lần (trước đây ghi 10 kiểu CSS và đọc lại bề rộng mỗi khung hình → tính lại bố cục liên tục trên điện thoại) */
 {const _ct=compassTick;compassTick=function(){const y=viewYaw();if(G.cmpY!=null&&Math.abs(y-G.cmpY)<0.004&&G.t-(G.cmpT||0)<0.25)return;G.cmpY=y;G.cmpT=G.t;_ct();};}
+/* ===================== ĐĂNG NHẬP / ĐĂNG KÝ (bản web) · CHỈ CÒN THẾ GIỚI CHUNG =====================
+   - Bản web (backend.js, LDB.mode==='web'): màn hình đầu là Đăng nhập / Đăng ký / Quên mật khẩu. Đăng nhập xong mới vào danh sách nhân vật.
+   - Không còn "Một mình": nhân vật mới luôn ở thế giới chung (cả trên claude.ai khi có máy chủ).
+   - Máy chủ không tới được: báo rõ, nút Thử lại, và một liên kết nhỏ "Chơi ngoại tuyến".
+   - Nhân vật cũ trên máy (chơi một mình): hỏi một lần có đưa lên tài khoản (thành nhân vật thế giới chung) không. */
+const LDL={d:null,boot:null,st:'',msg:'',ok:'',busy:false,email:'',offline:false,mpFail:false,outArm:0,
+  recovery:/type=recovery/.test(location.hash||''),hashErr:(/error_description=([^&]+)/.exec(location.hash||'')||[])[1]||''};
+try{LDL.email=localStorage.getItem('ld-email')||'';}catch(e){}
+function ldlShared(){if(LDB.mode==='web')return !!LDB.uid;if(LDB.mode==='claude')return typeof MP!=='undefined'&&!!(MP.db||MP.ok);return false;}
+/* ---------- giao diện ---------- */
+(function ldlCss(){const s=document.createElement('style');s.textContent=`
+.ldl{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 16px 16px;overflow-y:auto;touch-action:pan-y;
+  background:radial-gradient(circle at 50% 26%,rgba(96,52,20,.92),rgba(12,8,5,.98) 70%),#120c08;font:14px/1.45 var(--body);color:var(--fg)}
+.ldl[hidden]{display:none}
+.ldl-card{margin:auto;width:min(420px,100%);padding:22px 20px 18px;border-radius:22px;background:linear-gradient(180deg,#3a2818,#1e140c);border:2px solid var(--fr);box-shadow:0 22px 60px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,220,160,.12);display:flex;flex-direction:column;gap:10px;text-align:center}
+.ldl-card .logo{font-size:56px;animation:ldlF 2.6s ease-in-out infinite}
+@keyframes ldlF{0%,100%{transform:scale(1) rotate(-2deg)}50%{transform:scale(1.06) rotate(2deg)}}
+.ldl-card h1{margin:0;font:400 40px var(--disp);color:var(--acc);text-shadow:0 3px 0 #6a3a14}
+.ldl-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:rgba(0,0,0,.35);border:1px solid var(--line);margin-top:4px}
+.ldl-tabs button{min-height:40px;border-radius:10px;border:0;background:none;color:var(--muted);font:800 14px var(--body)}
+.ldl-tabs button.on{background:linear-gradient(180deg,#f0b860,#c9772c);color:#2a1608;box-shadow:0 2px 0 #6a3a14}
+.ldl form{display:flex;flex-direction:column;gap:10px;margin:0}
+.ldl .fld{gap:5px}.ldl .fld input{width:100%;box-sizing:border-box;-webkit-user-select:text;touch-action:manipulation}
+.ldl .fld input:focus{outline:2px solid var(--acc);outline-offset:1px}
+.ldl-pw{position:relative}.ldl-pw input{padding-right:46px}
+.ldl-eye{position:absolute;right:4px;bottom:4px;width:38px;height:36px;border:0;border-radius:8px;background:none;font-size:17px;color:var(--muted)}
+.ldl .btn.big{width:100%;margin-top:2px}
+.ldl-msg{min-height:0;margin:0;padding:8px 10px;border-radius:10px;font-size:13px;text-align:left}
+.ldl-msg.bad{background:rgba(255,100,70,.14);border:1px solid rgba(255,122,90,.5);color:#ffc0ac}
+.ldl-msg.ok{background:rgba(120,220,110,.12);border:1px solid rgba(140,224,122,.45);color:#c8f5bd}
+.ldl-msg:empty{display:none}
+.ldl-link{background:none;border:0;color:var(--acc);font:600 13px var(--body);text-decoration:underline;text-underline-offset:3px;padding:6px;cursor:pointer}
+.ldl-off{color:var(--muted);font-size:12px;opacity:.8}
+.ldl-or{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.ldl-or:before,.ldl-or:after{content:'';flex:1;height:1px;background:var(--line)}
+.ldl-g{background:#fff!important;color:#222!important;border-color:#ddd!important;box-shadow:0 3px 0 #999!important}
+.ldl-foot{font-size:12px;color:var(--muted);margin:2px 0 0}
+.ldl-spin{width:34px;height:34px;margin:8px auto;border-radius:50%;border:4px solid rgba(242,197,90,.25);border-top-color:var(--acc);animation:ldlS .9s linear infinite}
+@keyframes ldlS{to{transform:rotate(360deg)}}
+.ldl-up{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:12px;background:rgba(242,197,90,.1);border:1px solid var(--fr);text-align:left}
+.ldl-up .row{display:flex;gap:8px;flex-wrap:wrap}
+.ldl-acc{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.ldl-warn{padding:8px 10px;border-radius:10px;background:rgba(255,100,70,.14);border:1px solid rgba(255,122,90,.5);font-size:12.5px;text-align:left}
+`;document.head.appendChild(s);})();
+function ldlEl(){let el=document.getElementById('ldl');if(!el){el=document.createElement('div');el.id='ldl';el.className='ldl';el.setAttribute('role','dialog');el.setAttribute('aria-label','Đăng nhập');document.body.appendChild(el);}return el;}
+function ldlHide(){const el=document.getElementById('ldl');if(el){el.hidden=true;el.innerHTML='';}}
+const ldlOffLink='<button type="button" class="ldl-link ldl-off" data-ldl="off">Chơi ngoại tuyến (chỉ lưu trên máy này)</button>';
+function ldlShow(st,extra){LDL.st=st;const el=ldlEl();el.hidden=false;const c=LDB.cfg||{};let b='';
+  const msg=`<p class="ldl-msg ${LDL.ok?'ok':'bad'}" aria-live="polite">${esc(LDL.ok||LDL.msg||'')}</p>`;
+  if(st==='load')b=`<div class="ldl-spin"></div><p class="muted">${esc(extra||'Đang kết nối máy chủ…')}</p>`;
+  else if(st==='cfg')b=`<p class="ldl-msg bad">⚙️ Máy chủ chưa được cấu hình.</p><p class="small muted">Trò chơi chưa được nối với máy chủ tài khoản nên chưa đăng nhập / chơi chung được. Hãy quay lại sau ít phút.</p>${ldlOffLink}`;
+  else if(st==='down')b=`<p class="ldl-msg bad">📡 Không kết nối được máy chủ.</p><p class="small muted">Kiểm tra mạng (Wi-Fi / 4G) rồi bấm Thử lại.</p><button class="btn big" data-ldl="retry">↻ Thử lại</button>${ldlOffLink}`;
+  else if(st==='in'||st==='up'){const up=st==='up';
+    b=`<div class="ldl-tabs" role="tablist"><button type="button" role="tab" class="${up?'':'on'}" data-ldl="tin">Đăng nhập</button><button type="button" role="tab" class="${up?'on':''}" data-ldl="tup">Đăng ký</button></div>
+    <form data-ldl-form="${st}" novalidate>
+      ${up?`<label class="fld">Tên trong game<input id="ldlName" maxlength="24" autocomplete="nickname" placeholder="vd. Lửa Rừng" value="${esc(LDL.name||'')}"></label>`:''}
+      <label class="fld">Email<input id="ldlEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="ban@vidu.com" value="${esc(LDL.email||'')}"></label>
+      <label class="fld ldl-pw">Mật khẩu<input id="ldlPw" type="password" autocomplete="${up?'new-password':'current-password'}" minlength="6" placeholder="${up?'Ít nhất 6 ký tự':'Mật khẩu'}"><button type="button" class="ldl-eye" data-ldl="eye" aria-label="Hiện mật khẩu">👁</button></label>
+      ${msg}
+      <button class="btn big" type="submit" ${LDL.busy?'disabled':''}>${LDL.busy?'Đang xử lý…':up?'Tạo tài khoản':'Vào game'}</button>
+    </form>
+    ${up?'':'<button type="button" class="ldl-link" data-ldl="forgot">Quên mật khẩu?</button>'}
+    ${c.google?'<div class="ldl-or">hoặc</div><button type="button" class="btn ldl-g" data-ldl="google"><b style="color:#4285f4">G</b> Tiếp tục với Google</button>':''}
+    ${LDL.net?ldlOffLink:''}
+    <p class="ldl-foot">${up?'Một tài khoản giữ tới 4 nhân vật, lưu trên máy chủ, chơi chung một thế giới với mọi người.':'Chưa có tài khoản? Bấm <b>Đăng ký</b> — chỉ cần email.'}</p>`;}
+  else if(st==='forgot')b=`<form data-ldl-form="forgot" novalidate><p class="small">Nhập email đã đăng ký. Chúng tôi sẽ gửi thư có liên kết đặt lại mật khẩu.</p>
+      <label class="fld">Email<input id="ldlEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" value="${esc(LDL.email||'')}"></label>${msg}
+      <button class="btn big" type="submit" ${LDL.busy?'disabled':''}>${LDL.busy?'Đang gửi…':'Gửi thư đặt lại'}</button></form><button type="button" class="ldl-link" data-ldl="tin">← Quay lại đăng nhập</button>`;
+  else if(st==='confirm')b=`<p class="ldl-msg ok">📧 Đã gửi thư xác nhận tới <b>${esc(LDL.email)}</b>.</p><p class="small">Mở thư (xem cả mục Spam / Quảng cáo), bấm liên kết xác nhận — trò chơi sẽ tự mở và đăng nhập. Hoặc xác nhận xong quay lại đây đăng nhập.</p><button class="btn big" data-ldl="tin">Đã xác nhận, đăng nhập</button>`;
+  else if(st==='newpw')b=`<form data-ldl-form="newpw" novalidate><p class="small">Đặt mật khẩu mới cho tài khoản <b>${esc(LDL.email||'')}</b>.</p>
+      <label class="fld ldl-pw">Mật khẩu mới<input id="ldlPw" type="password" autocomplete="new-password" minlength="6" placeholder="Ít nhất 6 ký tự"><button type="button" class="ldl-eye" data-ldl="eye" aria-label="Hiện mật khẩu">👁</button></label>${msg}
+      <button class="btn big" type="submit" ${LDL.busy?'disabled':''}>${LDL.busy?'Đang lưu…':'Lưu và vào game'}</button></form>`;
+  el.innerHTML=`<div class="ldl-card"><div class="logo">🔥</div><h1>Lửa Đá</h1><p class="sub">Từ hai bàn tay trắng</p>${b}</div>`;}
+function ldlSet(m,ok){LDL.msg=ok?'':m;LDL.ok=ok?m:'';const p=document.querySelector('#ldl .ldl-msg[aria-live]');if(p){p.className='ldl-msg '+(ok?'ok':'bad');p.textContent=m;}else ldlShow(LDL.st);}
+function ldlKeep(){const g=id=>{const e=document.getElementById(id);return e?e.value:null;};const em=g('ldlEmail'),nm=g('ldlName');if(em!=null)LDL.email=em.trim();if(nm!=null)LDL.name=nm;}
+/* ---------- luồng ---------- */
+async function ldlRun(){LDL.msg=LDL.ok='';LDL.net=false;ldlShow('load');if(!LDB.configured){ldlShow('cfg');return;}
+  let s;try{s=await LDB.session();}catch(e){ldlShow(e&&e.code==='config'?'cfg':'down');return;}
+  try{LDB.sb.auth.onAuthStateChange((ev,ss)=>{if(ev==='PASSWORD_RECOVERY'){LDL.recovery=true;LDL.email=ss&&ss.user&&ss.user.email||LDL.email;if(LDL.st&&LDL.st!=='newpw'&&!LDB.uid)ldlShow('newpw');}});}catch(e){}
+  if(s&&LDL.recovery){LDL.email=s.user&&s.user.email||'';ldlShow('newpw');return;}
+  if(s){await ldlEnter(s);return;}
+  if(LDL.hashErr){LDL.msg=/expired|invalid/i.test(decodeURIComponent(LDL.hashErr))?'Liên kết trong thư đã hết hạn hoặc đã dùng. Hãy gửi lại.':'Đăng nhập không thành công: '+decodeURIComponent(LDL.hashErr).replace(/\+/g,' ').slice(0,120);LDL.hashErr='';try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}}
+  ldlShow(LDL.email?'in':'up');}
+async function ldlEnter(s){ldlShow('load','Đang vào game…');try{await LDB.enter(s);}catch(e){console.warn('vào game',e);LDL.msg='Có lỗi khi vào game. Thử lại nhé.';ldlShow('in');return;}
+  ldlHide();setTimeout(()=>{if(!MP.ok){LDL.mpFail=true;ldlRefresh();}},25000);LDL.boot(LDL.d||{});}
+function ldlOffline(){LDL.offline=true;LDB.offline();ldlHide();LDL.boot(LDL.d||{});}
+async function ldlSubmit(kind){ldlKeep();if(LDL.busy)return;const pwEl=document.getElementById('ldlPw'),pw=pwEl?pwEl.value:'',em=LDL.email;
+  const emailOk=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em);LDL.net=false;
+  if(kind!=='newpw'&&!emailOk)return ldlSet('Email chưa đúng dạng (vd. ban@vidu.com).');
+  if(kind!=='forgot'&&pw.length<6)return ldlSet('Mật khẩu cần ít nhất 6 ký tự.');
+  let name='';if(kind==='up'){name=ldbCleanName(LDL.name);if(name.length<2)return ldlSet('Tên trong game cần 2–24 ký tự (không dùng < > " / \\ @).');}
+  try{localStorage.setItem('ld-email',em);}catch(e){}
+  LDL.busy=true;LDL.msg=LDL.ok='';ldlShow(LDL.st==='newpw'?'newpw':kind==='forgot'?'forgot':kind);
+  try{if(kind==='up'){const free=await LDB.nameFree(name);if(free===false)throw {msg:`Tên "${name}" đã có người dùng. Chọn tên khác nhé.`};
+      const s=await LDB.signUp(em,pw,name);LDL.busy=false;if(s){await ldlEnter(s);return;}ldlShow('confirm');return;}
+    if(kind==='in'){const s=await LDB.signIn(em,pw);LDL.busy=false;await ldlEnter(s);return;}
+    if(kind==='forgot'){await LDB.reset(em);LDL.busy=false;LDL.ok='📧 Đã gửi thư đặt lại mật khẩu tới '+em+'. Mở thư (xem cả mục Spam) và bấm liên kết.';ldlShow('forgot');return;}
+    if(kind==='newpw'){await LDB.newPassword(pw);LDL.busy=false;LDL.recovery=false;try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}const s=await LDB.session();if(s){await ldlEnter(s);return;}ldlShow('in');return;}}
+  catch(e){LDL.busy=false;const m=e&&e.msg||ldbAuthMsg(e);LDL.net=/kết nối/.test(m);LDL.msg=m;ldlShow(LDL.st);}}
+document.addEventListener('submit',e=>{const f=e.target&&e.target.closest&&e.target.closest('[data-ldl-form]');if(!f)return;e.preventDefault();ldlSubmit(f.dataset.ldlForm);},true);
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-ldl]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();const a=b.dataset.ldl;ldlKeep();
+  if(a==='tin'||a==='tup'){LDL.msg=LDL.ok='';ldlShow(a==='tin'?'in':'up');const i=document.getElementById(a==='tup'?'ldlName':'ldlEmail');if(i&&!i.value)try{i.focus();}catch(er){}return;}
+  if(a==='forgot'){LDL.msg=LDL.ok='';ldlShow('forgot');return;}
+  if(a==='eye'){const i=b.parentNode.querySelector('input');if(i){i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';}return;}
+  if(a==='retry'){ldlRun();return;}
+  if(a==='off'){ldlOffline();return;}
+  if(a==='google'){LDB.google().catch(er=>{LDL.msg=er&&er.msg||'Không mở được đăng nhập Google.';ldlShow(LDL.st);});return;}},true);
+/* ---------- gắn vào game: chạy lúc boot (sau khi mọi tệp đã nạp, để bọc ngoài cùng) ---------- */
+{const _bt=boot;boot=function(d){try{ldlLate();}catch(e){console.warn('đăng nhập: gắn',e);}LDL.d=d;LDL.boot=_bt;if(LDB.mode!=='web'){if(LDB.mode==='claude')setTimeout(()=>{if(typeof MP!=='undefined'&&MP.db&&!MP.ok){LDL.mpFail=true;ldlRefresh();}},25000);return _bt(d);}ldlRun();};}
+// nhân vật tạo / tải khi đã đăng nhập: ghi tài khoản sở hữu vào ngăn lưu trên máy
+{const _sm=slotMeta;slotMeta=function(s){const m=_sm(s);if(LDB.uid)m.uid=LDB.uid;return m;};}
+{const _sh=settingsHtml;settingsHtml=function(){const h=_sh();if(LDB.mode!=='web'||!LDB.uid)return h;
+  return `<div class="set"><b>Tài khoản</b><span class="small">👤 ${esc(LDB.name)}${LDB.email?' · '+esc(LDB.email):''}</span><button class="btn sm ghost" data-a="ldout">Đăng xuất</button></div>`+h;};}
+function ldlLate(){if(LDL.late)return;LDL.late=1;
+  {const _ac=accChars;accChars=function(){const L=_ac(),sl=slotsLocal();if(LDB.mode!=='web')return L;
+    if(LDB.uid)return L.filter(c=>c.where!=='local'||(sl[c.id]&&sl[c.id].uid===LDB.uid));
+    let last='';try{last=localStorage.getItem('ld-last-uid')||'';}catch(e){}return L.filter(c=>{const m=sl[c.id];return !m||!m.uid||m.uid===last;});};}
+  {const _us=uiStart;uiStart=function(o){_us(o);try{ldlStartPatch(o||{});}catch(e){console.warn('đăng nhập: màn đầu',e);}};}
+  if(typeof crOpen==='function'){const _co=crOpen;crOpen=function(m){const r=_co.apply(this,arguments);try{if(m==='new')ldlForm();}catch(e){}return r;};}
+  if(typeof mpFormRefresh==='function'){const _mf=mpFormRefresh;mpFormRefresh=function(){_mf();try{if(ldlShared())ldlForm();}catch(e){}};}
+  if(typeof mpPanelHtml==='function'){const _ph=mpPanelHtml;mpPanelHtml=function(){const h=_ph();return LDB.mode==='web'?h.replace('Mở trò chơi trên claude.ai (đã đăng nhập) để gặp người khác. Bạn vẫn chơi được bình thường.','Kiểm tra mạng rồi tải lại trang để gặp người khác. Bạn vẫn chơi được bình thường.'):h;};}}
+function ldlRefresh(){if(document.querySelector('.ov-card.acc'))uiStart({cont:true});else ldlForm();}
+// form tạo nhân vật: chỉ còn "Thế giới chung"
+function ldlForm(){if(!ldlShared())return;const cr=document.querySelector('.ov-card.cr');if(cr&&typeof CRE!=='undefined'&&CRE.mode==='new'){G.nworld='mp';ldlCrState(cr);return;}
+  const f=document.querySelector('.ov-card.form');if(!f)return;G.nworld='mp';let row=f.querySelector('.mpw');
+  if(!row){row=document.createElement('div');row.className='mds mpw';row.innerHTML='<button class="md on" data-a="mpw" data-v="mp"><b>🌐 Thế giới chung</b><small class="mpw-s"></small></button>';
+    const mds=f.querySelector('.mds');if(mds)mds.parentNode.insertBefore(row,mds);else f.querySelector('[data-a="start"]').before(row);}
+  row.querySelectorAll('[data-v="solo"]').forEach(b=>b.remove());row.querySelectorAll('[data-a="mpw"]').forEach(b=>b.classList.add('on'));
+  const s=row.querySelector('.mpw-s'),bt=f.querySelector('[data-a="start"]');
+  if(s)s.textContent=MP.ok?'Mọi người cùng một vùng đất: gặp nhau, lập bộ tộc, cắm đất, cùng xây làng.':LDL.mpFail?'⚠️ Chưa kết nối được thế giới chung.':'Đang kết nối thế giới chung…';
+  if(bt){bt.disabled=!MP.ok;bt.textContent=MP.ok?'Bắt đầu':LDL.mpFail?'Chưa kết nối được':'Đang kết nối…';}
+  let rt=f.querySelector('.ldl-rt');if(LDL.mpFail&&!MP.ok){if(!rt){rt=document.createElement('button');rt.className='btn ghost ldl-rt';rt.dataset.a='ldretry';rt.textContent='↻ Tải lại trang để thử lại';bt&&bt.after(rt);}}else if(rt)rt.remove();
+  const h=[...f.querySelectorAll('p.small.muted')].find(p=>/thế giới/i.test(p.textContent));if(h)h.textContent='Thế giới chung: mọi người cùng một vùng đất, đồ đạc và kỹ năng vẫn là của riêng bạn.';}
+// trình tạo nhân vật (creator.js): nút Bắt đầu chờ thế giới chung
+function ldlCrState(cr){const bt=cr.querySelector('[data-a="start"]');if(!bt)return;bt.disabled=!MP.ok;bt.textContent=MP.ok?'🌐 Bắt đầu':LDL.mpFail?'⚠️ Chưa kết nối được':'Đang kết nối…';
+  bt.title=MP.ok?'Vào thế giới chung':'Đang kết nối thế giới chung';if(LDL.mpFail&&!MP.ok&&!cr.querySelector('.ldl-rt')){const r=document.createElement('button');r.className='btn sm ghost ldl-rt';r.dataset.a='ldretry';r.textContent='↻ Thử lại';bt.after(r);}}
+function ldlStartPatch(o){if(document.querySelector('.ov-card.form')||document.querySelector('.ov-card.cr')){ldlForm();return;}const card=document.querySelector('.ov-card.acc');if(!card||LDB.mode!=='web')return;
+  const w=card.querySelector('.accw');
+  if(LDL.offline){if(w)w.innerHTML='📴 <b>Chơi ngoại tuyến</b> · chỉ lưu trên máy này';if(!card.querySelector('.ldl-acc')){const d=document.createElement('div');d.className='ldl-acc';d.innerHTML='<button class="btn sm ghost" data-a="ldretry">🔑 Đăng nhập lại</button>';card.appendChild(d);}return;}
+  if(!LDB.uid)return;
+  if(!card.querySelector('.ldl-acc')){const d=document.createElement('div');d.className='ldl-acc';d.innerHTML=`<button class="btn sm ghost" data-a="ldout">${LDL.outArm?'Bấm lần nữa để đăng xuất':'Đăng xuất'}</button>`;card.appendChild(d);}
+  if(LDL.mpFail&&!MP.ok&&!card.querySelector('.ldl-warn')){const d=document.createElement('div');d.className='ldl-warn';d.innerHTML='⚠️ Chưa kết nối được thế giới chung (mạng chập chờn hoặc máy chủ bận). <button class="btn sm" data-a="ldretry">↻ Thử lại</button>';card.querySelector('.chrs').before(d);}
+  const leg=ldlLegacy();let flag='';try{flag=localStorage.getItem('ld-upl-'+LDB.uid)||'';}catch(e){}
+  if(leg.length&&!flag&&ACC.ready&&!card.querySelector('.ldl-up')){const d=document.createElement('div');d.className='ldl-up';
+    d.innerHTML=`<b>📦 Nhân vật cũ trên máy này</b><small></small><div class="row"><button class="btn sm" data-a="ldup">Đưa lên tài khoản</button><button class="btn sm ghost" data-a="ldupno">Không, cảm ơn</button></div>`;
+    d.querySelector('small').textContent=`Có ${leg.length} nhân vật chơi một mình (${leg.map(([,m])=>m.name).join(', ')}). Đưa lên tài khoản để chơi ở thế giới chung: giữ túi đồ, kỹ năng, công thức, thời đại; nhà cửa và đồ trong rương ở lại thế giới cũ (bản cũ vẫn giữ trên máy, chơi được khi ngoại tuyến).`;
+    card.querySelector('.chrs').before(d);}}
+function ldlLegacy(){const sl=slotsLocal();return Object.entries(sl).filter(([id,m])=>m&&!m.uid&&!m.ldUp&&accLS(SKEY+'#'+id));}
+// đổi một bản lưu "một mình" thành nhân vật thế giới chung (giữ đồ đạc, kỹ năng; bỏ những gì gắn với bản đồ cũ)
+function ldlConvert(raw){const s=JSON.parse(raw);if(!s||s.v!==1)return null;Object.assign(s,{seed:MP.seed,mp:1,mpGot:[],wv:3,builds:[],store:{},crops:{},fuel:{},res:{},disc:{},fogm:null,mark:null});
+  s.p=Object.assign({},s.p||{},{x:1e7,z:1e7});return s;}// vị trí ngoài thế giới → game tự đưa về Trảng Khởi Đầu
+async function ldlUpload(){if(!ACC.db||!MP.ok||!MP.seed){uiToast('Chưa kết nối được máy chủ, thử lại sau nhé.','bad');return;}
+  const leg=ldlLegacy(),room=MAXCH-accChars().length;if(room<=0){uiToast('Tài khoản đã đủ 4 nhân vật. Xóa bớt để đưa thêm.','bad');return;}
+  let n=0;uiToast('Đang đưa nhân vật lên tài khoản…','');
+  for(const [oid,m] of leg.slice(0,room)){try{const s=ldlConvert(accLS(SKEY+'#'+oid));if(!s)continue;const id='c'+Date.now().toString(36)+n;const raw=JSON.stringify(s);
+      accLS(SKEY+'#'+id,raw);const sl=slotsLocal();sl[id]=Object.assign(slotMeta(s),{uid:LDB.uid,mp:1});sl[oid]=Object.assign({},sl[oid],{ldUp:LDB.uid});slotsWrite(sl);
+      for(let k=0;k<20&&ACC.busy;k++)await new Promise(r=>setTimeout(r,300));await accPush(id,true);n++;}catch(e){console.warn('đưa nhân vật lên',e);}}
+  try{localStorage.setItem('ld-upl-'+LDB.uid,'done');}catch(e){}uiToast(n?`☁️ Đã đưa ${n} nhân vật lên tài khoản (thế giới chung).`:'Không đưa được nhân vật nào.',n?'good':'bad');uiStart({cont:true});}
+async function ldlLogout(){uiToast('Đang lưu và đăng xuất…','');try{save();}catch(e){}const id=curSlot();
+  try{if(ACC.db&&id)await Promise.race([accPush(id,true),new Promise(r=>setTimeout(r,6000))]);}catch(e){}
+  LDB.leaving=true;await LDB.signOut();accLS(SKEY,null);accLS(CURK,null);try{sessionStorage.removeItem('ldtt-auto');localStorage.removeItem('ld-last-uid');}catch(e){}location.reload();}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="ldout"],[data-a="ldup"],[data-a="ldupno"],[data-a="ldretry"],.ov-card.form [data-a="start"],.ov-card.cr [data-a="start"],.ov-card.form [data-a="mpw"]');if(!b)return;const a=b.dataset.a;
+  if(a==='start'||a==='mpw'){if(!ldlShared()||(b.closest('.ov-card.cr')&&!(typeof CRE!=='undefined'&&CRE.mode==='new')))return;G.nworld='mp';if(a==='mpw'){e.stopImmediatePropagation();ldlForm();return;}if(!MP.ok){e.stopImmediatePropagation();uiToast('Đang kết nối thế giới chung, chờ một chút nhé…','');}return;}
+  e.stopImmediatePropagation();try{sfx('pick');}catch(er){}
+  if(a==='ldout'){if(!LDL.outArm){LDL.outArm=1;b.textContent='Bấm lần nữa để đăng xuất';setTimeout(()=>{LDL.outArm=0;},4000);return;}LDL.outArm=0;ldlLogout();return;}
+  if(a==='ldup'){b.disabled=true;ldlUpload();return;}
+  if(a==='ldupno'){try{localStorage.setItem('ld-upl-'+LDB.uid,'no');}catch(er){}uiStart({cont:true});return;}
+  if(a==='ldretry'){try{save();}catch(er){}location.reload();}},true);
 /* ===================== TÀI KHOẢN & NHÂN VẬT =====================
    - Người mở trang trên claude.ai đã đăng nhập sẵn: dùng danh tính đó để lưu game lên máy chủ (riêng từng người).
    - Mỗi tài khoản có tối đa 4 nhân vật (tên, nam/nữ, ngoại hình, chế độ), mỗi nhân vật một thế giới riêng.
@@ -12982,14 +13683,14 @@ function slotMeta(s){const ag=typeof AGES!=='undefined'&&AGES[s.age||0];return {
   if(ACC.db&&Date.now()-ACC.lastPush>45000)accPush(id);};}
 addEventListener('pagehide',()=>{try{save();const id=curSlot();if(ACC.db&&id)accPush(id,true);}catch(e){}});
 async function accPush(id,force){if(!ACC.db||ACC.busy||!id)return;const raw=accLS(SKEY+'#'+id);if(!raw)return;ACC.busy=true;ACC.lastPush=Date.now();
-  try{const base='data/users/'+ACC.uid;const n=Math.ceil(raw.length/PART);for(let i=0;i<n;i++)await ACC.db.doc(`${base}/parts/${id}_${i}`).set({s:raw.slice(i*PART,(i+1)*PART)});
+  try{const base='data/users/'+ACC.uid+'/save';const n=Math.ceil(raw.length/PART);for(let i=0;i<n;i++)await ACC.db.doc(`${base}/parts/${id}_${i}`).set({s:raw.slice(i*PART,(i+1)*PART)});
     const m=Object.assign({},slotsLocal()[id]||slotMeta(S),{parts:n,len:raw.length});await ACC.db.doc(`${base}/chars/${id}`).set(m);ACC.cloud[id]=m;}catch(e){console.warn('lưu máy chủ',e);}ACC.busy=false;}
-async function accPull(id){const m=ACC.cloud[id];if(!ACC.db||!m)return null;try{const base='data/users/'+ACC.uid;let s='';for(let i=0;i<(m.parts||1);i++){const d=await ACC.db.doc(`${base}/parts/${id}_${i}`).get();if(!d.exists)return null;s+=d.data().s||'';}return s.length===m.len?s:null;}catch(e){return null;}}
-async function accDelCloud(id){if(!ACC.db)return;const m=ACC.cloud[id];const base='data/users/'+ACC.uid;try{await ACC.db.doc(`${base}/chars/${id}`).delete();for(let i=0;i<((m&&m.parts)||1);i++)await ACC.db.doc(`${base}/parts/${id}_${i}`).delete();}catch(e){}delete ACC.cloud[id];}
+async function accPull(id){const m=ACC.cloud[id];if(!ACC.db||!m)return null;try{const base='data/users/'+ACC.uid+'/save';let s='';for(let i=0;i<(m.parts||1);i++){const d=await ACC.db.doc(`${base}/parts/${id}_${i}`).get();if(!d.exists)return null;s+=d.data().s||'';}return s.length===m.len?s:null;}catch(e){return null;}}
+async function accDelCloud(id){if(!ACC.db)return;const m=ACC.cloud[id];const base='data/users/'+ACC.uid+'/save';try{await ACC.db.doc(`${base}/chars/${id}`).delete();for(let i=0;i<((m&&m.parts)||1);i++)await ACC.db.doc(`${base}/parts/${id}_${i}`).delete();}catch(e){}delete ACC.cloud[id];}
 // kết nối tài khoản claude.ai (nếu trang mở trên claude.ai)
 (async function accInit(){try{if(!window.claude||!window.claude.use)return;const user=await window.claude.use('user');if(!user)return;const db=await window.claude.use('db');ACC.user=user;
     try{ACC.uid=await user.id();const me=await user.me();ACC.name=(me&&me.name)||'';}catch(e){}if(!db||!ACC.uid){accRefresh();return;}ACC.db=db;
-    const tm=setTimeout(()=>{ACC.ready=true;accRefresh();},10000);const q=await db.collection('data/users/'+ACC.uid+'/chars').get();clearTimeout(tm);(q.docs||[]).forEach(d=>{ACC.cloud[d.id]=d.data();});
+    const tm=setTimeout(()=>{ACC.ready=true;accRefresh();},10000);const q=await db.collection('data/users/'+ACC.uid+'/save'+'/chars').get();clearTimeout(tm);(q.docs||[]).forEach(d=>{ACC.cloud[d.id]=d.data();});
     ACC.ready=true;accRefresh();}catch(e){console.warn('tài khoản',e);ACC.ready=true;accRefresh();}})();
 function accRefresh(){if(document.querySelector('.ov-card.acc'))uiStart({cont:true});}
 function accChars(){const L=slotsLocal(),out={};for(const id in L)out[id]=Object.assign({id,where:'local'},L[id]);for(const id in ACC.cloud){const c=ACC.cloud[id];if(!out[id]||(c.ts||0)>(out[id].ts||0)+5000)out[id]=Object.assign({id,where:out[id]?'both':'cloud'},c);else out[id].where='both';}
