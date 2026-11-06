@@ -16,13 +16,13 @@ language sql immutable set search_path = '' as $$
 $$;
 
 -- chủ của một tài liệu, đọc từ đường dẫn:
---   players|clans|claims|builds|chat|gifts|sites/<uid>[/...]  → <uid>
+--   players|clans|claims|builds|chat|gifts|sites|friends|mail|market|deals|lb/<uid>[/...]  → <uid>
 --   data/users/<uid>/...                                        → <uid>
 --   còn lại (vd. world/main)                                    → null (không ai "sở hữu")
 create or replace function public.ld_owner(p text) returns uuid
 language sql immutable set search_path = '' as $$
   select case
-    when split_part(p, '/', 1) in ('players','clans','claims','builds','chat','gifts','sites')
+    when split_part(p, '/', 1) in ('players','clans','claims','builds','chat','gifts','sites','friends','mail','market','deals','lb')
       then public.ld_uuid(split_part(p, '/', 2))
     when split_part(p, '/', 1) = 'data' and split_part(p, '/', 2) = 'users'
       then public.ld_uuid(split_part(p, '/', 3))
@@ -157,8 +157,10 @@ grant select, insert, update, delete on public.docs to authenticated;
 -- đọc: mọi người đã đăng nhập đọc các bộ sưu tập chung; data/users/<uid>/... chỉ chủ đọc
 drop policy if exists docs_read on public.docs;
 create policy docs_read on public.docs for select to authenticated using (
-  split_part(path, '/', 1) in ('world','players','clans','claims','builds','chat','gifts','sites')
-  or owner = (select auth.uid()));
+  split_part(path, '/', 1) in ('world','players','clans','claims','builds','chat','gifts','sites','friends','market','deals','lb')
+  or owner = (select auth.uid())
+  -- thư: chỉ người gửi và người có tên trong "to" mới đọc được
+  or (split_part(path, '/', 1) = 'mail' and coalesce(data->'to', '[]'::jsonb) ? ((select auth.uid())::text)));
 
 -- thêm: chỉ tài liệu của chính mình; riêng world/main ai cũng tạo được (một lần, phải có seed là số)
 drop policy if exists docs_insert on public.docs;
