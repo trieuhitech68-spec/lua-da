@@ -2,7 +2,9 @@
 
 Game sinh tồn – xây dựng 3D thời tiền sử Việt Nam (Sơn Vi → Hòa Bình → Bắc Sơn → Phùng Nguyên → Đông Sơn), chạy thẳng trên trình duyệt, ưu tiên điện thoại.
 
-**Chơi ngay:** https://lanhdia.app  (dự phòng: https://lua-da-h3es.vercel.app)
+**Chơi ngay:** https://lanhdia.app — cài thành ứng dụng: Android bấm **📲 Cài ứng dụng**, iPhone dùng Safari → Chia sẻ → **Thêm vào Màn hình chính**.
+
+  (dự phòng: https://lua-da-h3es.vercel.app)
 
 ## Có gì trong game
 - Thế giới rộng 33 vùng: núi đá vôi, Tràng An, vịnh đá, thác chín tầng, rừng tre, ruộng bậc thang, rừng ngập mặn, núi lửa đất đỏ…
@@ -20,7 +22,7 @@ Game sinh tồn – xây dựng 3D thời tiền sử Việt Nam (Sơn Vi → H�
 - `v3d/` – bộ công cụ 3D dùng chung (three.js 0.149).
 - `docs/` – tài liệu thiết kế.
 
-Dựng lại `index.html`:
+Dựng lại `index.html` (kèm phần ứng dụng cài được):
 ```bash
-cd src && python3 build.py
+cd src && python3 build.py && python3 pwa_inject.py
 ```
