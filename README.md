@@ -2,7 +2,7 @@
 
 Game sinh tồn – xây dựng 3D thời tiền sử Việt Nam (Sơn Vi → Hòa Bình → Bắc Sơn → Phùng Nguyên → Đông Sơn), chạy thẳng trên trình duyệt, ưu tiên điện thoại.
 
-**Chơi ngay:** https://trieuhitech68-spec.github.io/lua-da/
+**Chơi ngay:** https://lanhdia.app  (dự phòng: https://lua-da-h3es.vercel.app)
 
 ## Có gì trong game
 - Thế giới rộng 33 vùng: núi đá vôi, Tràng An, vịnh đá, thác chín tầng, rừng tre, ruộng bậc thang, rừng ngập mặn, núi lửa đất đỏ…
