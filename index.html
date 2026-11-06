@@ -13018,6 +13018,18 @@ function accSwitch(){try{save();}catch(e){}const id=curSlot();const go=()=>{try{
   if(ACC.db&&id){uiToast('Đang lưu lên máy chủ…','');Promise.resolve(accPush(id,true)).then(go,go);setTimeout(go,6000);}else go();}
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="chswitch"]');if(!b)return;e.stopImmediatePropagation();sfx('pick');
   if(!G.swArm){G.swArm=1;b.textContent='Bấm lần nữa để thoát (đã tự lưu)';setTimeout(()=>{G.swArm=0;},4000);return;}G.swArm=0;accSwitch();},true);
+/* ---------- trang bị tải lại giữa chừng (điện thoại thiếu bộ nhớ, mạng chập chờn…): tự vào lại nhân vật đang chơi ---------- */
+function accSS(k,v){try{if(v===undefined)return sessionStorage.getItem(k);if(v===null)sessionStorage.removeItem(k);else sessionStorage.setItem(k,v);}catch(e){return null;}}
+{const _sg=startGame;startGame=function(){const id=curSlot();if(id)accSS('ldtt-auto',id);return _sg.apply(this,arguments);};}
+{const _us2=uiStart;uiStart=function(o){if(!(o&&o.form)&&!G.on&&!G.autoTried){G.autoTried=1;
+    if(accSS('ldtt-menu')){accSS('ldtt-menu',null);accSS('ldtt-auto',null);}
+    else{const id=accSS('ldtt-auto');const raw=id&&(accLS(SKEY+'#'+id)||(curSlot()===id&&accLS(SKEY)));
+      if(raw){const now=Date.now(),hist=(accSS('ldtt-autoh')||'').split(',').map(Number).filter(t=>now-t<90000);hist.push(now);accSS('ldtt-autoh',hist.join(','));
+        if(hist.length<=2){accLS(SKEY,raw);accLS(CURK,id);const s=loadSave();if(s){S=s;uiOverlay(false);setTimeout(()=>uiToast('↻ Đã vào lại nhân vật đang chơi.',''),1500);startGame();return;}}
+        else{accSS('ldtt-auto',null);G.memWarn=1;}}}}
+  _us2(o);if(G.memWarn){G.memWarn=0;setTimeout(()=>uiToast('⚠️ Trang bị tải lại nhiều lần — có thể máy thiếu bộ nhớ. Vào Cài đặt → Đồ họa, chọn mức nhẹ nhất rồi chơi tiếp.','bad'),600);}};}
+// mất bộ nhớ đồ họa: báo rõ thay vì màn hình đen
+addEventListener('webglcontextlost',e=>{try{e.preventDefault();save();}catch(er){}uiToast('⚠️ Máy hết bộ nhớ đồ họa. Đang thử khôi phục… Nếu vẫn đen, tải lại trang và chọn Đồ họa nhẹ hơn.','bad');},true);
 /* ===================== TẠO NHÂN VẬT: dáng người · nặn mặt · tóc · da · trang trí =====================
    - S.app: ngoại hình gọn (các số ngắn). Mọi chỉnh sửa áp dụng MỘT LẦN khi dựng mô hình (biến dạng đỉnh của lưới đầu theo vùng,
      co giãn xương/lưới thân, thẻ tóc mới, lớp vẽ/xăm/tàn nhang) → trong game không tốn gì mỗi khung hình.
