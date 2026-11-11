@@ -91,11 +91,11 @@ async function mpStart(){if(MP.started||!MP.ok||!S||!S.mp||!G.on)return;MP.start
   sub(MP.db.collection('clans').limit(300),s=>{const o={};for(const d of s.docs){if(!mpWOk(d.data()))continue;const v=mpValClan(d.id,d.data());if(v)o[d.id]=v;}MP.clans=o;MP.loaded.clans=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;});
   sub(MP.db.collection('claims').limit(800),s=>{const o={};for(const d of s.docs){if(!mpWOk(d.data()))continue;const v=mpValClaim(d.id,d.data());if(v)o[d.id]=v;}MP.claims=o;MP.loaded.claims=1;MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;MP.tick.near=-9;});
   const cur=await mpGetDoc('players/'+MP.uid);const v=cur&&mpValPlayer(MP.uid,cur);
-  MP.me={look:S.look|0,clan:v?v.clan:null,req:v?v.req:null,w:S.seed,lastSeen:mpNow(),h:v?v.h:null};mpPut('players/'+MP.uid,Object.assign({},MP.me));
+  MP.me={look:S.look|0,clan:v?v.clan:null,req:v?v.req:null,w:S.seed,lastSeen:mpNow(),h:v?v.h:null,df:v?v.df:null,sh:v?v.sh:0,hl:v?v.hl:1};mpPut('players/'+MP.uid,Object.assign({},MP.me));
   const bh=await mpGetDoc('builds/'+MP.uid);MP.bHad=!!(bh&&bh.n>0);
   const g=await mpGetDoc('gifts/'+MP.uid);MP.myGifts={list:g&&Array.isArray(g.list)?g.list.filter(x=>x&&typeof x==='object').slice(-12):[]};
   if(!Array.isArray(S.mpGot))S.mpGot=[];if(MP.room)mpRoomInit();}
-function mpValPlayer(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;return {look:mpNum(d.look,0,LOOKS.length-1)?d.look|0:0,clan:mpIdOk(d.clan)?d.clan:null,req:mpIdOk(d.req)?d.req:null,w:mpNum(d.w,0,4.3e9)?d.w:0,lastSeen:mpNum(d.lastSeen,0,1e14)?d.lastSeen:0,h:Array.isArray(d.h)&&d.h.length===3&&mpNum(d.h[0],-2e4,2e4)&&mpNum(d.h[1],-2e4,2e4)&&mpNum(d.h[2],0,4e4)?[d.h[0],d.h[1],d.h[2]]:null};}
+function mpValPlayer(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;return {look:mpNum(d.look,0,LOOKS.length-1)?d.look|0:0,clan:mpIdOk(d.clan)?d.clan:null,req:mpIdOk(d.req)?d.req:null,w:mpNum(d.w,0,4.3e9)?d.w:0,lastSeen:mpNum(d.lastSeen,0,1e14)?d.lastSeen:0,df:Array.isArray(d.df)&&d.df.length===3&&d.df.every(v=>mpNum(v,0,99))?[d.df[0]|0,d.df[1]|0,d.df[2]|0]:null,sh:mpNum(d.sh,0,4e12)?d.sh:0,hl:mpNum(d.hl,1,999)?d.hl|0:1,h:Array.isArray(d.h)&&d.h.length===3&&mpNum(d.h[0],-2e4,2e4)&&mpNum(d.h[1],-2e4,2e4)&&mpNum(d.h[2],0,4e4)?[d.h[0],d.h[1],d.h[2]]:null};}
 function mpValZone(z){if(!z||typeof z!=='object'||!mpNum(z.x,-2e4,2e4)||!mpNum(z.z,-2e4,2e4)||!mpNum(z.r,40,600))return null;return {x:z.x,z:z.z,r:z.r};}
 function mpValClan(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;const name=mpTxt(d.name,24);if(!name||d.leader!==id||!Array.isArray(d.members))return null;
   const members=[...new Set(d.members.filter(mpIdOk))].slice(0,MP_CLANMAX);if(!members.includes(id))members.unshift(id);

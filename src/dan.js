@@ -29,7 +29,7 @@ function danCapture(foe){const bed=freeBed();if(!bed)return false;slotsTake(S.in
   const sps=Object.keys(DAN_SP),sp=Math.random()<0.4?'guard':sps[Math.floor(Math.random()*sps.length)];
   const f={n,role:'hunter',seed:900+Math.floor(Math.random()*90),sex:'m',bed:bed.id,job:'idle',x:foe.x,z:foe.z,fed:TNOW(),cap:1,loy:30,lv:foe.lv||1,sp,xp:0,from:foe.n||FOE.n};S.folk.push(f);folkSpawn(f);
   foe.dieT=99;cnt('cnt','capture');sfx('level');uiToast(`🪢 Đã trói bắt ${f.n} (cấp ${f.lv}, ${DAN_SP[sp][1].toLowerCase()}). Cho ăn đủ để thu phục; mở 👥 Dân làng để giao việc.`,'gold');save();uiHotbar&&uiHotbar();return true;}
-{const _fd=foeDamage;foeDamage=function(f,dmg){const al=f&&f.alive;const r=_fd.apply(this,arguments);try{if(al&&f&&!f.alive&&S&&danS().on&&invCount('rope')>0){if(!danCapture(f)&&!G.danBedTip){G.danBedTip=1;uiToast('Muốn bắt sống thổ dân thì cần còn giường trống ở nhà.','');}}}catch(e){console.warn('thổ dân',e);}return r;};}
+{const _fd=foeDamage;foeDamage=function(f,dmg){const al=f&&f.alive;const r=_fd.apply(this,arguments);try{if(al&&f&&!f.alive&&S&&danS().on&&!f.noCap&&invCount('rope')>0){if(!danCapture(f)&&!G.danBedTip){G.danBedTip=1;uiToast('Muốn bắt sống thổ dân thì cần còn giường trống ở nhà.','');}}}catch(e){console.warn('thổ dân',e);}return r;};}
 /* ---------- trung thành ---------- */
 {const _fh=folkHourly;folkHourly=function(gh){const r=_fh.apply(this,arguments);if(!S||!S.folk)return r;const d=Math.floor(TNOW());for(const f of S.folk.slice()){if(!f.cap)continue;if(f.loyD==null){f.loyD=d;continue;}if(f.loyD===d)continue;f.loyD=d;const fed=TNOW()-(f.fed||0)<1.3;f.loy=clamp((f.loy||0)+(fed?12:-20),0,100);
     if(f.loy>=100){f.cap=0;cnt('cnt','submit');uiToast(`🤝 ${f.n} đã quy phục, thành người của bộ tộc bạn.`,'gold');sfx('level');}
