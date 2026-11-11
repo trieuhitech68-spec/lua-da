@@ -98,9 +98,9 @@ function mpValClan(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;con
   const members=[...new Set(d.members.filter(mpIdOk))].slice(0,MP_CLANMAX);if(!members.includes(id))members.unshift(id);
   return {id,name,leader:id,members,color:typeof d.color==='string'&&/^#[0-9a-fA-F]{6}$/.test(d.color)?d.color:MPCOL[7],emblem:MPEMB.includes(d.emblem)?d.emblem:'🔥',createdAt:mpNum(d.createdAt,0,1e14)?d.createdAt:0,zone:mpValZone(d.zone),deny:Array.isArray(d.deny)?d.deny.filter(mpIdOk).slice(0,60):[]};}
 function mpValClaim(id,d){if(!mpIdOk(id))return null;const z=mpValZone(d);if(!z||z.r>480)return null;return z;}
-// bộ tộc thật sự của một người: họ nhận mình thuộc bộ tộc đó VÀ thủ lĩnh đã ghi tên họ
+// liên minh thật sự của một người: họ nhận mình thuộc liên minh đó VÀ thủ lĩnh đã ghi tên họ
 function mpClanOf(uid){const p=uid===MP.uid&&MP.me?MP.me:MP.players[uid];const cid=p&&p.clan;const c=cid&&MP.clans[cid];return c&&c.members.includes(uid)?cid:null;}
-const mpCT=n=>/^bộ tộc\b/i.test(n)?n:'bộ tộc '+n;
+const mpCT=n=>/^(bộ tộc|liên minh)\b/i.test(n)?n:'liên minh '+n;
 function mpMyClan(){return MP.uid?mpClanOf(MP.uid):null;}
 function mpSameClan(uid){const a=mpMyClan();return !!a&&a===mpClanOf(uid);}
 function mpColOf(uid){const c=MP.clans[mpClanOf(uid)];return c?c.color:null;}
@@ -117,25 +117,25 @@ function mpStartPatch(o){const f=document.querySelector('.ov-card.form');
   const sl=slotsLocal();document.querySelectorAll('.ov-card.acc .chr').forEach(el=>{const b=el.querySelector('[data-a="chplay"]');const id=b&&b.dataset.id;const m=id&&(sl[id]||ACC.cloud[id]);if(m&&m.mp&&!el.querySelector('.mpbadge')){const s=document.createElement('span');s.className='mpbadge';s.textContent=' · 🌐 '+mpSrvName(m.srv);const sm=el.querySelector('small');if(sm)sm.appendChild(s);}});}
 function mpFormRefresh(){const row=document.querySelector('.ov-card.form .mpw');mpSrvForm(row);if(!row)return;if(G.nworld==='mp'&&!MP.ok&&!MP.db)G.nworld='solo';
   row.querySelectorAll('[data-a="mpw"]').forEach(b=>{b.classList.toggle('on',b.dataset.v===(G.nworld||'solo'));});
-  const s=row.querySelector('.mpw-s');if(s)s.textContent=MP.ok?'Gặp người chơi khác, lập bộ tộc, cắm đất, cùng xây làng.':'Đang kết nối máy chủ…';
+  const s=row.querySelector('.mpw-s');if(s)s.textContent=MP.ok?'Gặp người chơi khác, lập liên minh, cắm đất, cùng xây làng.':'Đang kết nối máy chủ…';
   const h=[...document.querySelectorAll('.ov-card.form p.small.muted')].find(p=>/thế giới/i.test(p.textContent));if(h)h.textContent=G.nworld==='mp'?'Thế giới chung: mọi người cùng một vùng đất, đồ đạc và kỹ năng vẫn là của riêng bạn.':'Mỗi nhân vật có thế giới riêng.';}
-/* ---------- nút menu + bảng Bộ tộc ---------- */
-function mpMenu(){const m=$('#menu');if(!m||m.querySelector('[data-ui="clan"]'))return;const b=document.createElement('button');b.setAttribute('data-ui','clan');b.setAttribute('aria-label','Bộ tộc');b.innerHTML='<span>🤝</span><i>Bộ tộc</i><em class="mp-dot" hidden></em>';m.appendChild(b);}
-{const _uo=uiOpen;uiOpen=function(k,o,keep){if(k!=='clan')return _uo(k,o,keep);if(!G.on)return;_uo(k,o,keep);const p=$('#panel');const h=p.querySelector('.p-head h2'),bd=p.querySelector('.p-body');if(!h||!bd)return;h.textContent='Bộ tộc · Thế giới chung';mpPanelFill(bd,keep);};}
+/* ---------- nút menu + bảng Liên minh ---------- */
+function mpMenu(){const m=$('#menu');if(!m||m.querySelector('[data-ui="clan"]'))return;const b=document.createElement('button');b.setAttribute('data-ui','clan');b.setAttribute('aria-label','Liên minh');b.innerHTML='<span>🤝</span><i>Liên minh</i><em class="mp-dot" hidden></em>';m.appendChild(b);}
+{const _uo=uiOpen;uiOpen=function(k,o,keep){if(k!=='clan')return _uo(k,o,keep);if(!G.on)return;_uo(k,o,keep);const p=$('#panel');const h=p.querySelector('.p-head h2'),bd=p.querySelector('.p-body');if(!h||!bd)return;h.textContent='Liên minh · Thế giới chung';mpPanelFill(bd,keep);};}
 function mpPanelRefresh(){if(G.panel!=='clan')return;const bd=$('#panel .p-body');if(!bd)return;mpPanelFill(bd,true);}
 function mpPanelFill(bd,keep){const keepV={};bd.querySelectorAll('input[id^="mp"]').forEach(i=>{keepV[i.id]=i.value;});const fo=document.activeElement&&document.activeElement.id;const sc=bd.scrollTop;
   bd.innerHTML=mpPanelHtml();
   bd.querySelectorAll('[data-nm]').forEach(e=>{e.textContent=mpName(e.dataset.nm);});
   bd.querySelectorAll('[data-cn]').forEach(e=>{const c=MP.clans[e.dataset.cn];e.textContent=c?c.emblem+' '+c.name:'';});
-  const cl=bd.querySelector('.mp-chat');if(cl){const L=MP.chat.slice(-30);cl.textContent='';if(!L.length){const p=document.createElement('p');p.className='muted small';p.textContent='Chưa có tin nào. Chào cả bộ tộc đi!';cl.appendChild(p);}
+  const cl=bd.querySelector('.mp-chat');if(cl){const L=MP.chat.slice(-30);cl.textContent='';if(!L.length){const p=document.createElement('p');p.className='muted small';p.textContent='Chưa có tin nào. Chào cả liên minh đi!';cl.appendChild(p);}
     for(const m of L){const r=document.createElement('div');r.className='mp-cm'+(m.by===MP.uid?' me':'');const b=document.createElement('b');b.textContent=mpName(m.by)+': ';const s=document.createElement('span');s.textContent=m.t;r.append(b,s);cl.appendChild(r);}cl.scrollTop=cl.scrollHeight;}
   for(const id in keepV){const i=bd.querySelector('#'+id);if(i)i.value=keepV[id];}if(fo&&/^mp/.test(fo)){const i=bd.querySelector('#'+fo);if(i)try{i.focus({preventScroll:true});}catch(e){}}
   const q=bd.querySelector('#mpQ');if(q){const f=()=>{const v=q.value.trim().toLowerCase();bd.querySelectorAll('.mp-cl').forEach(r=>{r.hidden=!!v&&!r.textContent.toLowerCase().includes(v);});};q.oninput=f;f();}
   if(keep)bd.scrollTop=sc;mpNamesFlush();}
 function mpPanelHtml(){if(!S.mp)return '<p class="small">Nhân vật này sống ở <b>thế giới riêng</b>. Muốn chơi cùng người khác, hãy tạo một nhân vật mới và chọn <b>🌐 Thế giới chung</b>.</p>';
   if(!MP.started)return '<p class="small">Chưa kết nối được máy chủ chơi chung. Mở trò chơi trên claude.ai (đã đăng nhập) để gặp người khác. Bạn vẫn chơi được bình thường.</p>';
-  const tab=G.mptab||'tribe';const tabs=[['tribe','🤝 Bộ tộc'],['land','🚩 Lãnh thổ'],['chat','💬 Trò chuyện'],['near','👥 Quanh đây']].map(([t,n])=>`<button class="tb${tab===t?' on':''}" data-a="mptab" data-t="${t}">${n}</button>`).join('');
-  const ro=MP.ro?'<p class="small warn">Bạn đang chỉ có quyền xem trang: thấy được người khác nhưng chưa lập bộ tộc, cắm đất hay chia sẻ công trình được.</p>':'';
+  const tab=G.mptab||'tribe';const tabs=[['tribe','🤝 Liên minh'],['land','🚩 Lãnh thổ'],['chat','💬 Trò chuyện'],['near','👥 Quanh đây']].map(([t,n])=>`<button class="tb${tab===t?' on':''}" data-a="mptab" data-t="${t}">${n}</button>`).join('');
+  const ro=MP.ro?'<p class="small warn">Bạn đang chỉ có quyền xem trang: thấy được người khác nhưng chưa lập liên minh, cắm đất hay chia sẻ công trình được.</p>':'';
   return `<div class="tabs">${tabs}</div>${ro}`+(tab==='land'?mpLandHtml():tab==='chat'?mpChatHtml():tab==='near'?mpNearHtml():mpTribeHtml());}
 function mpOnline(uid){for(const r of MP.rp.values())if(r.uid===uid)return true;return uid===MP.uid;}
 function mpTribeHtml(){const cid=mpMyClan(),me=MP.me||{};
@@ -144,30 +144,30 @@ function mpTribeHtml(){const cid=mpMyClan(),me=MP.me||{};
     const reqs=lead?Object.keys(MP.players).filter(u=>MP.players[u].req===cid&&!c.members.includes(u)&&!c.deny.includes(u)):[];
     const rq=reqs.length?`<h3>Xin gia nhập</h3>`+reqs.map(u=>`<div class="mp-m"><b data-nm="${esc(u)}"></b><span><button class="btn sm" data-a="mpacc" data-u="${esc(u)}">Nhận</button><button class="btn sm ghost" data-a="mpden" data-u="${esc(u)}">Từ chối</button></span></div>`).join(''):'';
     return `<div class="mp-card" style="--cc:${c.color}"><span class="mp-em">${c.emblem}</span><div><b data-cn="${esc(cid)}"></b><small class="muted">${c.members.length} thành viên${c.zone?' · có vùng đất chung':''}</small></div></div>${rq}<h3>Thành viên</h3>${mem}
-      <p class="hint">Người cùng bộ tộc được xây trong lãnh thổ của nhau và trong vùng đất chung. Mở tab 🚩 Lãnh thổ để cắm đất.</p>
-      <button class="btn sm ${G.mpArm==='leave'?'red':'ghost'}" data-a="mpleave">${G.mpArm==='leave'?'Bấm lần nữa để xác nhận':lead?'Giải tán bộ tộc':'Rời bộ tộc'}</button>`;}
+      <p class="hint">Người cùng liên minh được xây trong lãnh thổ của nhau và trong vùng đất chung. Mở tab 🚩 Lãnh thổ để cắm đất.</p>
+      <button class="btn sm ${G.mpArm==='leave'?'red':'ghost'}" data-a="mpleave">${G.mpArm==='leave'?'Bấm lần nữa để xác nhận':lead?'Giải tán liên minh':'Rời liên minh'}</button>`;}
   const cs=Object.values(MP.clans).sort((a,b)=>b.members.length-a.members.length).slice(0,80);
   const rows=cs.map(c=>{const pend=me.req===c.id;return `<div class="mp-cl mp-m"><span class="mp-sw" style="background:${c.color}"></span><b data-cn="${esc(c.id)}"></b><small class="muted"> · ${c.members.length} người · thủ lĩnh <span data-nm="${esc(c.leader)}"></span></small>${MP.ro?'':pend?`<button class="btn sm ghost" data-a="mpreq" data-c="">Hủy xin</button>`:`<button class="btn sm" data-a="mpreq" data-c="${esc(c.id)}">Xin vào</button>`}</div>`;}).join('');
   const col=G.mpCol||MPCOL[0],em=G.mpEm||MPEMB[0];
-  return `<p class="small">Cùng nhau sinh tồn: lập hoặc gia nhập một bộ tộc. Mỗi người vẫn giữ đồ đạc, kỹ năng riêng.</p>
-    ${MP.ro?'':`<h3>Lập bộ tộc mới</h3><label class="fld">Tên bộ tộc<input id="mpCn" maxlength="24" placeholder="vd. Bộ tộc Suối Đá"></label>
+  return `<p class="small">Cùng nhau sinh tồn: lập hoặc gia nhập một liên minh. Mỗi người vẫn giữ đồ đạc, kỹ năng riêng.</p>
+    ${MP.ro?'':`<h3>Lập liên minh mới</h3><label class="fld">Tên liên minh<input id="mpCn" maxlength="24" placeholder="vd. Liên minh Suối Đá"></label>
     <div class="mp-row">${MPCOL.map(c=>`<button class="mp-c${c===col?' on':''}" data-a="mpcol" data-v="${c}" style="background:${c}" aria-label="Màu"></button>`).join('')}</div>
     <div class="mp-row">${MPEMB.map(e=>`<button class="mp-e${e===em?' on':''}" data-a="mpem" data-v="${e}">${e}</button>`).join('')}</div>
-    <button class="btn" data-a="mpmake">Lập bộ tộc</button>`}
-    <h3>Các bộ tộc</h3>${cs.length>5?'<input id="mpQ" class="mp-q" placeholder="Tìm theo tên…">':''}${rows||'<p class="muted small">Chưa có bộ tộc nào. Hãy là người đầu tiên!</p>'}`;}
+    <button class="btn" data-a="mpmake">Lập liên minh</button>`}
+    <h3>Các liên minh</h3>${cs.length>5?'<input id="mpQ" class="mp-q" placeholder="Tìm theo tên…">':''}${rows||'<p class="muted small">Chưa có liên minh nào. Hãy là người đầu tiên!</p>'}`;}
 function mpClaimR(){return Math.min(380,160+25*(S.age||0)+Math.min(60,Object.values(S.sk||{}).reduce((a,v)=>a+Math.floor(Math.sqrt((v||0)/12)),0)*2));}
 function mpLandHtml(){const c=MP.claims[MP.uid],cid=mpMyClan(),cl=cid&&MP.clans[cid],lead=cl&&cl.leader===MP.uid,R=mpClaimR();
   const dist=c?Math.round(Math.hypot(P.x-c.x,P.z-c.z)/20):0;const why=mpClaimWhy(P.x,P.z,R,'claim');
   const mine=c?`<p class="small">🚩 Lãnh thổ của bạn: bán kính <b>${Math.round(c.r/20)} m</b>, cách đây ${dist} m.${c.r<R?` Có thể mở rộng tới ${Math.round(R/20)} m.`:''}</p>`:'<p class="small">Bạn chưa có lãnh thổ. Đứng ở chỗ muốn lập nhà rồi cắm mốc.</p>';
-  const zone=cl?(cl.zone?`<p class="small">🏕️ Vùng chung của bộ tộc: bán kính ${Math.round(cl.zone.r/20)} m, cách đây ${Math.round(Math.hypot(P.x-cl.zone.x,P.z-cl.zone.z)/20)} m. Mọi thành viên đều xây được ở đó.</p>`:'<p class="small muted">Bộ tộc chưa có vùng đất chung.</p>'):'';
+  const zone=cl?(cl.zone?`<p class="small">🏕️ Vùng chung của liên minh: bán kính ${Math.round(cl.zone.r/20)} m, cách đây ${Math.round(Math.hypot(P.x-cl.zone.x,P.z-cl.zone.z)/20)} m. Mọi thành viên đều xây được ở đó.</p>`:'<p class="small muted">Liên minh chưa có vùng đất chung.</p>'):'';
   const zw=lead?mpClaimWhy(P.x,P.z,mpZoneR(cl),'zone'):'';
   return `${mine}${MP.ro?'':`<div class="row"><button class="btn sm" data-a="mpclaim"${why?' disabled':''}>${c?'Dời mốc về chỗ đứng':'Cắm mốc lãnh thổ tại đây'} (${Math.round(R/20)} m)</button>${c&&c.r<R&&Math.hypot(P.x-c.x,P.z-c.z)>=0?`<button class="btn sm ghost" data-a="mpgrow">Mở rộng tại chỗ cũ</button>`:''}${c?`<button class="btn sm ${G.mpArm==='unclaim'?'red':'ghost'}" data-a="mpunclaim">${G.mpArm==='unclaim'?'Bấm lần nữa':'Bỏ lãnh thổ'}</button>`:''}</div>`}
     ${why&&!MP.ro?`<p class="small warn">${esc(why)}</p>`:''}${zone}
-    ${lead&&!MP.ro?`<div class="row"><button class="btn sm" data-a="mpzone"${zw?' disabled':''}>${cl.zone?'Dời vùng chung về đây':'Đặt vùng chung của bộ tộc tại đây'} (${Math.round(mpZoneR(cl)/20)} m)</button>${cl.zone?'<button class="btn sm ghost" data-a="mpunzone">Bỏ vùng chung</button>':''}</div>${zw?`<p class="small warn">${esc(zw)}</p>`:''}`:''}
-    <p class="hint">Bạn đang ở ${mpSrvName(S.srv)}. Mọi công trình đã xong của bạn đều hiện ra cho người chơi khác khi họ tới gần (đã chia sẻ ${MP.bInfo.n} món${MP.bInfo.at?', lần cuối '+new Date(MP.bInfo.at).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}):''}). Cắm mốc để giữ đất: người khác bộ tộc không xây được trong đất của bạn. Vùng quanh Trảng Khởi Đầu là đất chung, không ai cắm mốc được.</p>`;}
+    ${lead&&!MP.ro?`<div class="row"><button class="btn sm" data-a="mpzone"${zw?' disabled':''}>${cl.zone?'Dời vùng chung về đây':'Đặt vùng chung của liên minh tại đây'} (${Math.round(mpZoneR(cl)/20)} m)</button>${cl.zone?'<button class="btn sm ghost" data-a="mpunzone">Bỏ vùng chung</button>':''}</div>${zw?`<p class="small warn">${esc(zw)}</p>`:''}`:''}
+    <p class="hint">Bạn đang ở ${mpSrvName(S.srv)}. Mọi công trình đã xong của bạn đều hiện ra cho người chơi khác khi họ tới gần (đã chia sẻ ${MP.bInfo.n} món${MP.bInfo.at?', lần cuối '+new Date(MP.bInfo.at).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}):''}). Cắm mốc để giữ đất: người khác liên minh không xây được trong đất của bạn. Vùng quanh Trảng Khởi Đầu là đất chung, không ai cắm mốc được.</p>`;}
 function mpZoneR(cl){const n=cl?cl.members.length:1;return Math.min(600,220+25*Math.min(10,n)+3*Math.max(0,n-10));}
-function mpChatHtml(){const cid=mpMyClan();if(!cid)return '<p class="small">Gia nhập một bộ tộc để trò chuyện cùng mọi người.</p>';
-  return `<div class="mp-chat"></div><div class="mp-send"><input id="mpChat" maxlength="160" placeholder="Nhắn cả bộ tộc…"><button class="btn sm" data-a="mpsay">Gửi</button></div><p class="hint">Tin nhắn hiện cho người trong bộ tộc. Đừng gửi thông tin riêng tư.</p>`;}
+function mpChatHtml(){const cid=mpMyClan();if(!cid)return '<p class="small">Gia nhập một liên minh để trò chuyện cùng mọi người.</p>';
+  return `<div class="mp-chat"></div><div class="mp-send"><input id="mpChat" maxlength="160" placeholder="Nhắn cả liên minh…"><button class="btn sm" data-a="mpsay">Gửi</button></div><p class="hint">Tin nhắn hiện cho người trong liên minh. Đừng gửi thông tin riêng tư.</p>`;}
 function mpNearHtml(){if(G.mpGiftTo)return mpGiftHtml();const L=[...MP.rp.values()].filter(r=>r.ok).map(r=>({r,d:Math.hypot(r.x-P.x,r.z-P.z)})).sort((a,b)=>a.d-b.d).slice(0,30);
   if(!MP.room)return '<p class="small muted">Chưa kết nối kênh trực tiếp nên chưa thấy ai đang chơi.</p>';
   if(!L.length)return '<p class="small">Chưa có ai khác đang ở thế giới chung lúc này.</p>';
@@ -193,24 +193,24 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
     case 'mpyes':mpAnswer(true);return;case 'mpno':mpAnswer(false);return;}
   mpPanelRefresh();},true);
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='mpChat'){e.preventDefault();mpSay();}},true);
-/* ---------- bộ tộc ---------- */
+/* ---------- liên minh ---------- */
 function mpSaveMe(p){if(!MP.me)return;Object.assign(MP.me,p);mpPut('players/'+MP.uid,Object.assign({},MP.me));MP.dirty.ui=MP.dirty.remote=true;}
 function mpClanDoc(c,patch){return Object.assign({name:c.name,leader:c.leader,members:c.members.slice(),color:c.color,emblem:c.emblem,createdAt:c.createdAt,zone:c.zone,deny:c.deny.slice()},patch||{});}
 function mpClanWrite(doc){const v=mpValClan(MP.uid,doc);if(v)MP.clans[MP.uid]=v;mpPut('clans/'+MP.uid,Object.assign({},doc,{w:S.seed}));MP.dirty.ui=MP.dirty.mem=MP.dirty.remote=true;}
-function mpClanMake(){if(mpMyClan()){uiToast('Bạn đã ở trong một bộ tộc.','bad');return;}const i=$('#mpCn');const name=mpTxt(i&&i.value,24);if(name.length<2){uiToast('Đặt tên bộ tộc (ít nhất 2 chữ).','bad');return;}
-  if(Object.values(MP.clans).some(c=>c.name.toLowerCase()===name.toLowerCase()&&c.id!==MP.uid)){uiToast('Đã có bộ tộc trùng tên này.','bad');return;}
+function mpClanMake(){if(mpMyClan()){uiToast('Bạn đã ở trong một liên minh.','bad');return;}const i=$('#mpCn');const name=mpTxt(i&&i.value,24);if(name.length<2){uiToast('Đặt tên liên minh (ít nhất 2 chữ).','bad');return;}
+  if(Object.values(MP.clans).some(c=>c.name.toLowerCase()===name.toLowerCase()&&c.id!==MP.uid)){uiToast('Đã có liên minh trùng tên này.','bad');return;}
   mpClanWrite({name,leader:MP.uid,members:[MP.uid],color:G.mpCol||MPCOL[0],emblem:G.mpEm||MPEMB[0],createdAt:mpNow(),zone:null,deny:[]});mpSaveMe({clan:MP.uid,req:null});
   uiToast(`🤝 Đã lập ${mpCT(name)}! Rủ mọi người gia nhập nhé.`,'gold');sfx('level');}
-function mpClanReq(cid){if(cid&&!MP.clans[cid])return;if(cid&&mpMyClan()){uiToast('Rời bộ tộc hiện tại trước đã.','bad');return;}mpSaveMe({req:cid});if(cid)uiToast('Đã gửi lời xin gia nhập. Chờ thủ lĩnh đồng ý nhé.','');}
-function mpClanAccept(u,yes){const c=MP.clans[MP.uid];if(!c||!mpIdOk(u))return;if(yes){if(c.members.length>=MP_CLANMAX){uiToast('Liên minh đã đủ '+MP_CLANMAX+' người.','bad');return;}if(!c.members.includes(u))mpClanWrite(mpClanDoc(c,{members:c.members.concat(u),deny:c.deny.filter(x=>x!==u)}));uiToast(`Đã nhận ${mpName(u)} vào bộ tộc.`,'good');}
+function mpClanReq(cid){if(cid&&!MP.clans[cid])return;if(cid&&mpMyClan()){uiToast('Rời liên minh hiện tại trước đã.','bad');return;}mpSaveMe({req:cid});if(cid)uiToast('Đã gửi lời xin gia nhập. Chờ thủ lĩnh đồng ý nhé.','');}
+function mpClanAccept(u,yes){const c=MP.clans[MP.uid];if(!c||!mpIdOk(u))return;if(yes){if(c.members.length>=MP_CLANMAX){uiToast('Liên minh đã đủ '+MP_CLANMAX+' người.','bad');return;}if(!c.members.includes(u))mpClanWrite(mpClanDoc(c,{members:c.members.concat(u),deny:c.deny.filter(x=>x!==u)}));uiToast(`Đã nhận ${mpName(u)} vào liên minh.`,'good');}
   else mpClanWrite(mpClanDoc(c,{deny:c.deny.concat(u).slice(-50)}));}
 function mpClanKick(u){const c=MP.clans[MP.uid];if(!c||u===MP.uid)return;mpClanWrite(mpClanDoc(c,{members:c.members.filter(x=>x!==u)}));}
-function mpClanLeave(){const cid=mpMyClan();if(!cid)return;if(cid===MP.uid){mpPut('clans/'+MP.uid,null);delete MP.clans[MP.uid];uiToast('Bộ tộc đã giải tán.','');}else uiToast('Bạn đã rời bộ tộc.','');mpSaveMe({clan:null,req:null});}
+function mpClanLeave(){const cid=mpMyClan();if(!cid)return;if(cid===MP.uid){mpPut('clans/'+MP.uid,null);delete MP.clans[MP.uid];uiToast('Liên minh đã giải tán.','');}else uiToast('Bạn đã rời liên minh.','');mpSaveMe({clan:null,req:null});}
 // đối chiếu thành viên (chạy thưa, sau mỗi lần dữ liệu đổi)
 function mpMembership(){if(!MP.me||!MP.loaded.clans||!MP.loaded.players)return;const me=MP.me,now=mpNow();
   if(me.req){const c=MP.clans[me.req];if(!c||me.req===me.clan)mpSaveMe({req:null});else if(c.members.includes(MP.uid)){mpSaveMe({clan:me.req,req:null});uiToast(`🤝 Bạn đã gia nhập ${mpCT(c.name)}!`,'gold');sfx('level');}
     else if(c.deny.includes(MP.uid)){mpSaveMe({req:null});uiToast(`${mpCT(c.name)} chưa nhận bạn lúc này.`,'');}}
-  if(me.clan){const c=MP.clans[me.clan];if(!c||!c.members.includes(MP.uid)){if(!MP.badT)MP.badT=now;else if(now-MP.badT>4000){MP.badT=0;mpSaveMe({clan:null});uiToast('Bạn không còn ở trong bộ tộc.','');}}else MP.badT=0;}else MP.badT=0;
+  if(me.clan){const c=MP.clans[me.clan];if(!c||!c.members.includes(MP.uid)){if(!MP.badT)MP.badT=now;else if(now-MP.badT>4000){MP.badT=0;mpSaveMe({clan:null});uiToast('Bạn không còn ở trong liên minh.','');}}else MP.badT=0;}else MP.badT=0;
   const c=MP.clans[MP.uid];if(c&&me.clan===MP.uid){const keep=c.members.filter(u=>{if(u===MP.uid)return true;const p=MP.players[u];return !p||p.clan===MP.uid||p.req===MP.uid;});const deny=c.deny.filter(u=>{const p=MP.players[u];return p&&p.req===MP.uid;});
     if(keep.length!==c.members.length||deny.length!==c.deny.length)mpClanWrite(mpClanDoc(c,{members:keep,deny}));}}
 /* ---------- lãnh thổ ---------- */
@@ -223,10 +223,10 @@ function mpClaimWhy(x,z,r,kind){if(Math.hypot(x-SPAWN[0],z-SPAWN[1])<MP_SPAWN_FR
 function mpClaim(grow){const c=MP.claims[MP.uid],R=mpClaimR();const x=grow&&c?c.x:+P.x.toFixed(1),z=grow&&c?c.z:+P.z.toFixed(1);const w=mpClaimWhy(x,z,R,'claim');if(w){uiToast(w,'bad');sfx('no');return;}
   const d={x,z,r:R,clan:mpMyClan(),at:mpNow(),w:S.seed};MP.claims[MP.uid]={x,z,r:R};mpPut('claims/'+MP.uid,d);MP.tick.ring=-9;MP.dirty.remote=true;uiToast(`🚩 Đã cắm mốc lãnh thổ bán kính ${Math.round(R/20)} m. Công trình xây xong trong này sẽ hiện cho mọi người.`,'gold');sfx('build');}
 function mpZoneSet(on){const c=MP.clans[MP.uid];if(!c)return;if(!on){mpClanWrite(mpClanDoc(c,{zone:null}));return;}const r=mpZoneR(c),w=mpClaimWhy(P.x,P.z,r,'zone');if(w){uiToast(w,'bad');return;}
-  mpClanWrite(mpClanDoc(c,{zone:{x:+P.x.toFixed(1),z:+P.z.toFixed(1),r}}));MP.tick.ring=-9;uiToast('🏕️ Đã đặt vùng đất chung của bộ tộc.','gold');}
-// đất của người khác (khác bộ tộc) → không xây được
+  mpClanWrite(mpClanDoc(c,{zone:{x:+P.x.toFixed(1),z:+P.z.toFixed(1),r}}));MP.tick.ring=-9;uiToast('🏕️ Đã đặt vùng đất chung của liên minh.','gold');}
+// đất của người khác (khác liên minh) → không xây được
 function mpLandWhy(x,z){const my=mpMyClan();
-  for(const u in MP.claims){if(u===MP.uid)continue;const c=MP.claims[u];if(Math.abs(x-c.x)>c.r||Math.abs(z-c.z)>c.r)continue;if(Math.hypot(x-c.x,z-c.z)<c.r&&!(my&&mpClanOf(u)===my))return `🚫 Đất của ${mpName(u)}${mpClanOf(u)?' ('+mpCT(MP.clans[mpClanOf(u)].name)+')':''}. Chỉ người cùng bộ tộc mới xây ở đây.`;}
+  for(const u in MP.claims){if(u===MP.uid)continue;const c=MP.claims[u];if(Math.abs(x-c.x)>c.r||Math.abs(z-c.z)>c.r)continue;if(Math.hypot(x-c.x,z-c.z)<c.r&&!(my&&mpClanOf(u)===my))return `🚫 Đất của ${mpName(u)}${mpClanOf(u)?' ('+mpCT(MP.clans[mpClanOf(u)].name)+')':''}. Chỉ người cùng liên minh mới xây ở đây.`;}
   for(const id in MP.clans){const cl=MP.clans[id];if(!cl.zone||id===my)continue;if(Math.hypot(x-cl.zone.x,z-cl.zone.z)<cl.zone.r)return `🚫 Vùng đất chung của ${mpCT(cl.name)}. Xin gia nhập để cùng xây.`;}
   return '';}
 {const _bu=buildUpdate;buildUpdate=function(){_bu();const B=G.build;if(!B||!B.pos||!B.ok||B.rm||!mpOn())return;const w=mpLandWhy(B.pos.x,B.pos.z);if(!w)return;
@@ -332,7 +332,7 @@ async function mpGiftClaim(q){if(!MP.waiting||!MP.waiting.has(q.tid)||S.mpGot.in
   S.mpGot.push(q.tid);if(S.mpGot.length>300)S.mpGot.splice(0,S.mpGot.length-300);give({[g.id]:g.n|0},[P.x,P.y+30,P.z]);uiToast(`🎁 Nhận ${g.n|0} ${ITEMS[g.id].n} từ ${mpName(q.uid)}.`,'good');save();}
 // tin 'give' tới thì đọc biên nhận ngay
 {const _th=mpTradeHear;mpTradeHear=function(m){_th(m);const d=m&&m.data;if(d&&d.k==='give'&&d.to===MP.myPeer&&MP.waiting&&MP.waiting.has(d.tid)){const q=MP.waiting.get(d.tid);if(q.uid===m.by)mpGiftClaim(q);}};}
-/* ---------- trò chuyện bộ tộc: room (tức thì) + 10 tin gần nhất mỗi người trong db ---------- */
+/* ---------- trò chuyện liên minh: room (tức thì) + 10 tin gần nhất mỗi người trong db ---------- */
 function mpSay(){const i=$('#mpChat');const t=mpTxt(i&&i.value,160);const cid=mpMyClan();if(!t||!cid)return;i.value='';const at=mpNow();mpChatAdd(MP.uid,t,at);mpEmit('chat',{c:cid,t,at});
   const m=MP.myChat&&MP.myChat.clan===cid?MP.myChat.msgs:[];MP.myChat={clan:cid,msgs:m.concat({t,at}).slice(-10)};mpPut('chat/'+MP.uid,{clan:cid,msgs:MP.myChat.msgs});mpPanelRefresh();}
 function mpChatAdd(by,t,at){const k=by+':'+at;if(MP.chatSeen.has(k))return false;MP.chatSeen.add(k);MP.chat.push({by,t,at});MP.chat.sort((a,b)=>a.at-b.at);if(MP.chat.length>60)MP.chat.splice(0,MP.chat.length-60);return true;}
@@ -342,7 +342,7 @@ function mpChatSub(){const cid=mpMyClan()||null;if(cid===MP.chatClan)return;MP.c
   MP.db.doc('chat/'+MP.uid).get().then(s=>{const d=s.exists&&s.data();if(d&&d.clan===cid&&Array.isArray(d.msgs))MP.myChat={clan:cid,msgs:d.msgs.filter(x=>x&&typeof x.t==='string'&&mpNum(x.at,0,1e14)).slice(-10)};}).catch(()=>{});
   try{MP.chatUn=MP.db.collection('chat').where('clan','==',cid).limit(60).onSnapshot(s=>{if(MP.chatClan!==cid)return;for(const d of s.docs){if(!mpIdOk(d.id)||mpClanOf(d.id)!==cid)continue;const v=d.data();if(!v||!Array.isArray(v.msgs))continue;
       for(const x of v.msgs.slice(-10)){if(!x||!mpNum(x.at,0,1e14))continue;const t=mpTxt(x.t,160);if(t)mpChatAdd(d.id,t,x.at);}}MP.dirty.ui=true;},()=>{});}catch(e){}}
-/* ---------- viền lãnh thổ trên mặt đất (vạch đứt quãng theo màu bộ tộc) ---------- */
+/* ---------- viền lãnh thổ trên mặt đất (vạch đứt quãng theo màu liên minh) ---------- */
 function mpRingMesh(x,z,r,col,thick){const T=THREE,N=Math.max(48,Math.min(140,Math.round(r/7))),pos=[],idx=[];const w=thick||3;
   for(let i=0;i<=N;i++){const a=i/N*Math.PI*2,c=Math.cos(a),s=Math.sin(a);for(const rr of [r-w,r+w]){const px=x+c*rr,pz=z+s*rr;const y=wdAt(px,pz)>0.5?waterAt(px,pz)+1.2:hAt(px,pz)+1.6;pos.push(px,y,pz);}}
   for(let i=0;i<N;i+=2){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);

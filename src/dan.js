@@ -32,7 +32,7 @@ function danCapture(foe){const bed=freeBed();if(!bed)return false;slotsTake(S.in
 {const _fd=foeDamage;foeDamage=function(f,dmg){const al=f&&f.alive;const r=_fd.apply(this,arguments);try{if(al&&f&&!f.alive&&S&&danS().on&&invCount('rope')>0){if(!danCapture(f)&&!G.danBedTip){G.danBedTip=1;uiToast('Muốn bắt sống thổ dân thì cần còn giường trống ở nhà.','');}}}catch(e){console.warn('thổ dân',e);}return r;};}
 /* ---------- trung thành ---------- */
 {const _fh=folkHourly;folkHourly=function(gh){const r=_fh.apply(this,arguments);if(!S||!S.folk)return r;const d=Math.floor(TNOW());for(const f of S.folk.slice()){if(!f.cap)continue;if(f.loyD==null){f.loyD=d;continue;}if(f.loyD===d)continue;f.loyD=d;const fed=TNOW()-(f.fed||0)<1.3;f.loy=clamp((f.loy||0)+(fed?12:-20),0,100);
-    if(f.loy>=100){f.cap=0;uiToast(`🤝 ${f.n} đã quy phục, thành người của bộ tộc bạn.`,'gold');sfx('level');}
+    if(f.loy>=100){f.cap=0;cnt('cnt','submit');uiToast(`🤝 ${f.n} đã quy phục, thành người của bộ tộc bạn.`,'gold');sfx('level');}
     else if(f.loy<=0){S.folk=S.folk.filter(o=>o!==f);if(f._o)G.sc.remove(f._o);uiToast(`${f.n} bị bỏ đói, đã trốn về bộ lạc cũ.`,'bad');}}save();return r;};}
 /* ---------- làm việc theo cấp, sở trường · giữ cổng · làm lính ---------- */
 function danEnemy(ax,az,r){let best=null,bd=r;if(G.foes)for(const e of G.foes){if(!e.alive)continue;const d=Math.hypot(e.x-ax,e.z-az);if(d<bd){bd=d;best={e,foe:1};}}
