@@ -1,3 +1,9 @@
+/* ===================== LÀM MỚI DỮ LIỆU (đợt 11/2026) =====================
+   Sau đợt nâng cấp lớn, mọi người chơi lại từ đầu: bản lưu nhân vật cũ trên máy bị xoá MỘT LẦN khi mở bản này (cài đặt, email đăng nhập giữ nguyên).
+   Dữ liệu trên máy chủ xoá bằng supabase_reset_2026_11.sql. Muốn làm mới lần nữa: đổi LD_RESET. */
+const LD_RESET='2026-11-11';
+try{if(localStorage.getItem('ldtt-reset')!==LD_RESET){const del=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(k.indexOf('lua-da-tay-trang-v1')===0||k==='ldtt-slots'||k==='ldtt-cur'||k.indexOf('ld-upl-')===0))del.push(k);}
+  del.forEach(k=>localStorage.removeItem(k));localStorage.setItem('ldtt-reset',LD_RESET);}}catch(e){}
 /* ===================== TIỆN ÍCH ĐỒ HỌA DÙNG CHUNG ===================== */
 function rng(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
 function mkCanvas(w,h){const c=document.createElement('canvas');c.width=Math.max(1,Math.round(w));c.height=Math.max(1,Math.round(h));return c;}

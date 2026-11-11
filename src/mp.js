@@ -39,9 +39,9 @@ async function mpGetDoc(path){try{const s=await mpTO(MP.db.doc(path).get(),10000
 async function mpWorld(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v;let d=await mpGetDoc('world/main');
   if(d===undefined)d=await mpGetDoc('world/main');
   if(!d||!ok(d.seed)){if(MP.ro)return;const ref=MP.db.doc('world/main');
-    try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);if(L&&L.acquired){d=await mpGetDoc('world/main');if(!d||!ok(d.seed)){d={seed:((Math.random()*2e9)|0)+1,wv:3,createdAt:mpNow()};await ref.set(d);}}
+    try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);if(L&&L.acquired){d=await mpGetDoc('world/main');if(!d||!ok(d.seed)){d={seed:((Math.random()*2e9)|0)+1,wv:4,createdAt:mpNow()};await ref.set(d);}}/* Máy chủ 1 tạo mới (sau khi làm mới dữ liệu) dùng bản đồ hình chữ S */
       else{for(let i=0;i<6&&(!d||!ok(d.seed));i++){await mpSleep(1500);d=await mpGetDoc('world/main');}}}catch(e){console.warn('thế giới chung',e);}}
-  if(d&&ok(d.seed)){MP.seed=d.seed;MP.worlds=[{id:'main',seed:d.seed,n:null,wv:3}];MP.srv='main';
+  if(d&&ok(d.seed)){MP.seed=d.seed;MP.worlds=[{id:'main',seed:d.seed,n:null,wv:d.wv>=4?4:3}];MP.srv='main';
     for(let i=2;i<=MP_SRVMAX;i++){const e=await mpGetDoc('world/s'+i);if(!e||!ok(e.seed))break;MP.worlds.push({id:'s'+i,seed:e.seed,n:null,wv:e.wv>=4?4:3});}}}
 /* ---------- NHIỀU MÁY CHỦ ----------
    Mỗi máy chủ là một thế giới riêng: world/main (Máy chủ 1), world/s2 … world/s8, mỗi cái một hạt giống. Mọi dữ liệu chung đã mang

@@ -237,6 +237,12 @@ body.building .compass{display:none}
 <div id="game"></div>
 <script>
 'use strict';
+/* ===================== LÀM MỚI DỮ LIỆU (đợt 11/2026) =====================
+   Sau đợt nâng cấp lớn, mọi người chơi lại từ đầu: bản lưu nhân vật cũ trên máy bị xoá MỘT LẦN khi mở bản này (cài đặt, email đăng nhập giữ nguyên).
+   Dữ liệu trên máy chủ xoá bằng supabase_reset_2026_11.sql. Muốn làm mới lần nữa: đổi LD_RESET. */
+const LD_RESET='2026-11-11';
+try{if(localStorage.getItem('ldtt-reset')!==LD_RESET){const del=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(k.indexOf('lua-da-tay-trang-v1')===0||k==='ldtt-slots'||k==='ldtt-cur'||k.indexOf('ld-upl-')===0))del.push(k);}
+  del.forEach(k=>localStorage.removeItem(k));localStorage.setItem('ldtt-reset',LD_RESET);}}catch(e){}
 /* ===================== TIỆN ÍCH ĐỒ HỌA DÙNG CHUNG ===================== */
 function rng(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
 function mkCanvas(w,h){const c=document.createElement('canvas');c.width=Math.max(1,Math.round(w));c.height=Math.max(1,Math.round(h));return c;}
@@ -8011,9 +8017,10 @@ const V5REG=[['deongang','Đèo Ngang','Cửa ngõ từ đất Bắc vào miền
 {const _t4=trails4;trails4=function(){const a=_t4();return WV>=4?a.concat([['ancient','deongang'],['deongang','truongson'],['truongson','mientrung'],['truongson','cattien'],['cattien','cuulong'],['cuulong','uminh'],['uminh','camau']]):a;};}
 // bản lưu và ván mới
 {const _fs=fixSave;fixSave=function(o){if(o&&o.wv===4){o.wv=3;const r=_fs(o);if(r){r.wv=4;try{worldCfg(4);}catch(e){}}return r;}return _fs(o);};}
-function v5Want(){try{return G.nwv===4||localStorage.getItem('ldtt-wv4')==='1';}catch(e){return G.nwv===4;}}
+// nhân vật mới mặc định vào bản đồ hình chữ S (ở thế giới chung thì theo bản đồ của máy chủ đã chọn, xem mp.js). Thêm ?vn=0 vào địa chỉ để tạo trên bản đồ cũ.
+function v5Want(){try{return localStorage.getItem('ldtt-wv4')!=='0';}catch(e){return true;}}
 {const _ng=newGame;newGame=function(o){const r=_ng(o);if(S&&v5Want()){S.wv=4;worldCfg(4);S._new=1;save();delete S._new;}return r;};}
-try{if(/[?&]vn=1/.test(location.search))localStorage.setItem('ldtt-wv4','1');else if(/[?&]vn=0/.test(location.search))localStorage.removeItem('ldtt-wv4');}catch(e){}
+try{if(/[?&]vn=1/.test(location.search))localStorage.removeItem('ldtt-wv4');else if(/[?&]vn=0/.test(location.search))localStorage.setItem('ldtt-wv4','0');}catch(e){}
 /* ===================== BẢN ĐỒ NHỎ · BỘ LẠC NÚI ĐÁ (THÙ ĐỊCH) · CƯỚP PHÁ · THÚ DỮ TẤN CÔNG NHÀ ===================== */
 /* ---------- bản đồ nhỏ góc màn hình ---------- */
 function homePos(){const b=S.builds.find(b=>pieceDef(b.k)&&pieceDef(b.k).bed&&b.prog==null)||S.builds.find(b=>b.k==='campfire');return b?{x:b.x,z:b.z}:null;}
@@ -17822,9 +17829,9 @@ async function mpGetDoc(path){try{const s=await mpTO(MP.db.doc(path).get(),10000
 async function mpWorld(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v;let d=await mpGetDoc('world/main');
   if(d===undefined)d=await mpGetDoc('world/main');
   if(!d||!ok(d.seed)){if(MP.ro)return;const ref=MP.db.doc('world/main');
-    try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);if(L&&L.acquired){d=await mpGetDoc('world/main');if(!d||!ok(d.seed)){d={seed:((Math.random()*2e9)|0)+1,wv:3,createdAt:mpNow()};await ref.set(d);}}
+    try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);if(L&&L.acquired){d=await mpGetDoc('world/main');if(!d||!ok(d.seed)){d={seed:((Math.random()*2e9)|0)+1,wv:4,createdAt:mpNow()};await ref.set(d);}}/* Máy chủ 1 tạo mới (sau khi làm mới dữ liệu) dùng bản đồ hình chữ S */
       else{for(let i=0;i<6&&(!d||!ok(d.seed));i++){await mpSleep(1500);d=await mpGetDoc('world/main');}}}catch(e){console.warn('thế giới chung',e);}}
-  if(d&&ok(d.seed)){MP.seed=d.seed;MP.worlds=[{id:'main',seed:d.seed,n:null,wv:3}];MP.srv='main';
+  if(d&&ok(d.seed)){MP.seed=d.seed;MP.worlds=[{id:'main',seed:d.seed,n:null,wv:d.wv>=4?4:3}];MP.srv='main';
     for(let i=2;i<=MP_SRVMAX;i++){const e=await mpGetDoc('world/s'+i);if(!e||!ok(e.seed))break;MP.worlds.push({id:'s'+i,seed:e.seed,n:null,wv:e.wv>=4?4:3});}}}
 /* ---------- NHIỀU MÁY CHỦ ----------
    Mỗi máy chủ là một thế giới riêng: world/main (Máy chủ 1), world/s2 … world/s8, mỗi cái một hạt giống. Mọi dữ liệu chung đã mang

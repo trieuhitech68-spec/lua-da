@@ -52,6 +52,7 @@ const V5REG=[['deongang','Đèo Ngang','Cửa ngõ từ đất Bắc vào miền
 {const _t4=trails4;trails4=function(){const a=_t4();return WV>=4?a.concat([['ancient','deongang'],['deongang','truongson'],['truongson','mientrung'],['truongson','cattien'],['cattien','cuulong'],['cuulong','uminh'],['uminh','camau']]):a;};}
 // bản lưu và ván mới
 {const _fs=fixSave;fixSave=function(o){if(o&&o.wv===4){o.wv=3;const r=_fs(o);if(r){r.wv=4;try{worldCfg(4);}catch(e){}}return r;}return _fs(o);};}
-function v5Want(){try{return G.nwv===4||localStorage.getItem('ldtt-wv4')==='1';}catch(e){return G.nwv===4;}}
+// nhân vật mới mặc định vào bản đồ hình chữ S (ở thế giới chung thì theo bản đồ của máy chủ đã chọn, xem mp.js). Thêm ?vn=0 vào địa chỉ để tạo trên bản đồ cũ.
+function v5Want(){try{return localStorage.getItem('ldtt-wv4')!=='0';}catch(e){return true;}}
 {const _ng=newGame;newGame=function(o){const r=_ng(o);if(S&&v5Want()){S.wv=4;worldCfg(4);S._new=1;save();delete S._new;}return r;};}
-try{if(/[?&]vn=1/.test(location.search))localStorage.setItem('ldtt-wv4','1');else if(/[?&]vn=0/.test(location.search))localStorage.removeItem('ldtt-wv4');}catch(e){}
+try{if(/[?&]vn=1/.test(location.search))localStorage.removeItem('ldtt-wv4');else if(/[?&]vn=0/.test(location.search))localStorage.setItem('ldtt-wv4','0');}catch(e){}
