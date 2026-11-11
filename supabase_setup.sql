@@ -201,11 +201,6 @@ create or replace function public.ld_docs_touch() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
   new.updated_at := now();
-  -- liên minh (bộ tộc): tối đa 70 thành viên
-  if split_part(new.path, '/', 1) = 'clans' and jsonb_typeof(new.data -> 'members') = 'array'
-     and jsonb_array_length(new.data -> 'members') > 70 then
-    raise exception 'ld_clan_full: liên minh tối đa 70 người' using errcode = '53400';
-  end if;
   -- (cột sinh tự động chưa có giá trị trong trigger BEFORE nên tính chủ từ đường dẫn)
   if tg_op = 'INSERT' and public.ld_owner(new.path) is not null
      and not exists (select 1 from public.docs d where d.path = new.path)
@@ -218,6 +213,20 @@ revoke all on function public.ld_docs_touch() from public, anon, authenticated;
 drop trigger if exists ld_docs_touch on public.docs;
 create trigger ld_docs_touch before insert or update on public.docs
   for each row execute function public.ld_docs_touch();
+
+-- liên minh (bộ tộc): tối đa 70 thành viên
+create or replace function public.ld_clan_cap() returns trigger
+language plpgsql set search_path = '' as $$
+begin
+  if split_part(new.path, '/', 1) = 'clans' and jsonb_typeof(new.data -> 'members') = 'array'
+     and jsonb_array_length(new.data -> 'members') > 70 then
+    raise exception 'ld_clan_full: liên minh tối đa 70 người' using errcode = '53400';
+  end if;
+  return new;
+end $$;
+drop trigger if exists ld_clan_cap on public.docs;
+create trigger ld_clan_cap before insert or update on public.docs
+  for each row execute function public.ld_clan_cap();
 
 alter table public.docs enable row level security;
 revoke all on public.docs from anon, authenticated;
