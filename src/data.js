@@ -290,3 +290,6 @@ const AGES=[
   {n:'Thời Phùng Nguyên',d:'Làng định cư, trồng trọt, chăn nuôi.',ok:()=>(S.cnt['cnt:harvest']||0)>=6&&(S.cnt['build:totem']||0)>0},
   {n:'Thời Đông Sơn',d:'Luyện được đồng thau, đúc rìu đồng, trống đồng.',ok:()=>(S.cnt['craft:bronze']||0)>0}
 ];
+
+// PHONG CÁCH NHÂN VẬT (cách điệu kiểu game phiêu lưu nhìn từ trên xuống): đầu, mắt, bàn tay, bàn chân to hơn tỉ lệ thật để dễ nhìn, dễ mến ở cỡ nhỏ
+const CHS={head:1.2,eye:1.14,hand:1.16,foot:1.12};

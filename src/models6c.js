@@ -896,7 +896,7 @@ function SBmodels6cInit(){const M=window.SBM,K=(typeof K3!=='undefined')?K3:wind
         if(fem){if(i===1&&y<2.6)v*=1-0.07*ss(2.6,1.6,y);if(i===2&&y>3.6&&y<4.1)v-=0.06;}return v;};return {xh:gk(1),zf:gk(2),zb:gk(3)};};
     const base=(u,y)=>{const r=prof(y),s=Math.sin(u),c=Math.cos(u);return [r.xh*hsp(s,2.5),y,(c>=0?r.zf:r.zb)*hsp(c,2.5)];};
     const zFront=(x,y)=>{const r=prof(y),q=Math.min(0.999,Math.abs(x)/r.xh);return r.zf*Math.pow(1-Math.pow(q,2.5),0.4);};
-    const EY=3.4,EX=fem?0.6:0.62,ER=fem?0.29:0.3,ezc=zFront(EX,EY)-ER*0.86;
+    const EY=3.4,EX=fem?0.6:0.62,ER=(fem?0.29:0.3)*CHS.eye,ezc=zFront(EX,EY)-ER*0.86;
     const eyeC=[EX,EY,ezc];
     // displacement of the front surface → features; returns [p, masks]
     const disp=(u,y)=>{let p=base(u,y);const x=p[0],ax=Math.abs(x),sx=x<0?-1:1,cu=Math.cos(u),fw=ss(0.05,0.55,cu);if(fw<=0)return [p,{}];let dz=0,dx=0;const M={};
@@ -939,7 +939,7 @@ function SBmodels6cInit(){const M=window.SBM,K=(typeof K3!=='undefined')?K3:wind
     const skinAt=(p,red)=>{let k=mul(SK,0.96+0.08*vn3(p[0]*0.6,p[1]*0.6,p[2]*0.6,seed%997));if(red)k=mix(k,redC,red);return k;};
     const G=new T.Group();G.name='char2';
     const hips=new T.Group(),torso=new T.Group(),head=new T.Group();hips.name='hips';torso.name='torso';head.name='head';
-    hips.position.set(0,17.6*h,0);hips.scale.setScalar(h);G.add(hips);torso.position.set(0,3.2,0);hips.add(torso);head.position.set(0,9.3,-0.15);torso.add(head);
+    hips.position.set(0,17.6*h,0);hips.scale.setScalar(h);G.add(hips);torso.position.set(0,3.2,0);hips.add(torso);head.position.set(0,9.3,-0.15);head.scale.setScalar(CHS.head);torso.add(head);
     const SH=(fem?2.95:3.3)*bw,HX=(fem?1.68:1.55)*Math.sqrt(bw);const parts=[];const soup=(grp,cr)=>{const S=new HS();parts.push([S,grp,cr]);return S;};
     /* ===== HEAD ===== */
     const HD=headModel({fem,bald}),hS=soup(head,62),hl=hairline(hs,fem);
@@ -955,7 +955,7 @@ function SBmodels6cInit(){const M=window.SBM,K=(typeof K3!=='undefined')?K3:wind
       const bot=[0,1.15,-0.4],rowB=Pg[Pg.length-1];hS.grid('skin',[rowB,rowB.map(()=>bot)],[Cg[Cg.length-1],Cg[Cg.length-1]],[Ug[Ug.length-1],Ug[Ug.length-1]],()=>[0,2.0,-0.3]);}
     // eyes (glossy balls: sclera, iris, pupil)
     const hrS=soup(head,90),eS=soup(head,80),irisC=C(o.eye||['#3a2414','#2a1a10','#4a2e18'][seed%3]);
-    [-1,1].forEach(s=>{const c=[s*HD.eyeC[0],HD.eyeC[1],HD.eyeC[2]],ER=HD.ER,Rl=ER*1.07,ex=[s,0,0],ey=[0,1,0],ez=[0,0,1],aw=(fem?0.31:0.3),hU=fem?0.115:0.1,hL=fem?0.085:0.075;
+    [-1,1].forEach(s=>{const c=[s*HD.eyeC[0],HD.eyeC[1],HD.eyeC[2]],ER=HD.ER,Rl=ER*1.07,ex=[s,0,0],ey=[0,1,0],ez=[0,0,1],aw=(fem?0.31:0.3)*CHS.eye,hU=(fem?0.115:0.1)*CHS.eye*0.92,hL=(fem?0.085:0.075)*CHS.eye;
       // almond margins (lateral X → height on the eyeball); outer corner slightly raised
       const mU=X=>{const t=Math.abs(X)/aw;return t>=1?0.012*s*0:hU*Math.pow(1-t*t,0.75)+0.012*(X/aw);},mL=X=>{const t=Math.abs(X)/aw;return t>=1?0:-hL*Math.pow(1-t*t,0.8)+0.012*(X/aw);};
       const lid=(up)=>{const NX=7,NR=3,P=[],Cc=[],U=[],Nn=[];for(let r=0;r<=NR;r++){const row=[],cr=[],ur=[],nr=[];for(let i=0;i<=NX;i++){const X=(i/NX*2-1)*Rl*0.97,rc=Math.sqrt(Math.max(1e-4,Rl*Rl-X*X));
@@ -1053,7 +1053,7 @@ function SBmodels6cInit(){const M=window.SBM,K=(typeof K3!=='undefined')?K3:wind
     /* ===== LIMBS ===== */
     const R={root:G,hips,torso,head,neck:head};if(hairTail)R.hair=hairTail;
     const mkArm=(s)=>{const nm=s<0?'L':'R',arm=new T.Group(),fore=new T.Group(),hand=new T.Group();arm.name='arm'+nm;fore.name='fore'+nm;hand.name='hand'+nm;
-      arm.position.set(s*SH,7.85,-0.1);torso.add(arm);fore.position.set(0,-6.6,0);arm.add(fore);hand.position.set(0,-5.3,0);fore.add(hand);
+      arm.position.set(s*SH,7.85,-0.1);torso.add(arm);fore.position.set(0,-6.6,0);arm.add(fore);hand.position.set(0,-5.3,0);hand.scale.setScalar(CHS.hand);fore.add(hand);
       const ab=fem?0.86:1,m=bw,aS=soup(arm,60),fS=soup(fore,60),hS2=soup(hand,55),uk=sleeves?'hide':'skin';
       const AR=[HRG(0.78,.4*ab*m,.4*ab*m,.42*ab*m,{cx:s*0.0}),HRG(0.5,.8*ab*m,.8*ab*m,.82*ab*m,{cx:s*0.08}),HRG(-0.3,0.97*ab*m,0.95*ab*m,0.97*ab*m,{cx:s*0.16}),HRG(-1.6,0.98*ab*m,0.95*ab*m,0.95*ab*m,{cx:s*0.18}),/* vai, bắp tay trên thu gọn ~6% (trước phồng như bóng) */HRG(-3.4,.86*ab*m,.98*ab*m,.9*ab*m,{cx:s*0.08}),HRG(-5.6,.74*ab,.78*ab,.8*ab),HRG(-6.6,.68*ab,.7*ab,.74*ab),HRG(-7.0,.62*ab,.62*ab,.66*ab)];
       let slEnd=-1;if(sleeves){AR.splice(6,0,HRG(-5.2,.86*ab,.9*ab,.9*ab),HRG(-5.25,.74*ab,.78*ab,.8*ab));/* gấu tay áo bớt loe */slEnd=6;}
@@ -1073,7 +1073,7 @@ function SBmodels6cInit(){const M=window.SBM,K=(typeof K3!=='undefined')?K3:wind
       R['arm'+nm]=arm;R['fore'+nm]=fore;R['hand'+nm]=hand;};
     mkArm(-1);mkArm(1);
     const mkLeg=(s)=>{const nm=s<0?'L':'R',leg=new T.Group(),shin=new T.Group(),foot=new T.Group();leg.name='leg'+nm;shin.name='shin'+nm;foot.name='foot'+nm;
-      leg.position.set(s*HX,0,0);hips.add(leg);shin.position.set(0,-8.1,0);leg.add(shin);foot.position.set(0,-8.0,0);shin.add(foot);
+      leg.position.set(s*HX,0,0);hips.add(leg);shin.position.set(0,-8.1,0);leg.add(shin);foot.position.set(0,-8.0,0);foot.scale.setScalar(CHS.foot);shin.add(foot);
       const lb=fem?0.94:1,m=Math.sqrt(bw),lS=soup(leg,60),sS=soup(shin,60),fS=soup(foot,55);
       const TH=[HRG(1.3,1.5*lb*m,1.45*lb*m,1.5*lb*m),HRG(-0.9,1.62*lb*m,1.5*lb*m,1.55*lb*m,{cx:s*0.12}),HRG(-3.6,1.4*lb*m,1.48*lb*m,1.32*lb*m,{cx:s*0.05}),HRG(-6.4,1.08*lb*m,1.12*lb*m,1.04*lb*m),HRG(-8.1,.95*lb,.98*lb,.95*lb),HRG(-8.5,.9*lb,.9*lb,.9*lb)];
       hloft(lS,TH,{n:10,step:1.5,key:j=>j<1.99?null:'skin',td:4,col:(p)=>skinAt(p,0.06*ss(-7,-8.4,p[1])),mod:(p,u)=>{p[2]+=0.1*gss(p[1],-5.6,1.1)*Math.max(0,Math.cos(u));return p;}});
