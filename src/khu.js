@@ -1,6 +1,6 @@
 /* ===================== KHU VỰC THEO CẤP · THÚ MẠNH DẦN · THÚ CHÚA GIỮ MỎ · THỜI ĐỒ SẮT =====================
    1. Cấp vùng 1..10 theo khoảng cách tới Trảng Khởi Đầu (mỗi 50 m một cấp): càng xa càng nguy hiểm, càng giàu.
-      Thổ dân (dan.js) và thú hoang cùng theo cấp vùng: thú +18% máu, +10% đòn mỗi cấp; hạ thú cấp 3 trở lên được thêm da, xương, kinh nghiệm.
+      Thổ dân (dan.js) và thú hoang cùng theo cấp vùng: thú +30% máu, +10% đòn mỗi cấp; hạ thú cấp 3 trở lên được thêm da, xương, kinh nghiệm.
       Bước vào vùng nào thì bảng tên vùng ghi rõ cấp.
    2. Năm điểm tài nguyên cấp cao mới (nối vào danh sách điểm giàu của realm.js nên cũng cắm cột vật tổ chiếm được, liên minh tranh nhau được):
       Mỏ sắt, Vỉa than, Bãi vàng, Mỏ ngọc bích, Bãi săn bò tót. Mỗi điểm có một THÚ CHÚA canh (to gấp rưỡi, máu gấp nhiều lần, đòn gấp đôi).
@@ -50,13 +50,13 @@ function khuBossTick(){if(!S||!G.on||typeof RL==='undefined'||!RL.sites||!G.anim
     if(Math.hypot(s.x-P.x,s.z-P.z)>1600)continue;if(G.animals.some(a=>a.boss===s.id&&a.alive))continue;
     G.animals=G.animals.filter(a=>{if(a.boss===s.id&&!a.alive){try{G.sc.remove(a.o);}catch(e){}return false;}return true;});
     let x=s.x+40,z=s.z+30;for(let i=0;i<12&&wdAt(x,z)>0&&B.kind!=='crocodile';i++){const an=i*0.52;x=s.x+Math.cos(an)*70;z=s.z+Math.sin(an)*70;}
-    const a=animalNew(B.kind,x,z);a.boss=s.id;a.lv=B.lv;a.n=B.n;a.hp=ANIMALS[B.kind].hp*(4+B.lv*0.8);a.hp0=a.hp;a.r*=1.5;a._lvOn=1;a.home={x:s.x,z:s.z};try{a.o.scale.multiplyScalar(1.6);seasonPatchAll(a.o);}catch(e){}G.animals.push(a);}}
+    const a=animalNew(B.kind,x,z);a.boss=s.id;a.lv=B.lv;a.n=B.n;a.hp=ANIMALS[B.kind].hp*(10+B.lv*2);/* cân bằng lại: nhân vật giờ có thuộc tính, cường hoá, danh hiệu nên thú chúa trâu hơn nhiều */a.hp0=a.hp;a.r*=1.5;a._lvOn=1;a.home={x:s.x,z:s.z};try{a.o.scale.multiplyScalar(1.6);seasonPatchAll(a.o);}catch(e){}G.animals.push(a);}}
 function khuBossDown(a){const B=KHU_BOSS[a.boss];if(!B)return;khuS().b[a.boss]={dead:TNOW()};a.back=1e12;const s=RL.byId&&RL.byId[a.boss];try{if(S.rlm&&S.rlm.s[a.boss]&&S.rlm.s[a.boss].own!=='me')S.rlm.s[a.boss].g=0;}catch(e){}
   give(B.loot,[a.x,a.y+20,a.z]);addXp('hunt',30+B.lv*4);cnt('cnt','boss');sfx('level');uiToast(`👑 Đã hạ ${B.n}! ${s?s.def.n+' giờ không còn ai canh: dựng Cột vật tổ để chiếm.':''}`,'gold');save();}
 if(typeof rlTick==='function'){const _rt=rlTick;rlTick=function(){try{khuBossTick();}catch(e){if(!G.khuErr){G.khuErr=1;console.warn('thú chúa',e);}}return _rt.apply(this,arguments);};}
 /* ---------- thú theo cấp vùng ---------- */
-{const _at=animalsTick;animalsTick=function(dt){if(G.animals)for(const a of G.animals){if(!a.alive){if(!a.boss)a._lvOn=0;continue;}if(a._lvOn)continue;a._lvOn=1;a.lv=khuLv(a.home?a.home.x:a.x,a.home?a.home.z:a.z);if(a.lv>1)a.hp*=1+0.18*(a.lv-1);}return _at.apply(this,arguments);};}
-{const _aa=animalAttack;animalAttack=function(a){const D=a&&ANIMALS[a.kind];if(!D||!(a.lv>1))return _aa.apply(this,arguments);const old=D.dmg;D.dmg=(old||5)*(1+0.1*(a.lv-1))*(a.boss?2:1);try{return _aa.apply(this,arguments);}finally{D.dmg=old;}};}
+{const _at=animalsTick;animalsTick=function(dt){if(G.animals)for(const a of G.animals){if(!a.alive){if(!a.boss)a._lvOn=0;continue;}if(a._lvOn)continue;a._lvOn=1;a.lv=khuLv(a.home?a.home.x:a.x,a.home?a.home.z:a.z);if(a.lv>1)a.hp*=1+0.3*(a.lv-1);}return _at.apply(this,arguments);};}
+{const _aa=animalAttack;animalAttack=function(a){const D=a&&ANIMALS[a.kind];if(!D||!(a.lv>1))return _aa.apply(this,arguments);const old=D.dmg;D.dmg=(old||5)*(1+0.1*(a.lv-1))*(a.boss?1.6:1);try{return _aa.apply(this,arguments);}finally{D.dmg=old;}};}
 {const _ad=animalDamage;animalDamage=function(a,dmg){const al=a&&a.alive;const r=_ad.apply(this,arguments);try{if(al&&a&&!a.alive){if(a.boss)khuBossDown(a);else if(a.lv>=3){const D=ANIMALS[a.kind],n=Math.floor((a.lv-1)/3),out={};if(D.drop&&D.drop.hide)out.hide=n;if(D.drop&&D.drop.bone)out.bone=n;else if(D.drop&&D.drop.meat)out.meat=n;if(Object.keys(out).length)give(out,[a.x,a.y+16,a.z]);addXp('hunt',a.lv);}}}catch(e){console.warn('thú cấp',e);}return r;};}
 {const _ti=targetInfo;targetInfo=function(t){const r=_ti.apply(this,arguments);try{if(r&&t&&t.type==='animal'&&t.a&&r.name){if(t.a.boss)r.name='👑 '+r.name+' · cấp '+t.a.lv+' · '+Math.max(0,Math.ceil(t.a.hp))+' máu';else if(t.a.lv>1&&!/^Cấp/.test(r.name))r.name='Cấp '+t.a.lv+' · '+r.name;}}catch(e){}return r;};}
 /* ---------- bảng tên vùng: ghi cấp ---------- */

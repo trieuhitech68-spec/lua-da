@@ -50,7 +50,7 @@ function pvpOut(){if(!S||!S.pvp||!S.pvp.out)return null;const R={};let n=0;for(c
 /* ---------- lính gác của chủ nhà ---------- */
 function pvpDefend(uid,b){if(PVP.spawned[uid]&&G.t-PVP.spawned[uid]<240)return;PVP.spawned[uid]=G.t;const p=MP.players[uid],df=p&&p.df;if(!df||!(df[0]>0))return;const n=clamp(df[0]|0,1,6),lv=clamp(df[1]|0||1,1,10),fort=clamp(df[2]|0,0,30);
   for(let i=0;i<n;i++){const a=i/n*6.283+Math.random(),x=b.x+Math.cos(a)*(60+Math.random()*40),z=b.z+Math.sin(a)*(60+Math.random()*40);if(wdAt(x,z)>0)continue;const f=foeSpawn(x,z,'guard');f.pvp=uid;f.noCap=1;f._lvA=1;f.lv=lv;f.n='Lính gác của '+mpName(uid);
-    const k=(1+0.2*(lv-1))*(1+Math.min(0.6,fort*0.03));f.hp=FOE.hp*k;f.hp0=f.hp;f.dmg=FOE.dmg*(1+0.12*(lv-1));f.home={x:b.x,z:b.z};f.state='chase';}
+    const k=2.2*(1+0.45*(lv-1))*(1+Math.min(0.6,fort*0.03));f.hp=FOE.hp*k;f.hp0=f.hp;f.dmg=FOE.dmg*(1+0.12*(lv-1));f.home={x:b.x,z:b.z};f.state='chase';}
   uiToast(`🛡️ ${n} lính gác của ${mpName(uid)} xông ra! (cấp ${lv})`,'bad');sfx('hurt');}
 function pvpGuardsTick(L,dt){for(const f of L){if(!f.alive){if(f.dieT!=null){f.dieT+=dt;f.o.rotation.z=Math.min(1.5,f.dieT*2.5);if(f.dieT>4){G.sc.remove(f.o);f.gone=1;}}continue;}
     const H=f.home,dP=Math.hypot(P.x-f.x,P.z-f.z),dH=Math.hypot(P.x-H.x,P.z-H.z);if(dP>1500){G.sc.remove(f.o);f.gone=1;f.alive=false;continue;}let tx=f.x,tz=f.z,sp=0,pose='idle';
@@ -161,7 +161,7 @@ function pvpFlagStart(t){const c=MP.clans[t.cid];if(!c||!pvpWarWith(mpMyClan(),t
   {const ng=needGate(true);if(ng){uiToast(ng,'bad');sfx('no');return;}}
   // lính giữ cờ: theo phòng thủ của thủ lĩnh, ít nhất 3
   try{const key='flag:'+t.cid;if(!(PVP.spawned[key]&&G.t-PVP.spawned[key]<300)){PVP.spawned[key]=G.t;const p=MP.players[c.leader],df=p&&p.df,n=clamp(Math.max(3,df?df[0]|0:0),3,6),lv=clamp(Math.max(3,df?df[1]|0:0),1,10);
-      for(let i=0;i<n;i++){const a=i/n*6.283,x=t.z.x+Math.cos(a)*80,z=t.z.z+Math.sin(a)*80;if(wdAt(x,z)>0)continue;const f=foeSpawn(x,z,'guard');f.pvp=c.leader;f.noCap=1;f._lvA=1;f.lv=lv;f.n='Lính giữ cờ '+mpCT(c.name);f.hp=FOE.hp*(1+0.2*(lv-1))*1.3;f.hp0=f.hp;f.dmg=FOE.dmg*(1+0.12*(lv-1));f.home={x:t.z.x,z:t.z.z};}
+      for(let i=0;i<n;i++){const a=i/n*6.283,x=t.z.x+Math.cos(a)*80,z=t.z.z+Math.sin(a)*80;if(wdAt(x,z)>0)continue;const f=foeSpawn(x,z,'guard');f.pvp=c.leader;f.noCap=1;f._lvA=1;f.lv=lv;f.n='Lính giữ cờ '+mpCT(c.name);f.hp=FOE.hp*2.6*(1+0.45*(lv-1));f.hp0=f.hp;f.dmg=FOE.dmg*(1+0.12*(lv-1));f.home={x:t.z.x,z:t.z.z};}
       uiToast(`🛡️ ${n} lính giữ cờ xông ra!`,'bad');sfx('hurt');}}catch(e){console.warn('lính giữ cờ',e);}
   G.work={r:{out:{}},steps:[{n:'Chặt dây, lay cột cờ',a:'chop',t:18,fx:'thud'},{n:'Hạ cờ '+mpCT(c.name),a:'hammer',t:17,fx:'thud'},{n:'Cắm cờ liên minh mình',a:'lash',t:10,fx:'build'}],i:0,t:0,left:1,done:0,x:P.x,z:P.z,sk:'build',icon:'club',fn:()=>pvpFlagDone(t.cid)};workUi();}
 function pvpFlagDone(cid){const c=MP.clans[cid];if(!c||!pvpWarWith(mpMyClan(),cid))return;const P0=pvpS(),now=pvpNow();if(!P0.zo||typeof P0.zo!=='object')P0.zo={};P0.zo[cid]=now;if(!P0.ws||typeof P0.ws!=='object')P0.ws={};P0.ws[cid]=(P0.ws[cid]||0)+30;
