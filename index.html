@@ -2020,7 +2020,7 @@ function instGroup(parts,cap,opt){const T=THREE,opt_=opt||{},G=new T.Group();G.u
     flush(){if(!api.dirty)return;for(const im of ims)im.instanceMatrix.needsUpdate=true;api.dirty=0;},
     dispose(){ims.forEach(im=>{if(im.parent)im.parent.remove(im);im.dispose&&im.dispose();});}};return api;}
 /* ===================== LÕI GAME: TRẠNG THÁI, CẢNH 3D, NHÂN VẬT, THU THẬP, CHẾ TẠO, XÂY DỰNG ===================== */
-const SKEY='lua-da-tay-trang-v1',HOTN=6,INVN=24,REACH=26,DAY_SEC=720;// nhịp sinh hoạt: 12 phút thật = 1 "ngày công" (đói khát, cây lớn, củi cháy). Giờ và mùa trên trời theo giờ thật Việt Nam (clock.js)
+const SKEY='lua-da-tay-trang-v1',HOTN=6,INVN=36,REACH=26,DAY_SEC=720;// nhịp sinh hoạt: 12 phút thật = 1 "ngày công" (đói khát, cây lớn, củi cháy). Giờ và mùa trên trời theo giờ thật Việt Nam (clock.js)
 let S=null;const G={on:false,t:0,keys:{},joy:{x:0,y:0,on:false},yaw:0.6,pitch:0.98,zoom:380,act:null,walkTo:null,build:null,panel:null,fx:[],flames:[],lights:[],lastSave:0,q:2,runBtn:false};
 const $=s=>document.querySelector(s);const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const TNOW=()=>S.tn!=null?S.tn:S.day+S.hour/24;// S.tn: đồng hồ sinh hoạt riêng (clock.js), luôn chỉ tăng
@@ -19110,6 +19110,29 @@ AUJ.warm=function(j){const p=S.p;if(j.cf){j.cf=null;if(++j.alt>3)return aqFail('
       if(j.cf&&(j.pC||j.pH)&&!j.pF){/* may đồ không được thì thôi, vẫn làm nhiệm vụ */j.pF=1;j.cf=null;}}catch(e){}return _g.apply(this,arguments);};}
 // nhiệm vụ áo tơi / nón lá: làm xong thì mặc luôn
 {const _p=AUG['Làm áo tơi hoặc nón lá'];if(_p)AUG['Làm áo tơi hoặc nón lá']=function(){stWearAll();return _p.apply(this,arguments);};}
+/* ===================== TÚI ĐỒ RỘNG HƠN · CẤT ĐỒ VÀO KHO =====================
+   - Túi 36 ô (trước 24). Bản lưu cũ tự được nới.
+   - Nút "📦 Cất vật liệu vào kho" trong Túi đồ: chuyển hết vật liệu thô (không đụng công cụ, đồ ăn, đồ mặc) sang giỏ / rương gần nhất trong 16 m.
+     Vật liệu nằm trong kho gần đó vẫn được tính khi chế tạo và xây, nên túi chỉ cần giữ thứ đang dùng.
+   - Nhiệm vụ chính mới "Dựng giỏ đựng đồ" ngay sau khi lợp mái. "Tự làm" khi túi sắp đầy tự về kho cất (chưa có kho thì tự dựng giỏ). */
+function khoStashTo(b){const st=S.store[b.id]||(S.store[b.id]=Array(pieceDef(b.k).store).fill(null));let moved=0;for(let i=0;i<S.inv.length;i++){const s=S.inv[i],I=s&&ITEMS[s.id];if(!I||I.t!=='res')continue;const left=slotsAdd(st,s.id,s.n);moved+=s.n-left;if(left>0)s.n=left;else S.inv[i]=null;}return moved;}
+function khoNear(max){let best=null,bd=max||320;for(const b of S.builds){const d=pieceDef(b.k);if(!d||!d.store||b.prog!=null||b.k==='trough')continue;const st=S.store[b.id];if(st&&!st.some(s=>!s))continue;const dd=Math.hypot(b.x-P.x,b.z-P.z);if(dd<bd){bd=dd;best=b;}}return best;}
+function khoStash(){const b=khoNear(320);if(!b){uiToast('Chưa có giỏ hay rương còn chỗ trong vòng 16 m. Dựng Giỏ đựng đồ (14 sợi cỏ, 4 cành) ở bảng Xây, cạnh nhà.','');sfx('no');return;}
+  const n=khoStashTo(b);if(n){uiToast(`📦 Đã cất ${n} món vật liệu vào ${pieceDef(b.k).n}. Đồ trong kho gần đây vẫn dùng để chế tạo, xây.`,'good');sfx('craft');save();uiHotbar();}else uiToast('Không có vật liệu nào cần cất (hoặc kho đã đầy).','');if(G.panel)uiOpenRefresh();}
+{const _bh=bagHtml;bagHtml=function(){let h=_bh.apply(this,arguments);try{const free=S.inv.filter(s=>!s).length,b=khoNear(320);
+    h=`<div class="kho-bar"><span>Túi còn <b>${free}</b>/${S.inv.length} ô</span><button class="btn sm${b?'':' ghost'}" data-a="khostash">📦 Cất vật liệu vào kho</button></div><p class="small muted kho-tip">${b?'Vật liệu để trong giỏ, rương gần đây vẫn được tính khi chế tạo và xây: túi chỉ cần giữ thứ đang dùng.':'Dựng Giỏ đựng đồ cạnh nhà để cất bớt vật liệu; đồ trong kho gần (16 m) vẫn dùng để chế tạo, xây được.'}</p>`+h;}catch(e){}return h;};}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="khostash"]');if(!b||!S)return;e.stopImmediatePropagation();khoStash();},true);
+{const st=document.createElement('style');st.textContent=`.kho-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;grid-column:1/-1;margin-bottom:4px}.kho-bar span{font-size:13px;color:#d8c8a8}.kho-bar b{color:#ffd27a}.kho-tip{grid-column:1/-1;margin:0 0 8px}`;document.head.appendChild(st);}
+// nhiệm vụ chính: dựng giỏ đựng đồ
+{const at=GOALS.findIndex(x=>x.t==='Lợp 4 tấm mái');if(at>=0&&!GOALS.some(x=>x.t==='Dựng giỏ đựng đồ')){GOALS.splice(at+1,0,G_(1,'Dựng giỏ đựng đồ','Xây → Giỏ đựng đồ (14 sợi cỏ, 4 cành), đặt trong hoặc cạnh nhà. Mở Túi đồ bấm "Cất vật liệu vào kho" cho túi gọn; đồ trong kho gần vẫn dùng để chế tạo.',1,()=>gDone(/^(basket|chest)$/)));
+    AUG['Dựng giỏ đựng đồ']=()=>{const b=S.builds.find(b=>b.prog!=null&&/^(basket|chest)$/.test(b.k));return b?{k:'site',b}:{k:'place',piece:'basket'};};}
+  const _gc=goalCheck;goalCheck=function(){try{if(S&&S.gv4!==1){S.gv4=1;if(S.goal>0){let i=0;while(i<GOALS.length){const [v,n]=goalProg(GOALS[i]);if(v<n)break;i++;}if(i<S.goal)S.goal=i;}}}catch(e){}return _gc.apply(this,arguments);};}
+// Tự làm: túi sắp đầy thì về kho cất
+AUJ.stash=function(j){if(j.cf){j.cf=null;if(++j.alt>2)return aqFail('Không cất được đồ.');}const site=S.builds.find(b=>b.prog!=null&&/^(basket|chest)$/.test(b.k));if(site){aqPush({k:'site',b:site},j);return AQ_RUN;}
+  const b=khoNear(1e9);if(!b){if(j.built)return aqFail('Túi đầy mà chưa có kho.');j.built=1;j.lab='Dựng giỏ để cất đồ';aqPush({k:'place',piece:'basket'},j);return AQ_RUN;}
+  if(aqD(b.x,b.z)>70)return aqGoto(j,b.x,b.z,50,'Về kho cất bớt đồ',{far:1});const n=khoStashTo(b);if(n){uiToast(`🤖 Đã cất ${n} món vật liệu vào ${pieceDef(b.k).n}.`,'good');save();uiHotbar();}return AQ_DONE;};
+{const _i=aqInit;aqInit=function(j){_i(j);if(j.k==='stash'&&j.alt==null)j.alt=0;};
+  const _sf=aqSafety;aqSafety=function(){_sf.apply(this,arguments);try{if(!AQ.on||!AQ.jobs.length||G.sleeping||aqHasUrgent()||G.work)return;if(S.inv.filter(s=>!s).length<=1&&G.t-(AQ.stT||-99)>90&&S.inv.some(s=>s&&ITEMS[s.id]&&ITEMS[s.id].t==='res')){AQ.stT=G.t;aqPush({k:'stash',urgent:1},AQ.jobs[AQ.jobs.length-1]);aqSay('🤖 Túi sắp đầy: về kho cất bớt vật liệu.','');}}catch(e){}};}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.

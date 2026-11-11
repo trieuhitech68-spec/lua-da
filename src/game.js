@@ -1,5 +1,5 @@
 /* ===================== LÕI GAME: TRẠNG THÁI, CẢNH 3D, NHÂN VẬT, THU THẬP, CHẾ TẠO, XÂY DỰNG ===================== */
-const SKEY='lua-da-tay-trang-v1',HOTN=6,INVN=24,REACH=26,DAY_SEC=720;// nhịp sinh hoạt: 12 phút thật = 1 "ngày công" (đói khát, cây lớn, củi cháy). Giờ và mùa trên trời theo giờ thật Việt Nam (clock.js)
+const SKEY='lua-da-tay-trang-v1',HOTN=6,INVN=36,REACH=26,DAY_SEC=720;// nhịp sinh hoạt: 12 phút thật = 1 "ngày công" (đói khát, cây lớn, củi cháy). Giờ và mùa trên trời theo giờ thật Việt Nam (clock.js)
 let S=null;const G={on:false,t:0,keys:{},joy:{x:0,y:0,on:false},yaw:0.6,pitch:0.98,zoom:380,act:null,walkTo:null,build:null,panel:null,fx:[],flames:[],lights:[],lastSave:0,q:2,runBtn:false};
 const $=s=>document.querySelector(s);const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const TNOW=()=>S.tn!=null?S.tn:S.day+S.hour/24;// S.tn: đồng hồ sinh hoạt riêng (clock.js), luôn chỉ tăng
