@@ -447,9 +447,10 @@ function l4WearFix(slot){const id=S.wear[slot],I=id&&ITEMS[id];if(!I||!I.dur)ret
 charModel=function(){const L=charLook();if(K3.char2){try{const o=Object.assign({},L,LOOK2[S.look]||{},L.cloak?{cloak:L.cloak,cloak2:L.cloak2}:{});if(S.wear&&S.wear.body){o.bare=false;o.sleeves=L.sleeves;o.top=L.top;o.top2=L.top2;}const g=K3.char2(o);P.char2=true;return g;}catch(e){console.warn('người mới',e);}}P.char2=false;return K3.char(L);};
 {const _pi=playerInit;playerInit=function(){_pi();try{l4Decor();}catch(e){console.warn('life4 trang phục',e);}};}
 function l4Decor(){const R=P.rig;if(!R||!P.char2||!R.head||!R.top)return;const K=K3,L=S.l4||{},w=S.wear||{},lay=isFP()&&G.on?1:0,add=(par,o)=>{o.traverse(m=>{m.layers.set(lay);if(m.isMesh){m.castShadow=true;}});par.add(o);try{seasonPatchAll(o);}catch(e){}};
-  if(w.head==='leafHat'){const h=K.group(K.cone(7.2,4.6,'#d6c08a',{y:-1.9},16),K.torus(6.9,0.28,'#a8925a',{y:-1.85,rx:Math.PI/2},18));add(R.top,h);}
-  if(w.neck==='shellBeads'){const g=K.group();for(let i=0;i<12;i++){const a=i/12*Math.PI*2;g.add(K.sphere(0.42,'#f0e6d0',{x:Math.sin(a)*2.05,z:Math.cos(a)*1.85,y:0.15-Math.abs(Math.cos(a/2))*0.4},6,4));}add(R.head,g);}
-  if(w.acc&&R.foreL){add(R.foreL,K.group(K.torus(0.95,0.32,w.acc==='bronzeBracelet'?'#b8863a':'#9a9488',{y:-4.4,rx:Math.PI/2},12)));}
+  /* (mũ, vòng: wear.js gắn theo đúng kích thước mô hình; các dòng cũ dưới đây chỉ còn chạy khi không có wear.js) */
+  if(typeof wearAttach!=='function'&&w.head==='leafHat'){const h=K.group(K.cone(7.2,4.6,'#d6c08a',{y:-1.9},16),K.torus(6.9,0.28,'#a8925a',{y:-1.85,rx:Math.PI/2},18));add(R.top,h);}
+  if(typeof wearAttach!=='function'&&w.neck==='shellBeads'){const g=K.group();for(let i=0;i<12;i++){const a=i/12*Math.PI*2;g.add(K.sphere(0.42,'#f0e6d0',{x:Math.sin(a)*2.05,z:Math.cos(a)*1.85,y:0.15-Math.abs(Math.cos(a/2))*0.4},6,4));}add(R.head,g);}
+  if(typeof wearAttach!=='function'&&w.acc&&R.foreL){add(R.foreL,K.group(K.torus(0.95,0.32,w.acc==='bronzeBracelet'?'#b8863a':'#9a9488',{y:-4.4,rx:Math.PI/2},12)));}
   if(L.paint>TNOW()&&R.armL&&R.armR){[R.armL,R.armR].forEach(a=>{add(a,K.group(K.torus(1.05,0.22,'#b8321e',{y:-1.6,rx:Math.PI/2},10),K.torus(1.0,0.22,'#b8321e',{y:-3.2,rx:Math.PI/2},10)));});}
   if(L.tat&&R.shinL&&R.shinR){[R.legL,R.legR].forEach(a=>{if(a)add(a,K.group(K.torus(1.45,0.18,'#2a3a5a',{y:-3,rx:Math.PI/2},10),K.torus(1.35,0.18,'#2a3a5a',{y:-5,rx:Math.PI/2},10)));});}}
 /* ===================== 14. CÔNG CỤ: ĐỘ BỀN, MÀI LẠI, GẮN CÁN ===================== */

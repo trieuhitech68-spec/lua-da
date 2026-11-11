@@ -138,8 +138,8 @@ function c5Drum(){if(invCount('hideDrum')<1)return;const h=TNOW()*24;if(C5.drT&&
 /* ---------- hình đồ mặc mới trên nhân vật ---------- */
 {const _cl=charLook;charLook=function(){const L=_cl();if(S&&S.wear&&S.wear.feet==='furBoots')L.boots='#5a4430';return L;};}
 if(typeof l4Decor==='function'){const _ld=l4Decor;l4Decor=function(){_ld();try{const R=P.rig,w=S.wear||{};if(!R||!P.char2||!R.head||!R.top)return;const K=K3,lay=isFP()&&G.on?1:0,add=(par,o)=>{o.traverse(m=>{m.layers.set(lay);if(m.isMesh)m.castShadow=true;});par.add(o);};
-  if(w.head==='furHat')add(R.top,K.group(K.cyl(6.3,6.7,3.4,'#6e5238',{y:-1.0},14),K.cyl(6.9,6.9,1.1,'#8a6a48',{y:-2.6},14)));
-  if(w.neck==='toothNecklace'){const g=K.group();for(let i=0;i<9;i++){const a=(i/9-0.5)*Math.PI*1.3;g.add(K.box(0.35,0.9,0.35,'#efe4c8',{x:Math.sin(a)*2.05,z:Math.cos(a)*1.85,y:-0.2-Math.abs(Math.cos(a/2))*0.3}));}add(R.head,g);}}catch(e){console.warn('craft5 trang phục',e);}};}
+  if(typeof wearAttach!=='function'&&w.head==='furHat')add(R.top,K.group(K.cyl(6.3,6.7,3.4,'#6e5238',{y:-1.0},14),K.cyl(6.9,6.9,1.1,'#8a6a48',{y:-2.6},14)));
+  if(typeof wearAttach!=='function'&&w.neck==='toothNecklace'){const g=K.group();for(let i=0;i<9;i++){const a=(i/9-0.5)*Math.PI*1.3;g.add(K.box(0.35,0.9,0.35,'#efe4c8',{x:Math.sin(a)*2.05,z:Math.cos(a)*1.85,y:-0.2-Math.abs(Math.cos(a/2))*0.3}));}add(R.head,g);}}catch(e){console.warn('craft5 trang phục',e);}};}
 
 /* ===================== 1. BỘ LỌC TÚI ĐỒ & CHẾ TẠO ===================== */
 function c5Chips(w,cur,count){return `<div class="chipsel c5f" data-w="${w}">${C5CATS.map(([k,n,ic])=>{const c=count?count[k]||0:null;return `<button class="tb sm${cur===k?' on':''}${c===0&&k!=='all'?' c5z':''}" data-a="c5f" data-w="${w}" data-k="${k}">${ic} ${n}${c!=null&&k!=='all'?` <small>${c}</small>`:''}</button>`;}).join('')}</div>`;}

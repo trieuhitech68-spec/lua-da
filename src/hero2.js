@@ -25,7 +25,7 @@ function heroEnUp(k){const n=heroEn(k)+1;if(n>HERO_ENMAX)return;if(typeof nearSt
 /* ---------- ảnh chân dung: chụp chính nhân vật bằng bộ dựng hình của game ---------- */
 const HR2={shot:'',shotT:-99,lut:null};
 function heroShot(){try{if(!G.R||!P.model||!G.sc)return '';if(HR2.shot&&G.t-HR2.shotT<25)return HR2.shot;const T=THREE,R=G.R,W=240,H=320,rt=new T.WebGLRenderTarget(W,H),cam=new T.PerspectiveCamera(26,W/H,2,600);
-    const fx=Math.sin(P.ry||0),fz=Math.cos(P.ry||0);cam.position.set(P.x+fx*104+fz*18,P.y+27,P.z+fz*104-fx*18);cam.lookAt(P.x,P.y+18.5,P.z);cam.layers.enableAll();
+    /* mô hình vừa dựng lại (đổi đồ) chưa được đặt vào chỗ cho tới khung hình sau: đặt luôn để ảnh không bị trống */P.model.position.set(P.x,P.y,P.z);P.model.rotation.y=P.ry||0;P.model.updateMatrixWorld(true);const fx=Math.sin(P.ry||0),fz=Math.cos(P.ry||0);cam.position.set(P.x+fx*104+fz*18,P.y+27,P.z+fz*104-fx*18);cam.lookAt(P.x,P.y+18.5,P.z);cam.layers.enableAll();
     const hemi=G.L&&G.L.hemi,h0=hemi?hemi.intensity:0,fog=G.sc.fog,old=R.getRenderTarget(),vis=[];if(hemi)hemi.intensity=Math.max(h0,0.95);G.sc.fog=null;
     if(G.fpRig){vis.push([G.fpRig,G.fpRig.visible]);G.fpRig.visible=false;}P.model.traverse(o=>{if(o.visible===false&&o===P.model){vis.push([o,false]);o.visible=true;}});
     R.setRenderTarget(rt);R.clear();R.render(G.sc,cam);const buf=new Uint8Array(W*H*4);R.readRenderTargetPixels(rt,0,0,W,H,buf);R.setRenderTarget(old);G.sc.fog=fog;if(hemi)hemi.intensity=h0;vis.forEach(([o,v])=>o.visible=v);rt.dispose();
