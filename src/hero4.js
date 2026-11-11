@@ -82,3 +82,22 @@ document.addEventListener('click',e=>{if(!H4.on)return;const b=e.target&&e.targe
 .h4-body{overflow-y:auto;max-height:38vh;padding:2px 1px 6px;-webkit-overflow-scrolling:touch;user-select:text}.h4-body h3{margin:8px 0 6px;font-size:13px;color:#ffd27a;text-transform:uppercase;letter-spacing:.04em}
 .h4-low.open .h4-gear,.h4-low.open .h4-pow{display:none}
 @media (orientation:landscape){.h4-low{left:auto;width:min(46vw,460px)}.h4-sheet{clip-path:none;border-radius:16px 0 0 0}.h4-body{max-height:30vh}.h4-top>div{align-items:flex-start;margin-right:0}.h4-side.r{right:calc(min(46vw,460px) + 8px)}.h4-gear{justify-content:flex-start}}`;document.head.appendChild(st);}
+/* ===================== HÌNH RIÊNG NHÂN VẬT (nền sạch) =====================
+   Màn nhân vật và ảnh chân dung không lấy cảnh đang đi ngoài đồng nữa: ẩn hết thế giới (cỏ, cây, trời, mưa), chỉ còn nhân vật đứng trên bệ sáng
+   với đèn riêng nên giờ nào cũng rõ. Đồ đang mặc, đang cầm là chính mô hình trong game nên đổi đồ là hình đổi theo ngay. */
+const SOLO={on:false,vis:null,bg:null,fog:null,grp:null,top:null};
+function soloGrp(){if(SOLO.grp)return SOLO.grp;const T=THREE,g=new T.Group();g.add(new T.HemisphereLight(0xfff0d8,0x4a3a2c,0.95));const d=new T.DirectionalLight(0xfff6e8,1.15);d.position.set(46,90,70);const tg=new T.Object3D();tg.position.set(0,14,0);g.add(tg);d.target=tg;g.add(d);
+  const r=new T.DirectionalLight(0x9ac4ff,0.45);r.position.set(-60,40,-70);const t2=new T.Object3D();t2.position.set(0,14,0);g.add(t2);r.target=t2;g.add(r);
+  const cv=document.createElement('canvas');cv.width=cv.height=256;const c=cv.getContext('2d'),gr=c.createRadialGradient(128,128,6,128,128,128);gr.addColorStop(0,'rgba(255,214,140,.95)');gr.addColorStop(0.45,'rgba(190,130,60,.55)');gr.addColorStop(1,'rgba(40,26,14,0)');c.fillStyle=gr;c.fillRect(0,0,256,256);
+  c.strokeStyle='rgba(255,226,160,.8)';c.lineWidth=3;c.beginPath();c.arc(128,128,74,0,7);c.stroke();c.lineWidth=1.5;c.beginPath();c.arc(128,128,96,0,7);c.stroke();
+  const fl=new T.Mesh(new T.CircleGeometry(46,48).rotateX(-Math.PI/2),new T.MeshBasicMaterial({map:new T.CanvasTexture(cv),transparent:true,depthWrite:false,fog:false}));fl.position.y=0.4;fl.renderOrder=1;g.add(fl);SOLO.grp=g;return g;}
+function soloHide(){const top=SOLO.top,g=SOLO.grp;for(const c of G.sc.children){if(c===top||c===g)continue;if(c.visible){SOLO.vis.push(c);c.visible=false;}}}
+function soloOn(){if(SOLO.on||!G.sc||!P.model)return false;let top=P.model;while(top.parent&&top.parent!==G.sc)top=top.parent;SOLO.top=top;const g=soloGrp();SOLO.vis=[];SOLO.bg=G.sc.background;SOLO.fog=G.sc.fog;SOLO.on=true;soloHide();
+  G.sc.background=new THREE.Color(0x20170f);G.sc.fog=null;g.position.set(P.x,P.y,P.z);G.sc.add(g);return true;}
+function soloOff(){if(!SOLO.on)return;SOLO.on=false;for(const c of SOLO.vis)c.visible=true;SOLO.vis=null;G.sc.background=SOLO.bg;G.sc.fog=SOLO.fog;if(SOLO.grp)G.sc.remove(SOLO.grp);}
+// màn nhân vật: bật nền sạch suốt lúc mở (mỗi khung hình ẩn lại những thứ game vừa bật lên)
+{const _o=h4Open;h4Open=function(){const was=H4.on;_o.apply(this,arguments);if(H4.on&&!was)soloOn();};const _c=h4Close;h4Close=function(){soloOff();return _c.apply(this,arguments);};
+  const _ct=camTick;camTick=function(dt){const r=_ct.apply(this,arguments);try{if(H4.on&&SOLO.on){soloHide();SOLO.grp.position.set(P.x,P.y,P.z);P.model.visible=true;if(SOLO.top)SOLO.top.visible=true;}}catch(e){}return r;};}
+// ảnh chân dung: chụp trên nền sạch; đổi đồ đang mặc / đang cầm là chụp lại
+{const _hs=heroShot;heroShot=function(){try{const k=JSON.stringify(S.wear||{})+'|'+(selTool()||'')+'|'+JSON.stringify(S.app||{}).length;if(k!==HR2.k4){HR2.k4=k;HR2.shotT=-99;}}catch(e){}
+    if(SOLO.on)return _hs.apply(this,arguments);if(HR2.shot&&G.t-HR2.shotT<25)return HR2.shot;const ok=soloOn();try{return _hs.apply(this,arguments);}finally{if(ok)soloOff();}};}

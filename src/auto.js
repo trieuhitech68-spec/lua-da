@@ -34,7 +34,12 @@ function aqCost(x,z,ctx){if(!wIn(x,z,1.02))return Infinity;const wd=wdAt(x,z);le
 function aqPred(){const out=[];for(const a of G.animals||[]){if(!a.alive||a.tame)continue;const D=ANIMALS[a.kind]||{};if(a.angry||(D.aggro&&D.aggro!=='never'&&D.aggro!=='defend'&&(D.dmg||0)>=9))out.push({x:a.x,z:a.z,a});}
   if(G.foes)for(const f of G.foes)if(f.alive)out.push({x:f.x,z:f.z,a:f});return out;}
 function aqCtx(x0,z0,x1,z1,swim){const col=[];for(const s of (typeof SCOL!=='undefined'?SCOL:[])){if(s.x+s.r<x0||s.x-s.r>x1||s.z+s.r<z0||s.z-s.r>z1)continue;col.push(s);}
-  AQ.bad=AQ.bad.filter(b=>G.t<b.t);return {col,pred:aqPred().filter(p=>Math.hypot(p.x-P.x,p.z-P.z)<1600),bad:AQ.bad,swim:!!swim};}
+  AQ.bad=AQ.bad.filter(b=>G.t<b.t);const bk=new Set();try{BYID.forEach(b=>{if(b.x<x0-80||b.x>x1+80||b.z<z0-80||b.z>z1+80)return;const i=Math.floor(b.x/80),j=Math.floor(b.z/80);for(let u=-1;u<=1;u++)for(let v=-1;v<=1;v++)bk.add((i+u)+','+(j+v));});}catch(e){}
+  return {col,pred:aqPred().filter(p=>Math.hypot(p.x-P.x,p.z-P.z)<1600),bad:AQ.bad,swim:!!swim,bk};}
+// đoạn (ax,az)→(bx,bz) có cắt tường, cột, lều, chuồng (công trình đặc) không. Chỉ xét khi gần công trình (ô 80).
+function aqWall(ctx,ax,az,bx,bz){if(!ctx||!ctx.bk||!ctx.bk.size||typeof solCross!=='function')return false;const L=Math.hypot(bx-ax,bz-az),n=Math.max(1,Math.ceil(L/40));
+  for(let i=0;i<n;i++){const x0=ax+(bx-ax)*i/n,z0=az+(bz-az)*i/n,x1=ax+(bx-ax)*(i+1)/n,z1=az+(bz-az)*(i+1)/n;if(!ctx.bk.has(Math.floor(x0/80)+','+Math.floor(z0/80))&&!ctx.bk.has(Math.floor(x1/80)+','+Math.floor(z1/80)))continue;
+    const py=hAt(x0,z0)+2;let rc=solRects((x0+x1)/2,(z0+z1)/2,py);/* nới chữ nhật ra 8 đơn vị: thân người */rc=rc.map(r=>[r[0]-8,r[1]-8,r[2]+8,r[3]+8]);if(solCross(x0,z0,x1,z1,py,solSegs(x0,z0,x1,z1,py),rc))return true;}return false;}
 function aqPlanStart(sx,sz,gx,gz,r,swim){const D=Math.hypot(gx-sx,gz-sz),C=Math.max(20,Math.min(60,D/110)),M=Math.max(320,D*0.3);
   const x0=Math.min(sx,gx)-M,z0=Math.min(sz,gz)-M,W=Math.ceil((Math.abs(gx-sx)+2*M)/C)+1,H=Math.ceil((Math.abs(gz-sz)+2*M)/C)+1,N=W*H;
   const pl={sx,sz,gx,gz,r,C,x0,z0,W,H,g:new Float32Array(N).fill(Infinity),par:new Int32Array(N).fill(-1),cl:new Uint8Array(N),cost:new Float32Array(N).fill(-1),hh:new Float32Array(N),
@@ -50,10 +55,11 @@ function aqPlanStep(pl,budget){if(pl.ok||pl.fail)return;const {W,H,C,x0,z0,gx,gz
     for(const [di,dj] of AQ_NB){const ni=ci+di,nj=cj+dj;if(ni<0||nj<0||ni>=W||nj>=H)continue;const n=nj*W+ni;if(pl.cl[n])continue;const nx=x0+ni*C,nz=z0+nj*C;
       let c=pl.cost[n];if(c<0){c=aqCost(nx,nz,pl.ctx);pl.cost[n]=c;pl.hh[n]=hAt(nx,nz);}if(!isFinite(c))continue;
       const L=(di&&dj)?C*1.4142:C;if(Math.abs(pl.hh[n]-pl.hh[i])/L>0.95&&pl.exp>10)continue;// vách dốc / mép vực
+      if(pl.ctx.bk.size&&aqWall(pl.ctx,x,z,nx,nz))continue;// tường, lều chắn giữa hai ô
       const g=pl.g[i]+L*(pl.cost[i]+c)*0.5;if(g<pl.g[n]){pl.g[n]=g;pl.par[n]=i;aqHPush(pl,n,g+Math.hypot(gx-nx,gz-nz)*0.75);}}}}
 // đoạn thẳng có đi được không (không qua nước sâu, vách dốc, vật cản)
 function aqClear(ax,az,bx,bz,ctx){const L=Math.hypot(bx-ax,bz-az),n=Math.max(1,Math.ceil(L/10)),st=L/n;let ph=hAt(ax,az);
-  for(let i=1;i<=n;i++){const x=ax+(bx-ax)*i/n,z=az+(bz-az)*i/n,c=aqCost(x,z,ctx);if(!isFinite(c)||c>2.6)return false;const h=hAt(x,z);if(Math.abs(h-ph)/st>0.95)return false;ph=h;}return true;}
+  for(let i=1;i<=n;i++){const x=ax+(bx-ax)*i/n,z=az+(bz-az)*i/n,c=aqCost(x,z,ctx);if(!isFinite(c)||c>2.6)return false;const h=hAt(x,z);if(Math.abs(h-ph)/st>0.95)return false;ph=h;}if(aqWall(ctx,ax,az,bx,bz))return false;return true;}
 function aqSmooth(pts,ctx){if(pts.length<3)return pts;const out=[pts[0]];let i=0;
   while(i<pts.length-1){let j=Math.min(pts.length-1,i+14);for(;j>i+1;j--)if(aqClear(pts[i][0],pts[i][1],pts[j][0],pts[j][1],ctx))break;out.push(pts[j]);i=j;}return out;}
 // an toàn từng bước: hướng đi có dẫn ra mép vực / nước sâu không? Thử xoay ±35°, ±70° nếu cần.
@@ -159,9 +165,14 @@ const AUJ={
       if(G.t-(j.lsT||0)>0.4&&j.wi<pts.length-1){j.lsT=G.t;if(aqClear(P.x,P.z,pts[j.wi+1][0],pts[j.wi+1][1],j.ctx))j.wi++;}
       const w=pts[Math.min(j.wi,pts.length-1)];tx=w[0];tz=w[1];if(j.wi>=pts.length-1&&aqD(tx,tz)<16){tx=j.x;tz=j.z;}}
     AQ.dir=[tx-P.x,tz-P.z];AQ.path&&(AQ.path[0]=[P.x,P.z]);
+    /* NÉ TẠI CHỖ: dò trước mặt 12 đơn vị bằng chính bộ va chạm; bị cây to, đá, tường, lều, thú chặn thì lách sang bên (ưu tiên bên vừa lách) trong 0,7 giây rồi dò lại */
+    try{if(!P.air&&!G.swim&&!aqBusy()){if(j.av&&G.t<j.avU)AQ.dir=j.av;else if(G.t-(j.avT||0)>0.12){j.avT=G.t;j.av=null;const l=Math.hypot(tx-P.x,tz-P.z)||1,ux=(tx-P.x)/l,uz=(tz-P.z)/l,
+          probe=(dx,dz)=>{const c=collide(P.x+dx*12,P.z+dz*12);return (c[0]-P.x)*dx+(c[1]-P.z)*dz;};
+        if(l>14&&probe(ux,uz)<6){const sg=j.avS||1;for(const a of [0.7*sg,-0.7*sg,1.25*sg,-1.25*sg,1.75*sg,-1.75*sg,2.3*sg,-2.3*sg]){const c=Math.cos(a),sn=Math.sin(a),rx=ux*c-uz*sn,rz=ux*sn+uz*c;
+            if(probe(rx,rz)>8){const sd=aqSafeDir(rx,rz);if(!sd)continue;j.av=[rx,rz];j.avU=G.t+0.7;j.avS=a>0?1:-1;AQ.dir=j.av;break;}}}}}}catch(e){}
     if(G.t-j.lt>2){const mv=Math.hypot(P.x-j.lp[0],P.z-j.lp[1]);j.lp=[P.x,P.z];j.lt=G.t;
       if(mv<14&&!aqBusy()){j.stuck=(j.stuck||0)+1;AQ.bad.push({x:P.x+Math.sin(P.ry)*20,z:P.z+Math.cos(P.ry)*20,t:G.t+60});
-        if(j.stuck>=5)return aqFail('Bị kẹt, không đi tiếp được.');if(j.stuck===2)G.jumpReq=1;j.pts=null;AQ.path=null;}else if(d<j.best-10){j.best=d;j.stuck=0;}}
+        if(j.stuck>=7)return aqFail('Bị kẹt, không đi tiếp được.');if(j.stuck===2||j.stuck===5)G.jumpReq=1;if(j.stuck>=3){/* lùi ra rồi đổi bên né */j.avS=-(j.avS||1);const bx=-Math.sin(P.ry),bz=-Math.cos(P.ry),sd=aqSafeDir(bx+(j.avS)*bz*0.6,bz-(j.avS)*bx*0.6);if(sd){j.av=sd;j.avU=G.t+1.1;}}j.pts=null;AQ.path=null;}else if(d<j.best-10){j.best=d;j.stuck=0;}}
     return AQ_RUN;},
   drink(j){if(j.cf)return aqFail(j.cf);if(j.st==='wait'){if(G.t-j.t0<1.2)return AQ_RUN;j.st=null;if(!j.urgent||S.p.water>=60||++j.n_>3)return AQ_DONE;}
     if(!j.goal&&!j.fill){const b=['water','tea','mintwater'].find(k=>invCount(k)>0&&ITEMS[k]&&ITEMS[k].t==='drink');if(b){eat(b);j.st='wait';j.t0=G.t;return AQ_RUN;}}
