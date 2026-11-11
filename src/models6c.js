@@ -946,7 +946,7 @@ function SBmodels6cInit(){const M=window.SBM,K=(typeof K3!=='undefined')?K3:wind
     {const us=headU(16),Pg=[],Cg=[],Ug=[];HEADY.forEach((y,ri)=>{const row=[],cr=[],ur=[];for(let j=0;j<=us.length;j++){const u=j<us.length?us[j]:us[0]+TAU;const [p,Mk]=HD.disp(u,y);row.push(p);
         let k=skinAt(p,0.1*(Mk.cheek||0)+0.08*(Mk.nose||0));if(Mk.lip)k=mix(k,lipC,Mk.lip);if(Mk.nostril)k=mix(k,mul(SK,0.35),Mk.nostril*0.9);if(Mk.socket)k=mix(k,mix(SK,C('#5a3428'),0.25),Mk.socket*0.35);
         if(Mk.lid)k=mix(k,mix(HC,C('#120c0a'),0.5),Mk.lid*0.9);if(Mk.lidLo)k=mix(k,mul(SK,0.6),Mk.lidLo*0.6);
-        if(!bald){const hy=hl(u);k=mix(k,mul(HC,0.55),ss(hy-0.2,hy+0.06,y));}
+        if(!bald){const hy=hl(u);k=mix(k,mul(HC,0.55),ss(hy-0.34,hy+0.1,y));}
         if(beard||(!fem&&!bald)){const bt=Math.abs(Math.sin(u))<0.95&&Math.cos(u)>-0.2?1:0;const reg=bt*ss(3.0,2.6,y)*ss(1.0,1.35,y)*(1-ss(0.25,0.0,Math.abs(y-2.3)-0.05)*ss(0.5,0.3,Math.abs(p[0])))*ss(-0.2,0.1,Math.cos(u));k=mix(k,mix(SK,HC,0.6),reg*(beard?0.75:0.18));}
         cr.push(k);ur.push([j/us.length*5,y/1.6]);}Pg.push(row);Cg.push(cr);Ug.push(ur);});
       hS.grid('skin',Pg,Cg,Ug,(r)=>[0,HEADY[r],-0.25]);
@@ -1077,8 +1077,8 @@ function SBmodels6cInit(){const M=window.SBM,K=(typeof K3!=='undefined')?K3:wind
       const lb=fem?0.94:1,m=Math.sqrt(bw),lS=soup(leg,60),sS=soup(shin,60),fS=soup(foot,55);
       const TH=[HRG(1.3,1.5*lb*m,1.45*lb*m,1.5*lb*m),HRG(-0.9,1.62*lb*m,1.5*lb*m,1.55*lb*m,{cx:s*0.12}),HRG(-3.6,1.4*lb*m,1.48*lb*m,1.32*lb*m,{cx:s*0.05}),HRG(-6.4,1.08*lb*m,1.12*lb*m,1.04*lb*m),HRG(-8.1,.95*lb,.98*lb,.95*lb),HRG(-8.5,.9*lb,.9*lb,.9*lb)];
       hloft(lS,TH,{n:10,step:1.5,key:j=>j<1.99?null:'skin',td:4,col:(p)=>skinAt(p,0.06*ss(-7,-8.4,p[1])),mod:(p,u)=>{p[2]+=0.1*gss(p[1],-5.6,1.1)*Math.max(0,Math.cos(u));return p;}});
-      const inn=1.62*lb*m,out=2.12*lb*m+(fem?0.25:0),SKd=[[1.15,inn-0.1,out-0.2,1.72,1.85,0.22],[-1.6,inn,out,1.85,2.0,0.28],[fem?-6.2:-4.4,inn+0.06,out+0.12,1.98,2.14,0.33]];
-      const SKr=SKd.map(([y,i,o2,zf,zb,c])=>HRG(y,0,zf*lb*m,zb*lb*m,{xn:s<0?o2*lb:i*lb,xp:s<0?i*lb:o2*lb,cx:s*c}));
+      const inn=1.62*lb*m,out=2.12*lb*m+(fem?0.25:0),SKb=fem?-6.2:-4.4,SKd=[[1.15,inn-0.1,out-0.2,1.72,1.85,0.22],[-1.6,inn,out,1.85,2.0,0.28],[(SKb-1.6)/2,inn+(fem?0.22:0.1),out+(fem?0.24:0.14),1.96,2.12,0.31],[SKb,inn+(fem?0.38:0.16),out+(fem?0.52:0.3),2.12,2.3,0.34]];/* thêm một vòng giữa và xoè dần xuống gấu (trước: hai tấm thẳng đứng như hộp) */
+      const SKr=SKd.map(([y,i,o2,zf,zb,c])=>HRG(y,0,zf*lb*m,zb*lb*m,{xn:s<0?o2*lb:i*lb,xp:s<0?i*lb:o2*lb,cx:s*c,p:2.05}));
       const sk=hloft(lS,SKr,{n:12,step:2.0,k:botK,td:8,col:()=>BOT,mod:(p,u,r)=>{if(r.src>1.99){p[1]-=0.5*hsh(Math.round(u*14/TAU),s*3+7,seed,4);}return p;}});
       if(skirtLook||hasTop){const last=sk.P[sk.P.length-1];for(let i=0;i<12;i+=1){if(fem&&i%2)continue;const a=last[i],b=last[i+1],mm=lerp3(a,b,0.5),out2=nrm3([mm[0]-s*HX*0,0,mm[2]]),L2=0.7+0.4*hsh(i,s,seed,3),wd=len3(sub3(b,a))*0.5;
           hcard(lS,[mm,add3(mm,[0,-L2*0.5,0]),add3(mm,[0,-L2,0])],[out2,out2,out2],[wd,wd,wd*0.95],mul(BOT,0.9),0,1,0.5,0.98);}}

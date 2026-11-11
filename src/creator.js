@@ -118,7 +118,7 @@ function crHairStyle(G,R,a,keep){const H=CR_HS[a.hs]||CR_HS[0];if(!H.c)return;co
   const hairM=head.children.find(m=>m.isMesh&&m.userData.part==='hair'),mat=hairM?hairM.material:new THREE.MeshStandardMaterial({vertexColors:true,side:THREE.DoubleSide,alphaTest:0.4});
   const skins=crHeadSkins(R);const hc=()=>v3mul(HC,0.9+0.16*rn());const B=crBuf(),add=(o,par)=>{if(!o)return;o.userData.crAdd=1;(par||head).add(o);if(keep)crKeep0(o);};
   const tint=(hl,str)=>skins.forEach(skinM=>{const pa=skinM.geometry.attributes.position,ca=skinM.geometry.attributes.color;if(!ca)return;const dk=v3mul(HC,0.55),hq=!!skinM.userData.crHQ;
-    for(let i=0;i<pa.count;i++){const x=pa.getX(i),y=pa.getY(i),z=pa.getZ(i),r=crProf(y);if(Math.abs(x)>r[1]+0.07&&y<4.3)continue;const hy=hl(Math.atan2(x,z+0.15))+(hq?0.035*(crVn(Math.atan2(x,z+0.15)*6,0,0,9)-0.5):0),t=(hq?crSS(hy-0.08,hy+0.05,y):crSS(hy-0.2,hy+0.06,y))*str(x,y,z);if(t<=0)continue;
+    for(let i=0;i<pa.count;i++){const x=pa.getX(i),y=pa.getY(i),z=pa.getZ(i),r=crProf(y);if(Math.abs(x)>r[1]+0.07&&y<4.3)continue;const hy=hl(Math.atan2(x,z+0.15))+(hq?0.035*(crVn(Math.atan2(x,z+0.15)*6,0,0,9)-0.5):0),t=(hq?crSS(hy-0.34,hy+0.12,y):crSS(hy-0.34,hy+0.1,y))*str(x,y,z);if(t<=0)continue;
       const k=crMix([ca.getX(i),ca.getY(i),ca.getZ(i)],dk,t);ca.setXYZ(i,k[0],k[1],k[2]);}ca.needsUpdate=true;});
   const sweep=(d0,d1,n,l0,l1,bul,w)=>{const pts=[],nn=[];for(let k=0;k<=n;k++){const f=k/n,d=v3nrm(v3lerp(d0,d1,f));pts.push(v3add(crScalp(d),d,l0+(l1-l0)*f+bul*Math.sin(f*Math.PI)));nn.push(d);}
     const u0=rn()*0.65;crCard(B,pts,nn,pts.map((_,k)=>w*(1-0.4*Math.pow(k/n,2))),hc(),u0,u0+0.3,0,0.32+0.12*rn(),0.3);};
@@ -261,7 +261,7 @@ function crFaceHold(G,R,a,f){if(typeof h3faceKit!=='function')return;let F=R._h3
     F.lid.forEach((o,i)=>wrap(o,'eye',i?1:-1));F.iris.forEach((o,i)=>wrap(o,'eye',i?1:-1));F.brow.forEach((o,i)=>wrap(o,'brow',i?1:-1));if(F.mg)wrap(F.mg,'mouth',1);}
   const ES=1+0.17*a.es,EL=1+0.2*a.el;const bh=(CR_BROW[a.bc]||CR_BROW[0])[1]||crHairHex(a);
   F.crH.forEach(h=>{const p0=h.userData.p0,s=h.userData.s,k=h.userData.kind,D=f([p0.x,p0.y,p0.z]);let sc=[1,1,1],rz=0,dy=0;
-    if(k==='eye'){sc=[ES,ES*EL,1+(ES-1)*0.35];rz=s*0.15*a.et;}else if(k==='brow'){sc=[0.9,(a.f?0.5:0.62)*(1+0.45*a.bt),0.8];rz=s*0.12*a.bg;dy=0.05*a.ba;}else sc=[(1+0.17*a.mw)*(R._crHQ?0.92:1),(1+0.1*(a.lu+a.lb)/2)*(R._crHQ?0.55:1),1];
+    if(k==='eye'){sc=[ES,ES*EL,1+(ES-1)*0.35];rz=s*0.15*a.et;}else if(k==='brow'){sc=[0.9,(a.f?0.58:0.62)*(1+0.45*a.bt),0.8];rz=s*0.12*a.bg;dy=0.05*a.ba;}else sc=[(1+0.17*a.mw)*(R._crHQ?0.92:1),(1+0.1*(a.lu+a.lb)/2)*(R._crHQ?0.55:1),1];
     h.scale.set(sc[0],sc[1],sc[2]);h.rotation.set(0,0,rz);h.updateMatrix();const v=p0.clone().applyMatrix4(new T.Matrix4().makeRotationZ(rz).multiply(new T.Matrix4().makeScale(sc[0],sc[1],sc[2])));h.position.set(D[0]-v.x,D[1]-v.y+dy,D[2]-v.z-(R._crHQ&&k==='mouth'?0.035:0));});
   F.brow.forEach(b=>{b.material=CR_MAT['b'+bh]||(CR_MAT['b'+bh]=new T.MeshStandardMaterial({color:bh,roughness:0.9}));});}
 /* ---------- thân: chiều cao, vai, ngực, eo, hông, tay, chân, dáng ---------- */
@@ -370,7 +370,7 @@ function crHQ(G,R,a){const T=THREE,head=R.head,fem=!!a.f,U=G.userData;const sk0=
   const N=36,ROWS=CR_HQ_ROWS,us=[];for(let j=0;j<=N;j++){const t=j/N-0.5;us.push(2*Math.PI*t-0.82*Math.sin(2*Math.PI*t));}
   const pos=[],col=[],uv=[],idx=[];ROWS.forEach(y=>{us.forEach((u,j)=>{const [p,M]=HM.disp(u,y);pos.push(p[0],p[1],p[2]);
       let k=skinAt(p,0.1*(M.cheek||0)+0.1*(M.nose||0)+0.12*crGs(Math.abs(p[0]),0,0.14)*crGs(y,2.84,0.12));if(M.lip)k=crMix(k,lipC,M.lip);if(M.nostril)k=crMix(k,v3mul(SK,0.3),Math.min(1,M.nostril*1.3));if(M.socket)k=crMix(k,crMix(SK,crHex('#5a3428'),0.3),M.socket*0.35);
-      if(!bald){const hy=hl(u)+0.035*(crVn(u*6,0,0,9)-0.5);k=crMix(k,v3mul(HC,0.5+0.12*crVn(u*20,y*20,0,4)),crSS(hy-0.08,hy+0.05,y));}
+      if(!bald){const hy=hl(u)+0.035*(crVn(u*6,0,0,9)-0.5);k=crMix(k,v3mul(HC,0.5+0.12*crVn(u*20,y*20,0,4)),crSS(hy-0.34,hy+0.12,y));/* chân tóc chuyển màu mềm (trước dải chuyển quá hẹp so với lưới đầu → mép vuông bậc thang) */}
       if(!fem&&!bald){const bt=Math.abs(Math.sin(u))<0.95&&Math.cos(u)>-0.2?1:0,reg=bt*crSS(3.0,2.6,y)*crSS(1.0,1.35,y)*(1-crSS(0.25,0,Math.abs(y-2.3)-0.05)*crSS(0.5,0.3,Math.abs(p[0])))*crSS(-0.2,0.1,Math.cos(u));k=crMix(k,crMix(SK,HC,0.6),reg*(beard?0.7:0.16));}
       col.push(k[0],k[1],k[2]);uv.push((j/N)*5,y/1.6);});});
   const W=N+1;for(let r=0;r<ROWS.length-1;r++)for(let j=0;j<N;j++){const a0=r*W+j,b0=a0+1,c0=a0+W+1,d0=a0+W;idx.push(a0,d0,c0,a0,c0,b0);}
