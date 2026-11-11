@@ -93,7 +93,7 @@ function aqFire(lit){let best=null,bd=1e9;for(const b of S.builds){const d=piece
 function aqBed(){let best=null,bd=1e9;for(const b of S.builds){const d=pieceDef(b.k);if(!d||!d.bed||b.prog!=null)continue;const dd=aqD(b.x,b.z);if(dd<bd){bd=dd;best=b;}}return best;}
 function aqToolItem(kind){const m={axe:'axe',pick:'pick',dig:'digStick',fire:'fireDrill'};if(m[kind])return m[kind];const r=RECIPES.find(r=>{const o=Object.keys(r.out)[0];return ITEMS[o]&&ITEMS[o].tool===kind;});return r?Object.keys(r.out)[0]:null;}
 function aqRecipe(id){const L=RECIPES.filter(r=>r.out&&r.out[id]&&r.id!=='stoneBoil'||(id==='water'&&r.id==='stoneBoil'));if(!L.length)return null;
-  const sc=r=>(lvOk(r.lv)?0:100)+(r.age&&(S.age||0)<r.age?100:0)+(r.st&&!aqStation(r.st)?40:0)+(r.tool&&!invCount(r.tool)?5:0)+Object.values(r.in||{}).reduce((a,v)=>a+v,0)*0.1;
+  const sc=r=>(lvOk(r.lv)?0:100)+(r.age&&(S.age||0)<r.age?100:0)+(r.st&&!aqStation(r.st)?40:0)+(r.tool&&!invCount(r.tool)?5:0)+Object.values(r.in||{}).reduce((a,v)=>a+v,0)*0.1+Object.keys(r.in||{}).reduce((a,k)=>a+(haveCount(k)>=r.in[k]?0:/^(meat|hide|bone|sinew|fish|birdRaw|feather|horn|fat)$/.test(k)?30:0),0);/* đồ từ thú mà chưa có sẵn: né, kẻo đi săn chỉ để làm sợi dây */
   return L.slice().sort((a,b)=>sc(a)-sc(b))[0];}
 function aqFood(rawOk){let best=null,bv=0;for(const s of S.inv){if(!s)continue;const I=ITEMS[s.id];if(!I||I.t!=='food'||I.poison||s.id==='meatRot')continue;if(I.raw&&!rawOk)continue;const v=(I.food||0)*(I.raw?0.3:1)+(I.hp||0);if(v>bv){bv=v;best=s.id;}}return best;}
 const AQ_FOODSRC=()=>['berry','banana','mushroom','fernShoot','lotusSeed','honey'].filter(k=>ITEMS[k]);
@@ -338,7 +338,7 @@ function aqSafety(){const c=aqCfg(),p=S.p,top=AQ.jobs[AQ.jobs.length-1];if(!top|
   let dg=null,dd=1e9;for(const a of aqPred()){const d=Math.hypot(a.x-P.x,a.z-P.z);if(d<dd){dd=d;dg=a.a;}}
   if(dg&&dd<(dg.angry?260:190)&&!aqHasUrgent('flee')&&!aqHasUrgent('fight')){const D=ANIMALS[dg.kind]||{},weak=(D.hp||9)<=6&&(D.dmg||0)<=10,weap=hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe');
     if(c.fight&&weap&&(weak||dg===G.foes)&&p.hp>45){aqPush({k:'fight',a:dg,t0:G.t,urgent:1},top);return;}
-    AQ.flees=(AQ.flees||[]).filter(t=>G.t-t<90);AQ.flees.push(G.t);if(AQ.flees.length>6){aqStop('🤖 Thú dữ quanh quẩn ở đây: dừng tự làm cho an toàn.','bad');return;}
+    AQ.flees=(AQ.flees||[]).filter(t=>G.t-t<90);AQ.flees.push(G.t);if(AQ.flees.length>6){AQ.flees=[];const hb=aqBed()||aqFire();if(hb&&aqD(hb.x,hb.z)>220){if(G.work)workStop('');G.act=null;aqPush({k:'goto',x:hb.x,z:hb.z,r:60,far:1,urgent:1,lab:'Lánh thú dữ: về trại'},top);aqSay('🤖 Thú dữ quanh quẩn: lánh về trại rồi làm tiếp.','bad');return;}}
     if(G.work)workStop('Thú dữ tới gần!');G.act=null;aqPush({k:'flee',a:dg,t0:G.t,urgent:1},top);aqSay('🤖 Thấy '+(dg.n||'thú dữ').toLowerCase()+': tránh xa.','bad');return;}
   if(p.hp<18&&!aqHasUrgent()){aqStop('🤖 Máu thấp quá: dừng tự làm. Nghỉ ngơi, chữa thương đã.','bad');return;}
   if(aqHasUrgent())return;

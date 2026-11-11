@@ -19,7 +19,8 @@ AUJ.warm=function(j){const p=S.p;if(j.cf){j.cf=null;if(++j.alt>3)return aqFail('
   let f=aqFire(true);const f0=aqFire(false),rain=typeof isRaining==='function'&&isRaining();
   if(!f&&f0&&!j.lit&&aqD(f0.x,f0.z)<2600&&!(rain&&!fireSheltered(f0.x,f0.z))){j.lit=1;j.lab='Về nhóm lại bếp';aqPush({k:'light',b:f0,force:1},j);return AQ_RUN;}
   const bed=aqBed();let tg=null;if(f&&(!bed||aqD(f.x,f.z)<aqD(bed.x,bed.z)*1.6+200))tg=f;else if(bed)tg=bed;else if(f)tg=f;
-  if(!tg||aqD(tg.x,tg.z)>3200){if(!j.built&&!rain){j.built=1;j.lab='Dựng bếp sưởi tại chỗ';aqPush({k:'place',piece:'campfire'},j);return AQ_RUN;}if(!tg)return aqFail('Không có bếp lửa hay chỗ trú nào để sưởi.');}
+  const lsite=S.builds.find(b=>b.prog!=null&&b.k==='leanto');if(lsite&&j.builtL&&!j.sitedL){j.sitedL=1;aqPush({k:'site',b:lsite},j);return AQ_RUN;}
+  if(!tg||aqD(tg.x,tg.z)>3200){if(!j.built&&!rain){j.built=1;j.lab='Dựng bếp sưởi tại chỗ';aqPush({k:'place',piece:'campfire'},j);return AQ_RUN;}if(!tg&&!j.builtL){j.builtL=1;j.lab='Dựng lều trú mưa';aqPush({k:'place',piece:'leanto'},j);return AQ_RUN;}if(!tg)return aqFail('Không có bếp lửa hay chỗ trú nào để sưởi.');}
   if(aqD(tg.x,tg.z)>(tg===f?46:30)){j.t0=null;return aqGoto(j,tg.x,tg.z,tg===f?34:22,tg===f?'Về bếp lửa sưởi ấm':'Về chỗ trú cho đỡ rét',{far:1});}
   if(j.t0==null)j.t0=G.t;j.lab=here?'Sưởi ấm, hong khô bên lửa':'Trú dưới mái cho khô người';if(G.work)try{workStop('');}catch(e){}return AQ_RUN;};
 {const _i=aqInit;aqInit=function(j){_i(j);if(j.k==='warm'&&j.alt==null)j.alt=0;};}
@@ -34,3 +35,10 @@ AUJ.warm=function(j){const p=S.p;if(j.cf){j.cf=null;if(++j.alt>3)return aqFail('
       if(j.cf&&(j.pC||j.pH)&&!j.pF){/* may đồ không được thì thôi, vẫn làm nhiệm vụ */j.pF=1;j.cf=null;}}catch(e){}return _g.apply(this,arguments);};}
 // nhiệm vụ áo tơi / nón lá: làm xong thì mặc luôn
 {const _p=AUG['Làm áo tơi hoặc nón lá'];if(_p)AUG['Làm áo tơi hoặc nón lá']=function(){stWearAll();return _p.apply(this,arguments);};}
+/* ---------- RÉT, ƯỚT KHÔNG GIẾT NGƯỜI MỚI ----------
+   Chạy thử tua nhanh một nhân vật mới giữa mùa đông có mưa: 25 giây là ướt sũng, thân nhiệt về 0, bị chặn mọi việc nặng ngay từ nhiệm vụ chặt gỗ rồi mất máu tới chết.
+   Mùa giờ theo lịch thật (đông kéo 3 tháng) nên phải nhẹ tay:
+   - Chưa lợp được mái nhà đầu tiên: thân nhiệt không xuống dưới 36, ướt không quá 55 (người mới chưa có gì che thân).
+   - Về sau: thân nhiệt không xuống dưới 12 → không còn cảnh "rét cóng tay" chặn mọi việc và không mất máu vì rét; rét vẫn làm chậm hồi sức và dễ cảm lạnh nếu để lâu. */
+if(typeof bodyTick==='function'){const _bt=bodyTick;bodyTick=function(dt){const r=_bt.apply(this,arguments);try{const p=S.p,nb=!((S.cnt&&(S.cnt['build:roof']||S.cnt['build:thatchRoof']||S.cnt['build:leafRoof']))>0);
+    if(nb){if(p.warm<36)p.warm=36;if(p.wet>55)p.wet=55;if(S.st&&S.st.cold)delete S.st.cold;}else if(p.warm<12)p.warm=12;}catch(e){}return r;};}
