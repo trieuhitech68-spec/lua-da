@@ -73,3 +73,26 @@ AUJ.flat=function(j){const n0=(S.flat||[]).length;if(j.n0==null)j.n0=n0;if(n0>j.
 /* ---------- lỡ chạm màn hình: tạm dừng rồi tự chạy tiếp ---------- */
 {const _pa=aqPause;aqPause=function(){AQ.pT=G.t;return _pa.apply(this,arguments);};}
 setInterval(()=>{try{if(!S||!G.on||!AQ.on||!AQ.pause)return;if(G.build||G.panel||G.sleeping||aqPlayerInput()||G.walkTo){AQ.pT=G.t;return;}if(G.t-(AQ.pT||0)>4){aqResume();uiToast('🤖 Tự làm tiếp…','');}}catch(e){}},700);
+/* ---------- thiếu gì bấm là tự đi kiếm (bảng Chế tạo, bảng Xây) ---------- */
+// Chế tạo: món đang thiếu vật liệu / công cụ có nút "🤖 Tự kiếm & làm" thay cho nút Làm bị mờ.
+function aqNeedBtn(r){try{if(!S||!G.on||!r||!r.out)return false;if(r.lv&&!lvOk(r.lv))return false;if(r.age&&(S.age||0)<r.age)return false;return true;}catch(e){return false;}}
+function aqNeedCraft(rid){const r=RECIPES.find(x=>x.id===rid);if(!r)return;const out=Object.keys(r.out)[0],c0=gC('craft:'+out);if(G.panel)uiClose();aqStart(-1,{job:{k:'craft',r,until:()=>gC('craft:'+out)>c0,lab0:'Làm '+aqN(out),lab:'Làm '+aqN(out)}});uiToast('🤖 Tự đi kiếm đủ đồ rồi làm '+aqN(out)+'. Bấm ✋ để dừng.','');}
+// Xây: bấm vào công trình còn thiếu vật liệu → hỏi "tự đi gom" hay "vẫn mở xem".
+function aqNeedAsk(id){const def=pieceDef(id);if(!def)return;let el=document.getElementById('aqask');if(!el){document.body.insertAdjacentHTML('beforeend','<div id="aqask" hidden></div>');el=document.getElementById('aqask');
+    el.addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b&&e.target!==el)return;const k=b?b.dataset.q:'x',pid=el.dataset.id;el.hidden=true;if(k==='go'){const d=pieceDef(pid);if(G.panel)uiClose();aqStart(-1,{job:{k:'getAll',cost:Object.assign({},d.cost),lab0:'Gom vật liệu: '+d.n,lab:'Gom vật liệu: '+d.n}});AQ.after={gi:-1,piece:pid};uiToast('🤖 Đi gom đủ vật liệu cho '+d.n+'. Gom xong sẽ mở sẵn mục Xây cho bạn đặt.','');}
+      else if(k==='open'){if(G.panel)uiClose();try{buildBegin(pid);}catch(e){}}});}
+  const lack=Object.entries(def.cost||{}).filter(([k,n])=>haveCount(k)<n);el.dataset.id=id;
+  el.innerHTML=`<div class="aqask-c"><b>${esc(def.n)}: còn thiếu</b><div class="aqask-l">${lack.map(([k,n])=>`<span>${icon(k)} ${haveCount(k)}/${n} ${esc(aqN(k))}</span>`).join('')}</div><div class="aqask-r"><button class="btn" data-q="go">🤖 Tự đi gom cho đủ</button><button class="btn ghost" data-q="open">Vẫn mở xem</button><button class="btn ghost" data-q="x">Thôi</button></div></div>`;el.hidden=false;sfx('pick');}
+document.addEventListener('click',e=>{if(!S||!G.on)return;const t=e.target&&e.target.closest&&e.target.closest('[data-a="aqneed"],[data-a="build"]');if(!t)return;
+  if(t.dataset.a==='aqneed'){e.stopImmediatePropagation();e.preventDefault();aqNeedCraft(t.dataset.r);return;}
+  const def=pieceDef(t.dataset.b);if(def&&def.cost&&!canPay(def.cost)&&(!def.lv||lvOk(def.lv))){e.stopImmediatePropagation();e.preventDefault();aqNeedAsk(def.id);}},true);
+{const st=document.createElement('style');st.textContent=`#aqask{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);padding:12px}#aqask[hidden]{display:none}
+.aqask-c{width:min(420px,100%);padding:14px;border-radius:16px;background:#1c130c;border:1px solid #f2c55a;color:#f6ead2;box-shadow:0 10px 30px rgba(0,0,0,.6);margin-bottom:max(8px,env(safe-area-inset-bottom))}.aqask-c>b{font-size:16px}
+.aqask-l{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.aqask-l span{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;background:rgba(255,90,60,.16);border:1px solid rgba(255,120,90,.4);font-size:13px}.aqask-l .ic{width:22px;height:22px}
+.aqask-r{display:flex;flex-direction:column;gap:7px}.aqask-r .btn{min-height:44px}#game .panel .aq-need{background:linear-gradient(180deg,#3b7a34,#2a5a26);border-color:#6ab85a;color:#fff}`;document.head.appendChild(st);}
+/* ---------- nung gốm: tự làm được; các việc còn phải tự tay thì chỉ dẫn từng bước ---------- */
+AUG['Nung nồi gốm đầu tiên']=()=>{const r=aqRecipe('pot');return r?{k:'craft',r,until:()=>gC('craft:pot')>0}:{guide:'@pot'};};delete AQ_GUIDEONLY['Nung nồi gốm đầu tiên'];
+Object.assign(AQ_GTXT,{'@pot':['🏺','Nặn và nung gốm: từng bước','① Kiếm đất sét (bờ suối, bãi bồi) và cát. ② Đứng cạnh Chỗ nặn gốm, mở Chế tạo → Nồi mộc. ③ Chờ nồi mộc khô. ④ Bỏ củi, nhóm Lò nung, đứng cạnh lò mở Chế tạo → Nồi gốm. Bấm 🤖 ở món đang thiếu để nhân vật tự đi kiếm.'],
+  '@farm':['🌾','Làm ruộng: từng bước','① Xây → Luống đất (hoặc Ruộng lúa cạnh nước). ② Cầm hạt giống, đứng cạnh luống bấm Hành động để gieo. ③ Tưới nước khi đất khô. ④ Cây chín (ngả vàng) thì bấm Hành động để thu. Có luống chín, nút Tự làm sẽ thu hoạch giúp.'],
+  '@fest':['🥁','Mở hội làng: từng bước','① Chế tạo → Trống da (da thú + khúc gỗ). ② Chờ ngày Hội xuân / Hội mùa (xem 🏮 Làng). ③ Đứng cạnh bếp lửa, chọn Trống da trong túi → Dùng. Hoặc dựng Đài trống hội rồi bấm Hành động.'],
+  '@folk':['🏘️','Mời người về ở: từng bước','① Dựng thêm một Giường trống trong nhà. ② Tới làng bên (🗺️ Bản đồ), đổi đồ hoặc tặng quà vài lần cho thân. ③ Trò chuyện với một người → Mời về ở cùng.']});

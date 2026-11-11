@@ -2754,7 +2754,7 @@ function craftHtml(){const known=RECIPES.filter(r=>S.known['r:'+r.id]);const sts
   const list=known.filter(r=>!cur||(r.st||'hand')===cur).map(r=>{const out=Object.keys(r.out)[0],I=ITEMS[out],bl=recipeBlock(r);return {r,out,I,bl};}).sort((a,b)=>(a.bl?1:0)-(b.bl?1:0));
   const cards=list.map(({r,out,I,bl})=>`<div class="rc${bl?' dim':''}">${icon(out,'big')}<div class="rc-b"><b>${esc(I.n)}${r.out[out]>1?' ×'+r.out[out]:''}</b><div class="chips">${chips(r.in)}</div>
     <span class="small muted">${r.st?'Tại '+ST_N[r.st]:'Làm bằng tay'}${r.tool?' · cần '+ITEMS[r.tool].n:''}${r.lv?' · '+lvText(r.lv):''}</span>${bl?`<span class="small warn">${esc(bl)}</span>`:''}</div>
-    <div class="rc-a"><button class="btn sm" data-a="craft" data-r="${r.id}" ${bl?'disabled':''}>Làm</button>${bl?'':`<button class="btn sm ghost" data-a="craft" data-r="${r.id}" data-n="5">×5</button>`}</div></div>`).join('');
+    <div class="rc-a">${bl&&typeof aqNeedBtn==='function'&&aqNeedBtn(r)?`<button class="btn sm aq-need" data-a="aqneed" data-r="${r.id}">🤖 Tự kiếm & làm</button>`:`<button class="btn sm" data-a="craft" data-r="${r.id}" ${bl?'disabled':''}>Làm</button>`}${bl?'':`<button class="btn sm ghost" data-a="craft" data-r="${r.id}" data-n="5">×5</button>`}</div></div>`).join('');
   let fb=null,fd=1e9;if(cur&&cur!=='hand')for(const b of S.builds){const d=pieceDef(b.k);if(d&&d.st===cur&&d.fuel){const dd=Math.hypot(b.x-P.x,b.z-P.z);if(dd<fd){fd=dd;fb=b;}}}if(fd>130)fb=null;
   const fuel=fb?`<div class="fuel"><div class="fuel-t"><b>🔥 ${esc(pieceDef(fb.k).n)}: ${fireLit(fb)?'còn '+fuelText(S.fuel[fb.id]):'đã tắt'}</b><i style="--v:${Math.min(100,(S.fuel[fb.id]||0)/24*100)}%"></i></div><span><button class="btn sm" data-a="fuel" data-b="${fb.id}" data-i="wood"${invCount('wood')<1?' disabled':''}>+1 Gỗ · 4 giờ</button><button class="btn sm ghost" data-a="fuel" data-b="${fb.id}" data-i="stick"${invCount('stick')<1?' disabled':''}>+1 Cành · 1 giờ</button></span></div>`:'';
   const lockN=RECIPES.length-known.length;return fuel+filt+(cards||'<p class="muted">Chưa có công thức nào ở đây.</p>')+(lockN?`<p class="hint">🔒 Còn ${lockN} công thức chưa học được. Nhặt nguyên liệu mới và luyện kỹ năng để nghĩ ra thêm.</p>`:'');}
@@ -18811,6 +18811,29 @@ AUJ.flat=function(j){const n0=(S.flat||[]).length;if(j.n0==null)j.n0=n0;if(n0>j.
 /* ---------- lỡ chạm màn hình: tạm dừng rồi tự chạy tiếp ---------- */
 {const _pa=aqPause;aqPause=function(){AQ.pT=G.t;return _pa.apply(this,arguments);};}
 setInterval(()=>{try{if(!S||!G.on||!AQ.on||!AQ.pause)return;if(G.build||G.panel||G.sleeping||aqPlayerInput()||G.walkTo){AQ.pT=G.t;return;}if(G.t-(AQ.pT||0)>4){aqResume();uiToast('🤖 Tự làm tiếp…','');}}catch(e){}},700);
+/* ---------- thiếu gì bấm là tự đi kiếm (bảng Chế tạo, bảng Xây) ---------- */
+// Chế tạo: món đang thiếu vật liệu / công cụ có nút "🤖 Tự kiếm & làm" thay cho nút Làm bị mờ.
+function aqNeedBtn(r){try{if(!S||!G.on||!r||!r.out)return false;if(r.lv&&!lvOk(r.lv))return false;if(r.age&&(S.age||0)<r.age)return false;return true;}catch(e){return false;}}
+function aqNeedCraft(rid){const r=RECIPES.find(x=>x.id===rid);if(!r)return;const out=Object.keys(r.out)[0],c0=gC('craft:'+out);if(G.panel)uiClose();aqStart(-1,{job:{k:'craft',r,until:()=>gC('craft:'+out)>c0,lab0:'Làm '+aqN(out),lab:'Làm '+aqN(out)}});uiToast('🤖 Tự đi kiếm đủ đồ rồi làm '+aqN(out)+'. Bấm ✋ để dừng.','');}
+// Xây: bấm vào công trình còn thiếu vật liệu → hỏi "tự đi gom" hay "vẫn mở xem".
+function aqNeedAsk(id){const def=pieceDef(id);if(!def)return;let el=document.getElementById('aqask');if(!el){document.body.insertAdjacentHTML('beforeend','<div id="aqask" hidden></div>');el=document.getElementById('aqask');
+    el.addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b&&e.target!==el)return;const k=b?b.dataset.q:'x',pid=el.dataset.id;el.hidden=true;if(k==='go'){const d=pieceDef(pid);if(G.panel)uiClose();aqStart(-1,{job:{k:'getAll',cost:Object.assign({},d.cost),lab0:'Gom vật liệu: '+d.n,lab:'Gom vật liệu: '+d.n}});AQ.after={gi:-1,piece:pid};uiToast('🤖 Đi gom đủ vật liệu cho '+d.n+'. Gom xong sẽ mở sẵn mục Xây cho bạn đặt.','');}
+      else if(k==='open'){if(G.panel)uiClose();try{buildBegin(pid);}catch(e){}}});}
+  const lack=Object.entries(def.cost||{}).filter(([k,n])=>haveCount(k)<n);el.dataset.id=id;
+  el.innerHTML=`<div class="aqask-c"><b>${esc(def.n)}: còn thiếu</b><div class="aqask-l">${lack.map(([k,n])=>`<span>${icon(k)} ${haveCount(k)}/${n} ${esc(aqN(k))}</span>`).join('')}</div><div class="aqask-r"><button class="btn" data-q="go">🤖 Tự đi gom cho đủ</button><button class="btn ghost" data-q="open">Vẫn mở xem</button><button class="btn ghost" data-q="x">Thôi</button></div></div>`;el.hidden=false;sfx('pick');}
+document.addEventListener('click',e=>{if(!S||!G.on)return;const t=e.target&&e.target.closest&&e.target.closest('[data-a="aqneed"],[data-a="build"]');if(!t)return;
+  if(t.dataset.a==='aqneed'){e.stopImmediatePropagation();e.preventDefault();aqNeedCraft(t.dataset.r);return;}
+  const def=pieceDef(t.dataset.b);if(def&&def.cost&&!canPay(def.cost)&&(!def.lv||lvOk(def.lv))){e.stopImmediatePropagation();e.preventDefault();aqNeedAsk(def.id);}},true);
+{const st=document.createElement('style');st.textContent=`#aqask{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);padding:12px}#aqask[hidden]{display:none}
+.aqask-c{width:min(420px,100%);padding:14px;border-radius:16px;background:#1c130c;border:1px solid #f2c55a;color:#f6ead2;box-shadow:0 10px 30px rgba(0,0,0,.6);margin-bottom:max(8px,env(safe-area-inset-bottom))}.aqask-c>b{font-size:16px}
+.aqask-l{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.aqask-l span{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;background:rgba(255,90,60,.16);border:1px solid rgba(255,120,90,.4);font-size:13px}.aqask-l .ic{width:22px;height:22px}
+.aqask-r{display:flex;flex-direction:column;gap:7px}.aqask-r .btn{min-height:44px}#game .panel .aq-need{background:linear-gradient(180deg,#3b7a34,#2a5a26);border-color:#6ab85a;color:#fff}`;document.head.appendChild(st);}
+/* ---------- nung gốm: tự làm được; các việc còn phải tự tay thì chỉ dẫn từng bước ---------- */
+AUG['Nung nồi gốm đầu tiên']=()=>{const r=aqRecipe('pot');return r?{k:'craft',r,until:()=>gC('craft:pot')>0}:{guide:'@pot'};};delete AQ_GUIDEONLY['Nung nồi gốm đầu tiên'];
+Object.assign(AQ_GTXT,{'@pot':['🏺','Nặn và nung gốm: từng bước','① Kiếm đất sét (bờ suối, bãi bồi) và cát. ② Đứng cạnh Chỗ nặn gốm, mở Chế tạo → Nồi mộc. ③ Chờ nồi mộc khô. ④ Bỏ củi, nhóm Lò nung, đứng cạnh lò mở Chế tạo → Nồi gốm. Bấm 🤖 ở món đang thiếu để nhân vật tự đi kiếm.'],
+  '@farm':['🌾','Làm ruộng: từng bước','① Xây → Luống đất (hoặc Ruộng lúa cạnh nước). ② Cầm hạt giống, đứng cạnh luống bấm Hành động để gieo. ③ Tưới nước khi đất khô. ④ Cây chín (ngả vàng) thì bấm Hành động để thu. Có luống chín, nút Tự làm sẽ thu hoạch giúp.'],
+  '@fest':['🥁','Mở hội làng: từng bước','① Chế tạo → Trống da (da thú + khúc gỗ). ② Chờ ngày Hội xuân / Hội mùa (xem 🏮 Làng). ③ Đứng cạnh bếp lửa, chọn Trống da trong túi → Dùng. Hoặc dựng Đài trống hội rồi bấm Hành động.'],
+  '@folk':['🏘️','Mời người về ở: từng bước','① Dựng thêm một Giường trống trong nhà. ② Tới làng bên (🗺️ Bản đồ), đổi đồ hoặc tặng quà vài lần cho thân. ③ Trò chuyện với một người → Mời về ở cùng.']});
 /* ===================== THỰC THỂ ĐẶC: KHÔNG ĐI XUYÊN TƯỜNG, NHÀ, LỀU, GIƯỜNG, CHUỒNG, THÚ, NGƯỜI =====================
    Bổ sung cho collide():
    1. Chống lọt tường: máy giật / chạy nhanh / lăn / lướt làm một bước dài hơn bề dày tường thì trước đây chui qua. Giờ kiểm tra cả đoạn đường
@@ -19133,6 +19156,13 @@ AUJ.stash=function(j){if(j.cf){j.cf=null;if(++j.alt>2)return aqFail('Không cấ
   if(aqD(b.x,b.z)>70)return aqGoto(j,b.x,b.z,50,'Về kho cất bớt đồ',{far:1});const n=khoStashTo(b);if(n){uiToast(`🤖 Đã cất ${n} món vật liệu vào ${pieceDef(b.k).n}.`,'good');save();uiHotbar();}return AQ_DONE;};
 {const _i=aqInit;aqInit=function(j){_i(j);if(j.k==='stash'&&j.alt==null)j.alt=0;};
   const _sf=aqSafety;aqSafety=function(){_sf.apply(this,arguments);try{if(!AQ.on||!AQ.jobs.length||G.sleeping||aqHasUrgent()||G.work)return;if(S.inv.filter(s=>!s).length<=1&&G.t-(AQ.stT||-99)>90&&S.inv.some(s=>s&&ITEMS[s.id]&&ITEMS[s.id].t==='res')){AQ.stT=G.t;aqPush({k:'stash',urgent:1},AQ.jobs[AQ.jobs.length-1]);aqSay('🤖 Túi sắp đầy: về kho cất bớt vật liệu.','');}}catch(e){}};}
+/* ---------- Túi đồ: ô thông tin món đang chọn (Ăn / Mặc / Bỏ) nằm trên đầu, cao cố định; làm mới bảng không nhảy vị trí cuộn ---------- */
+{const _bh=bagHtml;bagHtml=function(){let h=_bh.apply(this,arguments);try{const d=document.createElement('div');d.innerHTML=h;const det=d.querySelector('.det'),hint=[...d.querySelectorAll('p')].find(p=>/Chạm một ô/.test(p.textContent));const box=det||hint;
+    if(box){const w=document.createElement('div');w.className='kho-det';box.parentNode.removeChild(box);w.appendChild(box);const bar=d.querySelector('.kho-tip')||d.querySelector('.kho-bar');if(bar&&bar.parentNode===d)bar.after(w);else d.insertBefore(w,d.firstChild);h=d.innerHTML;}}catch(e){}return h;};}
+{const _uo=uiOpen;uiOpen=function(k,o,keep){let st=null;try{if(keep&&G.panel===k){const b=document.querySelector('#panel .p-body')||document.querySelector('#panel');if(b)st=[b.scrollTop,b===document.querySelector('#panel')];}}catch(e){}
+    const r=_uo.apply(this,arguments);try{if(st){const b=st[1]?document.querySelector('#panel'):document.querySelector('#panel .p-body');if(b&&Math.abs(b.scrollTop-st[0])>1){b.scrollTop=st[0];}}}catch(e){}return r;};}
+{const st=document.createElement('style');st.textContent=`.kho-det{grid-column:1/-1;position:sticky;top:0;z-index:3;min-height:104px;display:flex;align-items:center;margin:0 0 8px;padding:8px 10px;border-radius:14px;background:rgba(24,16,10,.97);border:1px solid rgba(242,197,90,.35);box-shadow:0 6px 14px rgba(0,0,0,.35)}
+.kho-det .det{margin:0;width:100%;background:none;border:0;padding:0;box-shadow:none}.kho-det>p{margin:0}.kho-det .row{flex-wrap:wrap;gap:6px}.kho-det .row .btn{min-height:40px;padding:0 12px}`;document.head.appendChild(st);}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
