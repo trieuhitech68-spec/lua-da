@@ -2003,10 +2003,10 @@ function instGroup(parts,cap,opt){const T=THREE,opt_=opt||{},G=new T.Group();G.u
     flush(){if(!api.dirty)return;for(const im of ims)im.instanceMatrix.needsUpdate=true;api.dirty=0;},
     dispose(){ims.forEach(im=>{if(im.parent)im.parent.remove(im);im.dispose&&im.dispose();});}};return api;}
 /* ===================== LÕI GAME: TRẠNG THÁI, CẢNH 3D, NHÂN VẬT, THU THẬP, CHẾ TẠO, XÂY DỰNG ===================== */
-const SKEY='lua-da-tay-trang-v1',HOTN=6,INVN=24,REACH=26,DAY_SEC=1080;// 1 ngày = 18 phút thật (80 ngày game mỗi ngày thật, xem clock.js)
+const SKEY='lua-da-tay-trang-v1',HOTN=6,INVN=24,REACH=26,DAY_SEC=720;// nhịp sinh hoạt: 12 phút thật = 1 "ngày công" (đói khát, cây lớn, củi cháy). Giờ và mùa trên trời theo giờ thật Việt Nam (clock.js)
 let S=null;const G={on:false,t:0,keys:{},joy:{x:0,y:0,on:false},yaw:0.6,pitch:0.98,zoom:380,act:null,walkTo:null,build:null,panel:null,fx:[],flames:[],lights:[],lastSave:0,q:2,runBtn:false};
 const $=s=>document.querySelector(s);const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const TNOW=()=>S.day+S.hour/24;
+const TNOW=()=>S.tn!=null?S.tn:S.day+S.hour/24;// S.tn: đồng hồ sinh hoạt riêng (clock.js), luôn chỉ tăng
 /* ---------- lưu / tải ---------- */
 function save(){if(!S||!G.on&&!S._new)return;try{if(G.on){S.p.x=+P.x.toFixed(1);S.p.z=+P.z.toFixed(1);S.p.ry=+P.ry.toFixed(2);}localStorage.setItem(SKEY,JSON.stringify(S,(k,v)=>k&&k[0]==='_'?undefined:v));}catch(e){}}
 function loadSave(){try{const t=localStorage.getItem(SKEY);if(!t)return null;const o=JSON.parse(t);if(!o||o.v!==1)return null;return fixSave(o);}catch(e){return null;}}
@@ -2367,7 +2367,7 @@ function groundPick(sx,sy){const T=THREE,v=new T.Vector3((sx/innerWidth)*2-1,-(s
   for(let i=0;i<4;i++){if(Math.abs(dir.y)<1e-4)return null;const t=(y-o.y)/dir.y;if(t<=0)return null;p=o.clone().addScaledVector(dir,t);y=groundY(p.x,p.z);}return p;}
 /* ---------- ngày đêm, bầu trời ---------- */
 const SKYP={day:{top:'#3f78c0',hor:'#bcd6e6',gnd:'#6a7a4a',sun:'#fff0d4'},dusk:{top:'#3a3a78',hor:'#f0a070',gnd:'#4a3a3a',sun:'#ffb070'},night:{top:'#0a1024',hor:'#26324e',gnd:'#0c0e14',sun:'#8aa6ff'},storm:{top:'#4a5260',hor:'#7a8490',gnd:'#3a3e40',sun:'#c8ccd0'}};
-function dayTick(dt){const prevH=S.hour;if(typeof wcStep==='function')wcStep();else{S.hour+=dt*24/DAY_SEC;if(S.hour>=24){S.hour-=24;S.day++;uiToast(`Ngày ${S.day} · Mùa ${SEASONS[seasonIdx()].n}`,'');}}
+function dayTick(dt){const prevH=S.hour;if(typeof wcStep==='function')wcStep(dt);else{S.hour+=dt*24/DAY_SEC;if(S.hour>=24){S.hour-=24;S.day++;uiToast(`Ngày ${S.day} · Mùa ${SEASONS[seasonIdx()].n}`,'');}}
   const h=S.hour,el=Math.sin((h-6)/12*Math.PI),day=clamp(el*3+0.25,0,1),dusk=clamp(1-Math.abs(el)*4,0,1)*(h>12?1:0.8),cloud=G.wxK||0;G.dayK=day;
   const sun=G.L.sun,sa=(h-6)/12*Math.PI,sx=Math.cos(sa)*-0.8,sy=Math.max(0.12,Math.sin(sa)),sz=0.35;sun.position.set(P.x+sx*900,P.y+sy*900,P.z+sz*900);sun.target.position.set(P.x,P.y,P.z);
   sun.intensity=1.6*Math.max(0,el)**0.6*day*(1-cloud*0.62);G.L.hemi.intensity=(0.1+0.14*day+(S.mode==='cozy'?0.07:0.03))*(1+cloud*0.4);G.moon.intensity=(1-day)*(S.mode==='cozy'?0.5:0.32)*(1-cloud*0.5);G.moon.position.set(P.x+300,P.y+700,P.z-200);G.moon.target.position.set(P.x,P.y,P.z);
@@ -2457,7 +2457,7 @@ function seasonMat(m){if(!m||!m.isMeshStandardMaterial||m.userData.sea||m.userDa
    c=mix(c,aut,leafy*uAut*(0.45+0.55*nz));float up=smoothstep(0.5,0.92,vSWn.y);c=mix(c,vec3(0.86,0.9,0.95),up*uSnow*(0.72+0.28*nz));c*=1.0-uWet*0.18;diffuseColor.rgb=c;}`);};
   m.customProgramCacheKey=()=>pk()+'|sea';m.needsUpdate=true;}
 function seasonPatchAll(root){(root||G.sc).traverse(o=>{if(!o.material)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(seasonMat);});}
-function seasonTick(dt){const si=seasonIdx(),sd=seasonDay(),f=(S.hour/24+sd-1)/SEASON_DAYS;// tiến độ trong mùa 0..1
+function seasonTick(dt){const si=seasonIdx(),sd=seasonDay(),f=typeof wcSeasonProg==='function'?wcSeasonProg():(S.hour/24+sd-1)/SEASON_DAYS;// tiến độ trong mùa 0..1
   const snowT=si===3?Math.min(1,f*3)*0.9:si===0?Math.max(0,0.9-f*6):0,autT=si===2?Math.min(0.9,f*2.2):si===3?0.55:si===0?Math.max(0,0.5-f*4):0;
   SEA.uSnow.value+=(snowT-SEA.uSnow.value)*Math.min(1,dt*0.5);SEA.uAut.value+=(autT-SEA.uAut.value)*Math.min(1,dt*0.5);SEA.uWet.value+=(((G.wxK||0)>0.3&&S.wx&&S.wx.type!=='snow'?0.8:0)-SEA.uWet.value)*Math.min(1,dt*0.3);
   if(G.seasonShown!==si){const first=G.seasonShown==null;G.seasonShown=si;resSeasonal();if(!first){uiToast(`${SEASONS[si].ic} Mùa ${SEASONS[si].n} đã đến. ${['Cây cối đâm chồi, mưa nhiều.','Nắng nóng: khát nhanh hơn, quả mọng chín rộ.','Lá vàng rơi, nấm mọc nhiều: hãy tích trữ cho mùa đông.','Tuyết rơi, giá rét: cần lửa, nhà kín và áo ấm. Cây trồng ngừng lớn.'][si]}`,'gold');sfx('level');}}}
@@ -2751,7 +2751,7 @@ function lockHint(b){const miss=(b.req||[]).filter(k=>!S.seen[k]).map(k=>ITEMS[k
 function journalHtml(){const ag=AGES[S.age||0],nx=AGES[(S.age||0)+1];const goals=GOALS.map((g,i)=>{if(i>S.goal+2)return '';const [v,n]=goalProg(g);const st=i<S.goal?'done':i===S.goal?'cur':'next';return `<div class="jg ${st}"><b>${i<S.goal?'✔':i===S.goal?'➤':'○'} ${esc(g.t)}</b>${i>=S.goal?`<span class="small muted">${esc(g.d)}</span>${n>1&&i===S.goal?`<div class="g-p"><i style="--v:${v/n*100}%"></i><span>${v}/${n}</span></div>`:''}`:''}</div>`;}).join('');
   const sts=Object.entries(STATUS).map(([k,s])=>`<li><b style="color:${s.col}">${s.n}</b>: ${esc(s.d)}${s.cure?' Chữa: <b>'+ITEMS[s.cure].n+'</b>.':''}</li>`).join('');
   return `<div class="age"><small>Thời đại</small><b>${esc(ag.n)}</b><p class="small">${esc(ag.d)}</p>${nx?`<p class="small muted">Tiếp theo: <b>${esc(nx.n)}</b> · ${esc(nx.d)}</p>`:''}</div><h3>Mục tiêu</h3>${goals}
-    <h3>Sổ tay sinh tồn</h3><ul class="tips"><li><b>Bốn mùa</b>: mỗi mùa ${SEASON_DAYS} ngày. Xuân mưa nhiều cây lớn nhanh; Hạ nóng khát nhanh; Thu lá vàng, nhiều nấm; Đông tuyết lạnh, cây trồng ngừng lớn.</li>
+    <h3>Sổ tay sinh tồn</h3><ul class="tips"><li><b>Bốn mùa</b>: giờ và mùa trong game là giờ thật ở Việt Nam, ai cũng như nhau (Xuân tháng 2-4, Hạ 5-7, Thu 8-10, Đông 11-1). Xuân mưa nhiều cây lớn nhanh; Hạ nóng khát nhanh; Thu lá vàng, nhiều nấm; Đông tuyết lạnh, cây trồng ngừng lớn.</li>
     <li><b>Thân nhiệt</b>: mưa ướt và gió rét làm lạnh dần. Lửa, mái nhà, áo da giữ ấm. Rét lâu dễ cảm lạnh.</li><li><b>Nước</b>: nước suối có thể làm đau bụng. Đun sôi bằng nồi gốm ở bếp lửa, hoặc múc ở giếng.</li>
     <li><b>Thú vật</b>: thỏ và nai chạy trốn; lợn rừng húc khi bị đánh; sói đi săn ban đêm; gấu nâu giữ lãnh thổ, mùa đông ngủ trong hang.</li><li><b>Côn trùng</b>: muỗi ven sông lúc chạng vạng gây sốt; ong đốt khi lấy mật (cầm đuốc hun khói).</li><li><b>Bắt cá</b>: cầm giáo đứng sát mép nước rồi bấm hành động để đâm cá. Cá sống nên nướng chín.</li><li><b>Lửa</b>: bếp lửa cần củi (1 gỗ cháy 4 giờ). Mưa ngoài trời làm lửa mau tàn, nên dựng bếp dưới mái.</li>${sts}</ul>`;}
 function storeHtml(b){const st=S.store[b.id]||(S.store[b.id]=Array(pieceDef(b.k).store).fill(null));const g=(arr,f)=>arr.map((s,i)=>`<button class="sl" data-a="xfer" data-f="${f}" data-i="${i}">${s?icon(s.id)+(s.n>1?`<em>${s.n}</em>`:''):''}</button>`).join('');
@@ -11842,7 +11842,7 @@ function l4Scan(){let best=null,bd=1e9;for(const b of S.builds){if(b.prog!=null|
       else if(L4CROP[c.k]){uiToast(`${L4CROP[c.k].n} mới được ${Math.round(c.p*100)}%.`,'');return;}}}
   return _as(t);};}
 /* ===================== 12. TINH THẦN, LỄ HỘI, TỔ TIÊN, KỂ CHUYỆN, VĂN THÂN, GIA ĐÌNH ===================== */
-const l4SeasonKey=()=>typeof wcDayN==='function'?Math.floor(wcDayN()/SEASON_DAYS):Math.floor((S.day-1)/SEASON_DAYS);
+const l4SeasonKey=()=>typeof wcSeasonKey==='function'?wcSeasonKey():Math.floor((S.day-1)/SEASON_DAYS);
 const l4Spirit=(n,why)=>{const L=l4S();L.sp=clamp(L.sp+n,0,100);if(why)uiFloat((n>0?'+':'')+n+' tinh thần',P.x,P.y+48,P.z,n>0?'#ffd27a':'#b8a8d8');};
 function l4Offer(b){const L=l4S();if((L.offer||0)===S.day){uiToast('Hôm nay đã dâng lễ rồi.','');return;}const pick=['meatCooked','fishCooked','riceCooked','comLam','bread','boiledMeat','flower','berry','banana','rice'].find(k=>invCount(k)>0);
   if(!pick){uiToast('Cần một món lễ: đồ ăn chín, gạo, quả hoặc hoa.','bad');return;}
@@ -11852,8 +11852,8 @@ function l4TombVisit(b){const L=l4S(),key=l4SeasonKey();if(L.tomb===key){uiToast
   l4Work([['Nhổ cỏ, đắp lại đất mộ','h3kdig',1.2,'step'],['Xếp lại đá kè','h3kpick',1.0,'pick'],['Rắc son đỏ, đặt hoa','h3kpick',0.8,'pick'],['Thắp hương tưởng nhớ người đã khuất','sit',1.4,'step']],{sk:'gather',icon:'ochre'},()=>{L.tomb=key;l4Spirit(22,1);S.rep=Math.min(100,(S.rep||0)+4);cnt('cnt','tomb');
     uiToast(seasonIdx()===0?'🪦 Tảo mộ đầu xuân: con cháu sum vầy, nhớ ơn người đi trước.':'🪦 Tảo mộ: nhớ về tổ tiên đã khai phá vùng đất này.','gold');save();});}
 // lễ hội: đầu xuân (Tết) và mùa thu (lễ cơm mới)
-function l4FestNow(){const si=seasonIdx(),sd=seasonDay();if(si===0&&sd===1)return {k:'xuan',n:'Hội xuân'};if(si===2&&sd<=2)return {k:'mua',n:'Hội mùa (lễ cơm mới)'};return null;}
-function l4FestNext(){for(let d=0;d<16;d++){const day=S.day+d,si=Math.floor((day-1)/SEASON_DAYS)%4,sd=((day-1)%SEASON_DAYS)+1;if(si===0&&sd===1)return {d,n:'Hội xuân'};if(si===2&&sd<=2)return {d,n:'Hội mùa'};}return null;}
+function l4FestNow(){const si=seasonIdx(),sd=seasonDay();const W=typeof wcSeason==='function'?7:0;/* giờ thật: lễ hội kéo dài 7 ngày đầu mùa */if(si===0&&sd<=(W||1))return {k:'xuan',n:'Hội xuân'};if(si===2&&sd<=(W||2))return {k:'mua',n:'Hội mùa (lễ cơm mới)'};return null;}
+function l4FestNext(){if(typeof wcFestNext==='function')return wcFestNext();for(let d=0;d<16;d++){const day=S.day+d,si=Math.floor((day-1)/SEASON_DAYS)%4,sd=((day-1)%SEASON_DAYS)+1;if(si===0&&sd===1)return {d,n:'Hội xuân'};if(si===2&&sd<=2)return {d,n:'Hội mùa'};}return null;}
 {const _dp=drumPlay;drumPlay=function(){_dp();const L=l4S(),F=l4FestNow();if(F){const key=F.k+':'+l4SeasonKey();if(L.fest!==key){L.fest=key;l4Fest(F);return;}}if(G.t-(L4.drumT||-99)>60){L4.drumT=G.t;l4Spirit(4,1);}};}
 function l4Fest(F){const L=l4S(),folk=(S.folk||[]).length;l4Spirit(35,1);S.rep=Math.min(100,(S.rep||0)+8);S.buff.rested=Math.max(S.buff.rested||0,TNOW()+0.8);S.p.rest=Math.min(100,S.p.rest+20);cnt('cnt','festival');
   for(let i=0;i<10;i++)setTimeout(()=>puff(P.x+(Math.random()-0.5)*80,P.y+30+Math.random()*30,P.z+(Math.random()-0.5)*80,['#ffd27a','#ff8a5a','#fff2c0'][i%3],4),i*120);
@@ -15935,39 +15935,46 @@ document.addEventListener('input',e=>{if(e.target&&e.target.closest&&e.target.cl
 .adm-ln{display:flex;flex-direction:column;gap:6px}
 .adm-go{margin-left:4px}
 `;document.head.appendChild(s);})();
-/* ===================== ĐỒNG HỒ CHUNG: GIỜ MÁY CHỦ VIỆT NAM (UTC+7) · BỐN MÙA · THỜI TIẾT GIỐNG NHAU CHO MỌI NGƯỜI =====================
-   Trước đây mỗi nhân vật tự chạy đồng hồ riêng (người đang ngày 3 mùa xuân, người ngày 40 mùa đông). Giờ mọi máy tính CÙNG một công thức
-   từ giờ thật của máy chủ (lệch múi +7): giờ trong ngày, mùa, ngày trong mùa và thời tiết đều giống nhau ở cùng một thời điểm.
-     · 1 ngày trong game = DAY_SEC giây thật (18 phút) → 80 ngày game mỗi ngày thật.
-     · 1 mùa = SEASON_DAYS ngày game (72 phút), 1 năm = 4 giờ 48 phút. Mùa xuân bắt đầu đúng 00:00, 04:48, 09:36, 14:24, 19:12 giờ Việt Nam.
-     · "Ngày N" trên bảng là số ngày RIÊNG nhân vật đã sống (tăng khi qua nửa đêm lúc đang chơi hoặc khi ngủ; vắng mặt lâu chỉ tính 1 ngày
-       để vật nuôi, người nhà không chết đói khi bạn nghỉ chơi). Hạn dùng (TNOW) vì vậy luôn chỉ tăng, không nhảy lùi.
-     · Giờ máy chủ lấy bằng hàm ld_now() (supabase_setup.sql); chưa có / mất mạng thì dùng đồng hồ của máy (điện thoại vốn tự chỉnh giờ). */
+/* ===================== ĐỒNG HỒ CHUNG THEO GIỜ THẬT VIỆT NAM (UTC+7) =====================
+   Mọi người chơi cùng một bầu trời: giờ trong game = giờ thật ở Việt Nam, mùa theo tháng thật, thời tiết gieo chung.
+     · Giờ: 20:00 ở Việt Nam thì trong game là 20:00 (trời tối), ai cũng vậy.
+     · Mùa theo lịch: Xuân tháng 2-4 · Hạ tháng 5-7 · Thu tháng 8-10 · Đông tháng 11-1.
+     · Thời tiết: gieo một lần cho mỗi khung 20 phút thật bằng số hiệu khung → ai cũng ra cùng kết quả.
+     · Nhịp sinh hoạt (đói khát, cây lớn, củi cháy, hạn dùng, việc "mỗi ngày") KHÔNG đổi theo giờ thật: vẫn DAY_SEC giây chơi = 1 "ngày công",
+       đếm bằng S.tn (chỉ chạy khi đang chơi, luôn tăng). "Ngày N" trên bảng = số ngày công nhân vật đã sống = ⌊S.tn⌋.
+     · Giờ máy chủ lấy bằng hàm ld_now() (supabase_setup.sql); chưa có / mất mạng thì dùng đồng hồ của máy. */
 const WC={off:0,syncT:0,ok:false,tz:7*3600000};
-const wcMs=()=>Date.now()+WC.off+WC.tz;
-const wcDayMs=()=>DAY_SEC*1000;
-const wcDayN=()=>Math.floor(wcMs()/wcDayMs());
-const wcHour=()=>{const d=wcDayMs();return (wcMs()%d)/d*24;};
-const wcSeason=()=>Math.floor(wcDayN()/SEASON_DAYS)%4;
-const wcSeasonDay=()=>(wcDayN()%SEASON_DAYS)+1;
-// số phút thật còn lại tới mùa kế
-function wcSeasonLeftMin(){const d=wcDayMs(),L=d*SEASON_DAYS;return Math.ceil((L-(wcMs()%L))/60000);}
-function wcClockVN(){const t=new Date(wcMs());return String(t.getUTCHours()).padStart(2,'0')+':'+String(t.getUTCMinutes()).padStart(2,'0');}
-// gọi mỗi khung hình từ dayTick: đặt giờ chung, tăng ngày riêng khi sang ngày mới
-function wcStep(){const d=wcDayN();if(S.wcD==null)S.wcD=d;else if(d!==S.wcD){if(d>S.wcD){S.day++;if(G.on)uiToast(`Ngày ${S.day} của bạn · Mùa ${SEASONS[wcSeason()].n} (còn ${wcSeasonLeftMin()} phút) · giờ Việt Nam ${wcClockVN()}`,'');}S.wcD=d;}
+const wcMs=()=>Date.now()+WC.off+WC.tz;// đọc bằng getUTC* để ra giờ Việt Nam
+const wcDate=()=>new Date(wcMs());
+const wcDayN=()=>Math.floor(wcMs()/86400000);// số hiệu ngày thật (đổi lúc 00:00 giờ Việt Nam)
+const wcHour=()=>(wcMs()%86400000)/3600000;
+const WC_SM=[3,0,0,0,1,1,1,2,2,2,3,3];// tháng (0-11) → mùa: 0 xuân 1 hạ 2 thu 3 đông
+const wcSeason=()=>WC_SM[wcDate().getUTCMonth()];
+// ngày đầu của mùa hiện tại và của mùa kế (mốc UTC đã cộng múi giờ)
+function wcSeasonSpan(){const d=wcDate(),y=d.getUTCFullYear(),m=d.getUTCMonth(),sm=m===0?-2:m-((m-1)%3),a=Date.UTC(y,sm,1),b=Date.UTC(y,sm+3,1);return [a,b];}
+const wcSeasonDay=()=>Math.floor((wcMs()-wcSeasonSpan()[0])/86400000)+1;
+const wcSeasonProg=()=>{const [a,b]=wcSeasonSpan();return clamp((wcMs()-a)/(b-a),0,1);};
+const wcSeasonLeftDays=()=>Math.max(1,Math.ceil((wcSeasonSpan()[1]-wcMs())/86400000));
+const wcSeasonKey=()=>{const d=new Date(wcSeasonSpan()[0]+40*86400000);return d.getUTCFullYear()*4+wcSeason();};
+function wcFestNext(){const [a,b]=wcSeasonSpan(),si=wcSeason(),d=Math.ceil((b-wcMs())/86400000);if(si===3)return {d,n:'Hội xuân'};if(si===1)return {d,n:'Hội mùa'};if(si===0)return {d:d+92,n:'Hội mùa'};return {d:d+92,n:'Hội xuân'};}
+function wcClockVN(){const t=wcDate();return String(t.getUTCHours()).padStart(2,'0')+':'+String(t.getUTCMinutes()).padStart(2,'0');}
+function wcDateVN(){const t=wcDate();return t.getUTCDate()+'/'+(t.getUTCMonth()+1);}
+// gọi mỗi khung hình từ dayTick: chạy đồng hồ sinh hoạt riêng, đặt giờ trên trời theo giờ thật
+function wcStep(dt){if(S.tn==null)S.tn=S.day+(S.hour||0)/24;if(S.day>Math.floor(S.tn))S.tn=S.day;/* ngủ qua đêm, mã cũ tự tăng ngày */
+  S.tn+=Math.max(0,dt||0)/DAY_SEC;const nd=Math.floor(S.tn);if(nd>S.day){S.day=nd;if(G.on)uiToast(`Ngày công thứ ${S.day} của bạn · ${wcDateVN()} mùa ${SEASONS[wcSeason()].n}`,'');}
   S.hour=wcHour();wcSyncTick();}
-// thời tiết chung: mỗi 1/4 ngày game gieo một lần bằng số hiệu khung giờ → ai cũng ra cùng kết quả
+// thời tiết chung: mỗi 20 phút thật gieo một lần bằng số hiệu khung giờ → ai cũng ra cùng kết quả
 function wcRnd(n){let x=(n^0x9e3779b9)>>>0;x=Math.imul(x^(x>>>16),0x85ebca6b);x=Math.imul(x^(x>>>13),0xc2b2ae35);x^=x>>>16;return (x>>>0)/4294967296;}
-function wcWeather(){const q=wcDayMs()/4,slot=Math.floor(wcMs()/q),si=wcSeason(),rp=SEASONS[si].rain,r=wcRnd(slot),r2=wcRnd(slot*7+3);let type='clear';
-  if(r<rp)type=si===3?'snow':(r2<0.16?'storm':'rain');else if(r<rp+0.22)type='cloudy';return {type,slot,until:TNOW()+(q-(wcMs()%q))/wcDayMs()+0.0005};}
+function wcWeather(){const q=1200000,slot=Math.floor(wcMs()/q),si=wcSeason(),rp=SEASONS[si].rain,r=wcRnd(slot),r2=wcRnd(slot*7+3);let type='clear';
+  if(r<rp)type=si===3?'snow':(r2<0.16?'storm':'rain');else if(r<rp+0.22)type='cloudy';return {type,slot,until:TNOW()+(q-(wcMs()%q))/(DAY_SEC*1000)+0.0005};}
 // đồng bộ với giờ máy chủ (10 phút một lần; lỗi thì thử lại sau 1 phút)
 function wcSyncTick(){const now=Date.now();if(now<WC.syncT)return;WC.syncT=now+60000;if(typeof LDB==='undefined'||!LDB.sb||!LDB.sb.rpc)return;const t0=now;
   try{Promise.resolve(LDB.sb.rpc('ld_now')).then(r=>{const v=r&&!r.error?+r.data:NaN;if(v>1e12&&v<1e14){const t1=Date.now();WC.off=Math.round(v-(t0+t1)/2);WC.ok=true;WC.syncT=t1+600000;}}).catch(()=>{});}catch(e){}}
-// ngủ: mỗi đêm chung chỉ "qua đêm" được một lần (trời vẫn theo giờ chung nên thức dậy có thể còn tối)
-{const _sl=sleep;sleep=function(b){if(!G.sleeping&&isNight()){const h=wcHour(),night=wcDayN()-(h<12?1:0);if(S.wcSl===night){S.p.hp=Math.min(100,S.p.hp+12);S.p.stam=maxStam();uiToast('Đêm nay bạn đã ngủ một giấc rồi. Nằm nghỉ hồi sức; trời sáng theo giờ chung của máy chủ.','');uiHud(true);return;}S.wcSl=night;
-    setTimeout(()=>{if(S&&isNight())uiToast('🌙 Trời vẫn tối theo giờ chung của mọi người: ngoài kia còn đêm.','');},4200);}return _sl.apply(this,arguments);};}
+// ngủ: giờ trên trời là giờ thật nên ngủ không làm trời sáng. Mỗi đêm thật chỉ "qua đêm" một lần: hồi sức đầy đủ, đồng hồ sinh hoạt nhảy nửa ngày công
+{const _sl=sleep;sleep=function(b){if(!G.sleeping&&isNight()){const night=Math.floor((wcMs()-12*3600000)/86400000);if(S.wcSl===night){S.p.hp=Math.min(100,S.p.hp+12);S.p.stam=maxStam();uiToast('Đêm nay bạn đã ngủ một giấc rồi. Nằm nghỉ hồi sức; trời sáng theo giờ thật (khoảng 5 rưỡi sáng giờ Việt Nam).','');uiHud(true);return;}S.wcSl=night;const d0=S.day;
+    setTimeout(()=>{if(!S)return;if(S.day===d0&&S.tn!=null)S.tn+=0.45;if(isNight())uiToast('🌙 Ngủ dậy khỏe lại rồi, nhưng ngoài trời vẫn tối: giờ trong game là giờ thật ở Việt Nam ('+wcClockVN()+').','');},4200);}return _sl.apply(this,arguments);};}
 // bảng giờ: thêm dòng nhỏ "giờ VN · mùa còn bao lâu" dưới dòng ngày
-{const _hud=uiHud;uiHud=function(){const r=_hud.apply(this,arguments);try{const el=document.querySelector('#game .h-time');if(el&&S){el.title='Giờ Việt Nam '+wcClockVN()+' · mùa '+SEASONS[wcSeason()].n+' còn '+wcSeasonLeftMin()+' phút · mọi người chơi cùng ngày, cùng mùa';}}catch(e){}return r;};}
+{const _hud=uiHud;uiHud=function(){const r=_hud.apply(this,arguments);try{const el=document.querySelector('#game .h-time');if(el&&S){el.title='Giờ thật Việt Nam '+wcClockVN()+' ngày '+wcDateVN()+' · mùa '+SEASONS[wcSeason()].n+' còn '+wcSeasonLeftDays()+' ngày · mọi người chơi cùng giờ, cùng mùa';}}catch(e){}return r;};}
 /* ===================== NHÂN VẬT: CẤP ĐỘ · ĐIỂM THUỘC TÍNH · BẢNG THÔNG SỐ CHI TIẾT =====================
    - Cấp nhân vật tính từ TỔNG kinh nghiệm của 10 kỹ năng: cấp = 1 + ⌊√(tổng/30)⌋. Mỗi cấp cho 2 điểm thuộc tính.
    - 4 thuộc tính (mỗi thứ tối đa 30 điểm), cộng thẳng vào công thức có sẵn bằng cách bọc hàm (không sửa tệp cũ):

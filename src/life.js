@@ -15,7 +15,7 @@ function seasonMat(m){if(!m||!m.isMeshStandardMaterial||m.userData.sea||m.userDa
    c=mix(c,aut,leafy*uAut*(0.45+0.55*nz));float up=smoothstep(0.5,0.92,vSWn.y);c=mix(c,vec3(0.86,0.9,0.95),up*uSnow*(0.72+0.28*nz));c*=1.0-uWet*0.18;diffuseColor.rgb=c;}`);};
   m.customProgramCacheKey=()=>pk()+'|sea';m.needsUpdate=true;}
 function seasonPatchAll(root){(root||G.sc).traverse(o=>{if(!o.material)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(seasonMat);});}
-function seasonTick(dt){const si=seasonIdx(),sd=seasonDay(),f=(S.hour/24+sd-1)/SEASON_DAYS;// tiến độ trong mùa 0..1
+function seasonTick(dt){const si=seasonIdx(),sd=seasonDay(),f=typeof wcSeasonProg==='function'?wcSeasonProg():(S.hour/24+sd-1)/SEASON_DAYS;// tiến độ trong mùa 0..1
   const snowT=si===3?Math.min(1,f*3)*0.9:si===0?Math.max(0,0.9-f*6):0,autT=si===2?Math.min(0.9,f*2.2):si===3?0.55:si===0?Math.max(0,0.5-f*4):0;
   SEA.uSnow.value+=(snowT-SEA.uSnow.value)*Math.min(1,dt*0.5);SEA.uAut.value+=(autT-SEA.uAut.value)*Math.min(1,dt*0.5);SEA.uWet.value+=(((G.wxK||0)>0.3&&S.wx&&S.wx.type!=='snow'?0.8:0)-SEA.uWet.value)*Math.min(1,dt*0.3);
   if(G.seasonShown!==si){const first=G.seasonShown==null;G.seasonShown=si;resSeasonal();if(!first){uiToast(`${SEASONS[si].ic} Mùa ${SEASONS[si].n} đã đến. ${['Cây cối đâm chồi, mưa nhiều.','Nắng nóng: khát nhanh hơn, quả mọng chín rộ.','Lá vàng rơi, nấm mọc nhiều: hãy tích trữ cho mùa đông.','Tuyết rơi, giá rét: cần lửa, nhà kín và áo ấm. Cây trồng ngừng lớn.'][si]}`,'gold');sfx('level');}}}

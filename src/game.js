@@ -1,8 +1,8 @@
 /* ===================== LÕI GAME: TRẠNG THÁI, CẢNH 3D, NHÂN VẬT, THU THẬP, CHẾ TẠO, XÂY DỰNG ===================== */
-const SKEY='lua-da-tay-trang-v1',HOTN=6,INVN=24,REACH=26,DAY_SEC=1080;// 1 ngày = 18 phút thật (80 ngày game mỗi ngày thật, xem clock.js)
+const SKEY='lua-da-tay-trang-v1',HOTN=6,INVN=24,REACH=26,DAY_SEC=720;// nhịp sinh hoạt: 12 phút thật = 1 "ngày công" (đói khát, cây lớn, củi cháy). Giờ và mùa trên trời theo giờ thật Việt Nam (clock.js)
 let S=null;const G={on:false,t:0,keys:{},joy:{x:0,y:0,on:false},yaw:0.6,pitch:0.98,zoom:380,act:null,walkTo:null,build:null,panel:null,fx:[],flames:[],lights:[],lastSave:0,q:2,runBtn:false};
 const $=s=>document.querySelector(s);const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const TNOW=()=>S.day+S.hour/24;
+const TNOW=()=>S.tn!=null?S.tn:S.day+S.hour/24;// S.tn: đồng hồ sinh hoạt riêng (clock.js), luôn chỉ tăng
 /* ---------- lưu / tải ---------- */
 function save(){if(!S||!G.on&&!S._new)return;try{if(G.on){S.p.x=+P.x.toFixed(1);S.p.z=+P.z.toFixed(1);S.p.ry=+P.ry.toFixed(2);}localStorage.setItem(SKEY,JSON.stringify(S,(k,v)=>k&&k[0]==='_'?undefined:v));}catch(e){}}
 function loadSave(){try{const t=localStorage.getItem(SKEY);if(!t)return null;const o=JSON.parse(t);if(!o||o.v!==1)return null;return fixSave(o);}catch(e){return null;}}
@@ -363,7 +363,7 @@ function groundPick(sx,sy){const T=THREE,v=new T.Vector3((sx/innerWidth)*2-1,-(s
   for(let i=0;i<4;i++){if(Math.abs(dir.y)<1e-4)return null;const t=(y-o.y)/dir.y;if(t<=0)return null;p=o.clone().addScaledVector(dir,t);y=groundY(p.x,p.z);}return p;}
 /* ---------- ngày đêm, bầu trời ---------- */
 const SKYP={day:{top:'#3f78c0',hor:'#bcd6e6',gnd:'#6a7a4a',sun:'#fff0d4'},dusk:{top:'#3a3a78',hor:'#f0a070',gnd:'#4a3a3a',sun:'#ffb070'},night:{top:'#0a1024',hor:'#26324e',gnd:'#0c0e14',sun:'#8aa6ff'},storm:{top:'#4a5260',hor:'#7a8490',gnd:'#3a3e40',sun:'#c8ccd0'}};
-function dayTick(dt){const prevH=S.hour;if(typeof wcStep==='function')wcStep();else{S.hour+=dt*24/DAY_SEC;if(S.hour>=24){S.hour-=24;S.day++;uiToast(`Ngày ${S.day} · Mùa ${SEASONS[seasonIdx()].n}`,'');}}
+function dayTick(dt){const prevH=S.hour;if(typeof wcStep==='function')wcStep(dt);else{S.hour+=dt*24/DAY_SEC;if(S.hour>=24){S.hour-=24;S.day++;uiToast(`Ngày ${S.day} · Mùa ${SEASONS[seasonIdx()].n}`,'');}}
   const h=S.hour,el=Math.sin((h-6)/12*Math.PI),day=clamp(el*3+0.25,0,1),dusk=clamp(1-Math.abs(el)*4,0,1)*(h>12?1:0.8),cloud=G.wxK||0;G.dayK=day;
   const sun=G.L.sun,sa=(h-6)/12*Math.PI,sx=Math.cos(sa)*-0.8,sy=Math.max(0.12,Math.sin(sa)),sz=0.35;sun.position.set(P.x+sx*900,P.y+sy*900,P.z+sz*900);sun.target.position.set(P.x,P.y,P.z);
   sun.intensity=1.6*Math.max(0,el)**0.6*day*(1-cloud*0.62);G.L.hemi.intensity=(0.1+0.14*day+(S.mode==='cozy'?0.07:0.03))*(1+cloud*0.4);G.moon.intensity=(1-day)*(S.mode==='cozy'?0.5:0.32)*(1-cloud*0.5);G.moon.position.set(P.x+300,P.y+700,P.z-200);G.moon.target.position.set(P.x,P.y,P.z);

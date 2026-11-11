@@ -364,7 +364,7 @@ function l4Scan(){let best=null,bd=1e9;for(const b of S.builds){if(b.prog!=null|
       else if(L4CROP[c.k]){uiToast(`${L4CROP[c.k].n} mới được ${Math.round(c.p*100)}%.`,'');return;}}}
   return _as(t);};}
 /* ===================== 12. TINH THẦN, LỄ HỘI, TỔ TIÊN, KỂ CHUYỆN, VĂN THÂN, GIA ĐÌNH ===================== */
-const l4SeasonKey=()=>typeof wcDayN==='function'?Math.floor(wcDayN()/SEASON_DAYS):Math.floor((S.day-1)/SEASON_DAYS);
+const l4SeasonKey=()=>typeof wcSeasonKey==='function'?wcSeasonKey():Math.floor((S.day-1)/SEASON_DAYS);
 const l4Spirit=(n,why)=>{const L=l4S();L.sp=clamp(L.sp+n,0,100);if(why)uiFloat((n>0?'+':'')+n+' tinh thần',P.x,P.y+48,P.z,n>0?'#ffd27a':'#b8a8d8');};
 function l4Offer(b){const L=l4S();if((L.offer||0)===S.day){uiToast('Hôm nay đã dâng lễ rồi.','');return;}const pick=['meatCooked','fishCooked','riceCooked','comLam','bread','boiledMeat','flower','berry','banana','rice'].find(k=>invCount(k)>0);
   if(!pick){uiToast('Cần một món lễ: đồ ăn chín, gạo, quả hoặc hoa.','bad');return;}
@@ -374,8 +374,8 @@ function l4TombVisit(b){const L=l4S(),key=l4SeasonKey();if(L.tomb===key){uiToast
   l4Work([['Nhổ cỏ, đắp lại đất mộ','h3kdig',1.2,'step'],['Xếp lại đá kè','h3kpick',1.0,'pick'],['Rắc son đỏ, đặt hoa','h3kpick',0.8,'pick'],['Thắp hương tưởng nhớ người đã khuất','sit',1.4,'step']],{sk:'gather',icon:'ochre'},()=>{L.tomb=key;l4Spirit(22,1);S.rep=Math.min(100,(S.rep||0)+4);cnt('cnt','tomb');
     uiToast(seasonIdx()===0?'🪦 Tảo mộ đầu xuân: con cháu sum vầy, nhớ ơn người đi trước.':'🪦 Tảo mộ: nhớ về tổ tiên đã khai phá vùng đất này.','gold');save();});}
 // lễ hội: đầu xuân (Tết) và mùa thu (lễ cơm mới)
-function l4FestNow(){const si=seasonIdx(),sd=seasonDay();if(si===0&&sd===1)return {k:'xuan',n:'Hội xuân'};if(si===2&&sd<=2)return {k:'mua',n:'Hội mùa (lễ cơm mới)'};return null;}
-function l4FestNext(){for(let d=0;d<16;d++){const day=S.day+d,si=Math.floor((day-1)/SEASON_DAYS)%4,sd=((day-1)%SEASON_DAYS)+1;if(si===0&&sd===1)return {d,n:'Hội xuân'};if(si===2&&sd<=2)return {d,n:'Hội mùa'};}return null;}
+function l4FestNow(){const si=seasonIdx(),sd=seasonDay();const W=typeof wcSeason==='function'?7:0;/* giờ thật: lễ hội kéo dài 7 ngày đầu mùa */if(si===0&&sd<=(W||1))return {k:'xuan',n:'Hội xuân'};if(si===2&&sd<=(W||2))return {k:'mua',n:'Hội mùa (lễ cơm mới)'};return null;}
+function l4FestNext(){if(typeof wcFestNext==='function')return wcFestNext();for(let d=0;d<16;d++){const day=S.day+d,si=Math.floor((day-1)/SEASON_DAYS)%4,sd=((day-1)%SEASON_DAYS)+1;if(si===0&&sd===1)return {d,n:'Hội xuân'};if(si===2&&sd<=2)return {d,n:'Hội mùa'};}return null;}
 {const _dp=drumPlay;drumPlay=function(){_dp();const L=l4S(),F=l4FestNow();if(F){const key=F.k+':'+l4SeasonKey();if(L.fest!==key){L.fest=key;l4Fest(F);return;}}if(G.t-(L4.drumT||-99)>60){L4.drumT=G.t;l4Spirit(4,1);}};}
 function l4Fest(F){const L=l4S(),folk=(S.folk||[]).length;l4Spirit(35,1);S.rep=Math.min(100,(S.rep||0)+8);S.buff.rested=Math.max(S.buff.rested||0,TNOW()+0.8);S.p.rest=Math.min(100,S.p.rest+20);cnt('cnt','festival');
   for(let i=0;i<10;i++)setTimeout(()=>puff(P.x+(Math.random()-0.5)*80,P.y+30+Math.random()*30,P.z+(Math.random()-0.5)*80,['#ffd27a','#ff8a5a','#fff2c0'][i%3],4),i*120);
