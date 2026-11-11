@@ -102,7 +102,7 @@ function animalModel(kind){let g=null;try{if(window.SBM&&SBM.animal)g=SBM.animal
   const leg=(x,z)=>{const L=K.group(K.box(3.5*s,12*s,3.5*s,col,{y:-6*s,center:1}));L.position.set(x*s,12*s,z*s);G0.add(L);return L;};
   G0.userData.rig={body,head,legFL:leg(-5,9),legFR:leg(5,9),legBL:leg(-5,-9),legBR:leg(5,-9)};return G0;}
 function animalsInit(){const R=rng(S.seed+77);G.animals=[];
-  for(const kind in ANIMALS){const D=ANIMALS[kind],N0=Math.round(D.n0*(['tiger','gaur','monkey','crocodile','snake','junglefowl'].includes(kind)?1:2.4));let n=0,tries=0;while(n<N0&&tries<6000){tries++;let x,z;const rg=D.reg&&R()<0.75?REG.find(r=>r.id===D.reg[Math.floor(R()*D.reg.length)]):null;if(rg){const a=R()*6.283,rr=Math.sqrt(R())*rg.r;x=rg.x+Math.cos(a)*rr;z=rg.z+Math.sin(a)*rr;}else{const a=R()*6.283,rr=Math.sqrt(R())*WR*0.85;x=Math.cos(a)*rr;z=Math.sin(a)*rr;}if(!D.bio.includes(biome(x,z)))continue;if(kind==='crocodile'&&!nearWater(x,z,120))continue;
+  for(const kind in ANIMALS){const D=ANIMALS[kind],N0=Math.round(D.n0*(['tiger','gaur','monkey','crocodile','snake','junglefowl'].includes(kind)?1:2.4));let n=0,tries=0;while(n<N0&&tries<6000){tries++;let x,z;const rg=D.reg&&R()<0.75?REG.find(r=>r.id===D.reg[Math.floor(R()*D.reg.length)]):null;if(rg){const a=R()*6.283,rr=Math.sqrt(R())*rg.r;x=rg.x+Math.cos(a)*rr;z=rg.z+Math.sin(a)*rr;}else{const a=R()*6.283,rr=Math.sqrt(R())*WR*0.85;x=Math.cos(a)*rr;z=Math.sin(a)*rr;if(WV>=4&&R()<0.6){x=V5.box[0]+R()*V5.box[2];z=V5.box[1]+R()*V5.box[3];}}if(!D.bio.includes(biome(x,z)))continue;if(kind==='crocodile'&&!nearWater(x,z,120))continue;
       if(Math.hypot(x-SPAWN[0],z-SPAWN[1])<(D.aggro==='never'?260:700))continue;const grp=D.herd||D.pack||1;for(let k=0;k<grp&&n<N0;k++,n++){const ax=x+(R()-0.5)*60,az=z+(R()-0.5)*60;G.animals.push(animalNew(kind,ax,az,R,kind==='deer'&&k>0?'doe':null));}}}
   seasonPatchAll();}
 function animalNew(kind,x,z,R,mk){const D=ANIMALS[kind],o=animalModel(mk||kind);o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;}});G.sc.add(o);
@@ -120,7 +120,7 @@ function animalsTick(dt){const cozy=S.mode==='cozy',night=isNight(),winter=seaso
     else if(D.flee&&d<D.flee*sneakK){const ang=Math.atan2(a.x-P.x,a.z-P.z);tx=a.x+Math.sin(ang)*120;tz=a.z+Math.cos(ang)*120;sp=D.spd;a.state='flee';}
     else{a.tt-=dt;if(a.tt<=0||Math.hypot(a.tx-a.x,a.tz-a.z)<10){a.tt=3+Math.random()*6;const ang=Math.random()*6.28,rr=Math.random()*220;a.tx=a.home.x+Math.cos(ang)*rr;a.tz=a.home.z+Math.sin(ang)*rr;if(Math.random()<0.4)a.tt+=4;}
       tx=a.tx;tz=a.tz;sp=a.tt>6?0:D.spd*0.25;a.state='wander';}
-    const dx=tx-a.x,dz=tz-a.z,dl=Math.hypot(dx,dz);if(dl>2&&sp>0){const want=Math.atan2(dx,dz);a.ry=lerpAng(a.ry,want,Math.min(1,dt*6));const nx=a.x+Math.sin(a.ry)*sp*dt,nz=a.z+Math.cos(a.ry)*sp*dt;if(hAt(nx,nz)>1.5&&Math.hypot(nx,nz)<WR*0.98){a.x=nx;a.z=nz;}else{a.tt=0;a.ry+=Math.PI*0.5;}}
+    const dx=tx-a.x,dz=tz-a.z,dl=Math.hypot(dx,dz);if(dl>2&&sp>0){const want=Math.atan2(dx,dz);a.ry=lerpAng(a.ry,want,Math.min(1,dt*6));const nx=a.x+Math.sin(a.ry)*sp*dt,nz=a.z+Math.cos(a.ry)*sp*dt;if(hAt(nx,nz)>1.5&&wIn(nx,nz,0.98)){a.x=nx;a.z=nz;}else{a.tt=0;a.ry+=Math.PI*0.5;}}
     a.spd+=((dl>2?sp:0)-a.spd)*Math.min(1,dt*6);a.y+=(hAt(a.x,a.z)-a.y)*Math.min(1,dt*10);
     // hoạt cảnh chân
     const R=a.rig,f=a.spd/40,s=Math.sin(G.t*(4+f*2.2)+a.ph)*Math.min(0.55,a.spd/80);if(R.legFL){R.legFL.rotation.x=s;R.legBR.rotation.x=s;R.legFR.rotation.x=-s;R.legBL.rotation.x=-s;}

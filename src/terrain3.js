@@ -301,7 +301,7 @@ function t3WaterMat(kind){const T=THREE,U=t3U(),tx=t3Tex();const un=Object.assig
   const m=new T.ShaderMaterial({uniforms:un,defines:def,vertexShader:T3_WATER_VS,fragmentShader:T3_WATER_FS,transparent:true,depthWrite:false,fog:true,side:kind==='fall'?T.DoubleSide:T.FrontSide});
   m.userData.noSea=1;T3.wmats.push(m);return m;}
 // độ sâu biển/hồ: R = độ sâu (0..64), G = mức lặng (hồ trong đất liền lặng, biển khơi động)
-function t3DepthTex(){const T=THREE,d=new Uint8Array(HN*HN*4);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const k=j*HN+i,x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,r=Math.hypot(x,z*1.04)/WR;
+function t3DepthTex(){const T=THREE,d=new Uint8Array(HN*HN*4);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const k=j*HN+i,x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,r=WV>=4?v5R(x,z):Math.hypot(x,z*1.04)/WR;
     d[k*4]=Math.round(clamp((0.5-HG[k])/64,0,1)*255);d[k*4+1]=Math.round((0.25+0.75*(1-ss(0.7,0.86,r)))*255);d[k*4+3]=255;}
   const t=new T.DataTexture(d,HN,HN,T.RGBAFormat,T.UnsignedByteType);t.wrapS=t.wrapT=T.ClampToEdgeWrapping;t.magFilter=t.minFilter=T.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;}
 /* ---------- dải nước sông & suối nhỏ: một lưới chung, một lệnh vẽ ---------- */

@@ -58,7 +58,7 @@ function w4Rivers(seed){const R=rng((seed||1)*11+917),M=RIV[0];
   // ván mới: newGame() chạy trước khi có thế giới nên S.p=(0,0) — đặt người chơi vào Trảng Khởi Đầu
   if(typeof S==='object'&&S&&S.p&&S.p.x===0&&S.p.z===0&&!(S.goal|0)&&!(S.builds&&S.builds.length)){S.p.x=+SPAWN[0].toFixed(1);S.p.z=+SPAWN[1].toFixed(1);}
   // bản lưu hỏng: vị trí ngoài thế giới → về Trảng Khởi Đầu
-  if(typeof S==='object'&&S&&S.p&&!(Math.hypot(S.p.x,S.p.z)<WR*1.05)){S.p.x=+SPAWN[0].toFixed(1);S.p.z=+SPAWN[1].toFixed(1);}};}
+  if(typeof S==='object'&&S&&S.p&&!wIn(S.p.x,S.p.z,1.05)){S.p.x=+SPAWN[0].toFixed(1);S.p.z=+SPAWN[1].toFixed(1);}};}
 // mặt nước sông Chín Tầng: đúng 9 bậc thác trong hẻm, sau đó chỉ chảy xuôi
 {const _rs=riversSurface;riversSurface=function(){_rs();if(WV<3||W4.chinI==null)return;const r=RIV[W4.chinI],P=r.pts,n=P.length,s=r.s;
   const st=(CHIN.F0-CHIN.F1)/CHIN.n;for(let i=0;i<n;i++){const f=i/(n-1);if(f<CHIN.end+0.004){const u=Math.max(0,f)/CHIN.end*CHIN.n,j=Math.floor(u);s[i]=CHIN.F0-Math.min(CHIN.n,j+(u-j>0.955?1:0))*st-1.5;}else s[i]=Math.min(s[i],s[i-1]);}
@@ -419,7 +419,7 @@ function w4Animals(){const A=(k,ids)=>{const D=ANIMALS[k];if(!D)return;D.reg=D.r
 {const _si=sceneInit;sceneInit=function(){worldCfg(S&&S.wv);if(WV>=3)w4Animals();_si();if(WV>=3){try{G.sc.add(w4Horizon());}catch(e){console.warn('núi xa',e);}}
   else if(S&&!S.w4note){S.w4note=1;setTimeout(()=>{try{uiToast('🌏 Đã có thế giới mới rộng gấp đôi với 12 vùng cảnh đẹp. Mở Bản đồ (M) để chuyển sang khi muốn.','gold');}catch(e){}},9000);}};}
 /* ---------- chuyển bản lưu cũ sang thế giới mới (tuỳ người chơi) ---------- */
-function w4Migrate(){if(!S||S.wv===3)return;S.wv=3;S.res={};S.disc={};S.fogm=null;S.mark=null;const home=S.builds.find(b=>pieceDef(b.k)&&pieceDef(b.k).bed)||S.builds.find(b=>b.k==='campfire');
+function w4Migrate(){if(!S||S.wv>=3)return;S.wv=3;S.res={};S.disc={};S.fogm=null;S.mark=null;const home=S.builds.find(b=>pieceDef(b.k)&&pieceDef(b.k).bed)||S.builds.find(b=>b.k==='campfire');
   const x=home?home.x+24:SPAWN[0],z=home?home.z+24:SPAWN[1];S.p.x=x;S.p.z=z;if(typeof P!=='undefined'){P.x=x;P.z=z;}S._new=1;save();delete S._new;try{uiToast('🌏 Đang dựng thế giới mới…','gold');}catch(e){}setTimeout(()=>location.reload(),400);}
-{const _mh=mapHtml;mapHtml=function(){const h=_mh();if(!S||S.wv===3)return h;return `<div class="landbox" id="w4mig"><b>🌏 Thế giới mới rộng gấp đôi</b><span class="small muted">Ván này đang ở bản đồ cũ. Thế giới mới thêm 12 vùng: Tràng An, Vịnh Đá Ngàn Đảo, Cao nguyên thông mù sương, Thác Chín Tầng, đồng hoa, rừng ngập mặn, núi lửa tắt, suối nóng… Giữ nguyên túi đồ, nhà cửa, kỹ năng; cây cỏ mọc lại từ đầu, bản đồ khám phá lại.</span><div class="row"><button class="btn sm" data-a="w4mig">Chuyển sang thế giới mới</button></div></div>`+h;};}
+{const _mh=mapHtml;mapHtml=function(){const h=_mh();if(!S||S.wv>=3)return h;return `<div class="landbox" id="w4mig"><b>🌏 Thế giới mới rộng gấp đôi</b><span class="small muted">Ván này đang ở bản đồ cũ. Thế giới mới thêm 12 vùng: Tràng An, Vịnh Đá Ngàn Đảo, Cao nguyên thông mù sương, Thác Chín Tầng, đồng hoa, rừng ngập mặn, núi lửa tắt, suối nóng… Giữ nguyên túi đồ, nhà cửa, kỹ năng; cây cỏ mọc lại từ đầu, bản đồ khám phá lại.</span><div class="row"><button class="btn sm" data-a="w4mig">Chuyển sang thế giới mới</button></div></div>`+h;};}
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="w4mig"]');if(!b)return;e.stopImmediatePropagation();if(!b.dataset.ok){b.dataset.ok=1;b.textContent='Chạm lần nữa để xác nhận';return;}w4Migrate();},true);

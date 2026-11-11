@@ -404,7 +404,7 @@ const H3CELL=320;
 function h3hash(a,b,c){const s=Math.sin(a*127.1+b*311.7+c*74.7+(S&&S.seed||1)*0.0001)*43758.5453;return s-Math.floor(s);}
 function h3cellNodes(ci,cj){const C=H3.cc||(H3.cc=new Map()),key=ci+','+cj;if(C.has(key))return C.get(key);const out=[];
   for(const kind in H3NODE){const N=H3NODE[kind];const tries=N.water?6:3;let n=0,want=Math.floor(N.per+h3hash(ci,cj,kind.length*7));
-    for(let k=0;k<tries&&n<want;k++){const x=(ci+h3hash(ci,cj,k*13+kind.length))*H3CELL,z=(cj+h3hash(cj,ci,k*17+kind.length*3))*H3CELL;if(Math.hypot(x,z)>WR*0.98)continue;const wd=wdAt(x,z);
+    for(let k=0;k<tries&&n<want;k++){const x=(ci+h3hash(ci,cj,k*13+kind.length))*H3CELL,z=(cj+h3hash(cj,ci,k*17+kind.length*3))*H3CELL;if(!wIn(x,z,0.98))continue;const wd=wdAt(x,z);
       if(N.water){if(wd<0.4||wd>3.5)continue;}else{if(wd>0.05||!N.bio.includes(bgAt(x,z))||slopeAt(x,z)>0.6||cellBusy(x,z))continue;}
       out.push({id:kind+':'+ci+':'+cj+':'+k,kind,x,z,y:hAt(x,z),ry:h3hash(ci,k,cj)*6.283});n++;}}
   C.set(key,out);if(C.size>400){const f=C.keys().next().value;C.delete(f);}return out;}

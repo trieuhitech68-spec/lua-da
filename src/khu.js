@@ -62,3 +62,7 @@ if(typeof rlTick==='function'){const _rt=rlTick;rlTick=function(){try{khuBossTic
 /* ---------- bảng tên vùng: ghi cấp ---------- */
 {const _ur=uiRegion;uiRegion=function(r,first){_ur.apply(this,arguments);try{const el=$('#regban'),lv=khuLv(P.x,P.z);if(el)el.insertAdjacentHTML('beforeend',`<i class="khu-lv">Vùng cấp ${lv}${lv>=4?' · thú dữ và thổ dân mạnh: đi cùng lính':''}</i>`);}catch(e){}};}
 {const st=document.createElement('style');st.textContent='.khu-lv{display:block;font-style:normal;font-size:11.5px;font-weight:700;color:#ffd27a;margin-top:2px;text-shadow:0 1px 3px #000}';document.head.appendChild(st);}
+
+// hồ sơ tài nguyên của các vùng miền Trung, miền Nam (thế giới hình chữ S, world5.js)
+if(typeof RLPROF==='object'){Object.assign(RLPROF,{deongang:['stone','soil'],truongson:['timber stone game','fish soil'],mientrung:['salt fish shell','timber soil'],cattien:['timber game herb honey','stone'],cuulong:['soil fish clay','stone ore flint'],uminh:['fish honey shell','stone flint'],camau:['fish salt shell','stone timber']});
+  for(const id of ['deongang','truongson','mientrung','cattien','cuulong','uminh','camau']){const [r,p]=RLPROF[id];RLPS[id]={r:new Set(r.split(' ').filter(Boolean)),p:new Set(p.split(' ').filter(Boolean))};}}

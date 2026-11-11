@@ -168,7 +168,7 @@ function m3Drag(){try{if(M3K.dragO){if(M3K.dragO.parent)M3K.dragO.parent.remove(
 /* ===================== 6. THÚ DI CƯ, ĐẠI SĂN ===================== */
 function m3MigPlan(){const ev=M2I().ev,si=seasonIdx(),sd=seasonDay();const key=Math.floor((S.day-1)/SEASON_DAYS);if((si===0&&sd===2)||(si===2&&sd===1)){if(ev.migK===key)return;ev.migK=key;ev.gh=0;
     const R=Math.random,a=R()*6.283,home=S.builds.find(b=>pieceDef(b.k)&&pieceDef(b.k).bed)||{x:P.x,z:P.z};let st=null,en=null;
-    for(let t=0;t<30&&!st;t++){const aa=a+t*0.21,x0=home.x+Math.cos(aa)*2200,z0=home.z+Math.sin(aa)*2200,x1=home.x-Math.cos(aa)*2200,z1=home.z-Math.sin(aa)*2200;if(Math.hypot(x0,z0)>WR*0.9||Math.hypot(x1,z1)>WR*0.9)continue;if(wdAt(x0,z0)>0||wdAt(x1,z1)>0)continue;st=[x0,z0];en=[x1,z1];}
+    for(let t=0;t<30&&!st;t++){const aa=a+t*0.21,x0=home.x+Math.cos(aa)*2200,z0=home.z+Math.sin(aa)*2200,x1=home.x-Math.cos(aa)*2200,z1=home.z-Math.sin(aa)*2200;if(!wIn(x0,z0,0.9)||!wIn(x1,z1,0.9))continue;if(wdAt(x0,z0)>0||wdAt(x1,z1)>0)continue;st=[x0,z0];en=[x1,z1];}
     if(!st)return;ev.mig={x0:st[0],z0:st[1],x1:en[0],z1:en[1],t0:TNOW(),t1:TNOW()+1.5,k:(S.age||0)>=4&&R()<0.5?'gaur':'deer',n:7};m3MigSpawn();
     uiToast(`🦌 Đàn ${ev.mig.k==='gaur'?'bò tót':'nai'} di cư đang băng qua vùng (hướng ${mxDir(en[0]-st[0],en[1]-st[1])}). Mở 🏮 Làng → 🧭 Đường để theo dấu. Đại săn!`,'gold');}}
 function m3MigSpawn(){const m=M2I().ev.mig;if(!m||M3K.mig)return;M3K.mig=[];const k=TNOW(),f=clamp((k-m.t0)/(m.t1-m.t0),0,1),cx=m.x0+(m.x1-m.x0)*f,cz=m.z0+(m.z1-m.z0)*f;

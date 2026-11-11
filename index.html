@@ -1859,7 +1859,7 @@ function slopeAt(x,z){const e=12;return Math.hypot(hAt(x+e,z)-hAt(x-e,z),hAt(x,z
 function moist(x,z){return NS.fbm(x/700-20,z/700+30,3);}
 function savannaK(x,z){return 1-ss(0.5,1.05,Math.hypot((x/WCR+0.46)/0.27,(z/WCR+0.02)/0.32));}
 function jungleK(x,z){return 1-ss(0.5,1.1,Math.hypot((x/WCR-0.25)/0.25,(z/WCR-0.45)/0.22));}
-function biome(x,z){const h=hAt(x,z);if(wdAt(x,z)>0.4)return 'water';const r=Math.hypot(x,z*1.04)/WR;if(h<9&&r>0.72)return 'beach';
+function biome(x,z){const h=hAt(x,z);if(wdAt(x,z)>0.4)return 'water';const r=WV>=4?v5R(x,z):Math.hypot(x,z*1.04)/WR;if(h<9&&r>0.72)return 'beach';
   if(h>450)return 'peak';const sl=slopeAt(x,z);if(h>260||sl>0.8)return 'rock';const q=riverQ(x,z);if(q.r>=0&&q.d<q.w*0.5+80&&h-q.s<10)return 'bank';
   const m=moist(x,z)+jungleK(x,z)*0.35-savannaK(x,z)*0.5+(h>140?-0.05:0);return m>0.06?'forest':(m>-0.1?'edge':'meadow');}
 const BCOL={water:'#5c6a52',beach:'#d8c48e',meadow:'#8db552',edge:'#6f9e44',forest:'#4a7a32',bank:'#7aa04c',rock:'#8a8478',peak:'#c6c2ba'};
@@ -1912,7 +1912,7 @@ function rKey(x,z){return Math.floor(x/RG)+','+Math.floor(z/RG);}
 function resGen(seed){RES.length=0;RGRID=new Map();const R=rng(seed*13+5);
   const okFree=(x,z,r)=>{for(const i of near(x,z,r+30)){const q=RES[i],d=Math.hypot(q.x-x,q.z-z);if(d<r+(RT[q.t].r||4)*0.8)return false;}return true;};
   const isTree=t=>/^(pine|oak|birch|dead|savannaTree)$/.test(t);const put=(t,x,z,s)=>{const q={i:RES.length,t,x,z,ry:R()*6.283,s:(s||(isTree(t)?0.62+R()*0.7:0.85+R()*0.35))*(RT[t].sc||1),hp:RT[t].hp,st:0,rg:0};RES.push(q);const k=rKey(x,z);if(!RGRID.has(k))RGRID.set(k,[]);RGRID.get(k).push(q.i);return q;};
-  const scatter=(t,n,want,tries)=>{n=Math.round(n*2.6*WRES);let c=0,k=0;while(c<n&&k<(tries||n*40)){k++;const a=R()*6.283,rr=Math.sqrt(R())*WR*0.95,x=Math.cos(a)*rr,z=Math.sin(a)*rr;const h=hAt(x,z);if(h<2||wdAt(x,z)>0)continue;
+  const scatter=(t,n,want,tries)=>{n=Math.round(n*2.6*WRES*(WV>=4?1.24:1));let c=0,k=0;while(c<n&&k<(tries||n*40)){k++;const a=R()*6.283,rr=Math.sqrt(R())*WR*0.95;let x=Math.cos(a)*rr,z=Math.sin(a)*rr;if(WV>=4&&R()<0.2){x=V5.box[0]+R()*V5.box[2];z=V5.box[1]+R()*V5.box[3];}const h=hAt(x,z);if(h<2||wdAt(x,z)>0)continue;
       const b=biome(x,z);const w=want(b,x,z,h);if(!w||R()>w)continue;if(decoBlock(x,z))continue;const sd=Math.hypot(x-SPAWN[0],z-SPAWN[1]);if(sd<60||(sd<230&&!RT[t].pass))continue;if(!RT[t].pass&&typeof trailAt==='function'&&trailAt(x,z)>0.15)continue;if(!okFree(x,z,(RT[t].r||4)+4))continue;put(t,x,z);c++;}};
   // gần chỗ bắt đầu: đủ đồ cho những bước đầu tiên
   const ring=(t,n,r0,r1)=>{let c=0,k=0;while(c<n&&k<400){k++;const a=R()*6.283,rr=r0+R()*(r1-r0),x=SPAWN[0]+Math.cos(a)*rr,z=SPAWN[1]+Math.sin(a)*rr;if(hAt(x,z)<3)continue;if(!okFree(x,z,(RT[t].r||4)+6))continue;put(t,x,z);c++;}};
@@ -2418,7 +2418,7 @@ function moveTick(dt){let ix=0,iz=0;const k=G.keys,fp=isFP();if(k.KeyW||k.ArrowU
 function move(dx,dz,m,dt,run){if(G.sleeping){P.speed=0;return;}const slow=(S.p.food<=0||S.p.water<=0)&&S.mode==='cozy'?0.75:1,ill=S.st.fever?0.8:1,tired=S.p.stam<3?0.75:1,wade=G.swim?0.48:wdAt(P.x,P.z)>1&&floorTop(P.x,P.z)==null?0.55:1,trail=trailAt(P.x,P.z)>0.4?1.12:1,sneak=G.sneak?0.5:1;let sp=112*m*slow*ill*tired*wade*trail*sneak;if(G.swim)run=false;
   if(run){sp*=1.55;S.p.stam=Math.max(0,S.p.stam-dt*11);G.running=true;G.runXp=(G.runXp||0)+dt;if(G.runXp>4){G.runXp=0;addXp('run',1);}}
   let nx=P.x+dx*sp*dt,nz=P.z+dz*sp*dt;G.climb=false;if(P.air){if(groundY(nx,nz)>P.y+5){const gx=groundY(nx,P.z)>P.y+5,gz=groundY(P.x,nz)>P.y+5;if(!gx)nz=P.z;else if(!gz)nx=P.x;else{nx=P.x;nz=P.z;}}}else if(!G.swim&&floorTop(nx,nz)==null){const h0=hAt(P.x,P.z),h1=hAt(nx,nz),st=Math.hypot(nx-P.x,nz-P.z)||1,gr=(h1-h0)/st;if(gr>1.4){if(S.p.stam>4){G.climb=true;nx=P.x+(nx-P.x)*0.45;nz=P.z+(nz-P.z)*0.45;S.p.stam=Math.max(0,S.p.stam-dt*6);G.climbXp=(G.climbXp||0)+dt;if(G.climbXp>3){G.climbXp=0;addXp('run',1);}if(!G.climbTip){G.climbTip=1;uiToast('🧗 Đang leo vách: tốn nhiều thể lực, hết sức sẽ tuột.','');}}else{nx=P.x;nz=P.z;if(G.t-(G.climbNo||0)>4){G.climbNo=G.t;uiToast('😮‍💨 Hết sức leo. Ngồi nghỉ cho lại sức, hoặc tìm chỗ dốc thoải hơn để đi.','');}}}else if(gr>1.0){nx=P.x+(nx-P.x)*0.7;nz=P.z+(nz-P.z)*0.7;}}
-  const c=collide(nx,nz);if(c){P.x=c[0];P.z=c[1];}P.speed=sp;if(Math.hypot(P.x,P.z)>WR*1.05){const a=Math.atan2(P.z,P.x);P.x=Math.cos(a)*WR*1.05;P.z=Math.sin(a)*WR*1.05;}}
+  const c=collide(nx,nz);if(c){P.x=c[0];P.z=c[1];}P.speed=sp;if(!wIn(P.x,P.z,1.05)){if(WV>=4&&P.z>4000){P.x=clamp(P.x,-WSIZE/2+240,WSIZE/2-240);P.z=Math.min(P.z,WSIZE-WOZ-240);}else{const a=Math.atan2(P.z,P.x);P.x=Math.cos(a)*WR*1.05;P.z=Math.sin(a)*WR*1.05;}}}
 function animTick(dt){const R=P.rig;if(!R)return;if(!P.air){const gy=groundY(P.x,P.z);if(P.y-gy>(G.swim||G.ride||G.ladder?22:7)&&!G.climb){P.air=true;P.vy=Math.min(0,P.vy||0);}else P.y+=(gy-P.y)*Math.min(1,dt*(G.climb?6:14));}P.model.position.set(P.x,P.y,P.z);P.model.rotation.y=P.ry;P.blob.position.set(P.x,Math.max(hAt(P.x,P.z),groundY(P.x,P.z))+0.6,P.z);
   const t=G.t;let mode='idle';if(G.act)mode=P.anim;else if(G.drinkT>0){G.drinkT-=dt;mode='gather';}else if(P.air)mode='jump';else if(P.speed>8)mode='walk';
   R.legL.rotation.x=R.legR.rotation.x=0;R.armL.rotation.x=R.armR.rotation.x=0;R.torso.rotation.x=0;R.head.rotation.set(0,0,0);if(typeof poseApply==='function'&&poseApply(R,mode,t))return;if(actsPose(R,t))return;
@@ -2547,7 +2547,7 @@ function animalModel(kind){let g=null;try{if(window.SBM&&SBM.animal)g=SBM.animal
   const leg=(x,z)=>{const L=K.group(K.box(3.5*s,12*s,3.5*s,col,{y:-6*s,center:1}));L.position.set(x*s,12*s,z*s);G0.add(L);return L;};
   G0.userData.rig={body,head,legFL:leg(-5,9),legFR:leg(5,9),legBL:leg(-5,-9),legBR:leg(5,-9)};return G0;}
 function animalsInit(){const R=rng(S.seed+77);G.animals=[];
-  for(const kind in ANIMALS){const D=ANIMALS[kind],N0=Math.round(D.n0*(['tiger','gaur','monkey','crocodile','snake','junglefowl'].includes(kind)?1:2.4));let n=0,tries=0;while(n<N0&&tries<6000){tries++;let x,z;const rg=D.reg&&R()<0.75?REG.find(r=>r.id===D.reg[Math.floor(R()*D.reg.length)]):null;if(rg){const a=R()*6.283,rr=Math.sqrt(R())*rg.r;x=rg.x+Math.cos(a)*rr;z=rg.z+Math.sin(a)*rr;}else{const a=R()*6.283,rr=Math.sqrt(R())*WR*0.85;x=Math.cos(a)*rr;z=Math.sin(a)*rr;}if(!D.bio.includes(biome(x,z)))continue;if(kind==='crocodile'&&!nearWater(x,z,120))continue;
+  for(const kind in ANIMALS){const D=ANIMALS[kind],N0=Math.round(D.n0*(['tiger','gaur','monkey','crocodile','snake','junglefowl'].includes(kind)?1:2.4));let n=0,tries=0;while(n<N0&&tries<6000){tries++;let x,z;const rg=D.reg&&R()<0.75?REG.find(r=>r.id===D.reg[Math.floor(R()*D.reg.length)]):null;if(rg){const a=R()*6.283,rr=Math.sqrt(R())*rg.r;x=rg.x+Math.cos(a)*rr;z=rg.z+Math.sin(a)*rr;}else{const a=R()*6.283,rr=Math.sqrt(R())*WR*0.85;x=Math.cos(a)*rr;z=Math.sin(a)*rr;if(WV>=4&&R()<0.6){x=V5.box[0]+R()*V5.box[2];z=V5.box[1]+R()*V5.box[3];}}if(!D.bio.includes(biome(x,z)))continue;if(kind==='crocodile'&&!nearWater(x,z,120))continue;
       if(Math.hypot(x-SPAWN[0],z-SPAWN[1])<(D.aggro==='never'?260:700))continue;const grp=D.herd||D.pack||1;for(let k=0;k<grp&&n<N0;k++,n++){const ax=x+(R()-0.5)*60,az=z+(R()-0.5)*60;G.animals.push(animalNew(kind,ax,az,R,kind==='deer'&&k>0?'doe':null));}}}
   seasonPatchAll();}
 function animalNew(kind,x,z,R,mk){const D=ANIMALS[kind],o=animalModel(mk||kind);o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;}});G.sc.add(o);
@@ -2565,7 +2565,7 @@ function animalsTick(dt){const cozy=S.mode==='cozy',night=isNight(),winter=seaso
     else if(D.flee&&d<D.flee*sneakK){const ang=Math.atan2(a.x-P.x,a.z-P.z);tx=a.x+Math.sin(ang)*120;tz=a.z+Math.cos(ang)*120;sp=D.spd;a.state='flee';}
     else{a.tt-=dt;if(a.tt<=0||Math.hypot(a.tx-a.x,a.tz-a.z)<10){a.tt=3+Math.random()*6;const ang=Math.random()*6.28,rr=Math.random()*220;a.tx=a.home.x+Math.cos(ang)*rr;a.tz=a.home.z+Math.sin(ang)*rr;if(Math.random()<0.4)a.tt+=4;}
       tx=a.tx;tz=a.tz;sp=a.tt>6?0:D.spd*0.25;a.state='wander';}
-    const dx=tx-a.x,dz=tz-a.z,dl=Math.hypot(dx,dz);if(dl>2&&sp>0){const want=Math.atan2(dx,dz);a.ry=lerpAng(a.ry,want,Math.min(1,dt*6));const nx=a.x+Math.sin(a.ry)*sp*dt,nz=a.z+Math.cos(a.ry)*sp*dt;if(hAt(nx,nz)>1.5&&Math.hypot(nx,nz)<WR*0.98){a.x=nx;a.z=nz;}else{a.tt=0;a.ry+=Math.PI*0.5;}}
+    const dx=tx-a.x,dz=tz-a.z,dl=Math.hypot(dx,dz);if(dl>2&&sp>0){const want=Math.atan2(dx,dz);a.ry=lerpAng(a.ry,want,Math.min(1,dt*6));const nx=a.x+Math.sin(a.ry)*sp*dt,nz=a.z+Math.cos(a.ry)*sp*dt;if(hAt(nx,nz)>1.5&&wIn(nx,nz,0.98)){a.x=nx;a.z=nz;}else{a.tt=0;a.ry+=Math.PI*0.5;}}
     a.spd+=((dl>2?sp:0)-a.spd)*Math.min(1,dt*6);a.y+=(hAt(a.x,a.z)-a.y)*Math.min(1,dt*10);
     // hoạt cảnh chân
     const R=a.rig,f=a.spd/40,s=Math.sin(G.t*(4+f*2.2)+a.ph)*Math.min(0.55,a.spd/80);if(R.legFL){R.legFL.rotation.x=s;R.legBR.rotation.x=s;R.legFR.rotation.x=-s;R.legBL.rotation.x=-s;}
@@ -4967,7 +4967,7 @@ function l3snake(a,D,dt,d){const C=L3.C,pt=a._pt;a.state='wander';
   if(a._act==='coil'){l3set(a,'rest');a._dT=6+Math.random()*8;}a._coilT=0;a._dT-=dt;if(a._dT<=0){if(Math.random()<0.55){l3set(a,'rest');a._dT=8+Math.random()*14;}else{l3set(a,'walk');a._tx=a.home.x+(Math.random()-0.5)*160;a._tz=a.home.z+(Math.random()-0.5)*160;a._dT=12;}}
   if(a._act==='walk')l3go(a,a._tx,a._tz,D.spd*0.35);else{l3go(a,a.x,a.z,0);pt.coil=0.7;pt.head=0.1;}}
 /* ---------- di chuyển (kể cả bật lùi, chồm tới) ---------- */
-function l3ok(a,x,z){if(l3h(x,z)>WR*0.98)return false;const w=wdAt(x,z);if(a.kind==='crocodile')return !a._wh||w>1.5||l3h(x-a._wh.x,z-a._wh.z)<210;return w<2.4&&hAt(x,z)>-8;}
+function l3ok(a,x,z){if(!wIn(x,z,0.98))return false;const w=wdAt(x,z);if(a.kind==='crocodile')return !a._wh||w>1.5||l3h(x-a._wh.x,z-a._wh.z)<210;return w<2.4&&hAt(x,z)>-8;}
 function l3move(a,D,dt){let sp=a._sp||0;const dx=a._tx-a.x,dz=a._tz-a.z,dl=l3h(dx,dz);if(dl<3)sp=0;
   a.spd+=(sp-a.spd)*Math.min(1,dt*(sp>a.spd?2.6:5));if(a.spd<0.05)a.spd=0;const ry0=a.ry;
   if(dl>2&&sp>0)a.ry=lerpAng(a.ry,Math.atan2(dx,dz),Math.min(1,dt*(a._turnK||5)*(a.spd>D.spd*0.6&&a._turnK<20?0.6:1)));
@@ -6905,7 +6905,7 @@ function boatBoard(b){if(G.swim&&S.p.stam<1)return;G.ride=b;G.sit=false;G.act=nu
 function boatLeave(){const b=G.ride;if(!b)return;for(let d=24;d<90;d+=6)for(let a=0;a<16;a++){const ang=a/16*6.283,x=b.x+Math.sin(ang)*d,z=b.z+Math.cos(ang)*d;if(wdAt(x,z)<0.5&&slopeAt(x,z)<0.8){G.ride=null;P.x=x;P.z=z;P.y=hAt(x,z);P.air=false;save();sfx('step');return;}}uiToast('Xa bờ quá, chèo lại gần bờ đã.','');}
 function rideTick(dt){const b=G.ride;if(!b)return false;const k=G.keys,sp=b.k==='canoe'?150:95;let f=0,turn=0;if(k.KeyW||k.ArrowUp)f+=1;if(k.KeyS||k.ArrowDown)f-=0.5;if(k.KeyA||(k.ArrowLeft&&!isFP()))turn+=1;if(k.KeyD||(k.ArrowRight&&!isFP()))turn-=1;
   if(G.joy.on){f=-G.joy.y;turn=-G.joy.x;}if(isFP()){b.ry=P.ry;}else{b.ry+=turn*dt*1.4;P.ry=b.ry;}if(isFP()&&turn)P.ry+=turn*dt*1.4;
-  b.v=(b.v||0)+((f*sp)-(b.v||0))*Math.min(1,dt*1.5);const nx=b.x+Math.sin(b.ry)*b.v*dt,nz=b.z+Math.cos(b.ry)*b.v*dt;if(wdAt(nx,nz)>2.2&&Math.hypot(nx,nz)<WR*1.08){b.x=nx;b.z=nz;}else b.v*=-0.2;
+  b.v=(b.v||0)+((f*sp)-(b.v||0))*Math.min(1,dt*1.5);const nx=b.x+Math.sin(b.ry)*b.v*dt,nz=b.z+Math.cos(b.ry)*b.v*dt;if(wdAt(nx,nz)>2.2&&wIn(nx,nz,1.08)){b.x=nx;b.z=nz;}else b.v*=-0.2;
   if(Math.abs(b.v)>5&&G.t-(G.padT||0)>0.9){G.padT=G.t;sfx('drink');addXp('run',0.3);}boatPlace(b);P.x=b.x;P.z=b.z;P.y=b._o.position.y+(b.k==='canoe'?1.5:3.5);P.speed=0;P.air=false;S.p.wet=Math.max(S.p.wet,0);return true;}
 /* ---------- khoan lửa: bếp mới dựng chưa có lửa, phải khoan que cho bén ---------- */
 function isRaining(){return (G.wxK||0)>0.4&&S.wx&&S.wx.type!=='clear'&&S.wx.type!=='cloudy';}
@@ -7337,7 +7337,7 @@ function t3WaterMat(kind){const T=THREE,U=t3U(),tx=t3Tex();const un=Object.assig
   const m=new T.ShaderMaterial({uniforms:un,defines:def,vertexShader:T3_WATER_VS,fragmentShader:T3_WATER_FS,transparent:true,depthWrite:false,fog:true,side:kind==='fall'?T.DoubleSide:T.FrontSide});
   m.userData.noSea=1;T3.wmats.push(m);return m;}
 // độ sâu biển/hồ: R = độ sâu (0..64), G = mức lặng (hồ trong đất liền lặng, biển khơi động)
-function t3DepthTex(){const T=THREE,d=new Uint8Array(HN*HN*4);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const k=j*HN+i,x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,r=Math.hypot(x,z*1.04)/WR;
+function t3DepthTex(){const T=THREE,d=new Uint8Array(HN*HN*4);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const k=j*HN+i,x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,r=WV>=4?v5R(x,z):Math.hypot(x,z*1.04)/WR;
     d[k*4]=Math.round(clamp((0.5-HG[k])/64,0,1)*255);d[k*4+1]=Math.round((0.25+0.75*(1-ss(0.7,0.86,r)))*255);d[k*4+3]=255;}
   const t=new T.DataTexture(d,HN,HN,T.RGBAFormat,T.UnsignedByteType);t.wrapS=t.wrapT=T.ClampToEdgeWrapping;t.magFilter=t.minFilter=T.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;}
 /* ---------- dải nước sông & suối nhỏ: một lưới chung, một lệnh vẽ ---------- */
@@ -7589,7 +7589,7 @@ function w4Rivers(seed){const R=rng((seed||1)*11+917),M=RIV[0];
   // ván mới: newGame() chạy trước khi có thế giới nên S.p=(0,0) — đặt người chơi vào Trảng Khởi Đầu
   if(typeof S==='object'&&S&&S.p&&S.p.x===0&&S.p.z===0&&!(S.goal|0)&&!(S.builds&&S.builds.length)){S.p.x=+SPAWN[0].toFixed(1);S.p.z=+SPAWN[1].toFixed(1);}
   // bản lưu hỏng: vị trí ngoài thế giới → về Trảng Khởi Đầu
-  if(typeof S==='object'&&S&&S.p&&!(Math.hypot(S.p.x,S.p.z)<WR*1.05)){S.p.x=+SPAWN[0].toFixed(1);S.p.z=+SPAWN[1].toFixed(1);}};}
+  if(typeof S==='object'&&S&&S.p&&!wIn(S.p.x,S.p.z,1.05)){S.p.x=+SPAWN[0].toFixed(1);S.p.z=+SPAWN[1].toFixed(1);}};}
 // mặt nước sông Chín Tầng: đúng 9 bậc thác trong hẻm, sau đó chỉ chảy xuôi
 {const _rs=riversSurface;riversSurface=function(){_rs();if(WV<3||W4.chinI==null)return;const r=RIV[W4.chinI],P=r.pts,n=P.length,s=r.s;
   const st=(CHIN.F0-CHIN.F1)/CHIN.n;for(let i=0;i<n;i++){const f=i/(n-1);if(f<CHIN.end+0.004){const u=Math.max(0,f)/CHIN.end*CHIN.n,j=Math.floor(u);s[i]=CHIN.F0-Math.min(CHIN.n,j+(u-j>0.955?1:0))*st-1.5;}else s[i]=Math.min(s[i],s[i-1]);}
@@ -7950,10 +7950,67 @@ function w4Animals(){const A=(k,ids)=>{const D=ANIMALS[k];if(!D)return;D.reg=D.r
 {const _si=sceneInit;sceneInit=function(){worldCfg(S&&S.wv);if(WV>=3)w4Animals();_si();if(WV>=3){try{G.sc.add(w4Horizon());}catch(e){console.warn('núi xa',e);}}
   else if(S&&!S.w4note){S.w4note=1;setTimeout(()=>{try{uiToast('🌏 Đã có thế giới mới rộng gấp đôi với 12 vùng cảnh đẹp. Mở Bản đồ (M) để chuyển sang khi muốn.','gold');}catch(e){}},9000);}};}
 /* ---------- chuyển bản lưu cũ sang thế giới mới (tuỳ người chơi) ---------- */
-function w4Migrate(){if(!S||S.wv===3)return;S.wv=3;S.res={};S.disc={};S.fogm=null;S.mark=null;const home=S.builds.find(b=>pieceDef(b.k)&&pieceDef(b.k).bed)||S.builds.find(b=>b.k==='campfire');
+function w4Migrate(){if(!S||S.wv>=3)return;S.wv=3;S.res={};S.disc={};S.fogm=null;S.mark=null;const home=S.builds.find(b=>pieceDef(b.k)&&pieceDef(b.k).bed)||S.builds.find(b=>b.k==='campfire');
   const x=home?home.x+24:SPAWN[0],z=home?home.z+24:SPAWN[1];S.p.x=x;S.p.z=z;if(typeof P!=='undefined'){P.x=x;P.z=z;}S._new=1;save();delete S._new;try{uiToast('🌏 Đang dựng thế giới mới…','gold');}catch(e){}setTimeout(()=>location.reload(),400);}
-{const _mh=mapHtml;mapHtml=function(){const h=_mh();if(!S||S.wv===3)return h;return `<div class="landbox" id="w4mig"><b>🌏 Thế giới mới rộng gấp đôi</b><span class="small muted">Ván này đang ở bản đồ cũ. Thế giới mới thêm 12 vùng: Tràng An, Vịnh Đá Ngàn Đảo, Cao nguyên thông mù sương, Thác Chín Tầng, đồng hoa, rừng ngập mặn, núi lửa tắt, suối nóng… Giữ nguyên túi đồ, nhà cửa, kỹ năng; cây cỏ mọc lại từ đầu, bản đồ khám phá lại.</span><div class="row"><button class="btn sm" data-a="w4mig">Chuyển sang thế giới mới</button></div></div>`+h;};}
+{const _mh=mapHtml;mapHtml=function(){const h=_mh();if(!S||S.wv>=3)return h;return `<div class="landbox" id="w4mig"><b>🌏 Thế giới mới rộng gấp đôi</b><span class="small muted">Ván này đang ở bản đồ cũ. Thế giới mới thêm 12 vùng: Tràng An, Vịnh Đá Ngàn Đảo, Cao nguyên thông mù sương, Thác Chín Tầng, đồng hoa, rừng ngập mặn, núi lửa tắt, suối nóng… Giữ nguyên túi đồ, nhà cửa, kỹ năng; cây cỏ mọc lại từ đầu, bản đồ khám phá lại.</span><div class="row"><button class="btn sm" data-a="w4mig">Chuyển sang thế giới mới</button></div></div>`+h;};}
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="w4mig"]');if(!b)return;e.stopImmediatePropagation();if(!b.dataset.ok){b.dataset.ok=1;b.textContent='Chạm lần nữa để xác nhận';return;}w4Migrate();},true);
+/* ===================== THẾ GIỚI 4: HÌNH CHỮ S =====================
+   Miền Bắc = toàn bộ thế giới 3 (giữ nguyên toạ độ, cùng hạt giống thì cùng địa hình). Nối thêm về phía nam:
+     · Dải miền Trung: dải đất hẹp cong về phía đông, sườn tây là dãy Trường Sơn, sườn đông là đồng bằng cát ven biển.
+     · Miền Nam: châu thổ thấp phẳng (Đồng Bằng Chín Rồng), rừng U Minh ngập mặn ở mũi tây nam, rừng Nam Cát Tiên phía đông bắc.
+   Khung lưới kéo về nam (WOZ) và rộng hơn; mọi thứ chỉ chạy khi WV>=4, thế giới 2-3 không đổi.
+   GÁN LẠI (bọc): worldCfg, baseH, riversPlan, regionsBuild, trails4, fixSave, newGame. Hàm dùng chung: wIn (trong ranh giới chơi), v5R (khoảng cách chuẩn hoá tới bờ). */
+const V5={box:[-3000,5200,8600,5300],// [x0,z0,rộng,dài] hộp bao phần đất mới (để rải tài nguyên, thú)
+  waist:[[2100,5350],[3500,6350],[3700,7350],[2700,8250]],hw:1050,
+  S:{x:500,z:8950,rx:2800,rz:1500},baseN:W4ZONES.length,
+  zones:[{id:'meadow4',x:300,z:8750,rx:1500,rz:850},{id:'mangrove',x:-1350,z:9450,rx:1050,rz:700},{id:'ancient',x:2450,z:8700,rx:850,rz:700}]};
+// khoảng cách tới đường gấp khúc + bên trái/phải (dương = phía tây của hướng bắc→nam)
+function v5Waist(x,z){const P=V5.waist;let bd=1e9,side=0,bt=0;for(let i=0;i<P.length-1;i++){const [ax,az]=P[i],[bx,bz]=P[i+1],dx=bx-ax,dz=bz-az,l2=dx*dx+dz*dz;let t=((x-ax)*dx+(z-az)*dz)/l2;t=t<0?0:t>1?1:t;
+    const px=ax+dx*t,pz=az+dz*t,d=Math.hypot(x-px,z-pz);if(d<bd){bd=d;side=((x-px)*dz-(z-pz)*dx)>0?-1:1;bt=(i+t)/(P.length-1);}}_v5w.d=bd;_v5w.s=side;_v5w.t=bt;return _v5w;}
+const _v5w={d:0,s:0,t:0};
+// u: 1 ở mép bờ biển của phần đất mới (nhỏ hơn = trong đất liền)
+function v5U(x,z){if(z<4200)return 9;const w=v5Waist(x,z),S=V5.S,uw=w.d/V5.hw,us=Math.hypot((x-S.x)/S.rx,(z-S.z)/S.rz);return Math.min(uw,us)+NS.fbm(x/1500+17,z/1500-9,3)*0.13+NS.fbm(x/420,z/420+4,2)*0.04;}
+// thay cho "r = khoảng cách tới tâm / WR" ở những chỗ cần biết gần bờ hay không
+function v5R(x,z){const r=Math.hypot(x,z*1.04)/WR;return z<4200?r:Math.min(r,v5U(x,z)*0.8);}
+function wIn(x,z,k){k=k||1;if(Math.hypot(x,z)<WR*k)return true;if(WV<4||z<4200)return false;return Math.abs(x)<WSIZE/2-200&&z<WSIZE-WOZ-200&&v5U(x,z)<1.3*k;}
+{const _wc=worldCfg;worldCfg=function(v){W4ZONES.length=V5.baseN;if(!(v>=4))return _wc(v);_wc(3);WV=4;WSEG=640;TCN=10;WSIZE=18560;WOZ=7800;HN=WSEG+1;HSTEP=WSIZE/WSEG;TCS=WSEG/TCN;
+  V5.zones.forEach((Z,i)=>{Z.i=V5.baseN+i;Z.sd=Z.i*7.3+1.7;W4ZONES.push(Z);});};}
+// độ cao phần đất mới
+function v5H(x,z){const u=v5U(x,z);if(u>1.35)return -60;const w=v5Waist(x,z),S=V5.S,us=Math.hypot((x-S.x)/S.rx,(z-S.z)/S.rz),inS=1-ss(0.75,1.05,us);let k;
+  let h=20+NS.fbm(x/1100+31,z/1100-12,4)*24+NS.fbm(x/380-5,z/380+9,3)*9+NS.fbm(x/120,z/120,2)*2.5;
+  // dãy Trường Sơn: sườn tây của dải miền Trung, cao dần về giữa dải
+  {const west=w.s>0?1:0,along=ss(0.02,0.2,w.t)*(1-ss(0.82,1,w.t)),rd=w.d/V5.hw,band=west*ss(0.12,0.5,rd)*(1-ss(0.78,1.0,rd));h+=band*along*(150+NS.ridge(x/700+3,z/700-8,4)*260)*(1-inS);
+    // sườn đông: đồng bằng cát thấp
+    const east=(1-west)*ss(0.15,0.6,rd)*(1-inS);h=h*(1-east*0.75)+(7+NS.fbm(x/500,z/500,2)*6)*east*0.75;}
+  // châu thổ phía nam: thấp, phẳng
+  h=h*(1-inS*0.9)+(7+NS.fbm(x/900+2,z/900-6,3)*6+NS.fbm(x/200,z/200,2)*1.2)*inS*0.9;
+  const Z=V5.zones;
+  if((k=z4k(Z[0],x,z))>0){const t=12+NS.fbm(x/900-6,z/900+6,3)*7;h=h*(1-k*0.85)+t*k*0.85;}
+  if((k=z4k(Z[1],x,z))>0){const c=NS.ridge(x/650+2,z/650-6,3),t=0.4+NS.fbm(x/240,z/240,3)*5+NS.fbm(x/60,z/60,2)*0.9-ss(0.58,0.8,c)*6;h=h*(1-k)+t*k;}
+  if((k=z4k(Z[2],x,z))>0){const t=22+NS.fbm(x/500+4,z/500,3)*16;h=h*(1-k*0.75)+t*k*0.75;}
+  const land=1-ss(1,1.12,u);return h*land-(1-land)*60;}
+{const _bh=baseH;baseH=function(x,z){const h=_bh(x,z);if(WV<4||z<4200)return h;return Math.max(h,v5H(x,z));};}
+// sông miền Trung và sông châu thổ
+{const _rp=riversPlan;riversPlan=function(seed){_rp(seed);if(WV<4)return;const R=rng((seed||1)*17+4441);
+  const add=(id,n,wp,w,dep,jit)=>{const pts=w4RiverPts(wp,R,jit);RIV.push({id,n,wp,w,dep,sea:1,pts,s:null});};
+  add('cuulong','Sông Chín Rồng',[[2950,7250],[2500,8050],[1500,8650],[350,9150],[-800,9750],[-1500,10300],[-1900,10700]],[14,64],7,140);
+  add('thubon','Sông Thu',[[3050,6500],[3700,6750],[4300,6950],[5100,7100]],[10,26],4,70);
+  RBK=new Map();const C=400;RIV.forEach((r,ri)=>{for(let k=0;k<r.pts.length-1;k++){const [ax,az]=r.pts[k],[bx,bz]=r.pts[k+1],m=200;for(let i=Math.floor((Math.min(ax,bx)-m)/C);i<=Math.floor((Math.max(ax,bx)+m)/C);i++)for(let j=Math.floor((Math.min(az,bz)-m)/C);j<=Math.floor((Math.max(az,bz)+m)/C);j++){const key=i+','+j;if(!RBK.has(key))RBK.set(key,[]);RBK.get(key).push(ri,k);}}});};}
+// vùng có tên của phần đất mới
+const V5REG=[['deongang','Đèo Ngang','Cửa ngõ từ đất Bắc vào miền Trung: lối mòn men sườn núi, một bên rừng, một bên biển.','🚩',[2300,5600],450],
+  ['truongson','Dải Trường Sơn','Dãy núi dài chạy dọc miền Trung. Rừng già phủ kín sườn tây, từ đỉnh nhìn xuống dải đồng bằng hẹp ven biển.','⛰️',[3050,6900],650],
+  ['mientrung','Dải Cát Miền Trung','Dải đất hẹp kẹp giữa núi và biển: cồn cát trắng, đầm phá, gió khô nóng. Cá và muối nhiều, đất trồng ít.','🏖️',[4150,6900],600],
+  ['cattien','Rừng Nam Cát Tiên','Rừng già ẩm thấp nơi cửa ngõ phương Nam: gỗ quý, thuốc, và rất nhiều thú lớn.','🌳',[2450,8700],750],
+  ['cuulong','Đồng Bằng Chín Rồng','Châu thổ mênh mông, sông chia nhánh đổ ra biển. Đất phù sa trồng gì cũng tốt: vựa lúa của cả phương Nam.','🌾',[300,8750],1100],
+  ['uminh','Rừng U Minh','Rừng ngập nước mặn mũi tây nam: kênh rạch chằng chịt, đước, tràm, mật ong rừng, cá sấu.','🪷',[-1350,9450],800],
+  ['camau','Mũi Đất Cuối Trời','Chỗ đất liền vươn xa nhất về phương Nam. Đứng ở đây thấy mặt trời mọc lên và lặn xuống cùng một mặt biển.','🧭',[-1750,9700],420]];
+{const _rb=regionsBuild;regionsBuild=function(){const r=_rb.apply(this,arguments);if(WV>=4)for(const [id,n,d,ic,p,rr] of V5REG)if(!REG.some(q=>q.id===id))REG.push({id,n,d,ic,x:p[0],z:p[1],r:rr});return r;};}
+{const _t4=trails4;trails4=function(){const a=_t4();return WV>=4?a.concat([['ancient','deongang'],['deongang','truongson'],['truongson','mientrung'],['truongson','cattien'],['cattien','cuulong'],['cuulong','uminh'],['uminh','camau']]):a;};}
+// bản lưu và ván mới
+{const _fs=fixSave;fixSave=function(o){if(o&&o.wv===4){o.wv=3;const r=_fs(o);if(r){r.wv=4;try{worldCfg(4);}catch(e){}}return r;}return _fs(o);};}
+function v5Want(){try{return G.nwv===4||localStorage.getItem('ldtt-wv4')==='1';}catch(e){return G.nwv===4;}}
+{const _ng=newGame;newGame=function(o){const r=_ng(o);if(S&&v5Want()){S.wv=4;worldCfg(4);S._new=1;save();delete S._new;}return r;};}
+try{if(/[?&]vn=1/.test(location.search))localStorage.setItem('ldtt-wv4','1');else if(/[?&]vn=0/.test(location.search))localStorage.removeItem('ldtt-wv4');}catch(e){}
 /* ===================== BẢN ĐỒ NHỎ · BỘ LẠC NÚI ĐÁ (THÙ ĐỊCH) · CƯỚP PHÁ · THÚ DỮ TẤN CÔNG NHÀ ===================== */
 /* ---------- bản đồ nhỏ góc màn hình ---------- */
 function homePos(){const b=S.builds.find(b=>pieceDef(b.k)&&pieceDef(b.k).bed&&b.prog==null)||S.builds.find(b=>b.k==='campfire');return b?{x:b.x,z:b.z}:null;}
@@ -11255,7 +11312,7 @@ const H3CELL=320;
 function h3hash(a,b,c){const s=Math.sin(a*127.1+b*311.7+c*74.7+(S&&S.seed||1)*0.0001)*43758.5453;return s-Math.floor(s);}
 function h3cellNodes(ci,cj){const C=H3.cc||(H3.cc=new Map()),key=ci+','+cj;if(C.has(key))return C.get(key);const out=[];
   for(const kind in H3NODE){const N=H3NODE[kind];const tries=N.water?6:3;let n=0,want=Math.floor(N.per+h3hash(ci,cj,kind.length*7));
-    for(let k=0;k<tries&&n<want;k++){const x=(ci+h3hash(ci,cj,k*13+kind.length))*H3CELL,z=(cj+h3hash(cj,ci,k*17+kind.length*3))*H3CELL;if(Math.hypot(x,z)>WR*0.98)continue;const wd=wdAt(x,z);
+    for(let k=0;k<tries&&n<want;k++){const x=(ci+h3hash(ci,cj,k*13+kind.length))*H3CELL,z=(cj+h3hash(cj,ci,k*17+kind.length*3))*H3CELL;if(!wIn(x,z,0.98))continue;const wd=wdAt(x,z);
       if(N.water){if(wd<0.4||wd>3.5)continue;}else{if(wd>0.05||!N.bio.includes(bgAt(x,z))||slopeAt(x,z)>0.6||cellBusy(x,z))continue;}
       out.push({id:kind+':'+ci+':'+cj+':'+k,kind,x,z,y:hAt(x,z),ry:h3hash(ci,k,cj)*6.283});n++;}}
   C.set(key,out);if(C.size>400){const f=C.keys().next().value;C.delete(f);}return out;}
@@ -13038,7 +13095,7 @@ function m3Drag(){try{if(M3K.dragO){if(M3K.dragO.parent)M3K.dragO.parent.remove(
 /* ===================== 6. THÚ DI CƯ, ĐẠI SĂN ===================== */
 function m3MigPlan(){const ev=M2I().ev,si=seasonIdx(),sd=seasonDay();const key=Math.floor((S.day-1)/SEASON_DAYS);if((si===0&&sd===2)||(si===2&&sd===1)){if(ev.migK===key)return;ev.migK=key;ev.gh=0;
     const R=Math.random,a=R()*6.283,home=S.builds.find(b=>pieceDef(b.k)&&pieceDef(b.k).bed)||{x:P.x,z:P.z};let st=null,en=null;
-    for(let t=0;t<30&&!st;t++){const aa=a+t*0.21,x0=home.x+Math.cos(aa)*2200,z0=home.z+Math.sin(aa)*2200,x1=home.x-Math.cos(aa)*2200,z1=home.z-Math.sin(aa)*2200;if(Math.hypot(x0,z0)>WR*0.9||Math.hypot(x1,z1)>WR*0.9)continue;if(wdAt(x0,z0)>0||wdAt(x1,z1)>0)continue;st=[x0,z0];en=[x1,z1];}
+    for(let t=0;t<30&&!st;t++){const aa=a+t*0.21,x0=home.x+Math.cos(aa)*2200,z0=home.z+Math.sin(aa)*2200,x1=home.x-Math.cos(aa)*2200,z1=home.z-Math.sin(aa)*2200;if(!wIn(x0,z0,0.9)||!wIn(x1,z1,0.9))continue;if(wdAt(x0,z0)>0||wdAt(x1,z1)>0)continue;st=[x0,z0];en=[x1,z1];}
     if(!st)return;ev.mig={x0:st[0],z0:st[1],x1:en[0],z1:en[1],t0:TNOW(),t1:TNOW()+1.5,k:(S.age||0)>=4&&R()<0.5?'gaur':'deer',n:7};m3MigSpawn();
     uiToast(`🦌 Đàn ${ev.mig.k==='gaur'?'bò tót':'nai'} di cư đang băng qua vùng (hướng ${mxDir(en[0]-st[0],en[1]-st[1])}). Mở 🏮 Làng → 🧭 Đường để theo dấu. Đại săn!`,'gold');}}
 function m3MigSpawn(){const m=M2I().ev.mig;if(!m||M3K.mig)return;M3K.mig=[];const k=TNOW(),f=clamp((k-m.t0)/(m.t1-m.t0),0,1),cx=m.x0+(m.x1-m.x0)*f,cz=m.z0+(m.z1-m.z0)*f;
@@ -14337,7 +14394,7 @@ function aqSay(m,k){if(G.t-(AQ['_s'+m]||-99)<6)return;AQ['_s'+m]=G.t;uiToast(m,k
 
 /* ===================== 1. TÌM ĐƯỜNG: A* TRÊN LƯỚI ĐỊA HÌNH THÔ, CHIA NHỎ THEO KHUNG HÌNH ===================== */
 // giá đi qua một điểm (nhân với quãng đường). Vô cực = không đi được.
-function aqCost(x,z,ctx){if(Math.hypot(x,z)>WR*1.02)return Infinity;const wd=wdAt(x,z);let c=1;
+function aqCost(x,z,ctx){if(!wIn(x,z,1.02))return Infinity;const wd=wdAt(x,z);let c=1;
   if(wd>9){if(!ctx||!ctx.swim)return Infinity;c=14;}else if(wd>3)c=6;else if(wd>0.6)c=2.2;
   const sl=slopeAt(x,z);if(sl>1.2)return Infinity;if(sl>0.65)c+=(sl-0.65)*8;
   if(trailAt(x,z)>0.4)c*=0.72;
@@ -14374,7 +14431,7 @@ function aqSmooth(pts,ctx){if(pts.length<3)return pts;const out=[pts[0]];let i=0
 // an toàn từng bước: hướng đi có dẫn ra mép vực / nước sâu không? Thử xoay ±35°, ±70° nếu cần.
 function aqSafeDir(wx,wz){const l=Math.hypot(wx,wz)||1;wx/=l;wz/=l;const h0=hAt(P.x,P.z),swim=G.swim||wdAt(P.x,P.z)>8;
   for(const a of [0,0.6,-0.6,1.2,-1.2]){const c=Math.cos(a),s=Math.sin(a),dx=wx*c-wz*s,dz=wx*s+wz*c;let ok=true;
-    for(const d of [12,24]){const x=P.x+dx*d,z=P.z+dz*d,h=hAt(x,z);if(h0-h>d*1.05&&wdAt(x,z)<4){ok=false;break;}if(h-h0>d*1.3&&!G.swim){ok=false;break;}if(!swim&&wdAt(x,z)>10&&wdAt(P.x,P.z)<6){ok=false;break;}if(Math.hypot(x,z)>WR*1.02){ok=false;break;}}
+    for(const d of [12,24]){const x=P.x+dx*d,z=P.z+dz*d,h=hAt(x,z);if(h0-h>d*1.05&&wdAt(x,z)<4){ok=false;break;}if(h-h0>d*1.3&&!G.swim){ok=false;break;}if(!swim&&wdAt(x,z)>10&&wdAt(P.x,P.z)<6){ok=false;break;}if(!wIn(x,z,1.02)){ok=false;break;}}
     if(ok)return [dx,dz];}
   return null;}
 
@@ -16226,6 +16283,10 @@ if(typeof rlTick==='function'){const _rt=rlTick;rlTick=function(){try{khuBossTic
 /* ---------- bảng tên vùng: ghi cấp ---------- */
 {const _ur=uiRegion;uiRegion=function(r,first){_ur.apply(this,arguments);try{const el=$('#regban'),lv=khuLv(P.x,P.z);if(el)el.insertAdjacentHTML('beforeend',`<i class="khu-lv">Vùng cấp ${lv}${lv>=4?' · thú dữ và thổ dân mạnh: đi cùng lính':''}</i>`);}catch(e){}};}
 {const st=document.createElement('style');st.textContent='.khu-lv{display:block;font-style:normal;font-size:11.5px;font-weight:700;color:#ffd27a;margin-top:2px;text-shadow:0 1px 3px #000}';document.head.appendChild(st);}
+
+// hồ sơ tài nguyên của các vùng miền Trung, miền Nam (thế giới hình chữ S, world5.js)
+if(typeof RLPROF==='object'){Object.assign(RLPROF,{deongang:['stone','soil'],truongson:['timber stone game','fish soil'],mientrung:['salt fish shell','timber soil'],cattien:['timber game herb honey','stone'],cuulong:['soil fish clay','stone ore flint'],uminh:['fish honey shell','stone flint'],camau:['fish salt shell','stone timber']});
+  for(const id of ['deongang','truongson','mientrung','cattien','cuulong','uminh','camau']){const [r,p]=RLPROF[id];RLPS[id]={r:new Set(r.split(' ').filter(Boolean)),p:new Set(p.split(' ').filter(Boolean))};}}
 /* ===================== CỐT TRUYỆN · PHẦN THƯỞNG NHIỆM VỤ · CHƯƠNG "DỰNG NƯỚC" · LỘ TRÌNH XÂY DỰNG =====================
    - Mỗi thời đại là một chương có lời kể; chương đang chơi hiện đầu bảng Nhật ký, sang chương mới thì báo.
    - Hoàn thành mục tiêu nào cũng được thưởng vật phẩm theo chương (mục tiêu bỏ qua thì không). Thẻ mục tiêu ghi sẵn phần thưởng.
@@ -17668,7 +17729,7 @@ function mpMembership(){if(!MP.me||!MP.loaded.clans||!MP.loaded.players)return;c
     if(keep.length!==c.members.length||deny.length!==c.deny.length)mpClanWrite(mpClanDoc(c,{members:keep,deny}));}}
 /* ---------- lãnh thổ ---------- */
 function mpClaimWhy(x,z,r,kind){if(Math.hypot(x-SPAWN[0],z-SPAWN[1])<MP_SPAWN_FREE+r)return 'Gần Trảng Khởi Đầu quá: đó là đất chung của mọi người. Đi xa thêm một chút.';
-  if(Math.hypot(x,z)>WR*0.95)return 'Sát mép thế giới quá.';const my=mpMyClan();
+  if(!wIn(x,z,0.95))return 'Sát mép thế giới quá.';const my=mpMyClan();
   for(const u in MP.claims){if(u===MP.uid)continue;const c=MP.claims[u];if(Math.hypot(x-c.x,z-c.z)<r+c.r&&!(my&&mpClanOf(u)===my))return `Chồng lên lãnh thổ của ${mpName(u)}. Chọn chỗ khác.`;}
   for(const id in MP.clans){const cl=MP.clans[id];if(!cl.zone||id===my)continue;if(Math.hypot(x-cl.zone.x,z-cl.zone.z)<r+cl.zone.r)return `Chồng lên vùng đất của ${mpCT(cl.name)}.`;}
   if(kind==='zone')for(const u in MP.claims){const c=MP.claims[u];if(u!==MP.uid&&mpClanOf(u)!==my&&Math.hypot(x-c.x,z-c.z)<r+c.r)return `Chồng lên lãnh thổ của ${mpName(u)}.`;}
@@ -17714,7 +17775,7 @@ async function mpBuildSnap(u,s,sn){if(MP.bsub.get(u)!==s)return;if(!sn.exists){M
   s.ver=ver;MP.braw.set(u,mpDecode(str));mpRemoteApply(u);}
 function mpDecode(str){const out=[];if(!str)return out;const L=str.split(';');for(let i=0;i<L.length&&out.length<MP_BCAP;i++){const f=L[i].split(',');if(f.length!==7)continue;
     const id=+f[0],k=f[1],x=+f[2],y=+f[3],z=+f[4],r=+f[5],lv=+f[6];if(!(id>=0&&id<1e9&&Math.floor(id)===id)||!/^[A-Za-z0-9_]{1,40}$/.test(k)||!pieceDef(k))continue;
-    if(!mpNum(x,-WR-600,WR+600)||!mpNum(z,-WR-600,WR+600)||!mpNum(y,-800,4000)||!mpNum(r,0,4)||!mpNum(lv,0,LVMAX)||Math.floor(lv)!==lv)continue;out.push({lid:id,k,x,y,z,r,lv});}return out;}
+    if(!mpNum(x,-WSIZE,WSIZE)||!mpNum(z,-WSIZE,WSIZE)||!mpNum(y,-800,4000)||!mpNum(r,0,4)||!mpNum(lv,0,LVMAX)||Math.floor(lv)!==lv)continue;out.push({lid:id,k,x,y,z,r,lv});}return out;}
 function mpRk(u){let n=MP.rk.get(u);if(n==null){n=++MP.rkN;MP.rk.set(u,n);}return n;}
 function mpRemoteApply(u){const raw=MP.braw.get(u)||[],cur=MP.bcur.get(u)||new Map(),n=mpRk(u),want=new Map();let room=MP_RCAP-(MP.rTot-cur.size);
   for(const e of raw){if(room<=0)break;if(!mpAllowAt(u,e.x,e.z))continue;const id='m'+n+'_'+e.lid,sg=e.k+'|'+e.x+'|'+e.y+'|'+e.z+'|'+e.r+'|'+e.lv;want.set(id,{sg,e});room--;}
@@ -17734,7 +17795,7 @@ function mpPeers(ch){const seen=new Set();for(const p of ch.peers){if(p.sameTab)
     let r=MP.rp.get(p.peer);if(!r){r={peer:p.peer,x:v.x,y:v.y,z:v.z,ry:v.ry,o:null,tag:null,tagK:'',gait:0,spd:0,ph:Math.random()*6,ok:true};MP.rp.set(p.peer,r);if(ch.joined&&ch.joined.some(j=>j.peer===p.peer)&&MP.tick.pres>0)uiToast('👋 '+mpName(v.uid)+' đang ở thế giới chung.','');}
     if(r.pres!==p.presence){r.pres=p.presence;r.tx=v.x;r.ty=v.y;r.tz=v.z;r.tr=v.ry;r.a=v.a;r.uid=v.uid;r.cl=v.cl;if(r.lk!==v.lk&&r.o){G.sc.remove(r.o);r.o=null;}r.lk=v.lk;r.seen=G.t;}}
   for(const [k,r] of MP.rp)if(!seen.has(k)){if(r.o)G.sc.remove(r.o);if(r.tag)G.sc.remove(r.tag);MP.rp.delete(k);}MP.dirty.ui=true;}
-function mpValPres(p){const s=p.presence;if(!s||typeof s!=='object'||!S||s.w!==S.seed)return null;const L=WR+1500;
+function mpValPres(p){const s=p.presence;if(!s||typeof s!=='object'||!S||s.w!==S.seed)return null;const L=WSIZE;
   if(!mpNum(s.x,-L,L)||!mpNum(s.z,-L,L)||!mpNum(s.y,-1000,5000))return null;const uid=mpIdOk(p.by)?p.by:mpIdOk(s.u)?s.u:null;if(!uid||uid===MP.uid)return null;
   return {x:s.x,y:s.y,z:s.z,ry:mpNum(s.ry,-100,100)?s.ry:0,a:MPA.has(s.a)?s.a:'idle',lk:mpNum(s.lk,0,LOOKS.length-1)?s.lk|0:0,cl:mpIdOk(s.cl)?s.cl:'',uid};}
 function mpAnim(){if(G.sleeping)return 'sleep';if(G.ride||G.sit)return 'sit';if(G.work){const st=G.work.steps&&G.work.steps[G.work.i],a=st&&st.a;return MPA.has(a)?a:'whittle';}if(G.swim)return 'swim';

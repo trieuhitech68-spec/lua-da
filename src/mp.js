@@ -215,7 +215,7 @@ function mpMembership(){if(!MP.me||!MP.loaded.clans||!MP.loaded.players)return;c
     if(keep.length!==c.members.length||deny.length!==c.deny.length)mpClanWrite(mpClanDoc(c,{members:keep,deny}));}}
 /* ---------- lãnh thổ ---------- */
 function mpClaimWhy(x,z,r,kind){if(Math.hypot(x-SPAWN[0],z-SPAWN[1])<MP_SPAWN_FREE+r)return 'Gần Trảng Khởi Đầu quá: đó là đất chung của mọi người. Đi xa thêm một chút.';
-  if(Math.hypot(x,z)>WR*0.95)return 'Sát mép thế giới quá.';const my=mpMyClan();
+  if(!wIn(x,z,0.95))return 'Sát mép thế giới quá.';const my=mpMyClan();
   for(const u in MP.claims){if(u===MP.uid)continue;const c=MP.claims[u];if(Math.hypot(x-c.x,z-c.z)<r+c.r&&!(my&&mpClanOf(u)===my))return `Chồng lên lãnh thổ của ${mpName(u)}. Chọn chỗ khác.`;}
   for(const id in MP.clans){const cl=MP.clans[id];if(!cl.zone||id===my)continue;if(Math.hypot(x-cl.zone.x,z-cl.zone.z)<r+cl.zone.r)return `Chồng lên vùng đất của ${mpCT(cl.name)}.`;}
   if(kind==='zone')for(const u in MP.claims){const c=MP.claims[u];if(u!==MP.uid&&mpClanOf(u)!==my&&Math.hypot(x-c.x,z-c.z)<r+c.r)return `Chồng lên lãnh thổ của ${mpName(u)}.`;}
@@ -261,7 +261,7 @@ async function mpBuildSnap(u,s,sn){if(MP.bsub.get(u)!==s)return;if(!sn.exists){M
   s.ver=ver;MP.braw.set(u,mpDecode(str));mpRemoteApply(u);}
 function mpDecode(str){const out=[];if(!str)return out;const L=str.split(';');for(let i=0;i<L.length&&out.length<MP_BCAP;i++){const f=L[i].split(',');if(f.length!==7)continue;
     const id=+f[0],k=f[1],x=+f[2],y=+f[3],z=+f[4],r=+f[5],lv=+f[6];if(!(id>=0&&id<1e9&&Math.floor(id)===id)||!/^[A-Za-z0-9_]{1,40}$/.test(k)||!pieceDef(k))continue;
-    if(!mpNum(x,-WR-600,WR+600)||!mpNum(z,-WR-600,WR+600)||!mpNum(y,-800,4000)||!mpNum(r,0,4)||!mpNum(lv,0,LVMAX)||Math.floor(lv)!==lv)continue;out.push({lid:id,k,x,y,z,r,lv});}return out;}
+    if(!mpNum(x,-WSIZE,WSIZE)||!mpNum(z,-WSIZE,WSIZE)||!mpNum(y,-800,4000)||!mpNum(r,0,4)||!mpNum(lv,0,LVMAX)||Math.floor(lv)!==lv)continue;out.push({lid:id,k,x,y,z,r,lv});}return out;}
 function mpRk(u){let n=MP.rk.get(u);if(n==null){n=++MP.rkN;MP.rk.set(u,n);}return n;}
 function mpRemoteApply(u){const raw=MP.braw.get(u)||[],cur=MP.bcur.get(u)||new Map(),n=mpRk(u),want=new Map();let room=MP_RCAP-(MP.rTot-cur.size);
   for(const e of raw){if(room<=0)break;if(!mpAllowAt(u,e.x,e.z))continue;const id='m'+n+'_'+e.lid,sg=e.k+'|'+e.x+'|'+e.y+'|'+e.z+'|'+e.r+'|'+e.lv;want.set(id,{sg,e});room--;}
@@ -281,7 +281,7 @@ function mpPeers(ch){const seen=new Set();for(const p of ch.peers){if(p.sameTab)
     let r=MP.rp.get(p.peer);if(!r){r={peer:p.peer,x:v.x,y:v.y,z:v.z,ry:v.ry,o:null,tag:null,tagK:'',gait:0,spd:0,ph:Math.random()*6,ok:true};MP.rp.set(p.peer,r);if(ch.joined&&ch.joined.some(j=>j.peer===p.peer)&&MP.tick.pres>0)uiToast('👋 '+mpName(v.uid)+' đang ở thế giới chung.','');}
     if(r.pres!==p.presence){r.pres=p.presence;r.tx=v.x;r.ty=v.y;r.tz=v.z;r.tr=v.ry;r.a=v.a;r.uid=v.uid;r.cl=v.cl;if(r.lk!==v.lk&&r.o){G.sc.remove(r.o);r.o=null;}r.lk=v.lk;r.seen=G.t;}}
   for(const [k,r] of MP.rp)if(!seen.has(k)){if(r.o)G.sc.remove(r.o);if(r.tag)G.sc.remove(r.tag);MP.rp.delete(k);}MP.dirty.ui=true;}
-function mpValPres(p){const s=p.presence;if(!s||typeof s!=='object'||!S||s.w!==S.seed)return null;const L=WR+1500;
+function mpValPres(p){const s=p.presence;if(!s||typeof s!=='object'||!S||s.w!==S.seed)return null;const L=WSIZE;
   if(!mpNum(s.x,-L,L)||!mpNum(s.z,-L,L)||!mpNum(s.y,-1000,5000))return null;const uid=mpIdOk(p.by)?p.by:mpIdOk(s.u)?s.u:null;if(!uid||uid===MP.uid)return null;
   return {x:s.x,y:s.y,z:s.z,ry:mpNum(s.ry,-100,100)?s.ry:0,a:MPA.has(s.a)?s.a:'idle',lk:mpNum(s.lk,0,LOOKS.length-1)?s.lk|0:0,cl:mpIdOk(s.cl)?s.cl:'',uid};}
 function mpAnim(){if(G.sleeping)return 'sleep';if(G.ride||G.sit)return 'sit';if(G.work){const st=G.work.steps&&G.work.steps[G.work.i],a=st&&st.a;return MPA.has(a)?a:'whittle';}if(G.swim)return 'swim';

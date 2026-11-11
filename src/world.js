@@ -93,7 +93,7 @@ function slopeAt(x,z){const e=12;return Math.hypot(hAt(x+e,z)-hAt(x-e,z),hAt(x,z
 function moist(x,z){return NS.fbm(x/700-20,z/700+30,3);}
 function savannaK(x,z){return 1-ss(0.5,1.05,Math.hypot((x/WCR+0.46)/0.27,(z/WCR+0.02)/0.32));}
 function jungleK(x,z){return 1-ss(0.5,1.1,Math.hypot((x/WCR-0.25)/0.25,(z/WCR-0.45)/0.22));}
-function biome(x,z){const h=hAt(x,z);if(wdAt(x,z)>0.4)return 'water';const r=Math.hypot(x,z*1.04)/WR;if(h<9&&r>0.72)return 'beach';
+function biome(x,z){const h=hAt(x,z);if(wdAt(x,z)>0.4)return 'water';const r=WV>=4?v5R(x,z):Math.hypot(x,z*1.04)/WR;if(h<9&&r>0.72)return 'beach';
   if(h>450)return 'peak';const sl=slopeAt(x,z);if(h>260||sl>0.8)return 'rock';const q=riverQ(x,z);if(q.r>=0&&q.d<q.w*0.5+80&&h-q.s<10)return 'bank';
   const m=moist(x,z)+jungleK(x,z)*0.35-savannaK(x,z)*0.5+(h>140?-0.05:0);return m>0.06?'forest':(m>-0.1?'edge':'meadow');}
 const BCOL={water:'#5c6a52',beach:'#d8c48e',meadow:'#8db552',edge:'#6f9e44',forest:'#4a7a32',bank:'#7aa04c',rock:'#8a8478',peak:'#c6c2ba'};
@@ -146,7 +146,7 @@ function rKey(x,z){return Math.floor(x/RG)+','+Math.floor(z/RG);}
 function resGen(seed){RES.length=0;RGRID=new Map();const R=rng(seed*13+5);
   const okFree=(x,z,r)=>{for(const i of near(x,z,r+30)){const q=RES[i],d=Math.hypot(q.x-x,q.z-z);if(d<r+(RT[q.t].r||4)*0.8)return false;}return true;};
   const isTree=t=>/^(pine|oak|birch|dead|savannaTree)$/.test(t);const put=(t,x,z,s)=>{const q={i:RES.length,t,x,z,ry:R()*6.283,s:(s||(isTree(t)?0.62+R()*0.7:0.85+R()*0.35))*(RT[t].sc||1),hp:RT[t].hp,st:0,rg:0};RES.push(q);const k=rKey(x,z);if(!RGRID.has(k))RGRID.set(k,[]);RGRID.get(k).push(q.i);return q;};
-  const scatter=(t,n,want,tries)=>{n=Math.round(n*2.6*WRES);let c=0,k=0;while(c<n&&k<(tries||n*40)){k++;const a=R()*6.283,rr=Math.sqrt(R())*WR*0.95,x=Math.cos(a)*rr,z=Math.sin(a)*rr;const h=hAt(x,z);if(h<2||wdAt(x,z)>0)continue;
+  const scatter=(t,n,want,tries)=>{n=Math.round(n*2.6*WRES*(WV>=4?1.24:1));let c=0,k=0;while(c<n&&k<(tries||n*40)){k++;const a=R()*6.283,rr=Math.sqrt(R())*WR*0.95;let x=Math.cos(a)*rr,z=Math.sin(a)*rr;if(WV>=4&&R()<0.2){x=V5.box[0]+R()*V5.box[2];z=V5.box[1]+R()*V5.box[3];}const h=hAt(x,z);if(h<2||wdAt(x,z)>0)continue;
       const b=biome(x,z);const w=want(b,x,z,h);if(!w||R()>w)continue;if(decoBlock(x,z))continue;const sd=Math.hypot(x-SPAWN[0],z-SPAWN[1]);if(sd<60||(sd<230&&!RT[t].pass))continue;if(!RT[t].pass&&typeof trailAt==='function'&&trailAt(x,z)>0.15)continue;if(!okFree(x,z,(RT[t].r||4)+4))continue;put(t,x,z);c++;}};
   // gần chỗ bắt đầu: đủ đồ cho những bước đầu tiên
   const ring=(t,n,r0,r1)=>{let c=0,k=0;while(c<n&&k<400){k++;const a=R()*6.283,rr=r0+R()*(r1-r0),x=SPAWN[0]+Math.cos(a)*rr,z=SPAWN[1]+Math.sin(a)*rr;if(hAt(x,z)<3)continue;if(!okFree(x,z,(RT[t].r||4)+6))continue;put(t,x,z);c++;}};

@@ -15,7 +15,7 @@ function boatBoard(b){if(G.swim&&S.p.stam<1)return;G.ride=b;G.sit=false;G.act=nu
 function boatLeave(){const b=G.ride;if(!b)return;for(let d=24;d<90;d+=6)for(let a=0;a<16;a++){const ang=a/16*6.283,x=b.x+Math.sin(ang)*d,z=b.z+Math.cos(ang)*d;if(wdAt(x,z)<0.5&&slopeAt(x,z)<0.8){G.ride=null;P.x=x;P.z=z;P.y=hAt(x,z);P.air=false;save();sfx('step');return;}}uiToast('Xa bờ quá, chèo lại gần bờ đã.','');}
 function rideTick(dt){const b=G.ride;if(!b)return false;const k=G.keys,sp=b.k==='canoe'?150:95;let f=0,turn=0;if(k.KeyW||k.ArrowUp)f+=1;if(k.KeyS||k.ArrowDown)f-=0.5;if(k.KeyA||(k.ArrowLeft&&!isFP()))turn+=1;if(k.KeyD||(k.ArrowRight&&!isFP()))turn-=1;
   if(G.joy.on){f=-G.joy.y;turn=-G.joy.x;}if(isFP()){b.ry=P.ry;}else{b.ry+=turn*dt*1.4;P.ry=b.ry;}if(isFP()&&turn)P.ry+=turn*dt*1.4;
-  b.v=(b.v||0)+((f*sp)-(b.v||0))*Math.min(1,dt*1.5);const nx=b.x+Math.sin(b.ry)*b.v*dt,nz=b.z+Math.cos(b.ry)*b.v*dt;if(wdAt(nx,nz)>2.2&&Math.hypot(nx,nz)<WR*1.08){b.x=nx;b.z=nz;}else b.v*=-0.2;
+  b.v=(b.v||0)+((f*sp)-(b.v||0))*Math.min(1,dt*1.5);const nx=b.x+Math.sin(b.ry)*b.v*dt,nz=b.z+Math.cos(b.ry)*b.v*dt;if(wdAt(nx,nz)>2.2&&wIn(nx,nz,1.08)){b.x=nx;b.z=nz;}else b.v*=-0.2;
   if(Math.abs(b.v)>5&&G.t-(G.padT||0)>0.9){G.padT=G.t;sfx('drink');addXp('run',0.3);}boatPlace(b);P.x=b.x;P.z=b.z;P.y=b._o.position.y+(b.k==='canoe'?1.5:3.5);P.speed=0;P.air=false;S.p.wet=Math.max(S.p.wet,0);return true;}
 /* ---------- khoan lửa: bếp mới dựng chưa có lửa, phải khoan que cho bén ---------- */
 function isRaining(){return (G.wxK||0)>0.4&&S.wx&&S.wx.type!=='clear'&&S.wx.type!=='cloudy';}

@@ -22,7 +22,7 @@ function aqSay(m,k){if(G.t-(AQ['_s'+m]||-99)<6)return;AQ['_s'+m]=G.t;uiToast(m,k
 
 /* ===================== 1. TÌM ĐƯỜNG: A* TRÊN LƯỚI ĐỊA HÌNH THÔ, CHIA NHỎ THEO KHUNG HÌNH ===================== */
 // giá đi qua một điểm (nhân với quãng đường). Vô cực = không đi được.
-function aqCost(x,z,ctx){if(Math.hypot(x,z)>WR*1.02)return Infinity;const wd=wdAt(x,z);let c=1;
+function aqCost(x,z,ctx){if(!wIn(x,z,1.02))return Infinity;const wd=wdAt(x,z);let c=1;
   if(wd>9){if(!ctx||!ctx.swim)return Infinity;c=14;}else if(wd>3)c=6;else if(wd>0.6)c=2.2;
   const sl=slopeAt(x,z);if(sl>1.2)return Infinity;if(sl>0.65)c+=(sl-0.65)*8;
   if(trailAt(x,z)>0.4)c*=0.72;
@@ -59,7 +59,7 @@ function aqSmooth(pts,ctx){if(pts.length<3)return pts;const out=[pts[0]];let i=0
 // an toàn từng bước: hướng đi có dẫn ra mép vực / nước sâu không? Thử xoay ±35°, ±70° nếu cần.
 function aqSafeDir(wx,wz){const l=Math.hypot(wx,wz)||1;wx/=l;wz/=l;const h0=hAt(P.x,P.z),swim=G.swim||wdAt(P.x,P.z)>8;
   for(const a of [0,0.6,-0.6,1.2,-1.2]){const c=Math.cos(a),s=Math.sin(a),dx=wx*c-wz*s,dz=wx*s+wz*c;let ok=true;
-    for(const d of [12,24]){const x=P.x+dx*d,z=P.z+dz*d,h=hAt(x,z);if(h0-h>d*1.05&&wdAt(x,z)<4){ok=false;break;}if(h-h0>d*1.3&&!G.swim){ok=false;break;}if(!swim&&wdAt(x,z)>10&&wdAt(P.x,P.z)<6){ok=false;break;}if(Math.hypot(x,z)>WR*1.02){ok=false;break;}}
+    for(const d of [12,24]){const x=P.x+dx*d,z=P.z+dz*d,h=hAt(x,z);if(h0-h>d*1.05&&wdAt(x,z)<4){ok=false;break;}if(h-h0>d*1.3&&!G.swim){ok=false;break;}if(!swim&&wdAt(x,z)>10&&wdAt(P.x,P.z)<6){ok=false;break;}if(!wIn(x,z,1.02)){ok=false;break;}}
     if(ok)return [dx,dz];}
   return null;}
 

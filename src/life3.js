@@ -237,7 +237,7 @@ function l3snake(a,D,dt,d){const C=L3.C,pt=a._pt;a.state='wander';
   if(a._act==='coil'){l3set(a,'rest');a._dT=6+Math.random()*8;}a._coilT=0;a._dT-=dt;if(a._dT<=0){if(Math.random()<0.55){l3set(a,'rest');a._dT=8+Math.random()*14;}else{l3set(a,'walk');a._tx=a.home.x+(Math.random()-0.5)*160;a._tz=a.home.z+(Math.random()-0.5)*160;a._dT=12;}}
   if(a._act==='walk')l3go(a,a._tx,a._tz,D.spd*0.35);else{l3go(a,a.x,a.z,0);pt.coil=0.7;pt.head=0.1;}}
 /* ---------- di chuyển (kể cả bật lùi, chồm tới) ---------- */
-function l3ok(a,x,z){if(l3h(x,z)>WR*0.98)return false;const w=wdAt(x,z);if(a.kind==='crocodile')return !a._wh||w>1.5||l3h(x-a._wh.x,z-a._wh.z)<210;return w<2.4&&hAt(x,z)>-8;}
+function l3ok(a,x,z){if(!wIn(x,z,0.98))return false;const w=wdAt(x,z);if(a.kind==='crocodile')return !a._wh||w>1.5||l3h(x-a._wh.x,z-a._wh.z)<210;return w<2.4&&hAt(x,z)>-8;}
 function l3move(a,D,dt){let sp=a._sp||0;const dx=a._tx-a.x,dz=a._tz-a.z,dl=l3h(dx,dz);if(dl<3)sp=0;
   a.spd+=(sp-a.spd)*Math.min(1,dt*(sp>a.spd?2.6:5));if(a.spd<0.05)a.spd=0;const ry0=a.ry;
   if(dl>2&&sp>0)a.ry=lerpAng(a.ry,Math.atan2(dx,dz),Math.min(1,dt*(a._turnK||5)*(a.spd>D.spd*0.6&&a._turnK<20?0.6:1)));
