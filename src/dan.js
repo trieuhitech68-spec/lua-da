@@ -15,7 +15,7 @@ const DAN_MAXLV=10;
 JOBN.gate='Giữ cổng';JOBN.soldier='Lính theo bạn';
 const danLv=f=>clamp(f.lv|0||1,1,DAN_MAXLV);
 const danSp=f=>f.sp||(f.sp=DAN_ROLE[f.role]||'gather');
-const danDmg=f=>(2+danLv(f))*(danSp(f)==='guard'?1.5:1);
+let danDmg=f=>(2+danLv(f))*(danSp(f)==='guard'?1.5:1);
 const danCustom=f=>f.job==='gate'||f.job==='soldier';
 function danS(){if(!S.dan||typeof S.dan!=='object')S.dan={on:1};return S.dan;}
 function danXp(f,n){f.xp=(f.xp||0)+n;const need=8*danLv(f);if(f.xp>=need&&danLv(f)<DAN_MAXLV){f.xp-=need;f.lv=danLv(f)+1;if(Math.hypot(f.x-P.x,f.z-P.z)<900)uiToast(`⭐ ${f.n} lên cấp ${f.lv} (${DAN_SP[danSp(f)][1]}).`,'good');}}
