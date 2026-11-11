@@ -257,7 +257,7 @@ function rlMpTick(){if(!rlMpOn())return;const R=rlS(),now=mpNow();
   if(now-RL.mp.calcT>5000){RL.mp.calcT=now;rlMpCalc();}
   if(MP.ro||now-RL.mp.putT<20000)return;const L={};for(const s of RL.sites){let n=0,tt=0;for(const b of S.builds){if(b.prog!=null||!RLOUT.test(b.k))continue;if(Math.hypot(b.x-s.x,b.z-s.z)<RLSR){n++;if(b.k==='totem')tt=1;}}
     const e=R.mp[s.id]||[0,0],own=R.s[s.id]&&R.s[s.id].own==='me';if(!n&&!(e[0]>0))continue;L[s.id]=[Math.min(20,n),+e[0].toFixed(2),e[1]||0,tt&&own?1:0];}
-  const doc={w:S.seed,c:mpMyClan()||null,L};{const R2=typeof pvpOut==='function'?pvpOut():null;if(R2)doc.R=R2;}/* R: biên bản cướp phá (pvp.js) */const key=JSON.stringify([doc.c,Object.entries(L).map(([k,v])=>[k,v[0],Math.floor(v[1]),v[3]]),doc.R||0]);
+  const doc={w:S.seed,c:mpMyClan()||null,L};{const R2=typeof pvpOut==='function'?pvpOut():null;if(R2)doc.R=R2;const W2=typeof pvpWarOut==='function'?pvpWarOut():null;if(W2)doc.W=W2;}/* R: biên bản cướp phá (pvp.js) */const key=JSON.stringify([doc.c,Object.entries(L).map(([k,v])=>[k,v[0],Math.floor(v[1]),v[3]]),doc.R||0,doc.W||0]);
   if(key===RL.mp.last&&now-RL.mp.putT<600000)return;RL.mp.last=key;RL.mp.putT=now;mpPut('sites/'+MP.uid,doc);const v=rlMpVal(MP.uid,doc);if(v){RL.mp.docs[MP.uid]=v;rlMpCalc();}}
 /* ---------- giao diện: thẻ "Lãnh địa" trong Bản đồ, lớp Tài nguyên, dấu trên bản đồ & bản đồ nhỏ ---------- */
 const RLDIR=['B','ĐB','Đ','ĐN','N','TN','T','TB'];
