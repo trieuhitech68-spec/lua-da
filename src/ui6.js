@@ -3,8 +3,8 @@
      · Hệ thống (Cài đặt, Dừng). Nút do mô-đun khác thêm sau mà chưa có nhóm thì rơi vào nhóm cuối.
    - Bảng Xây dựng: bốn hộp công cụ (Lộ trình, Nâng cấp & sửa chữa, Sửa công trình, San nền) trước đây xếp chồng chiếm hết màn hình đầu;
      giờ gộp thành một hàng bốn nút, bấm nút nào mở hộp đó, danh sách công trình hiện ngay bên dưới. */
-const UI6_ORD={l4:11,journal:12,dan:21,m2:22,clan:23,map:31,notes:32,settings:41};
-const UI6_H=[[10,'Nhân vật'],[20,'Làng & liên minh'],[30,'Thế giới'],[40,'Hệ thống']];
+const UI6_ORD={journal:11,notes:12,dan:21,m2:22,clan:23,map:31,settings:41};
+const UI6_H=[[10,'Sổ tay'],[20,'Làng & liên minh'],[30,'Thế giới'],[40,'Hệ thống']];
 function ui6Menu(){const m=document.querySelector('#menu .ui5-more');if(!m)return;
   if(!m.querySelector('.ui6-h'))for(const [o,n] of UI6_H){const s=document.createElement('span');s.className='ui6-h';s.style.order=o;s.textContent=n;m.appendChild(s);}
   for(const b of m.querySelectorAll('button')){const k=b.getAttribute('data-ui'),o=UI6_ORD[k]||(b.hasAttribute('data-sp')?49:45);if(b.style.order!==String(o))b.style.order=o;}}
