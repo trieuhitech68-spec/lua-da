@@ -46,3 +46,6 @@ const SOL_HUT=34;
 function solTopAt(x,z){try{const c=cellAt(x,z);if(!c)return null;let top=null;for(let L=0;L<=LVMAX;L++){const id=c[slotN('roof',L)];if(id){const b=BYID.get(id);if(b&&b.prog==null){/* tấm mái dốc: mép thấp (y+48) ở phía +z của tấm, nóc (y+78) ở phía −z, dày 5; xoay theo b.r */const d=pieceDef(b.k),th=(b.r||0)*Math.PI/2,lz=(x-b.x)*Math.sin(th)+(z-b.z)*Math.cos(th);const t=d&&d.cap?b.y+LVH+8:b.y+51+clamp((20-lz)/40,0,1)*30;if(top==null||t>top)top=t;}}}
     /* lều, chuồng: mái nhọn, không đứng lên được (trước cho leo thì người lún vào chóp lều) */return top;}catch(e){return null;}}
 {const _gy=groundY;groundY=function(x,z,yRef){const g=_gy(x,z,yRef);try{if(typeof OCC!=='undefined'&&OCC.cell.size){const t=solTopAt(x,z);if(t!=null&&t>g){const ref=yRef==null?P.y:yRef;if(ref>=t-10)return t;}}}catch(e){}return g;};}
+/* ---------- giường: bước lên mặt giường thay vì chân xuyên qua ---------- */
+{const _gy=groundY;groundY=function(x,z,yRef){const g=_gy(x,z,yRef);try{const c=cellAt(x,z);if(c){const id=c[slotN('obj',0)];const b=id&&BYID.get(id),d=b&&pieceDef(b.k);if(d&&d.bed&&!d.shelter&&!d.small&&b.prog==null){const fp=d.fp||[1,1],w=(b.r%2?fp[1]:fp[0])*CELL/2-4,dd=(b.r%2?fp[0]:fp[1])*CELL/2-4;
+        if(Math.abs(x-b.x)<w&&Math.abs(z-b.z)<dd){const t=b.y+8,ref=yRef==null?P.y:yRef;if(t>g&&ref>=t-22)return t;}}}}catch(e){}return g;};}
