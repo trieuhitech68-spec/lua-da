@@ -14,3 +14,7 @@
 body.ld-in .ld-app{display:none!important}`;document.head.appendChild(st);}
 {const _ui=aqUi;aqUi=function(){const r=_ui.apply(this,arguments);try{const b=document.querySelector('#auchip .au-b.stop');if(b&&b.textContent!=='✋')b.textContent='✋';}catch(e){}return r;};}
 setInterval(()=>{try{document.body.classList.toggle('ld-in',!!(typeof G==='object'&&G.on));}catch(e){}},800);
+/* ---------- thẻ không tự chắn màn hình mãi ---------- */
+// Thẻ gợi ý (góc trái) tự đóng sau 14 giây. Bảng giữa màn hình (ngủ dậy, chuyện kể, lễ hội) làm game tạm dừng: đang "Tự làm" thì tự đóng sau 5 giây để nhân vật làm tiếp.
+setInterval(()=>{try{if(!S||!G.on)return;if(typeof GD==='object'&&GD.card&&G.t-GD.card.t>14){const x=document.querySelector('#gdcard [data-gd="close"]');if(x)x.click();}
+  const ov=document.getElementById('overlay');if(ov&&!ov.hidden&&G.paused&&typeof AQ==='object'&&AQ.on){ov._t=(ov._t||0)+1;if(ov._t>=5){ov._t=0;const b=ov.querySelector('button');if(b)b.click();}}else if(ov)ov._t=0;}catch(e){}},1000);

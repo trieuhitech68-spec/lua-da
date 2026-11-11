@@ -2725,7 +2725,7 @@ function uiFly(id,n,src){if(!G.on)return;const [sx,sy]=src?scr(src[0],src[1],src
   uiFloat(`+${n} ${ITEMS[id].n}`,src?src[0]:P.x,src?src[1]+10:P.y+40,src?src[2]:P.z);}
 function uiFade(cb){const f=$('#fade');f.classList.add('on');G.paused=true;setTimeout(()=>{try{cb&&cb();}finally{setTimeout(()=>{f.classList.remove('on');G.paused=false;},350);}},800);}
 function uiAge(i){const A=AGES[i];const d=document.createElement('div');d.className='ageup';d.innerHTML=`<small>Bộ lạc bước sang</small><b>${esc(A.n)}</b><p>${esc(A.d)}</p>`;$('#game').appendChild(d);sfx('level');setTimeout(()=>d.remove(),5200);}
-function uiRecap(list){if(!list.length)return;G.paused=true;uiOverlay(true,`<div class="ov-card"><h2>Một ngày đã qua</h2><p>Hôm qua bạn đã ${esc(list.join(', '))}.</p><p class="muted">Ngày ${wcAge()} · Mùa ${SEASONS[seasonIdx()].n}. ${['Mùa xuân mưa nhiều, cây cối lớn nhanh.','Mùa hạ nắng nóng: nhớ mang theo nước.','Mùa thu: tích trữ thức ăn, củi và may áo ấm.','Mùa đông giá rét: ở gần lửa và dưới mái nhà.'][seasonIdx()]}</p><button class="btn big" data-a="recap">Ngày mới</button></div>`);}
+function uiRecap(list){if(!list.length)return;G.paused=true;uiOverlay(true,`<div class="ov-card"><h2>Ngủ dậy khoẻ khoắn</h2><p>Từ lần ngủ trước bạn đã ${esc(list.join(', '))}.</p><p class="muted">Ngày ${wcAge()} · Mùa ${SEASONS[seasonIdx()].n}. ${['Mùa xuân mưa nhiều, cây cối lớn nhanh.','Mùa hạ nắng nóng: nhớ mang theo nước.','Mùa thu: tích trữ thức ăn, củi và may áo ấm.','Mùa đông giá rét: ở gần lửa và dưới mái nhà.'][seasonIdx()]}</p><button class="btn big" data-a="recap">Dậy làm việc</button></div>`);}
 function uiLoading(on){uiOverlay(on,on?'<div class="ov-card"><div class="spin"></div><p>Đang tạo thế giới…</p></div>':'');}
 function uiError(t){uiOverlay(true,`<div class="ov-card"><h2>Ôi!</h2><p>${esc(t)}</p><button class="btn" onclick="location.reload()">Tải lại</button></div>`);}
 function uiOverlay(on,html){const o=$('#overlay');o.hidden=!on;if(on)o.innerHTML=html;}
@@ -19153,6 +19153,10 @@ document.addEventListener('click',e=>{if(!H4.on)return;const b=e.target&&e.targe
 body.ld-in .ld-app{display:none!important}`;document.head.appendChild(st);}
 {const _ui=aqUi;aqUi=function(){const r=_ui.apply(this,arguments);try{const b=document.querySelector('#auchip .au-b.stop');if(b&&b.textContent!=='✋')b.textContent='✋';}catch(e){}return r;};}
 setInterval(()=>{try{document.body.classList.toggle('ld-in',!!(typeof G==='object'&&G.on));}catch(e){}},800);
+/* ---------- thẻ không tự chắn màn hình mãi ---------- */
+// Thẻ gợi ý (góc trái) tự đóng sau 14 giây. Bảng giữa màn hình (ngủ dậy, chuyện kể, lễ hội) làm game tạm dừng: đang "Tự làm" thì tự đóng sau 5 giây để nhân vật làm tiếp.
+setInterval(()=>{try{if(!S||!G.on)return;if(typeof GD==='object'&&GD.card&&G.t-GD.card.t>14){const x=document.querySelector('#gdcard [data-gd="close"]');if(x)x.click();}
+  const ov=document.getElementById('overlay');if(ov&&!ov.hidden&&G.paused&&typeof AQ==='object'&&AQ.on){ov._t=(ov._t||0)+1;if(ov._t>=5){ov._t=0;const b=ov.querySelector('button');if(b)b.click();}}else if(ov)ov._t=0;}catch(e){}},1000);
 /* ===================== CƠ BẢN CHO NGƯỜI MỚI: NGÀY THEO LỊCH THẬT · CÂY CỎ QUANH NĂM · VẬT LIỆU CƠ BẢN GẦN NƠI BẮT ĐẦU · DỰNG CĂN CỨ TRƯỚC =====================
    1. Ngày: số "Ngày N" trên màn hình là số ngày theo lịch thật (giờ Việt Nam) kể từ khi tạo nhân vật. Ngủ không làm sang ngày mới.
       (Nhịp sinh hoạt bên trong: đói khát, cây lớn, củi cháy vẫn chạy theo "ngày công" 12 phút như cũ, chỉ không hiện ra và không nhảy khi ngủ.)
@@ -19261,6 +19265,17 @@ const khoIndoor=b=>{try{const c=cellAt(b.x,b.z);return !!(c&&(c[slotN('roof',0)]
   const _sp=aq2Spots;aq2Spots=function(def){const out=_sp.apply(this,arguments);try{const fp=def.fp||[1,1];if(def.kind==='obj'&&fp[0]*fp[1]===1&&(def.bed||def.store)){const ins=[];for(const b of aq2Floors()){if(b.prog!=null)continue;const c=cellAt(b.x,b.z);if(!c||c[slotN('obj',0)])continue;
           let walls=0;const cx=Math.floor(b.x/CELL),cz=Math.floor(b.z/CELL);for(const [ex,ez,r] of [[b.x,cz*CELL,0],[b.x,(cz+1)*CELL,0],[cx*CELL,b.z,1],[(cx+1)*CELL,b.z,1]]){const id=OCC.edge.get(edgeKey(ex,ez,r,0));const w=id&&BYID.get(id),wd=w&&pieceDef(w.k);if(wd&&!wd.door)walls++;}
           ins.push({x:b.x,z:b.z,s:-5000-(c[slotN('roof',0)]?500:0)-walls*100+ins.length});}ins.sort((a,b)=>a.s-b.s);return ins.concat(out).slice(0,16);}}catch(e){}return out;};}
+/* ---------- rào quanh nhà ---------- */
+// Mục tiêu chính mới sau áo tơi: rào kín một vòng quanh nhà (cách nhà một ô) và một cổng rào. Thú hoang không vào được sân; người đi qua cổng.
+function khoRing(){const F=aq2Floors().filter(b=>b.prog==null);if(!F.length)return [];let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const b of F){const cx=Math.floor(b.x/CELL),cz=Math.floor(b.z/CELL);x0=Math.min(x0,cx);x1=Math.max(x1,cx);z0=Math.min(z0,cz);z1=Math.max(z1,cz);}x0--;z0--;x1++;z1++;
+  const out=[],add=(ax,az,ex,ez,r)=>{if(!OCC.edge.has(edgeKey(ex,ez,r,0)))out.push({x:ax,z:az,ex,ez});};
+  for(let cx=x0;cx<=x1;cx++){const x=(cx+0.5)*CELL;add(x,z0*CELL+4,x,z0*CELL,0);add(x,(z1+1)*CELL-4,x,(z1+1)*CELL,0);}for(let cz=z0;cz<=z1;cz++){const z=(cz+0.5)*CELL;add(x0*CELL+4,z,x0*CELL,z,1);add((x1+1)*CELL-4,z,(x1+1)*CELL,z,1);}return out;}
+{const at=GOALS.findIndex(x=>x.t==='Làm áo tơi hoặc nón lá');if(at>=0&&!GOALS.some(x=>x.t==='Rào quanh nhà, dựng cổng')){const isF=b=>b.prog==null&&pieceDef(b.k)&&pieceDef(b.k).kind==='edge'&&pieceDef(b.k).low;
+    GOALS.splice(at+1,0,G_(1,'Rào quanh nhà, dựng cổng','Xây → Hàng rào (6 cành mỗi đoạn) quây một vòng quanh nhà, chừa một chỗ dựng Cổng rào (6 cành, 1 dây thừng). Thú hoang không vào được sân.',14,()=>Math.min(13,S.builds.filter(b=>isF(b)&&!pieceDef(b.k).door).length)+Math.min(1,S.builds.filter(b=>isF(b)&&pieceDef(b.k).door).length)));
+    AUG['Rào quanh nhà, dựng cổng']=()=>{const s=S.builds.find(b=>b.prog!=null&&/^(fence|gate)$/.test(b.k));if(s)return {k:'site',b:s};return {k:'place',piece:S.builds.some(b=>isF(b)&&pieceDef(b.k).door)?'fence':'gate'};};}
+  const _gc=goalCheck;goalCheck=function(){try{if(S&&S.gv6!==1){S.gv6=1;if(S.goal>0){let i=0;while(i<GOALS.length){const [v,n]=goalProg(GOALS[i]);if(v<n)break;i++;}if(i<S.goal)S.goal=i;}}}catch(e){}return _gc.apply(this,arguments);};
+  const _sp=aq2Spots;aq2Spots=function(def){try{if(def.kind==='edge'&&def.low){const R=khoRing();if(R.length){if(def.door){/* cổng: đoạn rào gần cửa nhà nhất */const dw=S.builds.find(b=>pieceDef(b.k)&&pieceDef(b.k).door&&!pieceDef(b.k).low)||S.builds.find(b=>GD_FLOOR.test(b.k));R.sort((a,b)=>Math.hypot(a.ex-dw.x,a.ez-dw.z)-Math.hypot(b.ex-dw.x,b.ez-dw.z));}
+          else{const p0=R[0];R.sort((a,b)=>Math.hypot(a.ex-P.x,a.ez-P.z)-Math.hypot(b.ex-P.x,b.ez-P.z));}return R.slice(0,16);}if(aq2Floors().some(b=>b.prog==null))return [];/* vòng rào đã kín: không rào đè lên chân tường nhà */}}catch(e){}return _sp.apply(this,arguments);};}
 /* ===================== NÂNG CẤP CẢ CĂN NHÀ TẠI CHỖ =====================
    Không phải phá nhà cũ dựng nhà mới: đứng trong / cạnh nhà, mở Xây → ⬆️ Nâng cấp & sửa chữa, bấm "Nâng cả nhà".
    Mọi sàn, vách, mái của bạn trong vòng 14 m đổi sang vật liệu bậc trên ngay tại chỗ (đồ đạc bên trong giữ nguyên), tốn 60% giá cấu kiện mới.
