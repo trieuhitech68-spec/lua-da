@@ -185,7 +185,7 @@ const AUJ={
     const ng=needGate(true);if(ng)return AQ_RUN;aqFace(b.x,b.z);fireStart(b);if(!G.work)return aqFail('Không nhóm được lửa.');j.st='wait';j.fl=j.fl||0;return AQ_RUN;},
   sleep(j){if(j.st==='zz'){if(G.sleeping)return AQ_RUN;return AQ_DONE;}if(j.cf)return aqFail(j.cf);const b=aqBed();if(!b)return {fail:'Chưa có chỗ ngủ: dựng lều nghiêng trước.',guide:'leanto'};
     j.lab='Về lều ngủ';if(aqD(b.x,b.z)>34)return aqGoto(j,b.x,b.z,26,j.lab);
-    if(!isNight()){j.lab='Chờ trời tối để ngủ ('+String(Math.floor(S.hour)).padStart(2,'0')+'h → 19h)';return AQ_RUN;}
+    /* (ngủ giờ nào cũng được: không chờ trời tối nữa) */
     const def=pieceDef(b.k);actStart({type:'build',b,def,d:6});j.st='zz';j.t0=G.t;return AQ_RUN;},
   explore(j){if(j.cf)return aqFail(j.cf);const R=j.reg;if(R&&S.disc&&S.disc[R.id])return AQ_DONE;
     if(!R){let best=null,bd=1e9;for(const r of REG){if(S.disc&&S.disc[r.id])continue;if(j.skip&&j.skip.has(r.id))continue;const d=aqD(r.x,r.z);if(d<bd){bd=d;best=r;}}if(!best)return aqFail('Đã khám phá hết các vùng.');j.reg=best;}
@@ -229,7 +229,7 @@ const AUJ={
     if(invCount('stone')<1&&invCount('sand')<1){aqPush({k:'get',id:'stone',n:1,tries:0},j);return AQ_RUN;}j.lab='Mài lưỡi '+aqN(S.inv[i].id).toLowerCase();l4ToolFix(i,'sharp');if(!G.work)return aqFail('Không mài được.');j.st='wait';return AQ_RUN;},
   story(j){if(j.cf)return aqFail(j.cf);if(j.st==='wait'){if(G.work)return AQ_RUN;return AQ_DONE;}const f=aqFire();if(!f)return {fail:'Cần bếp lửa.',guide:'campfire'};
     if(!fireLit(f)){aqPush({k:'light',b:f},j);return AQ_RUN;}j.lab='Kể chuyện bên bếp';if(aqD(f.x,f.z)>70)return aqGoto(j,f.x,f.z,50,j.lab);
-    if(!isNight()){j.lab='Chờ trời tối để kể chuyện';return AQ_RUN;}l4Story();if(!G.work)return aqFail('Chưa kể chuyện được.');j.st='wait';return AQ_RUN;},
+    l4Story();if(!G.work)return aqFail('Chưa kể chuyện được.');j.st='wait';return AQ_RUN;},
   rest(j){j.lab='Nghỉ lấy sức';if(S.p.stam>=(j.to||40)||G.t-j.t0>40){if(G.sit)sitToggle(false);return AQ_DONE;}if(!G.sit&&!G.swim&&!P.air)sitToggle(true);return AQ_RUN;},
   treat(j){if(j.st==='wait'){if(G.work)return AQ_RUN;return AQ_DONE;}j.lab='Băng vết thương';if(!S.st.bleed||invCount('bandage')<1)return AQ_DONE;l4Treat('band');j.st='wait';if(!G.work)return AQ_DONE;return AQ_RUN;},
   flee(j){const a=j.a;j.lab='Tránh '+((a&&a.n)||'thú dữ').toLowerCase();if(!a||!a.alive||G.t-j.t0>6||aqD(a.x,a.z)>380)return AQ_DONE;
@@ -337,7 +337,7 @@ function aqSafety(){const c=aqCfg(),p=S.p,top=AQ.jobs[AQ.jobs.length-1];if(!top|
   if(c.eat){if(p.water<22&&top.k!=='drink'){aqPush({k:'drink',urgent:1,tries:0},top);return;}if(p.food<22&&top.k!=='eat'){aqPush({k:'eat',urgent:1,tries:0},top);return;}}
   if(p.stam<6&&!G.act){aqPush({k:'rest',to:42,t0:G.t,urgent:1},top);return;}
   // đêm tối không đuốc, xa lửa: về lều ngủ hoặc dừng
-  if(isNight()&&!invCount('torch')&&!gdLitNear(200)&&!AQ.jobs.some(j=>j.k==='sleep'||j.k==='story')){const b=aqBed();
+  if(false&&isNight()&&!invCount('torch')&&!gdLitNear(200)&&!AQ.jobs.some(j=>j.k==='sleep'||j.k==='story')){/* tắt: giờ thật thì đêm kéo dài nhiều giờ và đêm đã sáng trăng, không dừng tự làm vì trời tối nữa */const b=aqBed();
     if(b){aqPush({k:'sleep',urgent:1},top);aqSay('🤖 Trời tối, không có đuốc: về lều ngủ.','');}else aqStop('🤖 Trời tối mà không có đuốc: dừng tự làm cho an toàn.','');}}
 
 /* ===================== 5. LÁI NHÂN VẬT BẰNG CẦN ĐIỀU KHIỂN ẢO ===================== */
@@ -459,3 +459,15 @@ if(typeof cxItemDet==='function'){const _ci=cxItemDet;cxItemDet=function(id){let
 .au-cost{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px}.au-cost .chip.lack{outline:1px solid #e0533a}
 .au-gath{margin-top:10px;padding:8px;border-radius:12px;background:rgba(255,210,90,.07);border:1px solid var(--line,rgba(255,255,255,.12))}.au-gath .chip.on{outline:2px solid #ffd25a}
 body.mxphoto #auchip,body.mxphoto #aucard{display:none!important}`;document.head.appendChild(st);}
+
+/* ---------- thẻ hướng dẫn / tự làm: gọn lại + tự chuyển sang mục kế khi mục đang làm đã xong ----------
+   Lỗi cũ: làm xong mục tiêu bằng tay (hoặc xong trong lúc thẻ hướng dẫn đang mở) thì thẻ vẫn đứng ở mục cũ, tự làm không sang mục mới. */
+setInterval(()=>{try{if(!S||!G.on)return;
+  const C=AQ.card;if(C&&C.gi>=0&&S.goal>C.gi){aqGuideHide();if(aqCfg().next&&S.goal<GOALS.length&&!G.build&&!G.panel)setTimeout(()=>{try{if(!AQ.on&&!G.build)aqStart(S.goal);}catch(e){}},600);}
+  if(AQ.on&&!AQ.pause&&AQ.gi>=0&&S.goal>AQ.gi&&AQ.jobs.length){const root=AQ.jobs[0];if(root&&root.k==='goal'&&root.gi===AQ.gi)aqFinishRoot(root);}
+  // thẻ gợi ý của guide.js nói về mục tiêu đã qua thì cất đi
+  if(typeof GD==='object'&&GD.card&&GD.card.gi!=null&&S.goal>GD.card.gi){const el=document.getElementById('gdcard');if(el)el.hidden=true;GD.card=null;}}catch(e){}},1000);
+document.addEventListener('click',e=>{const c=e.target&&e.target.closest&&e.target.closest('.gdcard');if(!c||e.target.closest('button'))return;c.classList.toggle('au-open');});
+{const st=document.createElement('style');st.textContent=`#game .gdcard{width:min(264px,calc(100vw - 84px));padding:8px 10px 8px;font-size:11.5px;line-height:1.35;border-radius:12px}#game .gdcard .gdc-h b{font-size:12.5px}#game .gdcard .gdc-h span{font-size:16px}
+#game .gdcard p{margin:4px 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}#game .gdcard.au-open p{display:block}#game .gdcard .gdc-r{gap:5px;flex-wrap:wrap}#game .gdcard .btn{min-height:32px;padding:3px 8px;font-size:11.5px}#game .gdcard .gdc-x{width:28px;height:28px}
+#game .gdcard .au-cost .chip{padding:1px 6px 1px 3px;font-size:11px}#game .auchip{width:min(250px,calc(100vw - 90px));padding:6px 8px;font-size:11.5px;border-radius:11px}`;document.head.appendChild(st);}

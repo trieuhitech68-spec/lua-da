@@ -11943,11 +11943,11 @@ const L4STORY=[
   {t:'Chử Đồng Tử',d:'Chàng trai nghèo chỉ có một khố vải chung với cha, gặp công chúa Tiên Dung trên bãi sông. Hai người nên vợ chồng, cùng nhau đi buôn, mở chợ, dạy dân trồng trọt, đánh cá.',k:'Buôn bán, trao đổi giúp làng giàu có.',sk:'gather'},
   {t:'Thánh Gióng',d:'Cậu bé ba tuổi chưa biết nói, nghe giặc đến thì vươn vai thành tráng sĩ, nhổ bụi tre đánh tan quân giặc rồi bay về trời.',k:'Tre làng là giáo mác: trồng tre quanh nhà.',sk:'hunt'},
   {t:'Nỏ thần An Dương Vương',d:'Thần Kim Quy cho vua móng thần làm lẫy nỏ, một phát bắn ra nghìn mũi tên đồng. Vua xây thành Cổ Loa xoắn ốc giữ nước.',k:'Mũi tên đồng, thành lũy: sức mạnh của thời Đông Sơn.',sk:'craft'}];
-function l4StoryOk(){return isNight()&&L4.fire;}
-function l4Story(){const L=l4S(),key=S.day+(S.hour<6?-1:0);if(!isNight()){uiToast('Chuyện kể bên bếp lửa lúc trời tối.','');return;}if(!l4NearFire()){uiToast('Ngồi quây quần bên bếp lửa đang cháy để kể chuyện.','');return;}if(L.story===key){uiToast('Đêm nay đã kể chuyện rồi. Đi ngủ thôi!','');return;}
+function l4StoryOk(){return !!L4.fire;}/* kể chuyện bên lửa giờ nào cũng được (giờ thật) */
+function l4Story(){const L=l4S(),key=S.day+(S.hour<6?-1:0);if(!l4NearFire()){uiToast('Ngồi quây quần bên bếp lửa đang cháy để kể chuyện.','');return;}if(L.story===key){uiToast('Đêm nay đã kể chuyện rồi. Đi ngủ thôi!','');return;}
   const i=(L.storyI||0)%L4STORY.length,st=L4STORY[i];l4Work([['Thêm củi, ngồi quây quần bên lửa','sit',1.0,'step'],['Kể chuyện: '+st.t,'sit',2.4,'step']],{icon:'torch',sk:'gather'},()=>{L.story=key;L.storyI=i+1;const folk=(S.folk||[]).length;l4Spirit(12+Math.min(8,folk*2),0);S.p.rest=Math.min(100,S.p.rest+8);addXp(st.sk,8);cnt('cnt','story');
     G.paused=true;uiOverlay(true,`<div class="ov-card l4story"><small>Chuyện kể bên bếp lửa</small><h2>📜 ${esc(st.t)}</h2><p>${esc(st.d)}</p><p class="l4moral">💡 ${esc(st.k)}</p><p class="small muted">Tinh thần +${12+Math.min(8,folk*2)}${folk?' (cả nhà cùng nghe)':''} · ${SKILL[st.sk]} +8 kinh nghiệm.</p><button class="btn big" data-a="recap">Nghe xong</button></div>`);save();});}
-{const _ch=craftHtml;craftHtml=function(){const h=_ch();if((G.cst==='campfire'||!G.cst)&&isNight()&&l4NearFire()){const done=l4S().story===S.day+(S.hour<6?-1:0);return `<div class="l4box"><b>🔥 Kể chuyện bên bếp lửa</b><p class="small muted">Đêm xuống, cả nhà quây quần: nghe chuyện cổ tích, truyền kinh nghiệm sống. Tinh thần tăng, tỉnh táo lại.</p><button class="btn sm" data-a="l4story" ${done?'disabled':''}>${done?'Đêm nay đã kể':'Kể một câu chuyện'}</button></div>`+h;}return h;};}
+{const _ch=craftHtml;craftHtml=function(){const h=_ch();if((G.cst==='campfire'||!G.cst)&&l4NearFire()){const done=l4S().story===S.day+(S.hour<6?-1:0);return `<div class="l4box"><b>🔥 Kể chuyện bên bếp lửa</b><p class="small muted">Đêm xuống, cả nhà quây quần: nghe chuyện cổ tích, truyền kinh nghiệm sống. Tinh thần tăng, tỉnh táo lại.</p><button class="btn sm" data-a="l4story" ${done?'disabled':''}>${done?'Đêm nay đã kể':'Kể một câu chuyện'}</button></div>`+h;}return h;};}
 // vẽ mình, văn thân
 function l4Paint(){const L=l4S();if(invCount('ochre')<1){uiToast('Cần 1 son đất đỏ (đất sét + than, nung ở bếp).','bad');return;}l4Work([['Hòa son với mỡ thú','grind',0.9,'step'],['Vẽ vạch đỏ lên tay, ngực','work',1.4,'pick']],{icon:'ochre',sk:'craft'},()=>{if(!invTake('ochre',1))return;L.paint=+(TNOW()+2).toFixed(3);l4Spirit(10,1);playerInit();cnt('cnt','paint');uiToast('🎨 Vạch son đỏ trên mình: trông oai vệ, lòng hăng hái (2 ngày).','good');uiHotbar();save();});}
 function l4Tattoo(){const L=l4S();if(L.tat){uiToast('Bạn đã văn thân rồi.','');return;}if(!l4AgeOk({age:3})){uiToast('Tục văn thân có từ '+AGES[3].n+'.','');return;}if(invCount('needle')<1||invCount('charcoal')<1){uiToast('Cần kim xương và 1 than củi.','bad');return;}
@@ -14213,7 +14213,7 @@ const GD_GOALS=[
   G_(0,'Làm que khoan lửa','Chế tạo → Khoan lửa (2 cành, 1 gỗ, 2 sợi). Không có nó thì bếp chỉ là đống đá lạnh.',1,()=>gC('craft:fireDrill')),
   G_(0,'Nhóm ngọn lửa đầu tiên','Xây Bếp lửa (6 đá, 4 cành, 2 gỗ) sát lều, rồi bấm Hành động để khoan lửa. Trời mưa chỉ nhóm được sát lều, dưới mái.',1,()=>gC('cnt:fire')),
   G_(0,'Ăn 3 bữa','Quả mọng, chuối, nấm rơm, củ mài; lội suối bắt cá bằng tay. Chạm món ăn trong túi để ăn. Nấm đỏ có độc!',3,()=>gC('cnt:eat')),
-  G_(0,'Ngủ qua đêm đầu tiên','Sau 19 giờ, vào lều nghiêng bấm Hành động để ngủ. Có lửa bên cạnh thì ấm, ngủ ngon, thú ít dám lại gần.',1,()=>gC('cnt:sleep')),
+  G_(0,'Ngủ qua đêm đầu tiên','Vào lều nghiêng bấm Hành động để ngủ (giờ nào cũng ngủ được). Có lửa bên cạnh thì ấm, ngủ ngon, thú ít dám lại gần.',1,()=>gC('cnt:sleep')),
   // ——— Thời Hòa Bình: sống nhờ rừng ———
   G_(1,'Hái 4 cây thuốc','Ngải cứu, rau má, bạc hà, gừng mọc ở bìa rừng, ven suối. Biết cây thuốc thì bộ lạc sang thời Hòa Bình.',4,()=>gC('cnt:herb')),
   G_(1,'Làm băng lá rau má','Chế tạo → Băng lá (3 sợi + 2 rau má). Mang sẵn trong túi: thú cào, dẫm gai là có ngay.',1,()=>gC('craft:bandage')),
@@ -14569,7 +14569,7 @@ const AUJ={
     const ng=needGate(true);if(ng)return AQ_RUN;aqFace(b.x,b.z);fireStart(b);if(!G.work)return aqFail('Không nhóm được lửa.');j.st='wait';j.fl=j.fl||0;return AQ_RUN;},
   sleep(j){if(j.st==='zz'){if(G.sleeping)return AQ_RUN;return AQ_DONE;}if(j.cf)return aqFail(j.cf);const b=aqBed();if(!b)return {fail:'Chưa có chỗ ngủ: dựng lều nghiêng trước.',guide:'leanto'};
     j.lab='Về lều ngủ';if(aqD(b.x,b.z)>34)return aqGoto(j,b.x,b.z,26,j.lab);
-    if(!isNight()){j.lab='Chờ trời tối để ngủ ('+String(Math.floor(S.hour)).padStart(2,'0')+'h → 19h)';return AQ_RUN;}
+    /* (ngủ giờ nào cũng được: không chờ trời tối nữa) */
     const def=pieceDef(b.k);actStart({type:'build',b,def,d:6});j.st='zz';j.t0=G.t;return AQ_RUN;},
   explore(j){if(j.cf)return aqFail(j.cf);const R=j.reg;if(R&&S.disc&&S.disc[R.id])return AQ_DONE;
     if(!R){let best=null,bd=1e9;for(const r of REG){if(S.disc&&S.disc[r.id])continue;if(j.skip&&j.skip.has(r.id))continue;const d=aqD(r.x,r.z);if(d<bd){bd=d;best=r;}}if(!best)return aqFail('Đã khám phá hết các vùng.');j.reg=best;}
@@ -14613,7 +14613,7 @@ const AUJ={
     if(invCount('stone')<1&&invCount('sand')<1){aqPush({k:'get',id:'stone',n:1,tries:0},j);return AQ_RUN;}j.lab='Mài lưỡi '+aqN(S.inv[i].id).toLowerCase();l4ToolFix(i,'sharp');if(!G.work)return aqFail('Không mài được.');j.st='wait';return AQ_RUN;},
   story(j){if(j.cf)return aqFail(j.cf);if(j.st==='wait'){if(G.work)return AQ_RUN;return AQ_DONE;}const f=aqFire();if(!f)return {fail:'Cần bếp lửa.',guide:'campfire'};
     if(!fireLit(f)){aqPush({k:'light',b:f},j);return AQ_RUN;}j.lab='Kể chuyện bên bếp';if(aqD(f.x,f.z)>70)return aqGoto(j,f.x,f.z,50,j.lab);
-    if(!isNight()){j.lab='Chờ trời tối để kể chuyện';return AQ_RUN;}l4Story();if(!G.work)return aqFail('Chưa kể chuyện được.');j.st='wait';return AQ_RUN;},
+    l4Story();if(!G.work)return aqFail('Chưa kể chuyện được.');j.st='wait';return AQ_RUN;},
   rest(j){j.lab='Nghỉ lấy sức';if(S.p.stam>=(j.to||40)||G.t-j.t0>40){if(G.sit)sitToggle(false);return AQ_DONE;}if(!G.sit&&!G.swim&&!P.air)sitToggle(true);return AQ_RUN;},
   treat(j){if(j.st==='wait'){if(G.work)return AQ_RUN;return AQ_DONE;}j.lab='Băng vết thương';if(!S.st.bleed||invCount('bandage')<1)return AQ_DONE;l4Treat('band');j.st='wait';if(!G.work)return AQ_DONE;return AQ_RUN;},
   flee(j){const a=j.a;j.lab='Tránh '+((a&&a.n)||'thú dữ').toLowerCase();if(!a||!a.alive||G.t-j.t0>6||aqD(a.x,a.z)>380)return AQ_DONE;
@@ -14721,7 +14721,7 @@ function aqSafety(){const c=aqCfg(),p=S.p,top=AQ.jobs[AQ.jobs.length-1];if(!top|
   if(c.eat){if(p.water<22&&top.k!=='drink'){aqPush({k:'drink',urgent:1,tries:0},top);return;}if(p.food<22&&top.k!=='eat'){aqPush({k:'eat',urgent:1,tries:0},top);return;}}
   if(p.stam<6&&!G.act){aqPush({k:'rest',to:42,t0:G.t,urgent:1},top);return;}
   // đêm tối không đuốc, xa lửa: về lều ngủ hoặc dừng
-  if(isNight()&&!invCount('torch')&&!gdLitNear(200)&&!AQ.jobs.some(j=>j.k==='sleep'||j.k==='story')){const b=aqBed();
+  if(false&&isNight()&&!invCount('torch')&&!gdLitNear(200)&&!AQ.jobs.some(j=>j.k==='sleep'||j.k==='story')){/* tắt: giờ thật thì đêm kéo dài nhiều giờ và đêm đã sáng trăng, không dừng tự làm vì trời tối nữa */const b=aqBed();
     if(b){aqPush({k:'sleep',urgent:1},top);aqSay('🤖 Trời tối, không có đuốc: về lều ngủ.','');}else aqStop('🤖 Trời tối mà không có đuốc: dừng tự làm cho an toàn.','');}}
 
 /* ===================== 5. LÁI NHÂN VẬT BẰNG CẦN ĐIỀU KHIỂN ẢO ===================== */
@@ -14843,6 +14843,18 @@ if(typeof cxItemDet==='function'){const _ci=cxItemDet;cxItemDet=function(id){let
 .au-cost{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px}.au-cost .chip.lack{outline:1px solid #e0533a}
 .au-gath{margin-top:10px;padding:8px;border-radius:12px;background:rgba(255,210,90,.07);border:1px solid var(--line,rgba(255,255,255,.12))}.au-gath .chip.on{outline:2px solid #ffd25a}
 body.mxphoto #auchip,body.mxphoto #aucard{display:none!important}`;document.head.appendChild(st);}
+
+/* ---------- thẻ hướng dẫn / tự làm: gọn lại + tự chuyển sang mục kế khi mục đang làm đã xong ----------
+   Lỗi cũ: làm xong mục tiêu bằng tay (hoặc xong trong lúc thẻ hướng dẫn đang mở) thì thẻ vẫn đứng ở mục cũ, tự làm không sang mục mới. */
+setInterval(()=>{try{if(!S||!G.on)return;
+  const C=AQ.card;if(C&&C.gi>=0&&S.goal>C.gi){aqGuideHide();if(aqCfg().next&&S.goal<GOALS.length&&!G.build&&!G.panel)setTimeout(()=>{try{if(!AQ.on&&!G.build)aqStart(S.goal);}catch(e){}},600);}
+  if(AQ.on&&!AQ.pause&&AQ.gi>=0&&S.goal>AQ.gi&&AQ.jobs.length){const root=AQ.jobs[0];if(root&&root.k==='goal'&&root.gi===AQ.gi)aqFinishRoot(root);}
+  // thẻ gợi ý của guide.js nói về mục tiêu đã qua thì cất đi
+  if(typeof GD==='object'&&GD.card&&GD.card.gi!=null&&S.goal>GD.card.gi){const el=document.getElementById('gdcard');if(el)el.hidden=true;GD.card=null;}}catch(e){}},1000);
+document.addEventListener('click',e=>{const c=e.target&&e.target.closest&&e.target.closest('.gdcard');if(!c||e.target.closest('button'))return;c.classList.toggle('au-open');});
+{const st=document.createElement('style');st.textContent=`#game .gdcard{width:min(264px,calc(100vw - 84px));padding:8px 10px 8px;font-size:11.5px;line-height:1.35;border-radius:12px}#game .gdcard .gdc-h b{font-size:12.5px}#game .gdcard .gdc-h span{font-size:16px}
+#game .gdcard p{margin:4px 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}#game .gdcard.au-open p{display:block}#game .gdcard .gdc-r{gap:5px;flex-wrap:wrap}#game .gdcard .btn{min-height:32px;padding:3px 8px;font-size:11.5px}#game .gdcard .gdc-x{width:28px;height:28px}
+#game .gdcard .au-cost .chip{padding:1px 6px 1px 3px;font-size:11px}#game .auchip{width:min(250px,calc(100vw - 90px));padding:6px 8px;font-size:11.5px;border-radius:11px}`;document.head.appendChild(st);}
 /* ===================== LEO VÁCH · BÁM MÉP · NẰM BÒ · TRƯỢT DỐC · LĂN NGƯỜI · VƯỢT RÀO (move3) =====================
    Nạp SAU guide.js, TRƯỚC peek.js (xem build.py): bọc NGOÀI CÙNG moveTick / move (đã được hunt3 và life4 bọc) để
    lớp lăn người giảm được vận tốc chạm đất TRƯỚC khi game và life4 (gãy xương) tính chấn thương.
@@ -16044,9 +16056,13 @@ function wcWeather(){const q=1200000,slot=Math.floor(wcMs()/q),si=wcSeason(),rp=
 // đồng bộ với giờ máy chủ (10 phút một lần; lỗi thì thử lại sau 1 phút)
 function wcSyncTick(){const now=Date.now();if(now<WC.syncT)return;WC.syncT=now+60000;if(typeof LDB==='undefined'||!LDB.sb||!LDB.sb.rpc)return;const t0=now;
   try{Promise.resolve(LDB.sb.rpc('ld_now')).then(r=>{const v=r&&!r.error?+r.data:NaN;if(v>1e12&&v<1e14){const t1=Date.now();WC.off=Math.round(v-(t0+t1)/2);WC.ok=true;WC.syncT=t1+600000;}}).catch(()=>{});}catch(e){}}
-// ngủ: giờ trên trời là giờ thật nên ngủ không làm trời sáng. Mỗi đêm thật chỉ "qua đêm" một lần: hồi sức đầy đủ, đồng hồ sinh hoạt nhảy nửa ngày công
-{const _sl=sleep;sleep=function(b){if(!G.sleeping&&isNight()){const night=Math.floor((wcMs()-12*3600000)/86400000);if(S.wcSl===night){S.p.hp=Math.min(100,S.p.hp+12);S.p.stam=maxStam();uiToast('Đêm nay bạn đã ngủ một giấc rồi. Nằm nghỉ hồi sức; trời sáng theo giờ thật (khoảng 5 rưỡi sáng giờ Việt Nam).','');uiHud(true);return;}S.wcSl=night;const d0=S.day;
-    setTimeout(()=>{if(!S)return;if(S.day===d0&&S.tn!=null)S.tn+=0.45;if(isNight())uiToast('🌙 Ngủ dậy khỏe lại rồi, nhưng ngoài trời vẫn tối: giờ trong game là giờ thật ở Việt Nam ('+wcClockVN()+').','');},4200);}return _sl.apply(this,arguments);};}
+// NGỦ GIỜ NÀO CŨNG ĐƯỢC: giờ trên trời là giờ thật nên không thể bắt chờ tới tối. Mỗi lần ngủ hồi đầy sức; ngủ xong phải thức ít nhất
+// nửa ngày công (6 phút chơi) mới ngủ tiếp được, trước đó nằm chỉ là nghỉ một lát. Ngủ không làm trời sáng hay tối đi.
+{const _sl=sleep;sleep=function(b){if(G.sleeping)return;if(S.tn==null)S.tn=S.day;const left=0.5-(S.tn-(S.wcSlT==null?-9:S.wcSlT));
+  if(left>0){S.p.hp=Math.min(100,S.p.hp+12);S.p.stam=maxStam();uiToast(`Vừa ngủ dậy chưa lâu: nằm nghỉ một lát hồi sức. Khoảng ${Math.max(1,Math.ceil(left*DAY_SEC/60))} phút nữa mới ngủ giấc tiếp được.`,'');uiHud(true);return;}
+  S.wcSlT=S.tn;const h=S.hour,d0=S.day;S.hour=20;/* mã gốc chỉ cho ngủ khi "trời tối": đặt tạm giờ để qua kiểm tra, wcStep trả lại giờ thật ở khung hình sau */
+  try{_sl.apply(this,arguments);}finally{S.hour=h;}
+  setTimeout(()=>{if(!S)return;if(S.day===d0&&S.tn!=null)S.tn+=0.45;},4200);};}
 // bảng giờ: thêm dòng nhỏ "giờ VN · mùa còn bao lâu" dưới dòng ngày
 {const _hud=uiHud;uiHud=function(){const r=_hud.apply(this,arguments);try{const el=document.querySelector('#game .h-time');if(el&&S){el.title='Giờ thật Việt Nam '+wcClockVN()+' ngày '+wcDateVN()+' · mùa '+SEASONS[wcSeason()].n+' còn '+wcSeasonLeftDays()+' ngày · mọi người chơi cùng giờ, cùng mùa';}}catch(e){}return r;};}
 // MÙA ĐÔNG KIỂU MIỀN BẮC VIỆT NAM (vì mùa theo tháng thật, đông kéo 3 tháng): rét 9-17°C, mưa phùn, cây trồng lớn chậm (40%) chứ không ngừng hẳn
@@ -16240,6 +16256,42 @@ if(typeof b3Hourly==='function'){const _bh=b3Hourly;b3Hourly=function(gh){const 
 {const _bh=buildHtml;buildHtml=function(){return `<div class="landbox"><b>⬆️ Nâng cấp & sửa chữa</b><span class="small muted">Nâng bậc đồ chứa, bếp lò, mái vách; sửa chỗ đang mục. Xem danh sách công trình quanh bạn.</span><div class="row"><button class="btn sm" data-a="upopen">Mở danh sách</button></div></div>`+_bh();};}
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="updo"],[data-a="uprep"],[data-a="upopen"]');if(!b||!S)return;e.stopImmediatePropagation();const a=b.dataset.a;if(a==='upopen'){sfx('pick');uiOpen('upg');}else if(a==='updo')upDo(b.dataset.id);else upRepair(b.dataset.id);},true);
 {const st=document.createElement('style');st.textContent=`.up-row{display:flex;gap:10px;align-items:center;padding:9px 10px;margin-bottom:7px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}.up-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.up-star{font-style:normal;color:#f2c55a}.up-acts{flex:none;display:flex;flex-direction:column;gap:5px}.up-acts .btn{min-height:40px;white-space:nowrap}.up-miss{color:#ff9a8a}.up-warn{color:#ffb86a}`;document.head.appendChild(st);}
+/* ===================== NHÀ CÓ CHỨC NĂNG =====================
+   Dựng mái che lên một công trình chức năng thì nó thành một "nhà" có tác dụng riêng (đứng trong vòng 6 m quanh nó mới được hưởng):
+     · Xưởng (bàn chế tác, trạm khắc, khung dệt, chỗ nặn gốm, phiến đá mài dưới mái): chế tạo, làm việc nhanh hơn 20%.
+     · Nhà bếp (bếp lửa, lò bếp dưới mái): nấu nướng nhanh hơn 25%, đứng gần ấm và hồi thể lực nhanh hơn.
+     · Lò rèn (lò luyện, lò nung dưới mái): nung, luyện, đúc nhanh hơn 20%.
+     · Nhà kho (giỏ, rương, kệ, chum, kho thóc dưới mái): đồ chứa không bị mưa (ghi nhận, chưa có tác dụng số).
+     · Nhà ở (giường, chỗ ngủ dưới mái): cỡ nhà theo số tấm mái quanh giường: Lều (1-3) · Nhà nhỏ (4-8) · Nhà lớn (9-15) · Nhà dài (16+).
+       Mỗi bậc +5 thể lực tối đa; ngủ trong nhà từ bậc Nhà nhỏ trở lên được "Khỏe khoắn" lâu gấp đôi.
+     · Chuồng trại (chuồng gà, máng ăn, chuồng trâu… dưới mái): vật nuôi quanh đó không bỏ đi khi trời mưa bão (ghi chú, chưa có tác dụng số).
+   Bảng "🏠 Nhà của bạn" (trong Xây dựng → Nâng cấp) liệt kê nhà nào đang có chức năng gì; tên công trình khi lại gần cũng ghi chức năng. */
+const NHA={list:[],t:-9,home:0,tip:{}};
+const NHA_K={work:['🛠️','Xưởng','chế tạo, làm việc nhanh hơn 20%'],cook:['🍲','Nhà bếp','nấu nướng nhanh hơn 25%'],forge:['⚒️','Lò rèn','nung, luyện, đúc nhanh hơn 20%'],store:['📦','Nhà kho','đồ cất khô ráo dưới mái'],home:['🏠','Nhà ở','thêm thể lực tối đa, ngủ ngon hơn'],barn:['🐓','Chuồng trại','vật nuôi có chỗ trú']};
+const NHA_HOME=[[1,'Lều'],[4,'Nhà nhỏ'],[9,'Nhà lớn'],[16,'Nhà dài']];
+function nhaKind(b){const d=pieceDef(b.k);if(!d)return null;if(d.bed)return 'home';if(/^(workbench|carveBench|loom|potter|grindSlab|mortar)$/.test(b.k))return 'work';if(/^(smelter|kiln)$/.test(b.k))return 'forge';if(d.fuel||/hearth|campfire|Hearth/.test(b.k))return 'cook';
+  if(d.store&&b.k!=='trough')return 'store';if(/coop|trough|pigPen|buffaloShed|duckHouse|goatShed|Roost/i.test(b.k))return 'barn';return null;}
+function nhaScan(){NHA.t=G.t;const L=[];let home=0;const roofs=S.builds.filter(b=>b.prog==null&&!b.remote&&pieceDef(b.k)&&pieceDef(b.k).kind==='roof');
+  for(const b of S.builds){if(b.prog!=null||b.remote)continue;const k=nhaKind(b);if(!k)continue;let cov=false;try{cov=underRoof(b.x,b.z)&&!(typeof inCave==='function'&&inCave(b.x,b.z));}catch(e){}if(!cov)continue;const o={b,k,tier:0};
+    if(k==='home'){let n=0;for(const r of roofs)if(Math.hypot(r.x-b.x,r.z-b.z)<230)n++;for(let i=0;i<NHA_HOME.length;i++)if(n>=NHA_HOME[i][0])o.tier=i+1;o.n=n;home=Math.max(home,o.tier);}L.push(o);}
+  if(home>NHA.home&&G.on&&NHA.t>20)uiToast(`🏠 Nhà của bạn giờ là ${NHA_HOME[home-1][1]}: thể lực tối đa +${home*5}.`,'gold');NHA.home=home;NHA.list=L;
+  for(const o of L){if(o.k==='home'||NHA.tip[o.b.id])continue;NHA.tip[o.b.id]=1;if(G.on&&G.t>20&&Math.hypot(o.b.x-P.x,o.b.z-P.z)<300){const K=NHA_K[o.k];uiToast(`${K[0]} ${pieceDef(o.b.k).n} dưới mái thành ${K[1]}: ${K[2]}.`,'good');}}}
+setInterval(()=>{try{if(G.on&&S&&S.builds)nhaScan();}catch(e){}},4000);
+function nhaNear(k,r){for(const o of NHA.list)if(o.k===k&&Math.hypot(o.b.x-P.x,o.b.z-P.z)<(r||120))return o;return null;}
+/* ---------- tác dụng ---------- */
+{const _ms=maxStam;maxStam=function(){return _ms()+NHA.home*5;};}
+{const _wt=workTick;workTick=function(dt){const W=G.work;let k=1;if(W){const a=W.steps&&W.steps[W.i]&&W.steps[W.i].a;if(W.sk==='cook'||a==='cook'){if(nhaNear('cook'))k=1.25;}else if(nhaNear('forge')&&(W.sk==='craft')&&/smelt|cast|fire/i.test(String(W.icon||'')+a))k=1.2;else if(nhaNear('work')&&W.sk!=='hunt')k=1.2;if(k===1&&nhaNear('forge')&&W.sk==='craft')k=1.2;}return _wt(dt*k);};}
+{const _bt=bodyTick;bodyTick=function(dt){const r=_bt.apply(this,arguments);try{if(!G.work&&!G.act&&P.speed<8&&nhaNear('cook',110)){S.p.stam=Math.min(maxStam(),S.p.stam+dt*1.5);}}catch(e){}return r;};}
+// ngủ trong nhà đủ lớn: Khỏe khoắn lâu gấp đôi
+{const _sl=sleep;sleep=function(b){const r=_sl.apply(this,arguments);try{const o=NHA.list.find(x=>x.b===b);if(o&&o.tier>=2)setTimeout(()=>{if(S&&S.buff&&S.buff.rested>TNOW())S.buff.rested=TNOW()+(S.buff.rested-TNOW())*2;},4500);}catch(e){}return r;};}
+{const _ti=targetInfo;targetInfo=function(t){const r=_ti.apply(this,arguments);try{if(r&&t&&t.b&&r.name){const o=NHA.list.find(x=>x.b===t.b);if(o){const K=NHA_K[o.k];r.name+=' · '+K[0]+' '+(o.k==='home'?NHA_HOME[o.tier-1][1]:K[1]);}}}catch(e){}return r;};}
+/* ---------- bảng ---------- */
+function nhaHtml(){const L=NHA.list;const by={};L.forEach(o=>{(by[o.k]=by[o.k]||[]).push(o);});
+  const rows=Object.keys(NHA_K).map(k=>{const K=NHA_K[k],a=by[k]||[],on=a.length>0;let ex='';if(k==='home'&&on){const t=Math.max(...a.map(o=>o.tier)),nx=NHA_HOME[t];ex=` · đang là <b>${NHA_HOME[t-1][1]}</b> (+${t*5} thể lực)${nx?` · thêm mái tới ${nx[0]} tấm quanh giường thành ${nx[1]}`:''}`;}
+    return `<div class="nha-r${on?' on':''}"><span>${K[0]}</span><div><b>${K[1]}${on?` <em>×${a.length}</em>`:''}</b><small>${on?K[2]+ex:'Chưa có: '+({work:'lợp mái che bàn chế tác, trạm khắc, khung dệt',cook:'lợp mái che bếp lửa hoặc lò bếp',forge:'lợp mái che lò nung, lò luyện',store:'lợp mái che giỏ, rương, chum',home:'lợp mái che giường hoặc chỗ ngủ',barn:'lợp mái che chuồng gà, máng ăn'})[k]}</small></div></div>`;}).join('');
+  return `<div class="landbox nha-box"><b>🏠 Nhà của bạn</b><span class="small muted">Lợp mái lên công trình nào thì chỗ đó thành nhà có chức năng. Đứng trong vòng 6 m mới được hưởng.</span>${rows}</div>`;}
+if(typeof upHtml==='function'){const _uh=upHtml;upHtml=function(){let h=_uh.apply(this,arguments);try{nhaScan();h=nhaHtml()+h;}catch(e){}return h;};}
+{const st=document.createElement('style');st.textContent=`.nha-box{gap:6px}.nha-r{display:flex;gap:9px;align-items:center;padding:6px 8px;border-radius:10px;background:rgba(0,0,0,.2);opacity:.6}.nha-r.on{opacity:1;border:1px solid rgba(242,197,90,.45);background:rgba(242,197,90,.1)}.nha-r>span{font-size:20px}.nha-r div{display:flex;flex-direction:column;min-width:0}.nha-r b{font-size:13px}.nha-r em{font-style:normal;color:#ffd27a}.nha-r small{font-size:11px;color:#cbb994;line-height:1.3}`;document.head.appendChild(st);}
 /* ===================== THỔ DÂN: BẮT SỐNG · CẤP ĐỘ THEO VÙNG · SỞ TRƯỜNG · GIỮ CỔNG · LÀM LÍNH =====================
    - Chiến binh các bộ lạc có CẤP (1..10) tăng theo khoảng cách tới Trảng Khởi Đầu: càng xa càng trâu (máu +45%, đòn +12% mỗi cấp).
    - Mang Dây thừng trong túi và còn giường trống: hạ gục một chiến binh thì TRÓI BẮT thay vì giết (tốn 1 dây thừng). Tù binh về ở như

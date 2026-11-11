@@ -42,7 +42,7 @@ const GD_GOALS=[
   G_(0,'Làm que khoan lửa','Chế tạo → Khoan lửa (2 cành, 1 gỗ, 2 sợi). Không có nó thì bếp chỉ là đống đá lạnh.',1,()=>gC('craft:fireDrill')),
   G_(0,'Nhóm ngọn lửa đầu tiên','Xây Bếp lửa (6 đá, 4 cành, 2 gỗ) sát lều, rồi bấm Hành động để khoan lửa. Trời mưa chỉ nhóm được sát lều, dưới mái.',1,()=>gC('cnt:fire')),
   G_(0,'Ăn 3 bữa','Quả mọng, chuối, nấm rơm, củ mài; lội suối bắt cá bằng tay. Chạm món ăn trong túi để ăn. Nấm đỏ có độc!',3,()=>gC('cnt:eat')),
-  G_(0,'Ngủ qua đêm đầu tiên','Sau 19 giờ, vào lều nghiêng bấm Hành động để ngủ. Có lửa bên cạnh thì ấm, ngủ ngon, thú ít dám lại gần.',1,()=>gC('cnt:sleep')),
+  G_(0,'Ngủ qua đêm đầu tiên','Vào lều nghiêng bấm Hành động để ngủ (giờ nào cũng ngủ được). Có lửa bên cạnh thì ấm, ngủ ngon, thú ít dám lại gần.',1,()=>gC('cnt:sleep')),
   // ——— Thời Hòa Bình: sống nhờ rừng ———
   G_(1,'Hái 4 cây thuốc','Ngải cứu, rau má, bạc hà, gừng mọc ở bìa rừng, ven suối. Biết cây thuốc thì bộ lạc sang thời Hòa Bình.',4,()=>gC('cnt:herb')),
   G_(1,'Làm băng lá rau má','Chế tạo → Băng lá (3 sợi + 2 rau má). Mang sẵn trong túi: thú cào, dẫm gai là có ngay.',1,()=>gC('craft:bandage')),

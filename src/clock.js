@@ -34,9 +34,13 @@ function wcWeather(){const q=1200000,slot=Math.floor(wcMs()/q),si=wcSeason(),rp=
 // đồng bộ với giờ máy chủ (10 phút một lần; lỗi thì thử lại sau 1 phút)
 function wcSyncTick(){const now=Date.now();if(now<WC.syncT)return;WC.syncT=now+60000;if(typeof LDB==='undefined'||!LDB.sb||!LDB.sb.rpc)return;const t0=now;
   try{Promise.resolve(LDB.sb.rpc('ld_now')).then(r=>{const v=r&&!r.error?+r.data:NaN;if(v>1e12&&v<1e14){const t1=Date.now();WC.off=Math.round(v-(t0+t1)/2);WC.ok=true;WC.syncT=t1+600000;}}).catch(()=>{});}catch(e){}}
-// ngủ: giờ trên trời là giờ thật nên ngủ không làm trời sáng. Mỗi đêm thật chỉ "qua đêm" một lần: hồi sức đầy đủ, đồng hồ sinh hoạt nhảy nửa ngày công
-{const _sl=sleep;sleep=function(b){if(!G.sleeping&&isNight()){const night=Math.floor((wcMs()-12*3600000)/86400000);if(S.wcSl===night){S.p.hp=Math.min(100,S.p.hp+12);S.p.stam=maxStam();uiToast('Đêm nay bạn đã ngủ một giấc rồi. Nằm nghỉ hồi sức; trời sáng theo giờ thật (khoảng 5 rưỡi sáng giờ Việt Nam).','');uiHud(true);return;}S.wcSl=night;const d0=S.day;
-    setTimeout(()=>{if(!S)return;if(S.day===d0&&S.tn!=null)S.tn+=0.45;if(isNight())uiToast('🌙 Ngủ dậy khỏe lại rồi, nhưng ngoài trời vẫn tối: giờ trong game là giờ thật ở Việt Nam ('+wcClockVN()+').','');},4200);}return _sl.apply(this,arguments);};}
+// NGỦ GIỜ NÀO CŨNG ĐƯỢC: giờ trên trời là giờ thật nên không thể bắt chờ tới tối. Mỗi lần ngủ hồi đầy sức; ngủ xong phải thức ít nhất
+// nửa ngày công (6 phút chơi) mới ngủ tiếp được, trước đó nằm chỉ là nghỉ một lát. Ngủ không làm trời sáng hay tối đi.
+{const _sl=sleep;sleep=function(b){if(G.sleeping)return;if(S.tn==null)S.tn=S.day;const left=0.5-(S.tn-(S.wcSlT==null?-9:S.wcSlT));
+  if(left>0){S.p.hp=Math.min(100,S.p.hp+12);S.p.stam=maxStam();uiToast(`Vừa ngủ dậy chưa lâu: nằm nghỉ một lát hồi sức. Khoảng ${Math.max(1,Math.ceil(left*DAY_SEC/60))} phút nữa mới ngủ giấc tiếp được.`,'');uiHud(true);return;}
+  S.wcSlT=S.tn;const h=S.hour,d0=S.day;S.hour=20;/* mã gốc chỉ cho ngủ khi "trời tối": đặt tạm giờ để qua kiểm tra, wcStep trả lại giờ thật ở khung hình sau */
+  try{_sl.apply(this,arguments);}finally{S.hour=h;}
+  setTimeout(()=>{if(!S)return;if(S.day===d0&&S.tn!=null)S.tn+=0.45;},4200);};}
 // bảng giờ: thêm dòng nhỏ "giờ VN · mùa còn bao lâu" dưới dòng ngày
 {const _hud=uiHud;uiHud=function(){const r=_hud.apply(this,arguments);try{const el=document.querySelector('#game .h-time');if(el&&S){el.title='Giờ thật Việt Nam '+wcClockVN()+' ngày '+wcDateVN()+' · mùa '+SEASONS[wcSeason()].n+' còn '+wcSeasonLeftDays()+' ngày · mọi người chơi cùng giờ, cùng mùa';}}catch(e){}return r;};}
 // MÙA ĐÔNG KIỂU MIỀN BẮC VIỆT NAM (vì mùa theo tháng thật, đông kéo 3 tháng): rét 9-17°C, mưa phùn, cây trồng lớn chậm (40%) chứ không ngừng hẳn
