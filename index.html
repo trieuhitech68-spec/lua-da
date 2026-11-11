@@ -18829,7 +18829,7 @@ document.addEventListener('click',e=>{if(!S||!G.on)return;const t=e.target&&e.ta
 .aqask-l{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.aqask-l span{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;background:rgba(255,90,60,.16);border:1px solid rgba(255,120,90,.4);font-size:13px}.aqask-l .ic{width:22px;height:22px}
 .aqask-r{display:flex;flex-direction:column;gap:7px}.aqask-r .btn{min-height:44px}#game .panel .aq-need{background:linear-gradient(180deg,#3b7a34,#2a5a26);border-color:#6ab85a;color:#fff}`;document.head.appendChild(st);}
 /* ---------- nung gốm: tự làm được; các việc còn phải tự tay thì chỉ dẫn từng bước ---------- */
-AUG['Nung nồi gốm đầu tiên']=()=>{const r=aqRecipe('pot');return r?{k:'craft',r,until:()=>gC('craft:pot')>0}:{guide:'@pot'};};delete AQ_GUIDEONLY['Nung nồi gốm đầu tiên'];
+AUG['Nung nồi gốm đầu tiên']=()=>{/* gốm mộc phơi trên giàn phải chờ lâu: tự làm thì nặn nồi mộc rồi nung thẳng (dễ nứt hơn, nứt thì làm lại) */const r=RECIPES.find(x=>x.id==='potRush')||aqRecipe('pot');return r?{k:'craft',r,until:()=>gC('craft:pot')>0}:{guide:'@pot'};};delete AQ_GUIDEONLY['Nung nồi gốm đầu tiên'];
 Object.assign(AQ_GTXT,{'@pot':['🏺','Nặn và nung gốm: từng bước','① Kiếm đất sét (bờ suối, bãi bồi) và cát. ② Đứng cạnh Chỗ nặn gốm, mở Chế tạo → Nồi mộc. ③ Chờ nồi mộc khô. ④ Bỏ củi, nhóm Lò nung, đứng cạnh lò mở Chế tạo → Nồi gốm. Bấm 🤖 ở món đang thiếu để nhân vật tự đi kiếm.'],
   '@farm':['🌾','Làm ruộng: từng bước','① Xây → Luống đất (hoặc Ruộng lúa cạnh nước). ② Cầm hạt giống, đứng cạnh luống bấm Hành động để gieo. ③ Tưới nước khi đất khô. ④ Cây chín (ngả vàng) thì bấm Hành động để thu. Có luống chín, nút Tự làm sẽ thu hoạch giúp.'],
   '@fest':['🥁','Mở hội làng: từng bước','① Chế tạo → Trống da (da thú + khúc gỗ). ② Chờ ngày Hội xuân / Hội mùa (xem 🏮 Làng). ③ Đứng cạnh bếp lửa, chọn Trống da trong túi → Dùng. Hoặc dựng Đài trống hội rồi bấm Hành động.'],
@@ -19261,6 +19261,42 @@ const khoIndoor=b=>{try{const c=cellAt(b.x,b.z);return !!(c&&(c[slotN('roof',0)]
   const _sp=aq2Spots;aq2Spots=function(def){const out=_sp.apply(this,arguments);try{const fp=def.fp||[1,1];if(def.kind==='obj'&&fp[0]*fp[1]===1&&(def.bed||def.store)){const ins=[];for(const b of aq2Floors()){if(b.prog!=null)continue;const c=cellAt(b.x,b.z);if(!c||c[slotN('obj',0)])continue;
           let walls=0;const cx=Math.floor(b.x/CELL),cz=Math.floor(b.z/CELL);for(const [ex,ez,r] of [[b.x,cz*CELL,0],[b.x,(cz+1)*CELL,0],[cx*CELL,b.z,1],[(cx+1)*CELL,b.z,1]]){const id=OCC.edge.get(edgeKey(ex,ez,r,0));const w=id&&BYID.get(id),wd=w&&pieceDef(w.k);if(wd&&!wd.door)walls++;}
           ins.push({x:b.x,z:b.z,s:-5000-(c[slotN('roof',0)]?500:0)-walls*100+ins.length});}ins.sort((a,b)=>a.s-b.s);return ins.concat(out).slice(0,16);}}catch(e){}return out;};}
+/* ===================== NÂNG CẤP CẢ CĂN NHÀ TẠI CHỖ =====================
+   Không phải phá nhà cũ dựng nhà mới: đứng trong / cạnh nhà, mở Xây → ⬆️ Nâng cấp & sửa chữa, bấm "Nâng cả nhà".
+   Mọi sàn, vách, mái của bạn trong vòng 14 m đổi sang vật liệu bậc trên ngay tại chỗ (đồ đạc bên trong giữ nguyên), tốn 60% giá cấu kiện mới.
+     Bậc 1 Nhà gỗ lá  →  Bậc 2 Nhà tre vách đất (vách đất trát rơm, sàn tre, mái tranh dày)  →  Bậc 3 Nhà gạch đá (tường gạch, sàn đá).
+   Thiếu vật liệu có nút "🤖 Tự gom vật liệu". */
+const NN_MAP=[{n:'Nhà tre vách đất',m:{wall:'mudWall',wallDoor:'bambooWallDoor',wallWindow:'mudWallWindow',floor:'bambooFloor',roof:'thatchRoof',leafRoof:'thatchRoof'}},
+  {n:'Nhà gạch đá',m:{mudWall:'stoneWall',bambooWall:'stoneWall',mudWallWindow:'stoneWall',bambooWallDoor:'stoneWallDoor',wallDoor:'stoneWallDoor',bambooFloor:'stoneFloor',floor:'stoneFloor',wall:'stoneWall',wallWindow:'stoneWall'}}];
+const NN_R=280;
+function nnPlan(){const near=S.builds.filter(b=>b.prog==null&&!b.remote&&Math.hypot(b.x-P.x,b.z-P.z)<NN_R);
+  for(let t=0;t<NN_MAP.length;t++){const M=NN_MAP[t].m,L=near.filter(b=>M[b.k]&&pieceDef(M[b.k]));if(!L.length)continue;if(t===1&&near.some(b=>NN_MAP[0].m[b.k]&&/^(wall|floor|roof)/.test(b.k))&&!L.some(b=>/mud|bamboo/.test(b.k)))continue;
+    const cost={};let lvNeed=null;for(const b of L){const d=pieceDef(M[b.k]);for(const k in d.cost)cost[k]=(cost[k]||0)+d.cost[k]*0.6;if(d.lv&&!lvOk(d.lv))lvNeed=d;}for(const k in cost)cost[k]=Math.max(1,Math.ceil(cost[k]));
+    return {t,name:NN_MAP[t].n,L,cost,lvNeed};}return null;}
+function nnDo(){const pl=nnPlan();if(!pl)return;if(pl.lvNeed){uiToast('Cần '+lvText(pl.lvNeed.lv)+' mới dựng được '+pl.lvNeed.n+'.','bad');sfx('no');return;}if(!canPay(pl.cost)){uiToast('Thiếu vật liệu để nâng cả nhà.','bad');sfx('no');return;}pay(pl.cost);const M=NN_MAP[pl.t].m;
+  for(const b of pl.L){try{structRemove(b);/* structRemove gỡ luôn khỏi S.builds: thêm lại */b.k=M[b.k];if(b.cond!=null)b.cond=100;S.builds.push(b);structAdd(b,true);cnt('build',b.k);}catch(e){console.warn('nâng nhà',e);}}
+  try{decoRebuild();}catch(e){}try{unlockCheck();}catch(e){}addXp('build',6+pl.L.length*2);cnt('cnt','upgrade');sfx('level');try{puff(P.x,P.y+30,P.z,'#ffd27a',16);}catch(e){}uiToast(`🏠 Đã nâng ${pl.L.length} cấu kiện: nhà của bạn giờ là ${pl.name}.`,'gold');save();if(G.panel)uiOpenRefresh();}
+function nnGather(){const pl=nnPlan();if(!pl)return;if(G.panel)uiClose();aqStart(-1,{job:{k:'getAll',cost:Object.assign({},pl.cost),lab0:'Gom vật liệu nâng nhà',lab:'Gom vật liệu nâng nhà'}});uiToast('🤖 Đi gom vật liệu nâng nhà. Gom xong quay lại Xây → Nâng cấp bấm "Nâng cả nhà".','');}
+{const _uh=upHtml;upHtml=function(){let h=_uh.apply(this,arguments);try{const pl=nnPlan();if(pl){const ok=canPay(pl.cost)&&!pl.lvNeed;
+      h=`<div class="nn-box"><b>🏠 Nâng cả nhà lên ${esc(pl.name)}</b><span class="small muted">${pl.L.length} sàn, vách, mái quanh đây đổi vật liệu ngay tại chỗ, đồ đạc giữ nguyên. Tốn: ${upCostTxt(pl.cost)}${pl.lvNeed?` · <span class="up-miss">cần ${esc(lvText(pl.lvNeed.lv))}</span>`:''}</span>
+        <div class="row"><button class="btn sm${ok?'':' ghost'}" data-a="nndo">⬆️ Nâng cả nhà</button>${canPay(pl.cost)?'':'<button class="btn sm aq-need" data-a="nnget">🤖 Tự gom vật liệu</button>'}</div></div>`+h;}}catch(e){}return h;};}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="nndo"],[data-a="nnget"]');if(!b||!S)return;e.stopImmediatePropagation();if(b.dataset.a==='nndo')nnDo();else nnGather();},true);
+{const st=document.createElement('style');st.textContent=`.nn-box{display:flex;flex-direction:column;gap:6px;padding:10px 12px;margin-bottom:10px;border-radius:14px;border:1px solid #f2c55a;background:linear-gradient(170deg,rgba(242,197,90,.16),rgba(242,197,90,.04))}.nn-box b{font-size:14.5px;color:#ffe2a8}`;document.head.appendChild(st);}
+/* ===================== THÚ RỪNG ĐA DẠNG HƠN · THỔ DÂN ĐÔNG HƠN =====================
+   12 loài mới của rừng Việt Nam, dùng lại dáng của loài gần nhất nhưng khác cỡ, màu lông, sức: hoẵng, sơn dương, lợn lòi, chó rừng, báo hoa mai, trâu rừng,
+   voọc, trăn, gà lôi, công, gấu ngựa, thỏ trắng. Tổng số thú trên bản đồ tăng khoảng một phần tư. Mỗi trại thổ dân thêm 2 chiến binh. */
+const DD_VAR=[{b:'deer',n:'Hoẵng',sc:0.72,c:[1.15,0.8,0.6],hp:2,cnt:10,grp:2},{b:'deer',n:'Sơn dương',sc:0.86,c:[0.55,0.55,0.6],hp:4,cnt:8,grp:2,bio:['rock','edge']},
+  {b:'boar',n:'Lợn lòi',sc:1.3,c:[0.6,0.5,0.45],hp:10,cnt:6,grp:1},{b:'wolf',n:'Chó rừng',sc:0.82,c:[1.35,0.8,0.45],hp:4,cnt:9,grp:3},
+  {b:'tiger',n:'Báo hoa mai',sc:0.8,c:[1.15,1.05,0.7],hp:9,cnt:4,grp:1},{b:'gaur',n:'Trâu rừng',sc:0.95,c:[0.55,0.55,0.6],hp:16,cnt:8,grp:3},
+  {b:'monkey',n:'Voọc đen',sc:1.15,c:[0.35,0.35,0.38],hp:2,cnt:10,grp:4},{b:'snake',n:'Trăn',sc:2.1,c:[1.0,0.85,0.5],hp:5,cnt:6,grp:1},
+  {b:'junglefowl',n:'Gà lôi trắng',sc:1.2,c:[1.5,1.5,1.6],hp:1,cnt:10,grp:2},{b:'junglefowl',n:'Công',sc:1.6,c:[0.4,1.0,1.2],hp:2,cnt:6,grp:2},
+  {b:'bear',n:'Gấu ngựa',sc:0.92,c:[0.3,0.3,0.32],hp:12,cnt:3,grp:1},{b:'rabbit',n:'Thỏ trắng',sc:0.95,c:[1.6,1.6,1.6],hp:1,cnt:10,grp:2}];
+function ddMake(V,x,z,R){const a=animalNew(V.b,x,z,R);a.n=V.n;a.var=V.n;a.hp=V.hp;a._hpMax=V.hp;a.r=(a.r||8)*V.sc;try{a.o.scale.multiplyScalar(V.sc);const seen=new Map();a.o.traverse(m=>{if(!m.isMesh||!m.material)return;const one=mt=>{let c=seen.get(mt);if(!c){c=mt.clone();if(c.color)c.color.setRGB(Math.min(1,c.color.r*V.c[0]),Math.min(1,c.color.g*V.c[1]),Math.min(1,c.color.b*V.c[2]));seen.set(mt,c);}return c;};
+      m.material=Array.isArray(m.material)?m.material.map(one):one(m.material);});}catch(e){}return a;}
+{const _ai=animalsInit;animalsInit=function(){const r=_ai.apply(this,arguments);try{const R=rng((S.seed|0)+4477);for(const V of DD_VAR){const D=ANIMALS[V.b];if(!D)continue;const bio=V.bio||D.bio;let n=0,tries=0;while(n<V.cnt&&tries<1500){tries++;let x,z;const a=R()*6.283,rr=Math.sqrt(R())*WR*0.85;x=Math.cos(a)*rr;z=Math.sin(a)*rr;if(typeof V5!=='undefined'&&WV>=4){x=V5.box[0]+R()*V5.box[2];z=V5.box[1]+R()*V5.box[3];}
+          if(!wIn(x,z,0.95)||hAt(x,z)<3||wdAt(x,z)>0||!bio.includes(biome(x,z)))continue;if(Math.hypot(x-SPAWN[0],z-SPAWN[1])<(D.aggro==='never'?300:900))continue;for(let k=0;k<V.grp&&n<V.cnt;k++,n++)G.animals.push(ddMake(V,x+(R()-0.5)*60,z+(R()-0.5)*60,R));}}
+      try{seasonPatchAll();}catch(e){}}catch(e){console.warn('đa dạng thú',e);}return r;};}
+try{for(const k in RLTRIBE)if(RLTRIBE[k]&&RLTRIBE[k].g)RLTRIBE[k].g+=2;}catch(e){}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
