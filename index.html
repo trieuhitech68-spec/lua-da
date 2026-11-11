@@ -19204,7 +19204,7 @@ AUJ.warm=function(j){const p=S.p;if(j.cf){j.cf=null;if(++j.alt>3)return aqFail('
 {const _i=aqInit;aqInit=function(j){_i(j);if(j.k==='warm'&&j.alt==null)j.alt=0;};}
 // ----- chen việc sinh tồn -----
 {const _sf=aqSafety;aqSafety=function(){_sf.apply(this,arguments);try{if(!AQ.on||!AQ.jobs.length||G.sleeping||aqHasUrgent())return;const p=S.p,top=AQ.jobs[AQ.jobs.length-1];
-      if((p.warm<24||(p.wet>85&&p.warm<34))&&G.t-(AQ.wmT||-99)>25){AQ.wmT=G.t;if(G.work)workStop('Rét quá, đi sưởi đã.');G.act=null;aqPush({k:'warm',urgent:1},top);aqSay('🤖 Rét và ướt quá: về sưởi ấm rồi làm tiếp.','');return;}
+      if((S.st&&S.st.cold||p.warm<14)&&G.t-(AQ.wmT||-99)>240){/* rét giờ không còn chặn việc hay trừ máu, nên chỉ về sưởi khi đã cảm lạnh hoặc rét hẳn, và không quá 4 phút một lần (chạy thử thấy trước đây cứ nửa phút lại bỏ việc đi sưởi) */AQ.wmT=G.t;if(G.work)workStop('Rét quá, đi sưởi đã.');G.act=null;aqPush({k:'warm',urgent:1},top);aqSay('🤖 Rét và ướt quá: về sưởi ấm rồi làm tiếp.','');return;}
       if(S.st&&S.st.sleepy&&!G.work&&G.t-(AQ.slT||-99)>180&&aqBed()&&(S.tn==null||S.tn-(S.wcSlT==null?-9:S.wcSlT)>=0.5)){AQ.slT=G.t;aqPush({k:'sleep',urgent:1},top);aqSay('🤖 Buồn ngủ quá: về ngủ một giấc rồi làm tiếp.','');}}catch(e){}};}
 // ----- chuẩn bị trước mỗi nhiệm vụ: mặc đồ, áo tơi, nón -----
 {const _g=AUJ.goal;AUJ.goal=function(j){try{const g=GOALS[j.gi];if(g&&!j.cf){if(stWearAll())return AQ_RUN;const roofI=GOALS.findIndex(x=>x.t==='Lợp 4 tấm mái');
