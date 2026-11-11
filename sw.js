@@ -1,5 +1,5 @@
 /* Lửa Đá — chạy như ứng dụng: trang game lấy bản mới khi có mạng, mất mạng thì dùng bản đã lưu */
-const VER='20261111152952',CACHE='lua-da-'+VER;
+const VER='20261111154108',CACHE='lua-da-'+VER;
 const CORE=['/','/index.html','/manifest.webmanifest','/icons/icon-192.png','/icons/icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('lua-da-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});

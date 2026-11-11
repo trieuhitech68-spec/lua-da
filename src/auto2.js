@@ -96,3 +96,5 @@ Object.assign(AQ_GTXT,{'@pot':['🏺','Nặn và nung gốm: từng bước','�
   '@farm':['🌾','Làm ruộng: từng bước','① Xây → Luống đất (hoặc Ruộng lúa cạnh nước). ② Cầm hạt giống, đứng cạnh luống bấm Hành động để gieo. ③ Tưới nước khi đất khô. ④ Cây chín (ngả vàng) thì bấm Hành động để thu. Có luống chín, nút Tự làm sẽ thu hoạch giúp.'],
   '@fest':['🥁','Mở hội làng: từng bước','① Chế tạo → Trống da (da thú + khúc gỗ). ② Chờ ngày Hội xuân / Hội mùa (xem 🏮 Làng). ③ Đứng cạnh bếp lửa, chọn Trống da trong túi → Dùng. Hoặc dựng Đài trống hội rồi bấm Hành động.'],
   '@folk':['🏘️','Mời người về ở: từng bước','① Dựng thêm một Giường trống trong nhà. ② Tới làng bên (🗺️ Bản đồ), đổi đồ hoặc tặng quà vài lần cho thân. ③ Trò chuyện với một người → Mời về ở cùng.']});
+// lánh thú dữ: về trại, chờ 20 giây cho thú bỏ đi rồi mới làm tiếp (trước đây về tới nơi là quay lại ngay, gặp đúng con thú đó, lặp mãi)
+AUJ.camp=function(j){if(j.cf)return AQ_DONE;const hb=aqBed()||aqFire();if(!hb)return AQ_DONE;if(j.w==null&&aqD(hb.x,hb.z)>90)return aqGoto(j,hb.x,hb.z,60,'Lánh thú dữ: về trại',{far:1});if(j.w==null)j.w=G.t;j.lab='Chờ thú dữ bỏ đi';return G.t-j.w>20?AQ_DONE:AQ_RUN;};
