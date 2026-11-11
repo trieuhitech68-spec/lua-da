@@ -45,3 +45,12 @@ function wearAttach(g,w){const R=g&&g.userData&&g.userData.rig;if(!R||!R.head||!
     add(R.foreL,K.group(K.cyl(r,r,0.34,sh[0],{x,y,z,rz:Math.PI/2,center:true},18),K.torus(r*0.96,0.14,'#3a2a1a',{x:x-0.02,y,z,ry:Math.PI/2},18),K.dome(r*0.28,w.shield==='rattanShield'?'#8a6a3a':'#b0793a',{x:x-0.17,y,z,rz:Math.PI/2},8)));}}
 {const _cm=charModel;charModel=function(){const g=_cm.apply(this,arguments);try{if(P.char2&&S&&S.wear)wearAttach(g,S.wear);}catch(e){console.warn('đồ mặc',e);}return g;};}
 {const _pi=playerInit;playerInit=function(){const r=_pi.apply(this,arguments);try{if(typeof HR2==='object')HR2.shotT=-99;}catch(e){}return r;};}
+
+/* ---------- người chơi khác cũng thấy đồ mình mặc ----------
+   Presence thêm wr = "đầu,cổ,tay,giáp,khiên" (mã vật phẩm, ô trống để rỗng). Bên nhận kiểm tra từng mã rồi gắn hình lên mô hình của người đó.
+   Mã đồ mặc nối vào chuỗi ngoại hình (sau dấu ~) nên đổi đồ thì mô hình người đó tự dựng lại, giống như khi đổi ngoại hình. */
+const WEAR_SLOTS=['head','neck','acc','armor','shield'];
+function wearPres(){const w=(S&&S.wear)||{};const s=WEAR_SLOTS.map(k=>typeof w[k]==='string'?w[k]:'').join(',');return s.replace(/,/g,'')?s:'';}
+function wearDec(s){const a=String(s||'').split(','),w={};WEAR_SLOTS.forEach((k,i)=>{const id=a[i];if(id&&/^[A-Za-z0-9]{1,24}$/.test(id)&&ITEMS[id]&&ITEMS[id].t==='wear'&&(ITEMS[id].slot||'body')===k)w[k]=id;});return w;}
+{const _vp=mpValPres;mpValPres=function(p){const v=_vp.apply(this,arguments);try{const wr=v&&p&&p.presence&&p.presence.wr;if(typeof wr==='string'&&wr.length<=140&&/^[A-Za-z0-9,]+$/.test(wr)&&Object.keys(wearDec(wr)).length)v.lk=String(v.lk)+'~'+wr;}catch(e){}return v;};}
+{const _mm=mpModel;mpModel=function(lk){if(typeof lk==='string'&&lk.indexOf('~')>=0){const i=lk.indexOf('~'),base=lk.slice(0,i),o=_mm(base.indexOf('|')>=0?base:(+base|0));try{wearAttach(o,wearDec(lk.slice(i+1)));}catch(e){}return o;}return _mm(lk);};}

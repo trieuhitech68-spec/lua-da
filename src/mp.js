@@ -289,8 +289,8 @@ function mpValPres(p){const s=p.presence;if(!s||typeof s!=='object'||!S||s.w!==S
   return {x:s.x,y:s.y,z:s.z,ry:mpNum(s.ry,-100,100)?s.ry:0,a:MPA.has(s.a)?s.a:'idle',lk:mpNum(s.lk,0,LOOKS.length-1)?s.lk|0:0,cl:mpIdOk(s.cl)?s.cl:'',uid};}
 function mpAnim(){if(G.sleeping)return 'sleep';if(G.ride||G.sit)return 'sit';if(G.work){const st=G.work.steps&&G.work.steps[G.work.i],a=st&&st.a;return MPA.has(a)?a:'whittle';}if(G.swim)return 'swim';
   if(G.act)return P.anim==='chop'&&P.toolId==='pick'?'mine':P.anim==='hammer'?'hammer':P.anim==='gather'?'gather':'chop';if(P.speed>8)return G.sneak?'sneak':G.running?'run':'walk';return 'idle';}
-function mpPresTick(){const R=MP.room;if(!R)return;const r1=v=>Math.round(v*10)/10;const o={w:S.seed,u:MP.uid,x:r1(P.x),y:r1(P.y),z:r1(P.z),ry:Math.round(P.ry*100)/100,a:mpAnim(),lk:S.look|0,ap:typeof crPres==='function'?crPres():'',cl:mpMyClan()||''};
-  const k=o.x+','+o.y+','+o.z+','+o.ry+o.a+o.cl;if(k===MP.presK&&mpNow()-MP.presT<20000)return;MP.presK=k;MP.presT=mpNow();R.presence(o).catch(()=>{});}
+function mpPresTick(){const R=MP.room;if(!R)return;const r1=v=>Math.round(v*10)/10;const o={w:S.seed,u:MP.uid,x:r1(P.x),y:r1(P.y),z:r1(P.z),ry:Math.round(P.ry*100)/100,a:mpAnim(),lk:S.look|0,ap:typeof crPres==='function'?crPres():'',cl:mpMyClan()||'',wr:typeof wearPres==='function'?wearPres():''};
+  const k=o.x+','+o.y+','+o.z+','+o.ry+o.a+o.cl+o.wr;if(k===MP.presK&&mpNow()-MP.presT<20000)return;MP.presK=k;MP.presT=mpNow();R.presence(o).catch(()=>{});}
 function mpModel(lk){let o=null;try{if(K3.char2)o=K3.char2(Object.assign({sleeves:true},(LOOKS[lk]||LOOKS[0]).o,LOOK2[lk]||{}));}catch(e){}if(!o)try{o=K3.char((LOOKS[lk]||LOOKS[0]).o);}catch(e){}
   if(!o)o=new THREE.Group();o.traverse(m=>{if(m.isMesh)m.castShadow=true;});try{seasonPatchAll(o);}catch(e){}return o;}
 function mpTagMake(txt,col){const cv=document.createElement('canvas');cv.width=256;cv.height=64;const c=cv.getContext('2d');c.font='700 28px "Be Vietnam Pro",system-ui,sans-serif';c.textAlign='center';c.textBaseline='middle';

@@ -174,3 +174,24 @@ function pvpFlagIn(docs){if(!pvpOn()||!S)return;const cid=mpMyClan();if(!cid||ci
     const oc=mpClanOf(u);if(!oc||!pvpWarWith(cid,oc))continue;P0.zs=at;if(c.zone){mpClanWrite(mpClanDoc(c,{zone:null}));MP.tick.ring=-9;}P0.zcd=now+PVP_FLAGCD;
     uiToast(`🚩 ${mpName(u)} (${mpCT(MP.clans[oc].name)}) đã hạ cờ liên minh bạn! Vùng đất chung bị mất, 24 giờ nữa mới cắm lại được.`,'bad');sfx('hurt');save();break;}}
 if(typeof mpZoneSet==='function'){const _zs=mpZoneSet;mpZoneSet=function(on){if(on&&S&&S.pvp&&S.pvp.zcd>pvpNow()){uiToast(`Cờ liên minh vừa bị hạ: còn ${Math.ceil((S.pvp.zcd-pvpNow())/3600000)} giờ nữa mới cắm lại vùng đất chung được.`,'bad');sfx('no');return;}return _zs.apply(this,arguments);};}
+/* ---------- THANG TRÈO TƯỜNG ----------
+   Chế ở bàn chế tác (8 tre hoặc gỗ + 4 dây thừng). CHỌN thang trên thanh đồ nhanh rồi bấm Hành động vào rào cọc, tường, cổng của người không cùng
+   liên minh: trèo qua sang bên kia thay vì phá (2 giây). Lính gác vẫn xông ra. Thang dùng 6 lần thì gãy. */
+Object.assign(ITEMS,{siegeLadder:{n:'Thang trèo tường',t:'tool',tool:'ladder',pow:0.5,ds:'Thang tre dài. Chọn nó rồi bấm vào rào cọc, tường của kẻ địch để trèo qua. Dùng 6 lần thì gãy.'}});
+if(typeof EMO==='object')EMO.siegeLadder='🪜';if(typeof M2V==='object')M2V.siegeLadder=6;if(typeof KHU_TOOLM==='object')KHU_TOOLM.siegeLadder='rod';
+RECIPES.push({id:'siegeLadder',out:{siegeLadder:1},in:{wood:8,rope:4},st:'workbench',req:['wood','rope'],lv:{build:2}});
+const pvpLadderOn=()=>{const s=S&&S.inv[S.sel];return !!(s&&s.id==='siegeLadder');};
+{const _ti=targetInfo;targetInfo=function(t){const r=_ti.apply(this,arguments);try{if(r&&t&&t.type==='pvpb'&&r.ok&&pvpLadderOn()&&pvpIsWall(t.b.k))r.verb='Trèo qua bằng thang';}catch(e){}return r;};}
+{const _ps=pvpStart;pvpStart=function(t){if(!(t&&t.b&&pvpLadderOn()&&pvpIsWall(t.b.k)))return _ps.apply(this,arguments);const why=pvpWhy(t.uid);if(why){uiToast(why,'bad');sfx('no');return;}
+  const b=t.b,dx=b.x-P.x,dz=b.z-P.z,l=Math.hypot(dx,dz)||1,nx=b.x+dx/l*46,nz=b.z+dz/l*46;if(wdAt(nx,nz)>1.5){uiToast('Bên kia là nước sâu, không trèo qua được.','bad');return;}try{pvpDefend(t.uid,b);}catch(e){}
+  G.work={r:{out:{}},steps:[{n:'Dựng thang, trèo qua '+t.def.n.toLowerCase(),a:'chop',t:2.2,fx:'step'}],i:0,t:0,left:1,done:0,x:P.x,z:P.z,sk:'run',icon:'siegeLadder',fn:()=>{P.x=nx;P.z=nz;P.y=groundY(nx,nz,P.y+60);const P0=pvpS();P0.ladU=(P0.ladU||0)+1;if(P0.ladU>=6){P0.ladU=0;invTake('siegeLadder',1);try{equip(null);}catch(e){}uiHotbar();uiToast('Thang đã gãy sau 6 lần trèo.','');}else uiToast('🪜 Đã trèo qua.','good');PVP.nearT=-9;}};workUi();};}
+/* ---------- THƯỞNG THẮNG CHIẾN TRANH ----------
+   Khi điểm bên mình từ 100 trở lên và gấp đôi bên kia, mỗi thành viên nhận được một phần thưởng chiến thắng (mỗi tuần một lần với mỗi liên minh địch). */
+const PVP_WINPTS=100,PVP_WINCD=7*86400000;
+function pvpWinOk(o){const cid=mpMyClan();if(!cid||!pvpWarWith(cid,o))return false;const a=pvpWarPts(cid,o),b=pvpWarPts(o,cid);return a>=PVP_WINPTS&&a>=2*b;}
+function pvpWinClaim(o){if(!pvpWinOk(o))return;const P0=pvpS(),now=pvpNow();if(!P0.won||typeof P0.won!=='object')P0.won={};if(P0.won[o]&&now-P0.won[o]<PVP_WINCD){uiToast('Tuần này bạn đã nhận thưởng thắng liên minh này rồi.','');return;}P0.won[o]=now;
+  const rw={bronze:3,rope:6,meatCooked:6,hide:3};if(ITEMS.iron)rw.iron=1;give(rw,[P.x,P.y+20,P.z]);addXp('hunt',60);cnt('cnt','warwin');sfx('level');try{puff(P.x,P.y+40,P.z,'#ffd27a',20);}catch(e){}uiToast(`🏆 Phần thưởng chiến thắng trước ${mpCT(MP.clans[o].name)}!`,'gold');save();try{mpPanelRefresh();}catch(e){}}
+{const _wh=pvpWarHtml;pvpWarHtml=function(){let h=_wh.apply(this,arguments);try{const cid=mpMyClan(),P0=pvpS(),now=pvpNow();if(cid){const wins=Object.keys(MP.clans).filter(o=>o!==cid&&pvpWinOk(o));
+    const rows=wins.map(o=>{const got=P0.won&&P0.won[o]&&now-P0.won[o]<PVP_WINCD;return `<div class="mp-m"><b data-cn="${esc(o)}"></b><small class="muted"> · đang thắng áp đảo</small><button class="btn sm${got?' ghost':''}" data-a="pvpwin" data-c="${esc(o)}" ${got?'disabled':''}>${got?'Đã nhận tuần này':'🏆 Nhận thưởng'}</button></div>`;}).join('');
+    h+=rows?`<h3>🏆 Chiến thắng</h3>${rows}`:`<p class="small muted">Thưởng chiến thắng: khi điểm bên mình từ ${PVP_WINPTS} trở lên và gấp đôi bên kia, mỗi thành viên nhận thưởng mỗi tuần một lần.</p>`;}}catch(e){}return h;};}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="pvpwin"]');if(!b||!S)return;e.stopImmediatePropagation();pvpWinClaim(b.dataset.c);},true);
