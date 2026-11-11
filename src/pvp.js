@@ -22,7 +22,8 @@ const pvpNow=()=>Date.now()+(typeof WC==='object'?WC.off||0:0);
 function pvpHp(def,k){if(/palisade|watchtower|rampart|stoneWall|dryStoneWall|rammed/i.test(k))return 42;if(/Wall|wall|gate|Gate|fence|Fence/.test(k))return 22;if(def.store)return 14;if(k==='totem'||/totem/i.test(k))return 30;if(def.kind==='floor')return 18;if(def.kind==='roof')return 12;return 13;}
 // vì sao KHÔNG cướp được (null = được)
 function pvpWhy(uid){if(!pvpOn())return 'Chỉ có ở thế giới chung.';if(typeof mpSameClan==='function'&&mpSameClan(uid))return 'Công trình của đồng minh.';if((typeof heroLv==='function'?heroLv():1)<PVP_MINLV)return `Cần nhân vật cấp ${PVP_MINLV} mới đi cướp phá được.`;
-  const p=MP.players[uid],now=pvpNow();if(p){if((p.hl||1)<PVP_MINLV)return 'Chủ nhà là người mới (dưới cấp '+PVP_MINLV+'): đang được bảo vệ.';if(p.sh>now)return `Chủ nhà đang có khiên bảo vệ, còn ${Math.max(1,Math.ceil((p.sh-now)/3600000))} giờ.`;}
+  const p=MP.players[uid],now=pvpNow();if(p){if((p.hl||1)<PVP_MINLV)return 'Chủ nhà là người mới (dưới cấp '+PVP_MINLV+'): đang được bảo vệ.';if(p.sh>now)return `Chủ nhà đang có khiên bảo vệ, còn ${Math.max(1,Math.ceil((p.sh-now)/3600000))} giờ.`;
+    if(p.ho&&p.ho[0]>0&&now-p.ho[1]>300000&&now<p.ho[1]+p.ho[0]*3600000&&!pvpAtWar(uid))return `Chủ nhà đang nghỉ trong nhà: nhà được bảo hộ thêm ${Math.max(1,Math.ceil((p.ho[1]+p.ho[0]*3600000-now)/3600000))} giờ.`;}
   const o=pvpS().out[uid];if(o&&now-o.at<PVP_DAY&&o.ids.length>=pvpCap(uid))return 'Hôm nay bạn đã phá đủ '+pvpCap(uid)+' món của nhà này.';return null;}
 /* ---------- tìm công trình của người khác ở gần ---------- */
 function pvpNearScan(){PVP.nearT=G.t;PVP.near=null;if(!pvpOn()||!MP.bcur||!MP.bcur.size)return;let bd=REACH+12;for(const [uid,cur] of MP.bcur){for(const o of cur.values()){const b=o.b;if(Math.abs(b.x-P.x)>90||Math.abs(b.z-P.z)>90||Math.abs((b.y||0)-P.y)>60)continue;const def=pieceDef(b.k);if(!def||!BYID.has(b.id))continue;
@@ -65,7 +66,7 @@ function pvpGuardsTick(L,dt){for(const f of L){if(!f.alive){if(f.dieT!=null){f.d
 /* ---------- công khai phòng thủ, khiên, cấp ---------- */
 function pvpPubTick(){if(!pvpOn()||!MP.me)return;const now=Date.now();if(now-PVP.pubT<30000)return;PVP.pubT=now;const P0=pvpS();const g=(S.folk||[]).filter(f=>f.job==='gate'||f.job==='guard'||f.job==='soldier');
   const lv=g.length?Math.round(g.reduce((s,f)=>s+(f.lv|0||1),0)/g.length):0;let fort=0;for(const b of S.builds)if(b.prog==null&&/palisade|watchtower|spikePit|rampart|SpikeFence/i.test(b.k))fort++;
-  const df=[Math.min(6,g.length),lv,Math.min(30,fort)],sh=P0.sh>pvpNow()?Math.round(P0.sh):0,hl=typeof heroLv==='function'?heroLv():1,k=JSON.stringify([df,sh,hl]);if(k===PVP.pubK)return;PVP.pubK=k;mpSaveMe({df,sh,hl});}
+  const df=[Math.min(6,g.length),lv,Math.min(30,fort)],sh=P0.sh>pvpNow()?Math.round(P0.sh):0,hl=typeof heroLv==='function'?heroLv():1,hh=typeof hoHours==='function'?hoHours(fort):0,k=JSON.stringify([df,sh,hl,hh,hh?Math.floor(now/120000):0]);if(k===PVP.pubK)return;PVP.pubK=k;mpSaveMe({df,sh,hl,ho:hh?[hh,Math.round(pvpNow())]:(MP.me&&MP.me.ho)||null});}
 /* ---------- nhận biên bản: áp hậu quả lên nhà mình ---------- */
 function pvpIn(docs){if(!pvpOn()||!S)return;try{pvpWarIn(docs);}catch(e){}try{pvpFlagIn(docs);}catch(e){}const P0=pvpS(),me=MP.uid,now=pvpNow();let hit=0,who=[];
   for(const d of docs){const u=d.id;if(u===me||!mpIdOk(u))continue;const v=d.data();if(!v||v.w!==S.seed||!v.R||typeof v.R!=='object')continue;const e=v.R[me];if(!e||typeof e!=='object'||!Array.isArray(e.ids)||!mpNum(e.at,1e12,now+600000))continue;if(now-e.at>PVP_KEEP)continue;

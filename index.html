@@ -18085,11 +18085,11 @@ async function mpStart(){if(MP.started||!MP.ok||!S||!S.mp||!G.on)return;MP.start
   sub(MP.db.collection('clans').limit(300),s=>{const o={};for(const d of s.docs){if(!mpWOk(d.data()))continue;const v=mpValClan(d.id,d.data());if(v)o[d.id]=v;}MP.clans=o;MP.loaded.clans=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;});
   sub(MP.db.collection('claims').limit(800),s=>{const o={};for(const d of s.docs){if(!mpWOk(d.data()))continue;const v=mpValClaim(d.id,d.data());if(v)o[d.id]=v;}MP.claims=o;MP.loaded.claims=1;MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;MP.tick.near=-9;});
   const cur=await mpGetDoc('players/'+MP.uid);const v=cur&&mpValPlayer(MP.uid,cur);
-  MP.me={look:S.look|0,clan:v?v.clan:null,req:v?v.req:null,w:S.seed,lastSeen:mpNow(),h:v?v.h:null,df:v?v.df:null,sh:v?v.sh:0,hl:v?v.hl:1};mpPut('players/'+MP.uid,Object.assign({},MP.me));
+  MP.me={look:S.look|0,clan:v?v.clan:null,req:v?v.req:null,w:S.seed,lastSeen:mpNow(),h:v?v.h:null,df:v?v.df:null,sh:v?v.sh:0,hl:v?v.hl:1,ho:v?v.ho:null};mpPut('players/'+MP.uid,Object.assign({},MP.me));
   const bh=await mpGetDoc('builds/'+MP.uid);MP.bHad=!!(bh&&bh.n>0);
   const g=await mpGetDoc('gifts/'+MP.uid);MP.myGifts={list:g&&Array.isArray(g.list)?g.list.filter(x=>x&&typeof x==='object').slice(-12):[]};
   if(!Array.isArray(S.mpGot))S.mpGot=[];if(MP.room)mpRoomInit();}
-function mpValPlayer(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;return {look:mpNum(d.look,0,LOOKS.length-1)?d.look|0:0,clan:mpIdOk(d.clan)?d.clan:null,req:mpIdOk(d.req)?d.req:null,w:mpNum(d.w,0,4.3e9)?d.w:0,lastSeen:mpNum(d.lastSeen,0,1e14)?d.lastSeen:0,df:Array.isArray(d.df)&&d.df.length===3&&d.df.every(v=>mpNum(v,0,99))?[d.df[0]|0,d.df[1]|0,d.df[2]|0]:null,sh:mpNum(d.sh,0,4e12)?d.sh:0,hl:mpNum(d.hl,1,999)?d.hl|0:1,h:Array.isArray(d.h)&&d.h.length===3&&mpNum(d.h[0],-2e4,2e4)&&mpNum(d.h[1],-2e4,2e4)&&mpNum(d.h[2],0,4e4)?[d.h[0],d.h[1],d.h[2]]:null};}
+function mpValPlayer(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;return {look:mpNum(d.look,0,LOOKS.length-1)?d.look|0:0,clan:mpIdOk(d.clan)?d.clan:null,req:mpIdOk(d.req)?d.req:null,w:mpNum(d.w,0,4.3e9)?d.w:0,lastSeen:mpNum(d.lastSeen,0,1e14)?d.lastSeen:0,ho:Array.isArray(d.ho)&&d.ho.length===2&&mpNum(d.ho[0],0,24)&&mpNum(d.ho[1],0,4e12)?[d.ho[0],d.ho[1]]:null,df:Array.isArray(d.df)&&d.df.length===3&&d.df.every(v=>mpNum(v,0,99))?[d.df[0]|0,d.df[1]|0,d.df[2]|0]:null,sh:mpNum(d.sh,0,4e12)?d.sh:0,hl:mpNum(d.hl,1,999)?d.hl|0:1,h:Array.isArray(d.h)&&d.h.length===3&&mpNum(d.h[0],-2e4,2e4)&&mpNum(d.h[1],-2e4,2e4)&&mpNum(d.h[2],0,4e4)?[d.h[0],d.h[1],d.h[2]]:null};}
 function mpValZone(z){if(!z||typeof z!=='object'||!mpNum(z.x,-2e4,2e4)||!mpNum(z.z,-2e4,2e4)||!mpNum(z.r,40,600))return null;return {x:z.x,z:z.z,r:z.r};}
 function mpValClan(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;const name=mpTxt(d.name,24);if(!name||d.leader!==id||!Array.isArray(d.members))return null;
   const members=[...new Set(d.members.filter(mpIdOk))].slice(0,MP_CLANMAX);if(!members.includes(id))members.unshift(id);
@@ -18415,7 +18415,8 @@ const pvpNow=()=>Date.now()+(typeof WC==='object'?WC.off||0:0);
 function pvpHp(def,k){if(/palisade|watchtower|rampart|stoneWall|dryStoneWall|rammed/i.test(k))return 42;if(/Wall|wall|gate|Gate|fence|Fence/.test(k))return 22;if(def.store)return 14;if(k==='totem'||/totem/i.test(k))return 30;if(def.kind==='floor')return 18;if(def.kind==='roof')return 12;return 13;}
 // vì sao KHÔNG cướp được (null = được)
 function pvpWhy(uid){if(!pvpOn())return 'Chỉ có ở thế giới chung.';if(typeof mpSameClan==='function'&&mpSameClan(uid))return 'Công trình của đồng minh.';if((typeof heroLv==='function'?heroLv():1)<PVP_MINLV)return `Cần nhân vật cấp ${PVP_MINLV} mới đi cướp phá được.`;
-  const p=MP.players[uid],now=pvpNow();if(p){if((p.hl||1)<PVP_MINLV)return 'Chủ nhà là người mới (dưới cấp '+PVP_MINLV+'): đang được bảo vệ.';if(p.sh>now)return `Chủ nhà đang có khiên bảo vệ, còn ${Math.max(1,Math.ceil((p.sh-now)/3600000))} giờ.`;}
+  const p=MP.players[uid],now=pvpNow();if(p){if((p.hl||1)<PVP_MINLV)return 'Chủ nhà là người mới (dưới cấp '+PVP_MINLV+'): đang được bảo vệ.';if(p.sh>now)return `Chủ nhà đang có khiên bảo vệ, còn ${Math.max(1,Math.ceil((p.sh-now)/3600000))} giờ.`;
+    if(p.ho&&p.ho[0]>0&&now-p.ho[1]>300000&&now<p.ho[1]+p.ho[0]*3600000&&!pvpAtWar(uid))return `Chủ nhà đang nghỉ trong nhà: nhà được bảo hộ thêm ${Math.max(1,Math.ceil((p.ho[1]+p.ho[0]*3600000-now)/3600000))} giờ.`;}
   const o=pvpS().out[uid];if(o&&now-o.at<PVP_DAY&&o.ids.length>=pvpCap(uid))return 'Hôm nay bạn đã phá đủ '+pvpCap(uid)+' món của nhà này.';return null;}
 /* ---------- tìm công trình của người khác ở gần ---------- */
 function pvpNearScan(){PVP.nearT=G.t;PVP.near=null;if(!pvpOn()||!MP.bcur||!MP.bcur.size)return;let bd=REACH+12;for(const [uid,cur] of MP.bcur){for(const o of cur.values()){const b=o.b;if(Math.abs(b.x-P.x)>90||Math.abs(b.z-P.z)>90||Math.abs((b.y||0)-P.y)>60)continue;const def=pieceDef(b.k);if(!def||!BYID.has(b.id))continue;
@@ -18458,7 +18459,7 @@ function pvpGuardsTick(L,dt){for(const f of L){if(!f.alive){if(f.dieT!=null){f.d
 /* ---------- công khai phòng thủ, khiên, cấp ---------- */
 function pvpPubTick(){if(!pvpOn()||!MP.me)return;const now=Date.now();if(now-PVP.pubT<30000)return;PVP.pubT=now;const P0=pvpS();const g=(S.folk||[]).filter(f=>f.job==='gate'||f.job==='guard'||f.job==='soldier');
   const lv=g.length?Math.round(g.reduce((s,f)=>s+(f.lv|0||1),0)/g.length):0;let fort=0;for(const b of S.builds)if(b.prog==null&&/palisade|watchtower|spikePit|rampart|SpikeFence/i.test(b.k))fort++;
-  const df=[Math.min(6,g.length),lv,Math.min(30,fort)],sh=P0.sh>pvpNow()?Math.round(P0.sh):0,hl=typeof heroLv==='function'?heroLv():1,k=JSON.stringify([df,sh,hl]);if(k===PVP.pubK)return;PVP.pubK=k;mpSaveMe({df,sh,hl});}
+  const df=[Math.min(6,g.length),lv,Math.min(30,fort)],sh=P0.sh>pvpNow()?Math.round(P0.sh):0,hl=typeof heroLv==='function'?heroLv():1,hh=typeof hoHours==='function'?hoHours(fort):0,k=JSON.stringify([df,sh,hl,hh,hh?Math.floor(now/120000):0]);if(k===PVP.pubK)return;PVP.pubK=k;mpSaveMe({df,sh,hl,ho:hh?[hh,Math.round(pvpNow())]:(MP.me&&MP.me.ho)||null});}
 /* ---------- nhận biên bản: áp hậu quả lên nhà mình ---------- */
 function pvpIn(docs){if(!pvpOn()||!S)return;try{pvpWarIn(docs);}catch(e){}try{pvpFlagIn(docs);}catch(e){}const P0=pvpS(),me=MP.uid,now=pvpNow();let hit=0,who=[];
   for(const d of docs){const u=d.id;if(u===me||!mpIdOk(u))continue;const v=d.data();if(!v||v.w!==S.seed||!v.R||typeof v.R!=='object')continue;const e=v.R[me];if(!e||typeof e!=='object'||!Array.isArray(e.ids)||!mpNum(e.at,1e12,now+600000))continue;if(now-e.at>PVP_KEEP)continue;
@@ -18588,6 +18589,40 @@ function pvpWinClaim(o){if(!pvpWinOk(o))return;const P0=pvpS(),now=pvpNow();if(!
     const rows=wins.map(o=>{const got=P0.won&&P0.won[o]&&now-P0.won[o]<PVP_WINCD;return `<div class="mp-m"><b data-cn="${esc(o)}"></b><small class="muted"> · đang thắng áp đảo</small><button class="btn sm${got?' ghost':''}" data-a="pvpwin" data-c="${esc(o)}" ${got?'disabled':''}>${got?'Đã nhận tuần này':'🏆 Nhận thưởng'}</button></div>`;}).join('');
     h+=rows?`<h3>🏆 Chiến thắng</h3>${rows}`:`<p class="small muted">Thưởng chiến thắng: khi điểm bên mình từ ${PVP_WINPTS} trở lên và gấp đôi bên kia, mỗi thành viên nhận thưởng mỗi tuần một lần.</p>`;}}catch(e){}return h;};}
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="pvpwin"]');if(!b||!S)return;e.stopImmediatePropagation();pvpWinClaim(b.dataset.c);},true);
+/* ===================== NHÀ LÀ NƠI AN TOÀN: BẢO HỘ KHI VẮNG · VỀ NHÀ KHI ĐĂNG NHẬP · THUA TRẬN RƠI ĐỒ =====================
+   1. ĐIỂM VỀ: giường / chỗ ngủ bạn nằm gần nhất được ghi làm "nhà" (S.ho.bed). Thoát game quá 10 phút, lần sau vào game bạn tỉnh dậy ở đó
+      (không còn đứng trơ giữa rừng hay trong nhà kẻ khác). Ngất đi cũng tỉnh lại ở đó.
+   2. BẢO HỘ KHI VẮNG (thế giới chung): nếu lúc thoát bạn đang ở trong nhà mình (cách điểm về dưới 13 m) thì nhà được bảo hộ, người khác không
+      cướp phá được trong: Nhà nhỏ 4 giờ · Nhà lớn 8 giờ · Nhà dài 12 giờ thật (Lều không được bảo hộ); có từ 8 đoạn rào cọc / chòi canh / hố chông
+      thì thêm 4 giờ. Bảo hộ tính từ lúc bạn rời game 5 phút. Thoát ở ngoài đường thì nhà KHÔNG được bảo hộ. Liên minh đang có chiến tranh với
+      liên minh bạn vẫn đánh được (chiến tranh thì không có bảo hộ). Khiên 12 giờ sau khi bị cướp vẫn như cũ.
+   3. THUA TRẬN RƠI ĐỒ: bị lính gác / lính giữ cờ của người khác hạ gục thì rơi lại một nửa số ô vật liệu ngay chỗ ngã (kể cả chế độ Thong thả),
+      mất luôn khiên; đồ nằm đó 3 ngày công, quay lại nhặt được (nếu còn sống sót mà tới). Bị thú hay bộ lạc hạ thì theo luật cũ của chế độ chơi. */
+function hoS(){if(!S.ho||typeof S.ho!=='object')S.ho={};return S.ho;}
+function hoBed(){const id=hoS().bed;let b=id!=null?S.builds.find(x=>x.id===id&&x.prog==null):null;if(!b)b=S.builds.find(x=>x.prog==null&&!x.remote&&pieceDef(x.k)&&pieceDef(x.k).bed);return b||null;}
+function hoTier(){try{const b=hoBed();if(!b||typeof NHA==='undefined')return 0;const o=NHA.list.find(x=>x.b===b);return o?o.tier:0;}catch(e){return 0;}}
+function hoAtHome(){const b=hoBed();return !!b&&Math.hypot(b.x-P.x,b.z-P.z)<260;}
+// số giờ bảo hộ nếu thoát ngay lúc này
+function hoHours(fort){if(!hoAtHome())return 0;const t=hoTier(),h=[0,0,4,8,12][t]||0;if(!h)return 0;if(fort==null){fort=0;for(const b of S.builds)if(b.prog==null&&/palisade|watchtower|spikePit|rampart|SpikeFence/i.test(b.k))fort++;}return h+(fort>=8?4:0);}
+// ngủ ở đâu thì đó là điểm về
+{const _sl=sleep;sleep=function(b){try{if(b&&b.id!=null&&!b.remote&&hoS().bed!==b.id){hoS().bed=b.id;uiToast('🏠 Đã ghi chỗ ngủ này làm điểm về: thoát game hoặc ngất đi sẽ tỉnh dậy ở đây.','good');}}catch(e){}return _sl.apply(this,arguments);};}
+// ngất: tỉnh lại ở điểm về (mã gốc lấy giường đầu tiên tìm thấy)
+{const _die=die;die=function(){const pv=G.t-(G.hoPvpT||-99)<25;if(pv&&!G.dying){try{const lost={};let n=0;let q=0;S.inv.forEach((s,i)=>{if(s&&ITEMS[s.id]&&ITEMS[s.id].t==='res'&&(q++%2===0)){/* đúng một nửa số ô vật liệu (ô thứ 1, 3, 5…) */lost[s.id]=(lost[s.id]||0)+s.n;S.inv[i]=null;n++;}});
+      if(n&&typeof M2I==='function'){const M=M2I(),g=M.ev.grave;if(g&&g.it)for(const k in g.it)lost[k]=(lost[k]||0)+g.it[k];M.ev.grave={x:+P.x.toFixed(1),z:+P.z.toFixed(1),it:lost,day:S.day};try{m3GraveShow();}catch(e){}}
+      if(S.pvp)S.pvp.sh=0;uiToast(`⚔️ Bạn bị lính gác hạ gục${n?': rơi lại '+n+' ô vật liệu ở chỗ ngã (quay lại nhặt trong 3 ngày)':''}.`,'bad');}catch(e){console.warn('rơi đồ',e);}}
+  const r=_die.apply(this,arguments);const b=hoBed();if(b)setTimeout(()=>{try{if(S&&!G.sleeping){P.x=b.x+24;P.z=b.z+24;P.y=groundY(P.x,P.z,P.y+60);}}catch(e){}},1700);return r;};}
+{const _fh=foeHit;foeHit=function(f,t){if(f&&f.pvp&&t&&t.pl)G.hoPvpT=G.t;return _fh.apply(this,arguments);};}
+// vào game sau khi vắng lâu: tỉnh dậy ở nhà
+{const _sv=save;save=function(){try{if(S&&G.hoIn)hoS().out=Date.now();}catch(e){}return _sv.apply(this,arguments);};}
+setInterval(()=>{try{if(!G.on||!S||G.hoIn)return;if(!G.hoT0){G.hoT0=performance.now();return;}if(performance.now()-G.hoT0<1200)return;G.hoIn=1;const H=hoS(),away=H.out?Date.now()-H.out:0,b=hoBed();
+  if(b&&away>600000&&Math.hypot(b.x-P.x,b.z-P.z)>120&&!G.ride){P.x=b.x+24;P.z=b.z+24;P.y=groundY(P.x,P.z,P.y+60);G.walkTo=null;uiToast(`🏠 Bạn tỉnh dậy ở nhà sau ${away>7200000?Math.round(away/3600000)+' giờ':Math.round(away/60000)+' phút'} vắng mặt.`,'good');}
+  H.out=Date.now();}catch(e){}},700);
+// bảng Nhà của bạn: thêm dòng điểm về + bảo hộ
+if(typeof nhaHtml==='function'){const _nh=nhaHtml;nhaHtml=function(){let h=_nh.apply(this,arguments);try{const b=hoBed(),t=hoTier(),hh=hoHours();const mp=!!S.mp;
+  const row=`<div class="nha-r on ho-r"><span>🛏️</span><div><b>Điểm về${b?': '+esc(pieceDef(b.k).n)+' · cách '+Math.max(1,Math.round(Math.hypot(b.x-P.x,b.z-P.z)/20))+' m':''}</b><small>${b?'Thoát game quá 10 phút hoặc ngất đi sẽ tỉnh dậy ở đây. Ngủ ở giường khác để đổi điểm về.':'Chưa có: dựng chỗ ngủ rồi ngủ một giấc để ghi điểm về.'}${mp?(hh?` <b class="ho-ok">Thoát bây giờ: nhà được bảo hộ ${hh} giờ.</b>`:b?(hoAtHome()?' <b class="ho-no">Nhà còn là Lều: lợp từ 4 tấm mái quanh giường mới được bảo hộ khi vắng.</b>':' <b class="ho-no">Bạn đang ở ngoài: thoát bây giờ thì nhà KHÔNG được bảo hộ. Về nhà rồi hãy thoát.</b>'):''):''}</small></div></div>`;
+  const i=h.indexOf('<div class="nha-r');h=i>0?h.slice(0,i)+row+h.slice(i):h+row;}catch(e){}return h;};}
+// nhắc khi sắp thoát ở ngoài đường (thế giới chung, có nhà đủ lớn)
+{const st=document.createElement('style');st.textContent='.ho-ok{color:#8ce07a;font-weight:700}.ho-no{color:#ffb86a;font-weight:700}';document.head.appendChild(st);}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
