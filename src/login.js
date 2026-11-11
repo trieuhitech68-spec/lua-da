@@ -146,7 +146,7 @@ function ldlStartPatch(o){if(document.querySelector('.ov-card.form')||document.q
     card.querySelector('.chrs').before(d);}}
 function ldlLegacy(){const sl=slotsLocal();return Object.entries(sl).filter(([id,m])=>m&&!m.uid&&!m.ldUp&&accLS(SKEY+'#'+id));}
 // đổi một bản lưu "một mình" thành nhân vật thế giới chung (giữ đồ đạc, kỹ năng; bỏ những gì gắn với bản đồ cũ)
-function ldlConvert(raw){const s=JSON.parse(raw);if(!s||s.v!==1)return null;Object.assign(s,{seed:MP.seed,mp:1,mpGot:[],wv:3,builds:[],store:{},crops:{},fuel:{},res:{},disc:{},fogm:null,mark:null});
+function ldlConvert(raw){const s=JSON.parse(raw);if(!s||s.v!==1)return null;Object.assign(s,{seed:MP.seed,mp:1,mpGot:[],wv:(((MP.worlds||[]).find(w=>w.seed===MP.seed)||{}).wv>=4?4:3),builds:[],store:{},crops:{},fuel:{},res:{},disc:{},fogm:null,mark:null});
   s.p=Object.assign({},s.p||{},{x:1e7,z:1e7});return s;}// vị trí ngoài thế giới → game tự đưa về Trảng Khởi Đầu
 async function ldlUpload(){if(!ACC.db||!MP.ok||!MP.seed){uiToast('Chưa kết nối được máy chủ, thử lại sau nhé.','bad');return;}
   const leg=ldlLegacy(),room=MAXCH-accChars().length;if(room<=0){uiToast('Tài khoản đã đủ 4 nhân vật. Xóa bớt để đưa thêm.','bad');return;}

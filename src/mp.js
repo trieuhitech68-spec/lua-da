@@ -41,14 +41,17 @@ async function mpWorld(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v;let d=a
   if(!d||!ok(d.seed)){if(MP.ro)return;const ref=MP.db.doc('world/main');
     try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);if(L&&L.acquired){d=await mpGetDoc('world/main');if(!d||!ok(d.seed)){d={seed:((Math.random()*2e9)|0)+1,wv:3,createdAt:mpNow()};await ref.set(d);}}
       else{for(let i=0;i<6&&(!d||!ok(d.seed));i++){await mpSleep(1500);d=await mpGetDoc('world/main');}}}catch(e){console.warn('thế giới chung',e);}}
-  if(d&&ok(d.seed)){MP.seed=d.seed;MP.worlds=[{id:'main',seed:d.seed,n:null}];MP.srv='main';
-    for(let i=2;i<=MP_SRVMAX;i++){const e=await mpGetDoc('world/s'+i);if(!e||!ok(e.seed))break;MP.worlds.push({id:'s'+i,seed:e.seed,n:null});}}}
+  if(d&&ok(d.seed)){MP.seed=d.seed;MP.worlds=[{id:'main',seed:d.seed,n:null,wv:3}];MP.srv='main';
+    for(let i=2;i<=MP_SRVMAX;i++){const e=await mpGetDoc('world/s'+i);if(!e||!ok(e.seed))break;MP.worlds.push({id:'s'+i,seed:e.seed,n:null,wv:e.wv>=4?4:3});}}}
 /* ---------- NHIỀU MÁY CHỦ ----------
    Mỗi máy chủ là một thế giới riêng: world/main (Máy chủ 1), world/s2 … world/s8, mỗi cái một hạt giống. Mọi dữ liệu chung đã mang
    hạt giống (w) nên người ở máy chủ khác không thấy nhau, không tải dữ liệu của nhau, và mỗi máy chủ dùng một kênh thời gian thực riêng.
    Nhân vật gắn với máy chủ lúc tạo (S.srv + S.seed), không chuyển được. Tạo nhân vật mới: tự xếp vào máy chủ đầu tiên còn dưới
    MP_SRVCAP người hoạt động trong MP_SRVDAYS ngày; máy nào cũng đầy thì mở máy chủ mới (tối đa MP_SRVMAX). Người chơi đổi được trong bảng tạo nhân vật. */
-const mpSrvName=id=>'Máy chủ '+(id==='main'||!id?1:+String(id).slice(1));
+const mpSrvName=id=>'Máy chủ '+(id==='main'||!id?1:+String(id).slice(1))+(((MP.worlds||[]).find(w=>w.id===id)||{}).wv>=4?' · chữ S':'');
+// mở thêm một máy chủ dùng bản đồ hình chữ S (ai cũng bấm được khi chưa có máy chủ nào như vậy; tối đa MP_SRVMAX máy)
+async function mpSrvOpenS(){if(MP.srvBusy||!MP.ok)return;if((MP.worlds||[]).some(w=>w.wv>=4)){uiToast('Đã có máy chủ bản đồ chữ S, chọn nó trong danh sách.','');return;}MP.srvBusy=true;uiToast('Đang mở máy chủ mới…','');let w=null;try{w=await mpSrvNew();}catch(e){}MP.srvBusy=false;
+  if(w){MP.srvUser=1;MP.srv=w.id;MP.seed=w.seed;uiToast('🗺️ Đã mở '+mpSrvName(w.id)+'. Nhân vật mới sẽ vào bản đồ hình chữ S.','gold');}else uiToast('Chưa mở được máy chủ mới (kiểm tra mạng, hoặc máy chủ chưa chạy bản SQL cập nhật).','bad');mpFormRefresh();}
 function mpSrvOf(seed){const w=(MP.worlds||[]).find(x=>x.seed===seed);return w?w.id:null;}
 const mpIsMain=()=>!MP.worlds||!MP.worlds.length||!S||S.seed===MP.worlds[0].seed;
 // tài liệu cũ chưa ghi máy chủ (w) thuộc Máy chủ 1
@@ -56,9 +59,9 @@ const mpWOk=d=>!!d&&(d.w==null?mpIsMain():d.w===S.seed);
 async function mpSrvCount(){if(!MP.db||!MP.worlds)return;const since=mpNow()-MP_SRVDAYS*86400000;
   await Promise.all(MP.worlds.map(async w=>{try{const s=await mpTO(MP.db.collection('players').where('w','==',w.seed).limit(600).get(),10000);let n=0;for(const d of s.docs){const v=d.data();if(v&&v.lastSeen>since)n++;}w.n=n;}catch(e){if(w.n==null)w.n=0;}}));MP.srvAt=mpNow();}
 async function mpSrvNew(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v,i=MP.worlds.length+1;if(i>MP_SRVMAX||MP.ro)return null;const path='world/s'+i,ref=MP.db.doc(path);
-  try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);let d=await mpGetDoc(path);if((!d||!ok(d.seed))&&L&&L.acquired){d={seed:((Math.random()*2e9)|0)+1,wv:3,createdAt:mpNow()};await ref.set(d);}
+  try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);let d=await mpGetDoc(path);if((!d||!ok(d.seed))&&L&&L.acquired){d={seed:((Math.random()*2e9)|0)+1,wv:4,createdAt:mpNow()};await ref.set(d);}/* máy chủ mở mới dùng bản đồ hình chữ S (world5.js) */
     for(let k=0;k<4&&(!d||!ok(d.seed));k++){await mpSleep(1200);d=await mpGetDoc(path);}
-    if(d&&ok(d.seed)){const w={id:'s'+i,seed:d.seed,n:0};MP.worlds.push(w);return w;}}catch(e){console.warn('máy chủ mới',e);}return null;}
+    if(d&&ok(d.seed)){const w={id:'s'+i,seed:d.seed,n:0,wv:d.wv>=4?4:3};MP.worlds.push(w);return w;}}catch(e){console.warn('máy chủ mới',e);}return null;}
 // chọn máy chủ cho nhân vật mới (tự động, trừ khi người chơi đã bấm chọn)
 async function mpSrvPick(){if(MP.srvBusy||!MP.ok)return;MP.srvBusy=true;try{if(!MP.srvAt||mpNow()-MP.srvAt>60000)await mpSrvCount();
     if(!MP.srvUser){let w=MP.worlds.find(x=>(x.n||0)<MP_SRVCAP);if(!w)w=await mpSrvNew();if(!w)w=MP.worlds.slice().sort((a,b)=>(a.n||0)-(b.n||0))[0];MP.srv=w.id;MP.seed=w.seed;}}catch(e){console.warn('chọn máy chủ',e);}MP.srvBusy=false;mpFormRefresh();}
@@ -66,12 +69,12 @@ function mpSrvSet(id){const w=(MP.worlds||[]).find(x=>x.id===id);if(!w)return;MP
 // danh sách máy chủ trong bảng tạo nhân vật
 function mpSrvForm(row){const f=document.querySelector('.ov-card.form');
   // trình tạo nhân vật (creator.js): một nút nhỏ cạnh chế độ chơi, bấm để đổi sang máy chủ kế
-  const cs=document.querySelector('.ov-card.cr .crfr.mds small');if(cs&&G.nworld==='mp'&&MP.ok&&MP.worlds){if(!MP.srvAt||mpNow()-MP.srvAt>60000)mpSrvPick();const w=MP.worlds.find(x=>x.id===MP.srv)||MP.worlds[0],k=MP.srv+':'+w.n+':'+MP.worlds.length;
-    if(cs.dataset.k!==k){cs.dataset.k=k;cs.innerHTML=`<button class="tb sm" data-a="mpsrvnext" title="Bấm để đổi máy chủ">🌐 ${mpSrvName(w.id)}${w.n==null?'':' · '+w.n+'/'+MP_SRVCAP}${MP.worlds.length>1?' ⇄':''}</button>`;}}
+  const cs=document.querySelector('.ov-card.cr .crfr.mds small');if(cs&&G.nworld==='mp'&&MP.ok&&MP.worlds){if(!MP.srvAt||mpNow()-MP.srvAt>60000)mpSrvPick();const w=MP.worlds.find(x=>x.id===MP.srv)||MP.worlds[0],k=MP.srv+':'+w.n+':'+MP.worlds.length+':'+MP.worlds.some(x=>x.wv>=4);
+    if(cs.dataset.k!==k){cs.dataset.k=k;cs.innerHTML=`<button class="tb sm" data-a="mpsrvnext" title="Bấm để đổi máy chủ">🌐 ${mpSrvName(w.id)}${w.n==null?'':' · '+w.n+'/'+MP_SRVCAP}${MP.worlds.length>1?' ⇄':''}</button>`+(MP.worlds.some(x=>x.wv>=4)||MP.worlds.length>=MP_SRVMAX?'':' <button class="tb sm" data-a="mpsrvS" title="Mở máy chủ mới dùng bản đồ hình chữ S">＋ 🗺️ Chữ S</button>');}}
   if(!f)return;
   let sv=document.querySelector('.ov-card.form .mpsrv');if(G.nworld==='mp'&&MP.ok&&MP.worlds){if(!sv){sv=document.createElement('div');sv.className='mpsrv';if(row)row.after(sv);else{const st=f.querySelector('[data-a="start"]');if(st)st.before(sv);else f.appendChild(sv);}}
     if(!MP.srvAt||mpNow()-MP.srvAt>60000)mpSrvPick();
-    sv.innerHTML='<span class="small muted">Máy chủ (tự xếp vào máy còn chỗ; nhân vật ở cố định máy chủ đã chọn):</span><div class="mpsrv-l">'+MP.worlds.map(w=>`<button class="tb sm${w.id===MP.srv?' on':''}" data-a="mpsrv" data-v="${w.id}">${mpSrvName(w.id)}${w.n==null?'':' · '+w.n+'/'+MP_SRVCAP+((w.n||0)>=MP_SRVCAP?' (đầy)':'')}</button>`).join('')+'</div>';}
+    sv.innerHTML='<span class="small muted">Máy chủ (tự xếp vào máy còn chỗ; nhân vật ở cố định máy chủ đã chọn):</span><div class="mpsrv-l">'+MP.worlds.map(w=>`<button class="tb sm${w.id===MP.srv?' on':''}" data-a="mpsrv" data-v="${w.id}">${mpSrvName(w.id)}${w.n==null?'':' · '+w.n+'/'+MP_SRVCAP+((w.n||0)>=MP_SRVCAP?' (đầy)':'')}</button>`).join('')+(MP.worlds.some(x=>x.wv>=4)||MP.worlds.length>=MP_SRVMAX?'':'<button class="tb sm" data-a="mpsrvS">＋ 🗺️ Mở máy chủ bản đồ chữ S</button>')+'</div>';}
   else if(sv)sv.remove();}
 // kênh thời gian thực riêng cho từng máy chủ (Máy chủ 1 giữ kênh cũ)
 async function mpRoomSet(r){if(!r)return;MP.room0=r;const id=S&&S.mp?(S.srv||mpSrvOf(S.seed)):null;let use=r;if(id&&id!=='main'&&typeof r.join==='function'){try{use=await r.join(id);}catch(e){use=r;}}MP.room=use;if(MP.started)mpRoomInit();}
@@ -106,7 +109,7 @@ function mpSameClan(uid){const a=mpMyClan();return !!a&&a===mpClanOf(uid);}
 function mpColOf(uid){const c=MP.clans[mpClanOf(uid)];return c?c.color:null;}
 /* ---------- chọn thế giới khi tạo nhân vật ---------- */
 {const _ng=newGame;newGame=function(o){const mp=G.nworld==='mp'&&MP.ok&&MP.seed;if(mp){o=Object.assign({},o,{seed:MP.seed});}const r=_ng(o);
-  if(mp&&S){S.mp=1;S.srv=MP.srv||'main';S.mpGot=[];S._new=1;save();delete S._new;}return r;};}
+  if(mp&&S){S.mp=1;S.srv=MP.srv||'main';{const w=(MP.worlds||[]).find(x=>x.id===S.srv);if(w&&w.wv>=4){S.wv=4;worldCfg(4);}else if(S.wv>=4){S.wv=3;worldCfg(3);}}S.mpGot=[];S._new=1;save();delete S._new;}return r;};}
 {const _sm=slotMeta;slotMeta=function(s){const m=_sm(s);if(s&&s.mp){m.mp=1;m.srv=s.srv||'main';}return m;};}
 {const _us=uiStart;uiStart=function(o){_us(o);try{mpStartPatch(o||{});}catch(e){console.warn(e);}};}
 function mpStartPatch(o){const f=document.querySelector('.ov-card.form');
@@ -390,7 +393,7 @@ function mpTick(dt){if(!mpOn())return;const t=performance.now()/1000,T=MP.tick;
 .mp-send{display:flex;gap:6px;align-items:center}.mp-send input{margin:0}.mpask{position:fixed;z-index:30;left:50%;bottom:calc(120px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(360px,calc(100vw - 32px));padding:12px 14px;border-radius:16px;background:#2a1d14;border:2px solid #f2c55a;box-shadow:0 10px 30px rgba(0,0,0,.5)}.mpask p{margin:0 0 8px}
 #menu .mp-dot{position:absolute;top:4px;right:6px;width:9px;height:9px;border-radius:50%;background:#e5532c}#menu [data-ui="clan"]{position:relative}`;document.head.appendChild(s);})();
 
-document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="mpsrv"],[data-a="mpsrvnext"]');if(!b)return;e.stopImmediatePropagation();
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="mpsrv"],[data-a="mpsrvnext"],[data-a="mpsrvS"]');if(!b)return;e.stopImmediatePropagation();if(b.dataset.a==='mpsrvS'){mpSrvOpenS();return;}
   if(b.dataset.a==='mpsrv')mpSrvSet(b.dataset.v);else if(MP.worlds&&MP.worlds.length>1){const i=MP.worlds.findIndex(w=>w.id===MP.srv);mpSrvSet(MP.worlds[(i+1)%MP.worlds.length].id);}},true);
 setInterval(()=>{try{if(MP.ok&&document.querySelector('.ov-card.cr'))mpSrvForm(null);}catch(e){}},1000);
 {const st=document.createElement('style');st.textContent='.mpsrv{margin:6px 0 10px;display:flex;flex-direction:column;gap:6px;text-align:left}.mpsrv-l{display:flex;flex-wrap:wrap;gap:6px}';document.head.appendChild(st);}

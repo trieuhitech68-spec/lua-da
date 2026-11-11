@@ -7960,10 +7960,10 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
      · Miền Nam: châu thổ thấp phẳng (Đồng Bằng Chín Rồng), rừng U Minh ngập mặn ở mũi tây nam, rừng Nam Cát Tiên phía đông bắc.
    Khung lưới kéo về nam (WOZ) và rộng hơn; mọi thứ chỉ chạy khi WV>=4, thế giới 2-3 không đổi.
    GÁN LẠI (bọc): worldCfg, baseH, riversPlan, regionsBuild, trails4, fixSave, newGame. Hàm dùng chung: wIn (trong ranh giới chơi), v5R (khoảng cách chuẩn hoá tới bờ). */
-const V5={box:[-3000,5200,8600,5300],// [x0,z0,rộng,dài] hộp bao phần đất mới (để rải tài nguyên, thú)
-  waist:[[2100,5350],[3500,6350],[3700,7350],[2700,8250]],hw:1050,
-  S:{x:500,z:8950,rx:2800,rz:1500},baseN:W4ZONES.length,
-  zones:[{id:'meadow4',x:300,z:8750,rx:1500,rz:850},{id:'mangrove',x:-1350,z:9450,rx:1050,rz:700},{id:'ancient',x:2450,z:8700,rx:850,rz:700}]};
+const V5={box:[-3300,5200,10300,5400],// [x0,z0,rộng,dài] hộp bao phần đất mới (để rải tài nguyên, thú)
+  waist:[[2600,5400],[4700,6200],[5600,7400],[4900,8600],[3000,9300]],hw:1000,
+  S:{x:300,z:9350,rx:3300,rz:1150},baseN:W4ZONES.length,
+  zones:[{id:'meadow4',x:500,z:9300,rx:1700,rz:780},{id:'mangrove',x:-1900,z:9500,rx:1000,rz:650},{id:'ancient',x:3300,z:9050,rx:850,rz:650}]};
 // khoảng cách tới đường gấp khúc + bên trái/phải (dương = phía tây của hướng bắc→nam)
 function v5Waist(x,z){const P=V5.waist;let bd=1e9,side=0,bt=0;for(let i=0;i<P.length-1;i++){const [ax,az]=P[i],[bx,bz]=P[i+1],dx=bx-ax,dz=bz-az,l2=dx*dx+dz*dz;let t=((x-ax)*dx+(z-az)*dz)/l2;t=t<0?0:t>1?1:t;
     const px=ax+dx*t,pz=az+dz*t,d=Math.hypot(x-px,z-pz);if(d<bd){bd=d;side=((x-px)*dz-(z-pz)*dx)>0?-1:1;bt=(i+t)/(P.length-1);}}_v5w.d=bd;_v5w.s=side;_v5w.t=bt;return _v5w;}
@@ -7986,24 +7986,24 @@ function v5H(x,z){const u=v5U(x,z);if(u>1.35)return -60;const w=v5Waist(x,z),S=V
   h=h*(1-inS*0.9)+(7+NS.fbm(x/900+2,z/900-6,3)*6+NS.fbm(x/200,z/200,2)*1.2)*inS*0.9;
   const Z=V5.zones;
   if((k=z4k(Z[0],x,z))>0){const t=12+NS.fbm(x/900-6,z/900+6,3)*7;h=h*(1-k*0.85)+t*k*0.85;}
-  if((k=z4k(Z[1],x,z))>0){const c=NS.ridge(x/650+2,z/650-6,3),t=0.4+NS.fbm(x/240,z/240,3)*5+NS.fbm(x/60,z/60,2)*0.9-ss(0.58,0.8,c)*6;h=h*(1-k)+t*k;}
+  if((k=z4k(Z[1],x,z))>0){const c=NS.ridge(x/650+2,z/650-6,3),t=2.6+NS.fbm(x/240,z/240,3)*4.5+NS.fbm(x/60,z/60,2)*0.9-ss(0.6,0.82,c)*6.5;h=h*(1-k)+t*k;}/* cao hơn rừng ngập mặn phía bắc một chút: nhiều cồn đất giữa kênh rạch */
   if((k=z4k(Z[2],x,z))>0){const t=22+NS.fbm(x/500+4,z/500,3)*16;h=h*(1-k*0.75)+t*k*0.75;}
   const land=1-ss(1,1.12,u);return h*land-(1-land)*60;}
 {const _bh=baseH;baseH=function(x,z){const h=_bh(x,z);if(WV<4||z<4200)return h;return Math.max(h,v5H(x,z));};}
 // sông miền Trung và sông châu thổ
 {const _rp=riversPlan;riversPlan=function(seed){_rp(seed);if(WV<4)return;const R=rng((seed||1)*17+4441);
   const add=(id,n,wp,w,dep,jit)=>{const pts=w4RiverPts(wp,R,jit);RIV.push({id,n,wp,w,dep,sea:1,pts,s:null});};
-  add('cuulong','Sông Chín Rồng',[[2950,7250],[2500,8050],[1500,8650],[350,9150],[-800,9750],[-1500,10300],[-1900,10700]],[14,64],7,140);
-  add('thubon','Sông Thu',[[3050,6500],[3700,6750],[4300,6950],[5100,7100]],[10,26],4,70);
+  add('cuulong','Sông Chín Rồng',[[4850,7900],[4100,8650],[2700,9150],[1300,9300],[-100,9600],[-1200,10050],[-1750,10700]],[14,64],7,140);
+  add('thubon','Sông Thu',[[5000,6950],[5900,7050],[6700,7180],[7400,7280]],[10,26],4,70);
   RBK=new Map();const C=400;RIV.forEach((r,ri)=>{for(let k=0;k<r.pts.length-1;k++){const [ax,az]=r.pts[k],[bx,bz]=r.pts[k+1],m=200;for(let i=Math.floor((Math.min(ax,bx)-m)/C);i<=Math.floor((Math.max(ax,bx)+m)/C);i++)for(let j=Math.floor((Math.min(az,bz)-m)/C);j<=Math.floor((Math.max(az,bz)+m)/C);j++){const key=i+','+j;if(!RBK.has(key))RBK.set(key,[]);RBK.get(key).push(ri,k);}}});};}
 // vùng có tên của phần đất mới
-const V5REG=[['deongang','Đèo Ngang','Cửa ngõ từ đất Bắc vào miền Trung: lối mòn men sườn núi, một bên rừng, một bên biển.','🚩',[2300,5600],450],
-  ['truongson','Dải Trường Sơn','Dãy núi dài chạy dọc miền Trung. Rừng già phủ kín sườn tây, từ đỉnh nhìn xuống dải đồng bằng hẹp ven biển.','⛰️',[3050,6900],650],
-  ['mientrung','Dải Cát Miền Trung','Dải đất hẹp kẹp giữa núi và biển: cồn cát trắng, đầm phá, gió khô nóng. Cá và muối nhiều, đất trồng ít.','🏖️',[4150,6900],600],
-  ['cattien','Rừng Nam Cát Tiên','Rừng già ẩm thấp nơi cửa ngõ phương Nam: gỗ quý, thuốc, và rất nhiều thú lớn.','🌳',[2450,8700],750],
-  ['cuulong','Đồng Bằng Chín Rồng','Châu thổ mênh mông, sông chia nhánh đổ ra biển. Đất phù sa trồng gì cũng tốt: vựa lúa của cả phương Nam.','🌾',[300,8750],1100],
-  ['uminh','Rừng U Minh','Rừng ngập nước mặn mũi tây nam: kênh rạch chằng chịt, đước, tràm, mật ong rừng, cá sấu.','🪷',[-1350,9450],800],
-  ['camau','Mũi Đất Cuối Trời','Chỗ đất liền vươn xa nhất về phương Nam. Đứng ở đây thấy mặt trời mọc lên và lặn xuống cùng một mặt biển.','🧭',[-1750,9700],420]];
+const V5REG=[['deongang','Đèo Ngang','Cửa ngõ từ đất Bắc vào miền Trung: lối mòn men sườn núi, một bên rừng, một bên biển.','🚩',[2750,5550],450],
+  ['truongson','Dải Trường Sơn','Dãy núi dài chạy dọc miền Trung. Rừng già phủ kín sườn tây, từ đỉnh nhìn xuống dải đồng bằng hẹp ven biển.','⛰️',[4800,7250],650],
+  ['mientrung','Dải Cát Miền Trung','Dải đất hẹp kẹp giữa núi và biển: cồn cát trắng, đầm phá, gió khô nóng. Cá và muối nhiều, đất trồng ít.','🏖️',[6150,7350],520],
+  ['cattien','Rừng Nam Cát Tiên','Rừng già ẩm thấp nơi cửa ngõ phương Nam: gỗ quý, thuốc, và rất nhiều thú lớn.','🌳',[3500,8850],700],
+  ['cuulong','Đồng Bằng Chín Rồng','Châu thổ mênh mông, sông chia nhánh đổ ra biển. Đất phù sa trồng gì cũng tốt: vựa lúa của cả phương Nam.','🌾',[500,9300],1100],
+  ['uminh','Rừng U Minh','Rừng ngập nước mặn mũi tây nam: kênh rạch chằng chịt, đước, tràm, mật ong rừng, cá sấu.','🪷',[-1900,9500],800],
+  ['camau','Mũi Đất Cuối Trời','Chỗ đất liền vươn xa nhất về phương Nam. Đứng ở đây thấy mặt trời mọc lên và lặn xuống cùng một mặt biển.','🧭',[-2150,9480],420]];
 {const _rb=regionsBuild;regionsBuild=function(){const r=_rb.apply(this,arguments);if(WV>=4)for(const [id,n,d,ic,p,rr] of V5REG)if(!REG.some(q=>q.id===id))REG.push({id,n,d,ic,x:p[0],z:p[1],r:rr});return r;};}
 {const _t4=trails4;trails4=function(){const a=_t4();return WV>=4?a.concat([['ancient','deongang'],['deongang','truongson'],['truongson','mientrung'],['truongson','cattien'],['cattien','cuulong'],['cuulong','uminh'],['uminh','camau']]):a;};}
 // bản lưu và ván mới
@@ -16551,7 +16551,7 @@ function ldlStartPatch(o){if(document.querySelector('.ov-card.form')||document.q
     card.querySelector('.chrs').before(d);}}
 function ldlLegacy(){const sl=slotsLocal();return Object.entries(sl).filter(([id,m])=>m&&!m.uid&&!m.ldUp&&accLS(SKEY+'#'+id));}
 // đổi một bản lưu "một mình" thành nhân vật thế giới chung (giữ đồ đạc, kỹ năng; bỏ những gì gắn với bản đồ cũ)
-function ldlConvert(raw){const s=JSON.parse(raw);if(!s||s.v!==1)return null;Object.assign(s,{seed:MP.seed,mp:1,mpGot:[],wv:3,builds:[],store:{},crops:{},fuel:{},res:{},disc:{},fogm:null,mark:null});
+function ldlConvert(raw){const s=JSON.parse(raw);if(!s||s.v!==1)return null;Object.assign(s,{seed:MP.seed,mp:1,mpGot:[],wv:(((MP.worlds||[]).find(w=>w.seed===MP.seed)||{}).wv>=4?4:3),builds:[],store:{},crops:{},fuel:{},res:{},disc:{},fogm:null,mark:null});
   s.p=Object.assign({},s.p||{},{x:1e7,z:1e7});return s;}// vị trí ngoài thế giới → game tự đưa về Trảng Khởi Đầu
 async function ldlUpload(){if(!ACC.db||!MP.ok||!MP.seed){uiToast('Chưa kết nối được máy chủ, thử lại sau nhé.','bad');return;}
   const leg=ldlLegacy(),room=MAXCH-accChars().length;if(room<=0){uiToast('Tài khoản đã đủ 4 nhân vật. Xóa bớt để đưa thêm.','bad');return;}
@@ -17590,14 +17590,17 @@ async function mpWorld(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v;let d=a
   if(!d||!ok(d.seed)){if(MP.ro)return;const ref=MP.db.doc('world/main');
     try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);if(L&&L.acquired){d=await mpGetDoc('world/main');if(!d||!ok(d.seed)){d={seed:((Math.random()*2e9)|0)+1,wv:3,createdAt:mpNow()};await ref.set(d);}}
       else{for(let i=0;i<6&&(!d||!ok(d.seed));i++){await mpSleep(1500);d=await mpGetDoc('world/main');}}}catch(e){console.warn('thế giới chung',e);}}
-  if(d&&ok(d.seed)){MP.seed=d.seed;MP.worlds=[{id:'main',seed:d.seed,n:null}];MP.srv='main';
-    for(let i=2;i<=MP_SRVMAX;i++){const e=await mpGetDoc('world/s'+i);if(!e||!ok(e.seed))break;MP.worlds.push({id:'s'+i,seed:e.seed,n:null});}}}
+  if(d&&ok(d.seed)){MP.seed=d.seed;MP.worlds=[{id:'main',seed:d.seed,n:null,wv:3}];MP.srv='main';
+    for(let i=2;i<=MP_SRVMAX;i++){const e=await mpGetDoc('world/s'+i);if(!e||!ok(e.seed))break;MP.worlds.push({id:'s'+i,seed:e.seed,n:null,wv:e.wv>=4?4:3});}}}
 /* ---------- NHIỀU MÁY CHỦ ----------
    Mỗi máy chủ là một thế giới riêng: world/main (Máy chủ 1), world/s2 … world/s8, mỗi cái một hạt giống. Mọi dữ liệu chung đã mang
    hạt giống (w) nên người ở máy chủ khác không thấy nhau, không tải dữ liệu của nhau, và mỗi máy chủ dùng một kênh thời gian thực riêng.
    Nhân vật gắn với máy chủ lúc tạo (S.srv + S.seed), không chuyển được. Tạo nhân vật mới: tự xếp vào máy chủ đầu tiên còn dưới
    MP_SRVCAP người hoạt động trong MP_SRVDAYS ngày; máy nào cũng đầy thì mở máy chủ mới (tối đa MP_SRVMAX). Người chơi đổi được trong bảng tạo nhân vật. */
-const mpSrvName=id=>'Máy chủ '+(id==='main'||!id?1:+String(id).slice(1));
+const mpSrvName=id=>'Máy chủ '+(id==='main'||!id?1:+String(id).slice(1))+(((MP.worlds||[]).find(w=>w.id===id)||{}).wv>=4?' · chữ S':'');
+// mở thêm một máy chủ dùng bản đồ hình chữ S (ai cũng bấm được khi chưa có máy chủ nào như vậy; tối đa MP_SRVMAX máy)
+async function mpSrvOpenS(){if(MP.srvBusy||!MP.ok)return;if((MP.worlds||[]).some(w=>w.wv>=4)){uiToast('Đã có máy chủ bản đồ chữ S, chọn nó trong danh sách.','');return;}MP.srvBusy=true;uiToast('Đang mở máy chủ mới…','');let w=null;try{w=await mpSrvNew();}catch(e){}MP.srvBusy=false;
+  if(w){MP.srvUser=1;MP.srv=w.id;MP.seed=w.seed;uiToast('🗺️ Đã mở '+mpSrvName(w.id)+'. Nhân vật mới sẽ vào bản đồ hình chữ S.','gold');}else uiToast('Chưa mở được máy chủ mới (kiểm tra mạng, hoặc máy chủ chưa chạy bản SQL cập nhật).','bad');mpFormRefresh();}
 function mpSrvOf(seed){const w=(MP.worlds||[]).find(x=>x.seed===seed);return w?w.id:null;}
 const mpIsMain=()=>!MP.worlds||!MP.worlds.length||!S||S.seed===MP.worlds[0].seed;
 // tài liệu cũ chưa ghi máy chủ (w) thuộc Máy chủ 1
@@ -17605,9 +17608,9 @@ const mpWOk=d=>!!d&&(d.w==null?mpIsMain():d.w===S.seed);
 async function mpSrvCount(){if(!MP.db||!MP.worlds)return;const since=mpNow()-MP_SRVDAYS*86400000;
   await Promise.all(MP.worlds.map(async w=>{try{const s=await mpTO(MP.db.collection('players').where('w','==',w.seed).limit(600).get(),10000);let n=0;for(const d of s.docs){const v=d.data();if(v&&v.lastSeen>since)n++;}w.n=n;}catch(e){if(w.n==null)w.n=0;}}));MP.srvAt=mpNow();}
 async function mpSrvNew(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v,i=MP.worlds.length+1;if(i>MP_SRVMAX||MP.ro)return null;const path='world/s'+i,ref=MP.db.doc(path);
-  try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);let d=await mpGetDoc(path);if((!d||!ok(d.seed))&&L&&L.acquired){d={seed:((Math.random()*2e9)|0)+1,wv:3,createdAt:mpNow()};await ref.set(d);}
+  try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);let d=await mpGetDoc(path);if((!d||!ok(d.seed))&&L&&L.acquired){d={seed:((Math.random()*2e9)|0)+1,wv:4,createdAt:mpNow()};await ref.set(d);}/* máy chủ mở mới dùng bản đồ hình chữ S (world5.js) */
     for(let k=0;k<4&&(!d||!ok(d.seed));k++){await mpSleep(1200);d=await mpGetDoc(path);}
-    if(d&&ok(d.seed)){const w={id:'s'+i,seed:d.seed,n:0};MP.worlds.push(w);return w;}}catch(e){console.warn('máy chủ mới',e);}return null;}
+    if(d&&ok(d.seed)){const w={id:'s'+i,seed:d.seed,n:0,wv:d.wv>=4?4:3};MP.worlds.push(w);return w;}}catch(e){console.warn('máy chủ mới',e);}return null;}
 // chọn máy chủ cho nhân vật mới (tự động, trừ khi người chơi đã bấm chọn)
 async function mpSrvPick(){if(MP.srvBusy||!MP.ok)return;MP.srvBusy=true;try{if(!MP.srvAt||mpNow()-MP.srvAt>60000)await mpSrvCount();
     if(!MP.srvUser){let w=MP.worlds.find(x=>(x.n||0)<MP_SRVCAP);if(!w)w=await mpSrvNew();if(!w)w=MP.worlds.slice().sort((a,b)=>(a.n||0)-(b.n||0))[0];MP.srv=w.id;MP.seed=w.seed;}}catch(e){console.warn('chọn máy chủ',e);}MP.srvBusy=false;mpFormRefresh();}
@@ -17615,12 +17618,12 @@ function mpSrvSet(id){const w=(MP.worlds||[]).find(x=>x.id===id);if(!w)return;MP
 // danh sách máy chủ trong bảng tạo nhân vật
 function mpSrvForm(row){const f=document.querySelector('.ov-card.form');
   // trình tạo nhân vật (creator.js): một nút nhỏ cạnh chế độ chơi, bấm để đổi sang máy chủ kế
-  const cs=document.querySelector('.ov-card.cr .crfr.mds small');if(cs&&G.nworld==='mp'&&MP.ok&&MP.worlds){if(!MP.srvAt||mpNow()-MP.srvAt>60000)mpSrvPick();const w=MP.worlds.find(x=>x.id===MP.srv)||MP.worlds[0],k=MP.srv+':'+w.n+':'+MP.worlds.length;
-    if(cs.dataset.k!==k){cs.dataset.k=k;cs.innerHTML=`<button class="tb sm" data-a="mpsrvnext" title="Bấm để đổi máy chủ">🌐 ${mpSrvName(w.id)}${w.n==null?'':' · '+w.n+'/'+MP_SRVCAP}${MP.worlds.length>1?' ⇄':''}</button>`;}}
+  const cs=document.querySelector('.ov-card.cr .crfr.mds small');if(cs&&G.nworld==='mp'&&MP.ok&&MP.worlds){if(!MP.srvAt||mpNow()-MP.srvAt>60000)mpSrvPick();const w=MP.worlds.find(x=>x.id===MP.srv)||MP.worlds[0],k=MP.srv+':'+w.n+':'+MP.worlds.length+':'+MP.worlds.some(x=>x.wv>=4);
+    if(cs.dataset.k!==k){cs.dataset.k=k;cs.innerHTML=`<button class="tb sm" data-a="mpsrvnext" title="Bấm để đổi máy chủ">🌐 ${mpSrvName(w.id)}${w.n==null?'':' · '+w.n+'/'+MP_SRVCAP}${MP.worlds.length>1?' ⇄':''}</button>`+(MP.worlds.some(x=>x.wv>=4)||MP.worlds.length>=MP_SRVMAX?'':' <button class="tb sm" data-a="mpsrvS" title="Mở máy chủ mới dùng bản đồ hình chữ S">＋ 🗺️ Chữ S</button>');}}
   if(!f)return;
   let sv=document.querySelector('.ov-card.form .mpsrv');if(G.nworld==='mp'&&MP.ok&&MP.worlds){if(!sv){sv=document.createElement('div');sv.className='mpsrv';if(row)row.after(sv);else{const st=f.querySelector('[data-a="start"]');if(st)st.before(sv);else f.appendChild(sv);}}
     if(!MP.srvAt||mpNow()-MP.srvAt>60000)mpSrvPick();
-    sv.innerHTML='<span class="small muted">Máy chủ (tự xếp vào máy còn chỗ; nhân vật ở cố định máy chủ đã chọn):</span><div class="mpsrv-l">'+MP.worlds.map(w=>`<button class="tb sm${w.id===MP.srv?' on':''}" data-a="mpsrv" data-v="${w.id}">${mpSrvName(w.id)}${w.n==null?'':' · '+w.n+'/'+MP_SRVCAP+((w.n||0)>=MP_SRVCAP?' (đầy)':'')}</button>`).join('')+'</div>';}
+    sv.innerHTML='<span class="small muted">Máy chủ (tự xếp vào máy còn chỗ; nhân vật ở cố định máy chủ đã chọn):</span><div class="mpsrv-l">'+MP.worlds.map(w=>`<button class="tb sm${w.id===MP.srv?' on':''}" data-a="mpsrv" data-v="${w.id}">${mpSrvName(w.id)}${w.n==null?'':' · '+w.n+'/'+MP_SRVCAP+((w.n||0)>=MP_SRVCAP?' (đầy)':'')}</button>`).join('')+(MP.worlds.some(x=>x.wv>=4)||MP.worlds.length>=MP_SRVMAX?'':'<button class="tb sm" data-a="mpsrvS">＋ 🗺️ Mở máy chủ bản đồ chữ S</button>')+'</div>';}
   else if(sv)sv.remove();}
 // kênh thời gian thực riêng cho từng máy chủ (Máy chủ 1 giữ kênh cũ)
 async function mpRoomSet(r){if(!r)return;MP.room0=r;const id=S&&S.mp?(S.srv||mpSrvOf(S.seed)):null;let use=r;if(id&&id!=='main'&&typeof r.join==='function'){try{use=await r.join(id);}catch(e){use=r;}}MP.room=use;if(MP.started)mpRoomInit();}
@@ -17655,7 +17658,7 @@ function mpSameClan(uid){const a=mpMyClan();return !!a&&a===mpClanOf(uid);}
 function mpColOf(uid){const c=MP.clans[mpClanOf(uid)];return c?c.color:null;}
 /* ---------- chọn thế giới khi tạo nhân vật ---------- */
 {const _ng=newGame;newGame=function(o){const mp=G.nworld==='mp'&&MP.ok&&MP.seed;if(mp){o=Object.assign({},o,{seed:MP.seed});}const r=_ng(o);
-  if(mp&&S){S.mp=1;S.srv=MP.srv||'main';S.mpGot=[];S._new=1;save();delete S._new;}return r;};}
+  if(mp&&S){S.mp=1;S.srv=MP.srv||'main';{const w=(MP.worlds||[]).find(x=>x.id===S.srv);if(w&&w.wv>=4){S.wv=4;worldCfg(4);}else if(S.wv>=4){S.wv=3;worldCfg(3);}}S.mpGot=[];S._new=1;save();delete S._new;}return r;};}
 {const _sm=slotMeta;slotMeta=function(s){const m=_sm(s);if(s&&s.mp){m.mp=1;m.srv=s.srv||'main';}return m;};}
 {const _us=uiStart;uiStart=function(o){_us(o);try{mpStartPatch(o||{});}catch(e){console.warn(e);}};}
 function mpStartPatch(o){const f=document.querySelector('.ov-card.form');
@@ -17939,7 +17942,7 @@ function mpTick(dt){if(!mpOn())return;const t=performance.now()/1000,T=MP.tick;
 .mp-send{display:flex;gap:6px;align-items:center}.mp-send input{margin:0}.mpask{position:fixed;z-index:30;left:50%;bottom:calc(120px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(360px,calc(100vw - 32px));padding:12px 14px;border-radius:16px;background:#2a1d14;border:2px solid #f2c55a;box-shadow:0 10px 30px rgba(0,0,0,.5)}.mpask p{margin:0 0 8px}
 #menu .mp-dot{position:absolute;top:4px;right:6px;width:9px;height:9px;border-radius:50%;background:#e5532c}#menu [data-ui="clan"]{position:relative}`;document.head.appendChild(s);})();
 
-document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="mpsrv"],[data-a="mpsrvnext"]');if(!b)return;e.stopImmediatePropagation();
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="mpsrv"],[data-a="mpsrvnext"],[data-a="mpsrvS"]');if(!b)return;e.stopImmediatePropagation();if(b.dataset.a==='mpsrvS'){mpSrvOpenS();return;}
   if(b.dataset.a==='mpsrv')mpSrvSet(b.dataset.v);else if(MP.worlds&&MP.worlds.length>1){const i=MP.worlds.findIndex(w=>w.id===MP.srv);mpSrvSet(MP.worlds[(i+1)%MP.worlds.length].id);}},true);
 setInterval(()=>{try{if(MP.ok&&document.querySelector('.ov-card.cr'))mpSrvForm(null);}catch(e){}},1000);
 {const st=document.createElement('style');st.textContent='.mpsrv{margin:6px 0 10px;display:flex;flex-direction:column;gap:6px;text-align:left}.mpsrv-l{display:flex;flex-wrap:wrap;gap:6px}';document.head.appendChild(st);}
