@@ -297,14 +297,14 @@ function h3faceKit(R){if(R._h3f!==undefined)return R._h3f;R._h3f=null;if(!window
       mh:[new T.BoxGeometry(0.34,0.045,0.03).translate(-0.17,0,0),new T.BoxGeometry(0.34,0.045,0.03).translate(0.17,0,0)],mo:new T.SphereGeometry(0.2,10,6),
       mIris:new T.MeshStandardMaterial({color:0x2a180c,roughness:0.25}),mPup:new T.MeshBasicMaterial({color:0x050404}),mBrow:new T.MeshStandardMaterial({color:0x24180f,roughness:0.9}),mMouth:new T.MeshBasicMaterial({color:0x34120e})});
     const mLid=new T.MeshStandardMaterial({color:sk||new T.Color('#b07a52'),roughness:0.75});
-    const g=new T.Group();g.name='h3face';R.head.add(g);const ez=eyeZ-0.3,F={g,lid:[],iris:[],brow:[],mh:[],mo:null,nb:1+Math.random()*3,bk:0,c:{br:0,bi:0,sm:0,op:0,lid:0.1,ly:0,lp:0},sac:{x:0,y:0,t:0}};
+    const g=new T.Group();g.name='h3face';R.head.add(g);const ez=eyeZ-0.3,F={g,lid:[],iris:[],brow:[],mh:[],mo:null,nb:1+Math.random()*3,bk:0,c:{br:0.12,bi:0,sm:0.5,op:0,lid:-0.02,ly:0,lp:0},sac:{x:0,y:0,t:0}};
     [-1,1].forEach(s=>{const pv=new T.Group();pv.position.set(s*0.62,3.4,ez);g.add(pv);const l=new T.Mesh(FG.lid,mLid);pv.add(l);F.lid.push(pv);
       const ip=new T.Group();ip.position.set(s*0.62,3.4,ez);g.add(ip);const ir=new T.Mesh(FG.iris,FG.mIris);ir.position.z=0.312;ip.add(ir);const pu=new T.Mesh(FG.pup,FG.mPup);pu.position.z=0.316;ip.add(pu);F.iris.push(ip);
       const b=new T.Mesh(FG.brow,FG.mBrow);Object.defineProperty(b,'castShadow',{get:()=>false,set(){}});/* lông mày không đổ bóng (bóng răng cưa in lên mặt) */b.position.set(s*0.62,3.9,bZ+0.04);b.rotation.y=s*0.18;g.add(b);F.brow.push(b);});
-    const mg=new T.Group();mg.position.set(0,2.3,mZ+0.02);g.add(mg);F.mg=mg;F.mh=FG.mh.map(gg=>{const m=new T.Mesh(gg,FG.mMouth);mg.add(m);return m;});F.mo=new T.Mesh(FG.mo,FG.mMouth);F.mo.scale.set(1.5,0.1,0.5);F.mo.position.set(0,-0.04,-0.06);mg.add(F.mo);
+    const mg=new T.Group();mg.position.set(0,2.3,mZ+0.02);g.add(mg);F.mg=mg;F.mh=FG.mh.map(gg=>{const m=new T.Mesh(gg,FG.mMouth);mg.add(m);return m;});F.mh[0].rotation.z=-0.21;F.mh[1].rotation.z=0.21;/* mỉm cười sẵn cả khi chưa chạy nhịp nét mặt (màn tạo nhân vật) */F.mo=new T.Mesh(FG.mo,FG.mMouth);F.mo.scale.set(1.5,0.1,0.5);F.mo.position.set(0,-0.04,-0.06);mg.add(F.mo);
     g.traverse(o=>{o.layers.mask=R.head.layers.mask;if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});R._h3f=F;return F;}catch(e){console.warn('hunt3 mặt',e);return null;}}
 // nét mặt mục tiêu: br (+ nhướn / − cau), bi (đầu lông mày trong nhướn: lo âu, đau), sm (cười +/mếu −), op (há miệng), lid (khép mi; âm = mở to)
-const H3EX={calm:{br:0,bi:0,sm:0.12,op:0,lid:0.12},pain:{br:-0.7,bi:0.7,sm:-0.7,op:0.45,lid:0.65},strain:{br:-0.55,bi:0.1,sm:-0.45,op:0.12,lid:0.38},tired:{br:-0.1,bi:0.45,sm:-0.15,op:0.35,lid:0.45},
+const H3EX={calm:{br:0.12,bi:0,sm:0.5,op:0,lid:-0.02},/* nét mặt lúc bình thường: mắt mở, hơi mỉm cười (trước mí sụp, miệng thẳng → trông đờ đẫn) */pain:{br:-0.7,bi:0.7,sm:-0.7,op:0.45,lid:0.65},strain:{br:-0.55,bi:0.1,sm:-0.45,op:0.12,lid:0.38},tired:{br:-0.1,bi:0.45,sm:-0.15,op:0.35,lid:0.45},
   hungry:{br:-0.1,bi:0.5,sm:-0.35,op:0.04,lid:0.32},cold:{br:-0.3,bi:0.35,sm:-0.3,op:0.05,lid:0.22},fear:{br:0.75,bi:0.6,sm:-0.25,op:0.32,lid:-0.25},joy:{br:0.35,bi:0,sm:0.95,op:0.2,lid:0.28},
   focus:{br:-0.35,bi:0,sm:-0.08,op:0,lid:0.3},sleepy:{br:-0.05,bi:0.2,sm:0,op:0.02,lid:0.58},talk:{br:0.15,bi:0,sm:0.25,op:0.15,lid:0.1},angry:{br:-0.85,bi:-0.2,sm:-0.5,op:0.3,lid:0.25}};
 function h3exprPlayer(key){if(P.hurtT>0.05)return 'pain';

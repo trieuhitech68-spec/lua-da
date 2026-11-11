@@ -310,20 +310,20 @@ function crVn(x,y,z,s){const f=(a,b,c)=>{const v=Math.sin(a*127.1+b*311.7+c*74.7
 function crHeadModel(fem,EZ){const EX=0.62,EY=3.4,ER=(fem?0.29:0.3)*CHS.eye;const hsp=v=>Math.sign(v)*Math.pow(Math.abs(v),0.8);
   const base=(u,y)=>{const r=crProfS(y,fem),s=Math.sin(u),c=Math.cos(u);return [r[1]*hsp(s),y,(c>=0?r[2]:r[3])*hsp(c)];};
   const disp=(u,y)=>{const p=base(u,y),x=p[0],ax=Math.abs(x),sx=x<0?-1:1,cu=Math.cos(u),fw=crSS(0.05,0.55,cu),M={};if(fw<=0)return [p,M];let dz=0,dx=0;
-    dz+=(fem?0.06:0.12)*crGs(y,3.86,0.16)*crSS(1.4,0.5,ax)-0.035*crGs(y,3.72,0.1)*crGs(x,0,0.18);
+    const TN=CHS.toon||0;dz+=(fem?0.06:0.12)*(1-0.65*TN)*crGs(y,3.86,0.16)*crSS(1.4,0.5,ax)-0.035*(1-TN)*crGs(y,3.72,0.1)*crGs(x,0,0.18);
     let nh=0;if(y<3.78&&y>2.45){if(y>3.3)nh=0.03+0.12*((3.78-y)/0.48);else if(y>2.84)nh=0.15+0.31*Math.pow((3.3-y)/0.46,1.15);else{const t=(2.84-y)/0.36;nh=0.46*Math.max(0,Math.cos(Math.min(1,t)*Math.PI/2))*(1-0.15*t);}}
-    nh*=fem?0.86:1.02;const nw=0.13+0.1*Math.max(0,Math.min(1,(3.78-y)/1.0))+0.06*crGs(y,2.8,0.12);dz+=nh*Math.exp(-Math.pow(ax/nw,2.4));
+    nh*=(fem?0.86:1.02)*(1-0.52*TN);const nw=0.13+0.1*Math.max(0,Math.min(1,(3.78-y)/1.0))+0.06*crGs(y,2.8,0.12);dz+=nh*Math.exp(-Math.pow(ax/nw,2.4));
     dz+=0.05*crGs(y,2.86,0.08)*crGs(ax,0,0.12);// chóp mũi tròn
-    dz+=0.15*crGs(ax,0.25,0.1)*crGs(y,2.73,0.1)*(fem?0.85:1);dx+=0.04*crGs(ax,0.3,0.1)*crGs(y,2.74,0.1);dz-=0.045*crGs(ax,0.36,0.04)*crGs(y,2.77,0.1);// cánh mũi + nếp cánh mũi
-    dz-=0.06*crGs(ax,0.13,0.045)*crGs(y,2.64,0.035);// lỗ mũi
-    dz+=0.08*crGs(ax,1.0,0.32)*crGs(y,3.02,0.24);dx+=0.06*crGs(ax,1.15,0.3)*crGs(y,3.05,0.25);dz-=0.03*crGs(ax,0.62,0.22)*crGs(y,3.1,0.08);dx-=0.04*crGs(ax,1.45,0.2)*crGs(y,3.95,0.3);
-    {const fx=0.36+0.26*(2.75-y)/0.5;dz-=0.022*crGs(ax-fx,0,0.05)*crSS(2.15,2.32,y)*crSS(2.8,2.7,y);}// rãnh mũi-má
-    const lw=fem?0.39:0.42,lm=crSS(lw+0.07,lw-0.12,ax);dz+=0.05*crGs(y,2.42,0.11)*crSS(0.6,0.2,ax)-0.02*crGs(x,0,0.06)*crGs(y,2.5,0.08)+0.012*crGs(ax,0.075,0.03)*crGs(y,2.5,0.07);
-    dz+=(fem?0.085:0.06)*crGs(y,2.35,0.045)*lm;dz-=0.065*crGs(y,2.305,0.028)*crSS(lw+0.1,lw-0.15,ax);dz+=(fem?0.115:0.09)*crGs(y,2.225,0.055)*lm;dz-=0.03*crGs(y,2.07,0.07)*crSS(0.5,0.2,ax);
-    dz+=(fem?0.07:0.11)*crGs(y,1.62,0.24)*crSS(0.6,0.15,ax);dx+=(fem?0:0.05)*crGs(y,1.9,0.35)*crSS(0.6,1.0,ax);
+    dz+=0.15*(1-0.65*TN)*crGs(ax,0.25,0.1)*crGs(y,2.73,0.1)*(fem?0.85:1);dx+=0.04*(1-0.65*TN)*crGs(ax,0.3,0.1)*crGs(y,2.74,0.1);dz-=0.045*(1-TN)*crGs(ax,0.36,0.04)*crGs(y,2.77,0.1);// cánh mũi + nếp cánh mũi
+    dz-=0.06*(1-TN)*crGs(ax,0.13,0.045)*crGs(y,2.64,0.035);// lỗ mũi
+    dz+=0.08*(1+0.7*TN)*crGs(ax,1.0,0.32)*crGs(y,3.02,0.24);dx+=0.06*crGs(ax,1.15,0.3)*crGs(y,3.05,0.25);dz-=0.03*crGs(ax,0.62,0.22)*crGs(y,3.1,0.08);dx-=0.04*crGs(ax,1.45,0.2)*crGs(y,3.95,0.3);
+    {const fx=0.36+0.26*(2.75-y)/0.5;dz-=0.022*(1-TN)*crGs(ax-fx,0,0.05)*crSS(2.15,2.32,y)*crSS(2.8,2.7,y);}// rãnh mũi-má
+    const lw=fem?0.39:0.42,lm=crSS(lw+0.07,lw-0.12,ax),yl=y-0.5*TN*ax*ax;/* yl: khoé miệng cong lên (mỉm cười) ở kiểu hoạt hình */dz+=0.05*crGs(y,2.42,0.11)*crSS(0.6,0.2,ax)-0.02*crGs(x,0,0.06)*crGs(y,2.5,0.08)+0.012*crGs(ax,0.075,0.03)*crGs(y,2.5,0.07);
+    dz+=(fem?0.085:0.06)*crGs(yl,2.35,0.045)*lm;dz-=0.065*crGs(yl,2.305,0.028)*crSS(lw+0.1,lw-0.15,ax);dz+=(fem?0.115:0.09)*crGs(yl,2.225,0.055)*lm;dz-=0.03*crGs(y,2.07,0.07)*crSS(0.5,0.2,ax);
+    dz+=(fem?0.07:0.11)*(1-0.35*TN)*crGs(y,1.62,0.24)*crSS(0.6,0.15,ax);dx+=(fem?0:0.05)*crGs(y,1.9,0.35)*crSS(0.6,1.0,ax);
     const ex=ax-EX;let z=p[2]+dz*fw;{const r=Math.sqrt(ex*ex*0.8+(y-EY)*(y-EY));if(r<0.62){const zt=EZ+(y<EY?0.2:0.13)+(y<EY?0.08:0.15)*crSS(0.25,0.5,r);z=Math.min(z,zt+(z-zt)*crSS(0.42,0.6,r));}}
-    M.socket=crSS(0.2,0.05,(ex*ex+(y-EY)*(y-EY)));M.lip=(crSS(2.44,2.39,y)*crSS(2.29,2.32,y)+crSS(2.31,2.28,y)*crSS(2.1,2.16,y))*crSS(lw+0.04,lw-0.08,ax)*fw;
-    M.nose=crGs(y,2.82,0.18)*crSS(0.35,0.1,ax)*fw;M.nostril=crGs(ax,0.13,0.045)*crGs(y,2.64,0.03)*fw;M.cheek=crGs(ax,1.0,0.35)*crGs(y,2.9,0.3)*fw;
+    M.socket=crSS(0.2,0.05,(ex*ex+(y-EY)*(y-EY)));M.lip=(crSS(2.44,2.39,yl)*crSS(2.29,2.32,yl)+crSS(2.31,2.28,yl)*crSS(2.1,2.16,yl))*crSS(lw+0.04,lw-0.08,ax)*fw;
+    M.nose=crGs(y,2.82,0.18)*crSS(0.35,0.1,ax)*fw*(1-0.6*TN);M.nostril=crGs(ax,0.13,0.045)*crGs(y,2.64,0.03)*fw*(1-TN);M.cheek=crGs(ax,1.0,0.35)*crGs(y,2.9,0.3)*fw*(1+1.6*TN);M.socket=M.socket*(1-0.7*TN);
     return [[x+sx*dx*fw,y,z],M];};
   return {disp,base,EX,EY,EZ,ER};}
 const CR_HQ_ROWS=(()=>{const H=[5.95,5.78,5.45,5.05,4.6,4.12,3.95,3.85,3.76,3.66,3.56,3.47,3.38,3.29,3.2,3.1,2.98,2.86,2.76,2.67,2.59,2.52,2.45,2.39,2.345,2.305,2.265,2.215,2.15,2.06,1.94,1.79,1.62,1.35,1.08],o=[];
@@ -336,7 +336,7 @@ function crPoreTex(){if(CR_MAT.pore)return CR_MAT.pore;const S2=256,c=crCanvas(S
   g.putImageData(im,0,0);const nt=new THREE.CanvasTexture(c);nt.wrapS=nt.wrapT=THREE.RepeatWrapping;
   const rc=crCanvas(128,128),rg=rc.getContext('2d'),ri=rg.createImageData(128,128);for(let y=0;y<128;y++)for(let x=0;x<128;x++){const v=0.92+0.12*(crVn(x/16,y/16,0,3)-0.5)+0.05*(crVn(x/4,y/4,1,4)-0.5),o=(y*128+x)*4;ri.data[o]=ri.data[o+1]=ri.data[o+2]=v*255;ri.data[o+3]=255;}
   rg.putImageData(ri,0,0);const rt=new THREE.CanvasTexture(rc);rt.wrapS=rt.wrapT=THREE.RepeatWrapping;return CR_MAT.pore={nt,rt};}
-function crSkinMatHQ(base){const k='skinHQ'+base.uuid;if(CR_MAT[k])return CR_MAT[k];const m=base.clone(),P=crPoreTex();m.normalMap=P.nt;m.normalScale=new THREE.Vector2(0.28,0.28);m.roughnessMap=P.rt;m.roughness=0.7;if(m.clearcoat!==undefined)m.clearcoat=0.03;
+function crSkinMatHQ(base){const k='skinHQ'+base.uuid;if(CR_MAT[k])return CR_MAT[k];const m=base.clone(),P=crPoreTex();m.normalMap=P.nt;m.normalScale=new THREE.Vector2(0.28*(1-0.85*(CHS.toon||0)),0.28*(1-0.85*(CHS.toon||0)));m.roughnessMap=P.rt;m.roughness=0.7;if(m.clearcoat!==undefined)m.clearcoat=0.03;
   if(m.sheenColor)m.sheenColor=new THREE.Color('#d0806a').multiplyScalar(0.32);m.userData.crHQ=1;return CR_MAT[k]=m;}
 // sợi tóc sắc nét (cùng bố cục UV với bộ dựng: nửa trên = sợi gốc→ngọn, v<0.06 lấp kín)
 function crHairTexHQ(){if(CR_MAT.hairTex)return CR_MAT.hairTex;const W=512,H=1024,c=crCanvas(W,H),g=c.getContext('2d'),im=g.createImageData(W,H),A=new Float32Array(W*H),L=new Float32Array(W*H).fill(0.5),R=crRng(909);
@@ -351,7 +351,7 @@ function crHairMatHQ(base){const k='hairHQ'+base.uuid;if(CR_MAT[k])return CR_MAT
 function crEyeMat(iris,env){const k='eye'+iris;if(CR_MAT[k])return CR_MAT[k];const W=256,c=crCanvas(W,W),g=c.getContext('2d'),R=crRng(31),ic=crRgb(iris),deg=d=>d/180*W;
   const sg=g.createLinearGradient(0,0,0,W);sg.addColorStop(0,'#f2e9e0');sg.addColorStop(0.35,'#eadbd0');sg.addColorStop(0.7,'#c9a89a');sg.addColorStop(1,'#7a5a50');g.fillStyle=sg;g.fillRect(0,0,W,W);
   g.strokeStyle='rgba(170,60,50,.35)';g.lineWidth=0.8;for(let k2=0;k2<14;k2++){let x=R()*W,y=deg(70+R()*40);g.beginPath();g.moveTo(x,y);for(let s=0;s<8;s++){x+=(R()-0.5)*14;y-=4+R()*5;g.lineTo(x,y);}g.stroke();}
-  const ir=deg(34),lim=deg(39);for(let x=0;x<W;x++){const f=0.75+0.5*R();g.fillStyle=`rgb(${Math.min(255,ic[0]*f)|0},${Math.min(255,ic[1]*f)|0},${Math.min(255,ic[2]*f)|0})`;g.fillRect(x,0,1,ir);}
+  const ir=deg(34+11*(CHS.toon||0)),lim=deg(39+11*(CHS.toon||0));/* tròng mắt to hơn ở kiểu hoạt hình */for(let x=0;x<W;x++){const f=0.75+0.5*R();g.fillStyle=`rgb(${Math.min(255,ic[0]*f)|0},${Math.min(255,ic[1]*f)|0},${Math.min(255,ic[2]*f)|0})`;g.fillRect(x,0,1,ir);}
   const lg=g.createLinearGradient(0,deg(14),0,ir);lg.addColorStop(0,'rgba(255,200,140,.12)');lg.addColorStop(0.5,'rgba(0,0,0,0)');lg.addColorStop(1,'rgba(0,0,0,.35)');g.fillStyle=lg;g.fillRect(0,deg(14),W,ir-deg(14));
   const rg=g.createLinearGradient(0,ir,0,lim);rg.addColorStop(0,'rgba(10,6,4,.95)');rg.addColorStop(1,'rgba(10,6,4,0)');g.fillStyle=rg;g.fillRect(0,ir-2,W,lim-ir+2);g.fillStyle='#050404';g.fillRect(0,0,W,deg(14));
   const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;const m=new THREE.MeshPhysicalMaterial({map:t,roughness:0.22,clearcoat:1,clearcoatRoughness:0.04,envMap:env||null,envMapIntensity:0.45});return CR_MAT[k]=m;}
@@ -389,7 +389,7 @@ function crHQ(G,R,a){const T=THREE,head=R.head,fem=!!a.f,U=G.userData;const sk0=
     const g2=new T.BufferGeometry();g2.setAttribute('position',new T.Float32BufferAttribute(P,3));g2.setAttribute('normal',new T.Float32BufferAttribute(NN,3));g2.setAttribute('color',new T.Float32BufferAttribute(C,3));g2.setAttribute('uv',new T.Float32BufferAttribute(UV,2));
     const em=new T.Mesh(g2,sk0.material);em.userData.part='skin';em.castShadow=true;em.receiveShadow=true;hiG.add(em);}
   // mi mắt bọc nhãn cầu + đường mi + hàng mi
-  {const B=crBuf(),L=crBuf(),hm0=head.children.find(m=>m.isMesh&&m.userData.part==='hair');const aw=(fem?0.31:0.3)*CHS.eye,hU=(fem?0.12:0.105)*CHS.eye*0.92,hL=(fem?0.085:0.075)*CHS.eye;
+  {const B=crBuf(),L=crBuf(),hm0=head.children.find(m=>m.isMesh&&m.userData.part==='hair');const aw=(fem?0.31:0.3)*CHS.eye,hU=(fem?0.12:0.105)*CHS.eye*1.15,hL=(fem?0.085:0.075)*CHS.eye;
     [-1,1].forEach(s=>{const c=[s*EX,EY,EZ],Rl=ER*1.07;const mU=X=>{const t=Math.abs(X)/aw;return t>=1?0:hU*Math.pow(1-t*t,0.75)+0.014*(X/aw);},mL=X=>{const t=Math.abs(X)/aw;return t>=1?0:-hL*Math.pow(1-t*t,0.8)+0.012*(X/aw);};
       [true,false].forEach(up=>{const NX=12,NR=4,P=[],Cc=[],UU=[],Nn=[];for(let r=0;r<=NR;r++){const row=[],cr=[],ur=[],nr=[];for(let i=0;i<=NX;i++){const X=s*(i/NX*2-1)*Rl*0.97,rc=Math.sqrt(Math.max(1e-4,Rl*Rl-X*X));/* s*: hai mắt dựng cùng chiều tam giác (trước đây mí mắt bên trái bị lộn mặt → mảng tối quanh mắt) */
           const m=Math.max(-0.98,Math.min(0.98,(up?Math.max(mU(X),mL(X)+0.004):Math.min(mL(X),mU(X)-0.004))/rc)),f0=Math.asin(m),f1=up?1.3:-0.85,f=f0+(f1-f0)*Math.pow(r/NR,1.2),rad=r===0?ER*1.015:Rl*(1+(up?0.17:0.06)*Math.pow(r/NR,1.5));
@@ -397,7 +397,7 @@ function crHQ(G,R,a){const T=THREE,head=R.head,fem=!!a.f,U=G.userData;const sk0=
           let k=skinAt(p,0.12);if(r===0)k=up?crMix(HC,crHex('#0c0806'),0.6):crMix(SK,crHex('#a0504a'),0.4);else if(r===1&&up)k=crMix(k,v3mul(SK,0.6),0.55);else if(r===1)k=crMix(k,v3mul(SK,0.8),0.3);else if(r===2&&up)k=crMix(k,v3mul(SK,0.8),0.45);cr.push(k);ur.push([i/NX,r/NR*0.3]);}
         P.push(row);Cc.push(cr);UU.push(ur);Nn.push(nr);}crGrid(B,P,Cc,UU,Nn);
         if(up){const ln=[],pts=[];for(let i=1;i<NX;i++){const p=P[0][i],n2=v3nrm(v3sub(p,c));pts.push(v3add(p,n2,0.01));ln.push(n2);}const cl0=v3mul(HC,0.35);
-          for(let i=0;i<pts.length-1;i++){const w=Math.sin((i+1)/pts.length*Math.PI),o1=v3add(pts[i],v3nrm(v3add(ln[i],[s*0.25*(i/pts.length-0.3),1.1,0.5])),0.06+0.09*w),o2=v3add(pts[i+1],v3nrm(v3add(ln[i+1],[s*0.25*((i+1)/pts.length-0.3),1.1,0.5])),0.06+0.09*w);
+          for(let i=0;i<pts.length-1;i++){const w=Math.sin((i+1)/pts.length*Math.PI),lk=fem?1:(1-0.55*(CHS.toon||0)),o1=v3add(pts[i],v3nrm(v3add(ln[i],[s*0.25*(i/pts.length-0.3),1.1,0.5])),(0.06+0.09*w)*lk),o2=v3add(pts[i+1],v3nrm(v3add(ln[i+1],[s*0.25*((i+1)/pts.length-0.3),1.1,0.5])),(0.06+0.09*w)*lk);
             const nq=v3nrm(v3add(ln[i],[0,0.6,0]));[pts[i],pts[i+1],o2,pts[i],o2,o1].forEach((q,qi)=>{L.p.push(q);L.c.push(cl0);L.u.push([0.3+0.02*(qi%2),qi>=2&&qi!==3?0.3:0.02]);L.n.push(nq);});}}});});
     const lm=crMesh(B,smat);if(lm){lm.userData.crAdd=0;lm.userData.part='lid';hiG.add(lm);}if(hm0){const la=crMesh(L,crHairMatHQ(hm0.material));if(la){la.userData.crAdd=0;la.userData.part='lash';hiG.add(la);}}}
   // LOD: gần = đầu chi tiết, xa = đầu gốc

@@ -292,4 +292,5 @@ const AGES=[
 ];
 
 // PHONG CÁCH NHÂN VẬT (cách điệu kiểu game phiêu lưu nhìn từ trên xuống): đầu, mắt, bàn tay, bàn chân to hơn tỉ lệ thật để dễ nhìn, dễ mến ở cỡ nhỏ
-const CHS={head:1.2,eye:1.14,hand:1.16,foot:1.12};
+// toon: 0 = mặt tả thực như cũ, 1 = mặt hoạt hình (mũi nhỏ tròn, bỏ gờ mày, rãnh mũi-má, lỗ mũi; má bầu, ửng hồng; da mịn; tròng mắt to)
+const CHS={head:1.2,eye:1.14,hand:1.16,foot:1.12,toon:1};

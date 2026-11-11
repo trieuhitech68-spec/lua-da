@@ -955,7 +955,7 @@ function SBmodels6cInit(){const M=window.SBM,K=(typeof K3!=='undefined')?K3:wind
       const bot=[0,1.15,-0.4],rowB=Pg[Pg.length-1];hS.grid('skin',[rowB,rowB.map(()=>bot)],[Cg[Cg.length-1],Cg[Cg.length-1]],[Ug[Ug.length-1],Ug[Ug.length-1]],()=>[0,2.0,-0.3]);}
     // eyes (glossy balls: sclera, iris, pupil)
     const hrS=soup(head,90),eS=soup(head,80),irisC=C(o.eye||['#3a2414','#2a1a10','#4a2e18'][seed%3]);
-    [-1,1].forEach(s=>{const c=[s*HD.eyeC[0],HD.eyeC[1],HD.eyeC[2]],ER=HD.ER,Rl=ER*1.07,ex=[s,0,0],ey=[0,1,0],ez=[0,0,1],aw=(fem?0.31:0.3)*CHS.eye,hU=(fem?0.115:0.1)*CHS.eye*0.92,hL=(fem?0.085:0.075)*CHS.eye;
+    [-1,1].forEach(s=>{const c=[s*HD.eyeC[0],HD.eyeC[1],HD.eyeC[2]],ER=HD.ER,Rl=ER*1.07,ex=[s,0,0],ey=[0,1,0],ez=[0,0,1],aw=(fem?0.31:0.3)*CHS.eye,hU=(fem?0.115:0.1)*CHS.eye*1.15,hL=(fem?0.085:0.075)*CHS.eye;
       // almond margins (lateral X → height on the eyeball); outer corner slightly raised
       const mU=X=>{const t=Math.abs(X)/aw;return t>=1?0.012*s*0:hU*Math.pow(1-t*t,0.75)+0.012*(X/aw);},mL=X=>{const t=Math.abs(X)/aw;return t>=1?0:-hL*Math.pow(1-t*t,0.8)+0.012*(X/aw);};
       const lid=(up)=>{const NX=7,NR=3,P=[],Cc=[],U=[],Nn=[];for(let r=0;r<=NR;r++){const row=[],cr=[],ur=[],nr=[];for(let i=0;i<=NX;i++){const X=(i/NX*2-1)*Rl*0.97,rc=Math.sqrt(Math.max(1e-4,Rl*Rl-X*X));
