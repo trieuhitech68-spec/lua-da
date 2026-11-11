@@ -66,3 +66,8 @@ if(typeof rlTick==='function'){const _rt=rlTick;rlTick=function(){try{khuBossTic
 // hồ sơ tài nguyên của các vùng miền Trung, miền Nam (thế giới hình chữ S, world5.js)
 if(typeof RLPROF==='object'){Object.assign(RLPROF,{deongang:['stone','soil'],truongson:['timber stone game','fish soil'],mientrung:['salt fish shell','timber soil'],cattien:['timber game herb honey','stone'],cuulong:['soil fish clay','stone ore flint'],uminh:['fish honey shell','stone flint'],camau:['fish salt shell','stone timber']});
   for(const id of ['deongang','truongson','mientrung','cattien','cuulong','uminh','camau']){const [r,p]=RLPROF[id];RLPS[id]={r:new Set(r.split(' ').filter(Boolean)),p:new Set(p.split(' ').filter(Boolean))};}}
+// điểm tài nguyên riêng của miền Trung, miền Nam (chỉ có ở bản đồ hình chữ S: các vùng này không tồn tại ở bản đồ cũ nên điểm tự bỏ qua)
+if(typeof RLSITE!=='undefined')RLSITE.push(
+  {id:'muoitrung',n:'Ruộng muối Dải Cát',ic:'🧂',cat:'salt',regs:['mientrung'],minD:3000,rich:3,water:1,y:{salt:5,fish:2},nodes:[['saltPan',10],['shellBed',3]],d:'Bãi cát trắng miền Trung nắng gắt quanh năm: nước biển phơi vài hôm là kết muối.'},
+  {id:'vualua',n:'Vựa lúa Chín Rồng',ic:'🌾',cat:'soil',regs:['cuulong'],minD:3000,rich:3,y:{grain:6,seedGrain:1,clay:2},nodes:[['wildgrain',12],['clay',4],['gourdwild',3]],d:'Đất phù sa châu thổ tốt nhất thiên hạ: gieo gì mọc nấy, ruộng quanh đây lớn nhanh gấp rưỡi.'},
+  {id:'gotruongson',n:'Rừng gỗ Trường Sơn',ic:'🌲',cat:'timber',regs:['truongson','cattien'],minD:3000,rich:3,y:{wood:8,honey:1},nodes:[['oakG',6],['pineG',4],['beehive',2]],d:'Rừng già trên sườn Trường Sơn, cây thẳng và to như cột đình.'});

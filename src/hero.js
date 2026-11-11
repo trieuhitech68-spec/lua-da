@@ -21,7 +21,7 @@ function heroReset(){const h=heroS();if(!Object.values(h.a).some(v=>v>0))return;
 {const _sp=swingPer;swingPer=function(t){return _sp(t)/(1+0.015*heroA('str'));};}
 {const _ad=animalDamage;animalDamage=function(a,dmg){return _ad(a,dmg*(1+0.03*heroA('str')));};}
 {const _fd=foeDamage;foeDamage=function(f,dmg){return _fd(f,dmg*(1+0.03*heroA('str')));};}
-const heroDef=()=>Math.min(0.5,0.02*heroA('vit'));
+let heroDef=()=>Math.min(0.5,0.02*heroA('vit'));
 function heroSoak(hp0){const lost=hp0-S.p.hp,k=heroDef();if(lost>0&&k>0&&S.p.hp>0)S.p.hp=Math.min(100,S.p.hp+lost*k);}
 {const _aa=animalAttack;animalAttack=function(a){const h=S.p.hp;const r=_aa.apply(this,arguments);heroSoak(h);return r;};}
 {const _fh=foeHit;foeHit=function(f,t){const h=S.p.hp;const r=_fh.apply(this,arguments);if(t&&t.pl)heroSoak(h);return r;};}
