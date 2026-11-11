@@ -9,11 +9,11 @@ const SOL_WALK=/^(paddy|channel|fishPond|drumStage|treePlatform|stiltDeck2|bambo
 function solRectOf(b){const def=pieceDef(b.k);if(!def||def.kind!=='obj'||SOL_WALK.test(b.k)||def.farm)return null;const fp=def.fp||[1,1];if(fp[0]*fp[1]<2&&!(def.bed&&!def.small))return null;
   if(b.prog!=null&&b.prog<0.5)return null;const w=(b.r%2?fp[1]:fp[0])*CELL/2-3,d=(b.r%2?fp[0]:fp[1])*CELL/2-3;return [b.x-w,b.z-d,b.x+w,b.z+d];}
 function solRects(x,z,py){const out=[],ci=Math.floor(x/CELL),cj=Math.floor(z/CELL),seen=new Set();for(let i=ci-3;i<=ci+3;i++)for(let j=cj-3;j<=cj+3;j++){const c=OCC.cell.get(i+','+j);if(!c)continue;
-    for(let L=0;L<=LVMAX;L++){const id=c[slotN('obj',L)];if(!id||seen.has(id))continue;seen.add(id);const b=BYID.get(id);if(!b||Math.abs(b.y-py)>40)continue;const r=solRectOf(b);if(r)out.push(r);}}return out;}
+    for(let L=0;L<=LVMAX;L++){const id=c[slotN('obj',L)];if(!id||seen.has(id))continue;seen.add(id);const b=BYID.get(id);if(!b||Math.abs(b.y-py)>40||py>=b.y+SOL_HUT-4)continue;/* đang đứng trên nóc thì không bị đẩy */const r=solRectOf(b);if(r)out.push(r);}}return out;}
 // các đoạn tường (đã trừ lối cửa) + cột quanh một vùng
 function solSegs(x0,z0,x1,z1,py){const out=[],i0=Math.floor(Math.min(x0,x1)/CELL)-1,i1=Math.floor(Math.max(x0,x1)/CELL)+1,j0=Math.floor(Math.min(z0,z1)/CELL)-1,j1=Math.floor(Math.max(z0,z1)/CELL)+1;if((i1-i0)*(j1-j0)>400)return out;
   for(let L=0;L<=LVMAX;L++)for(let i=i0;i<=i1+1;i++)for(let j=j0;j<=j1+1;j++)for(const [k0,r] of [['h:'+i+','+j,0],['v:'+i+','+j,1]]){const id=OCC.edge.get(L?k0+'@'+L:k0);if(!id)continue;const b=BYID.get(id);if(!b)continue;const def=pieceDef(b.k);if(!def||/ladder/i.test(b.k))continue;
-      if(py+30<b.y||py>b.y+(def.low?22:46))continue;const ax=r?b.x:b.x-20,az=r?b.z-20:b.z,bx=r?b.x:b.x+20,bz=r?b.z+20:b.z;for(const [s0,s1] of (def.door?[[-0.08,0.32],[0.68,1.08]]:[[-0.08,1.08]]))out.push([ax+(bx-ax)*s0,az+(bz-az)*s0,ax+(bx-ax)*s1,az+(bz-az)*s1]);/* dài thêm mỗi đầu 3 đơn vị: bịt khe ở góc nhà */}
+      if(py+30<b.y||py>b.y+(def.low?22:46))continue;const ax=r?b.x:b.x-20,az=r?b.z-20:b.z,bx=r?b.x:b.x+20,bz=r?b.z+20:b.z;for(const [s0,s1] of (def.door?[[-0.08,0.17],[0.83,1.08]]:[[-0.08,1.08]]))out.push([ax+(bx-ax)*s0,az+(bz-az)*s0,ax+(bx-ax)*s1,az+(bz-az)*s1]);/* dài thêm mỗi đầu 3 đơn vị: bịt khe ở góc nhà */}
   return out;}
 const solX=(a,b,c,d,p,q,r,s)=>{const d1=(c-a)*(q-b)-(d-b)*(p-a),d2=(c-a)*(s-b)-(d-b)*(r-a),d3=(r-p)*(b-q)-(s-q)*(a-p),d4=(r-p)*(d-q)-(s-q)*(c-p);return d1*d2<0&&d3*d4<0;};
 function solCross(ox,oz,x,z,py,segs,rects){for(const s of segs)if(solX(ox,oz,x,z,s[0],s[1],s[2],s[3]))return true;
@@ -25,6 +25,10 @@ function solBodies(x,z,py){const pr=7,push=(bx,bz,r)=>{const dx=x-bx,dz=z-bz,d=M
   try{if(typeof MP==='object'&&MP.rp)MP.rp.forEach(v=>{const vx=v.x!=null?v.x:v.o&&v.o.position.x,vz=v.z!=null?v.z:v.o&&v.o.position.z;if(vx==null||Math.abs(vx-x)>40||Math.abs(vz-z)>40)return;push(vx,vz,5);});}catch(e){}
   return [x,z];}
 {const _c=collide;collide=function(nx,nz){if(!S||!G.on||typeof OCC==='undefined')return _c(nx,nz);const ox=P.x,oz=P.z,py=P.y;let c=_c(nx,nz),x=c[0],z=c[1];
+    try{/* LEO LÊN MÁI: đang nhảy mà bị tường hoặc lều chặn → bám mép, đu lên mái nhà / nóc lều (tốn 10 thể lực). Tường không có mái thì không leo được. */
+      if(P.air&&!G.swim&&!G.ride&&Math.hypot(x-nx,z-nz)>0.3){const dx=nx-ox,dz=nz-oz,l=Math.hypot(dx,dz);if(l>0.01){for(const k of [16,26,36]){const ax=ox+dx/l*k,az=oz+dz/l*k,t=solTopAt(ax,az);
+            if(t!=null&&t>py+6&&t-py<96){if(S.p.stam<10){if(G.t-(G._solNo||0)>4){G._solNo=G.t;uiToast('😮‍💨 Không đủ sức đu lên mái.','');}break;}S.p.stam-=10;P.y=t+1;P.vy=0;P.air=false;sfx('jump');try{addXp('run',1);}catch(e){}
+              if(!G._solTip){G._solTip=1;uiToast('🧗 Đã leo lên mái. Bước ra mép là nhảy xuống.','');}return [ax,az];}}}}}catch(e){}
     try{const rects=solRects(nx,nz,py),pr=7;
       for(const r of rects){if(x>r[0]-pr&&x<r[2]+pr&&z>r[1]-pr&&z<r[3]+pr){const dl=x-(r[0]-pr),dr=(r[2]+pr)-x,du=z-(r[1]-pr),dd=(r[3]+pr)-z,m=Math.min(dl,dr,du,dd);if(m===dl)x=r[0]-pr;else if(m===dr)x=r[2]+pr;else if(m===du)z=r[1]-pr;else z=r[3]+pr;}}
       const b=solBodies(x,z,py);if(b[0]!==x||b[1]!==z){c=_c(b[0],b[1]);x=c[0];z=c[1];}
@@ -36,3 +40,9 @@ function solBodies(x,z,py){const pr=7,push=(bx,bz,r)=>{const dx=x-bx,dz=z-bz,d=M
 if(typeof animalsTick==='function'){const _at=animalsTick;animalsTick=function(dt){const A=G.animals||[],n=A.length,ox=new Float32Array(n),oz=new Float32Array(n);for(let i=0;i<n;i++){ox[i]=A[i].x;oz[i]=A[i].z;}const r=_at.apply(this,arguments);
     try{if(S&&S.builds&&S.builds.length||(typeof MP==='object'&&MP.started))for(let i=0;i<n&&i<A.length;i++){const a=A[i];if(!a||!a.alive)continue;const mv=Math.hypot(a.x-ox[i],a.z-oz[i]);if(mv<0.01||mv>300)continue;if(!OCC.cell.size&&!OCC.edge.size)break;
         const py=a.y!=null?a.y:hAt(a.x,a.z),segs=solSegs(ox[i],oz[i],a.x,a.z,py);if(!segs.length){const rc=solRects(a.x,a.z,py);if(!rc.length||!solCross(ox[i],oz[i],a.x,a.z,py,[],rc))continue;}else if(!solCross(ox[i],oz[i],a.x,a.z,py,segs,solRects(a.x,a.z,py)))continue;a.x=ox[i];a.z=oz[i];}}catch(e){}return r;};}
+
+/* ---------- đứng được trên mái nhà và nóc lều ---------- */
+const SOL_HUT=34;
+function solTopAt(x,z){try{const c=cellAt(x,z);if(!c)return null;let top=null;for(let L=0;L<=LVMAX;L++){const id=c[slotN('roof',L)];if(id){const b=BYID.get(id);if(b&&b.prog==null){const t=b.y+LVH+8;if(top==null||t>top)top=t;}}}
+    if(top==null){for(let L=0;L<=LVMAX;L++){const id=c[slotN('obj',L)];if(!id)continue;const b=BYID.get(id);if(!b)continue;const r=solRectOf(b);if(r&&x>r[0]&&x<r[2]&&z>r[1]&&z<r[3])top=b.y+SOL_HUT;}}return top;}catch(e){return null;}}
+{const _gy=groundY;groundY=function(x,z,yRef){const g=_gy(x,z,yRef);try{if(typeof OCC!=='undefined'&&OCC.cell.size){const t=solTopAt(x,z);if(t!=null&&t>g){const ref=yRef==null?P.y:yRef;if(ref>=t-10)return t;}}}catch(e){}return g;};}

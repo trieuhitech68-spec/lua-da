@@ -60,7 +60,7 @@ function collide(nx,nz){const pr=7,py=P.y;for(let it=0;it<2;it++){for(const c of
     const ci=Math.floor(nx/CELL),cj=Math.floor(nz/CELL);
     for(let L=0;L<=LVMAX;L++)for(let i=ci-1;i<=ci+1;i++)for(let j=cj-1;j<=cj+1;j++){
       for(const [k0,r] of [['h:'+i+','+j,0],['v:'+i+','+j,1]]){const id=OCC.edge.get(L?k0+'@'+L:k0);if(!id)continue;const b=BYID.get(id);if(!b)continue;const def=pieceDef(b.k);if(!def)continue;if(py+30<b.y||py>b.y+(def.low?22:46))continue;if(/ladder/i.test(b.k))continue;
-        const ax=r?b.x:b.x-20,az=r?b.z-20:b.z,bx=r?b.x:b.x+20,bz=r?b.z+20:b.z;const segs=def.door?[[0,0.32],[0.68,1]]:[[0,1]];
+        const ax=r?b.x:b.x-20,az=r?b.z-20:b.z,bx=r?b.x:b.x+20,bz=r?b.z+20:b.z;const segs=def.door?[[0,0.17],[0.83,1]]:[[0,1]];/* lối cửa rộng 26: người (bán kính 9) đi lọt */
         for(const [s0,s1] of segs){const x0=ax+(bx-ax)*s0,z0=az+(bz-az)*s0,x1=ax+(bx-ax)*s1,z1=az+(bz-az)*s1;const dx=x1-x0,dz=z1-z0,l2=dx*dx+dz*dz;let t=((nx-x0)*dx+(nz-z0)*dz)/l2;t=clamp(t,0,1);const qx=x0+dx*t,qz=z0+dz*t,ex=nx-qx,ez=nz-qz,d=Math.hypot(ex,ez),rr=pr+2;if(d<rr&&d>0.001){nx=qx+ex/d*rr;nz=qz+ez/d*rr;}}}
       const pid=OCC.edge.get(cornerKey(i*CELL,j*CELL,L));if(pid){const b=BYID.get(pid);if(b&&py+30>=b.y&&py<=b.y+LVH){const dx=nx-b.x,dz=nz-b.z,d=Math.hypot(dx,dz),rr=pr+3;if(d<rr&&d>0.01){nx=b.x+dx/d*rr;nz=b.z+dz/d*rr;}}}
       const c=OCC.cell.get(i+','+j);const oid=c&&c[slotN('obj',L)];if(oid){const b=BYID.get(oid);const def=b&&pieceDef(b.k);if(def&&Math.abs(b.y-py)<40&&!def.bed&&!def.farm&&!def.shelter&&b.k!=='stairs'&&b.k!=='stilt'&&b.k!=='rug'&&(!def.fp||def.fp[0]*def.fp[1]===1)){const rr=(def.small?7:15)+pr,dx=nx-b.x,dz=nz-b.z,d=Math.hypot(dx,dz);if(d<rr&&d>0.01){nx=b.x+dx/d*rr;nz=b.z+dz/d*rr;}}}
