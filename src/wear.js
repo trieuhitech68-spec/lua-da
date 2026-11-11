@@ -49,8 +49,16 @@ function wearAttach(g,w){const R=g&&g.userData&&g.userData.rig;if(!R||!R.head||!
 /* ---------- người chơi khác cũng thấy đồ mình mặc ----------
    Presence thêm wr = "đầu,cổ,tay,giáp,khiên" (mã vật phẩm, ô trống để rỗng). Bên nhận kiểm tra từng mã rồi gắn hình lên mô hình của người đó.
    Mã đồ mặc nối vào chuỗi ngoại hình (sau dấu ~) nên đổi đồ thì mô hình người đó tự dựng lại, giống như khi đổi ngoại hình. */
-const WEAR_SLOTS=['head','neck','acc','armor','shield'];
+const WEAR_SLOTS=['head','neck','acc','armor','shield','body','back','feet'];
+// áo, áo choàng, giày đổi màu và kiểu thân người (cùng bảng với charLook của người chơi)
+function wearLook(w){const L={};if(w.body==='coat'){L.top='#8a5e36';L.top2='#5e3a1e';L.sleeves=true;}if(w.body==='furcoat'){L.top='#6a4a32';L.top2='#3a281a';L.cloak='#9a7a58';L.cloak2='#6a5038';}
+  if(w.body==='barkTunic'){L.top='#a7885e';L.top2='#6e5236';L.sleeves=false;}if(w.body==='clothTunic'){L.top='#cbb68c';L.top2='#8a4a2a';L.sleeves=true;}if(w.body==='indigoRobe'){L.top='#3e4a5e';L.top2='#8a2e1a';L.sleeves='long';}
+  if(w.back==='furCloak'){L.cloak='#8a6a48';L.cloak2='#5a4430';}if(w.back==='rainCape'){L.cloak='#8f8a4c';L.cloak2='#66622f';}if(w.feet==='boots')L.boots='#4a3020';if(w.feet==='sandals')L.boots='#7a5232';if(w.feet==='furBoots')L.boots='#5a4430';return L;}
 function wearPres(){const w=(S&&S.wear)||{};const s=WEAR_SLOTS.map(k=>typeof w[k]==='string'?w[k]:'').join(',');return s.replace(/,/g,'')?s:'';}
 function wearDec(s){const a=String(s||'').split(','),w={};WEAR_SLOTS.forEach((k,i)=>{const id=a[i];if(id&&/^[A-Za-z0-9]{1,24}$/.test(id)&&ITEMS[id]&&ITEMS[id].t==='wear'&&(ITEMS[id].slot||'body')===k)w[k]=id;});return w;}
 {const _vp=mpValPres;mpValPres=function(p){const v=_vp.apply(this,arguments);try{const wr=v&&p&&p.presence&&p.presence.wr;if(typeof wr==='string'&&wr.length<=140&&/^[A-Za-z0-9,]+$/.test(wr)&&Object.keys(wearDec(wr)).length)v.lk=String(v.lk)+'~'+wr;}catch(e){}return v;};}
-{const _mm=mpModel;mpModel=function(lk){if(typeof lk==='string'&&lk.indexOf('~')>=0){const i=lk.indexOf('~'),base=lk.slice(0,i),o=_mm(base.indexOf('|')>=0?base:(+base|0));try{wearAttach(o,wearDec(lk.slice(i+1)));}catch(e){}return o;}return _mm(lk);};}
+{const _mm=mpModel;mpModel=function(lk){if(typeof lk==='string'&&lk.indexOf('~')>=0){const i=lk.indexOf('~'),base=lk.slice(0,i),w=wearDec(lk.slice(i+1)),L=wearLook(w);let o=null;
+    // có áo / áo choàng / giày: tự dựng mô hình với màu và kiểu của món đó (giống cách dựng nhân vật của chính người chơi)
+    if(Object.keys(L).length&&K3.char2){try{const j=base.indexOf('|'),l=j>=0?(+base.slice(0,j)|0):(+base|0),a=j>=0&&typeof crDec==='function'?crDec(base.slice(j+1)):null;
+        const q=Object.assign({sleeves:true},(LOOKS[l]||LOOKS[0]).o,LOOK2[l]||{},L);if(w.body){q.bare=false;}if(a){q.app=a;q.crWear=!!w.body;}o=K3.char2(q);o.traverse(m=>{if(m.isMesh)m.castShadow=true;});try{seasonPatchAll(o);}catch(e){}}catch(e){o=null;}}
+    if(!o)o=_mm(base.indexOf('|')>=0?base:(+base|0));try{wearAttach(o,w);}catch(e){}return o;}return _mm(lk);};}

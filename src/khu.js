@@ -44,6 +44,12 @@ if(typeof RLSITE!=='undefined')RLSITE.push(
   {id:'vang',n:'Bãi vàng sa khoáng',ic:'🟡',cat:'ore',regs:['gorge','falls','bamboovl','lake','ford'],minD:2500,rich:3,water:1,y:{gold:2,stone:2},nodes:[['goldPan',8],['reedBed',2]],d:'Bãi cát lòng suối lấp lánh vàng cốm. Cá sấu chúa nằm phơi nắng ngay bãi.'},
   {id:'ngocbich',n:'Mỏ ngọc bích Núi Đá',ic:'🟢',cat:'stone',regs:['cliffs','karst','hotspring','jungle'],minD:3500,rich:3,y:{jade:1,stone:3},nodes:[['jadeRock',6],['boulder',3]],d:'Khe đá có vân xanh biếc: ngọc bích. Hổ chúa rình quanh mỏ.'},
   {id:'botot',n:'Bãi săn bò tót',ic:'🐃',cat:'game',regs:['meadow4','savanna','forest'],minD:2200,rich:2,y:{meat:4,hide:2},nodes:[['wildgrain',5],['tallgrass',4]],d:'Trảng cỏ rộng nơi đàn bò tót về ăn. Con đầu đàn to như tảng đá.'});
+// thú chúa và mỏ riêng của miền Trung, miền Nam (bản đồ hình chữ S)
+Object.assign(KHU_BOSS,{muoitrung:{kind:'crocodile',n:'Cá sấu biển chúa',lv:9,loot:{hide:6,meat:8,salt:6,pearl:1}},vualua:{kind:'gaur',n:'Trâu rừng chúa',lv:10,loot:{hide:8,bone:6,meat:16,grain:8}},gotruongson:{kind:'tiger',n:'Hổ Trường Sơn',lv:10,loot:{hide:10,bone:5,meat:8,jade:1}},
+  satngang:{kind:'bear',n:'Gấu Đèo Ngang',lv:9,loot:{hide:7,bone:4,meat:8,ironOre:8,coal:4}},ngoccamau:{kind:'crocodile',n:'Thuồng luồng Mũi Đất',lv:10,loot:{hide:8,meat:8,pearl:3,gold:2}}});
+if(typeof RLSITE!=='undefined')RLSITE.push(
+  {id:'satngang',n:'Mỏ sắt Đèo Ngang',ic:'⚒️',cat:'ore',regs:['deongang'],minD:3000,rich:3,y:{ironOre:4,coal:2,stone:2},nodes:[['ironRock',9],['coalRock',5],['boulder',2]],d:'Vách núi Đèo Ngang lộ vỉa sắt và than ngay bên lối mòn vào miền Trung. Gấu lớn chiếm cửa mỏ.'},
+  {id:'ngoccamau',n:'Bãi ngọc Mũi Đất',ic:'🦪',cat:'shell',regs:['camau','uminh'],minD:3000,rich:3,water:1,pearl:0.4,y:{shell:5,gold:1},nodes:[['shellBed',10],['goldPan',4]],d:'Bãi bồi tận cùng phương Nam: trai ngọc bám đầy, cát lẫn vàng cốm. Dân chài kể có thuồng luồng canh bãi.'});
 const khuBossDead=id=>{const st=S.khu&&S.khu.b&&S.khu.b[id];return !!(st&&TNOW()-st.dead<6);};
 function khuBossTick(){if(!S||!G.on||typeof RL==='undefined'||!RL.sites||!G.animals)return;const K=khuS(),R=S.rlm;if(!R||!R.s)return;
   for(const s of RL.sites){const B=KHU_BOSS[s.id];if(!B||!ANIMALS[B.kind])continue;const st=R.s[s.id];if(!st)continue;if(st.own==='me'){continue;}const dead=khuBossDead(s.id);st.g=dead?0:1;if(dead)continue;
