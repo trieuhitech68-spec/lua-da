@@ -18842,7 +18842,7 @@ Object.assign(AQ_GTXT,{'@pot':['🏺','Nặn và nung gốm: từng bước','�
       hình chữ nhật. Ruộng, mương, ao, sàn, cầu thang, bếp có mái che vẫn bước lên được.
    3. Thú, dân làng, người chơi khác: không đứng lồng vào nhau nữa (thú nuôi, thú đã gục thì bỏ qua để không kẹt cửa). */
 const SOL_WALK=/^(paddy|channel|fishPond|drumStage|treePlatform|stiltDeck2|bambooStairs|logStairs|kitchenShed|farm|stilt|stiltBamboo|stairs|rug|sleepMat|hammock|spikePit|trap|fishTrap)$/;
-function solRectOf(b){const def=pieceDef(b.k);if(!def||def.kind!=='obj'||SOL_WALK.test(b.k)||def.farm)return null;const fp=def.fp||[1,1];if(fp[0]*fp[1]<2&&!(def.bed&&!def.small))return null;
+function solRectOf(b){const def=pieceDef(b.k);if(!def||def.kind!=='obj'||SOL_WALK.test(b.k)||def.farm)return null;const fp=def.fp||[1,1];if(fp[0]*fp[1]<2)return null;if(def.bed&&!def.shelter)return null;/* giường kê trong nhà: bước qua được, kẻo nhà nhỏ hết lối đi */
   if(b.prog!=null&&b.prog<0.5)return null;const w=(b.r%2?fp[1]:fp[0])*CELL/2-3,d=(b.r%2?fp[0]:fp[1])*CELL/2-3;return [b.x-w,b.z-d,b.x+w,b.z+d];}
 function solRects(x,z,py){const out=[],ci=Math.floor(x/CELL),cj=Math.floor(z/CELL),seen=new Set();for(let i=ci-3;i<=ci+3;i++)for(let j=cj-3;j<=cj+3;j++){const c=OCC.cell.get(i+','+j);if(!c)continue;
     for(let L=0;L<=LVMAX;L++){const id=c[slotN('obj',L)];if(!id||seen.has(id))continue;seen.add(id);const b=BYID.get(id);if(!b||Math.abs(b.y-py)>40||py>=b.y+SOL_HUT-4)continue;/* đang đứng trên nóc thì không bị đẩy */const r=solRectOf(b);if(r)out.push(r);}}return out;}
@@ -19163,6 +19163,17 @@ AUJ.stash=function(j){if(j.cf){j.cf=null;if(++j.alt>2)return aqFail('Không cấ
     const r=_uo.apply(this,arguments);try{if(st){const b=st[1]?document.querySelector('#panel'):document.querySelector('#panel .p-body');if(b&&Math.abs(b.scrollTop-st[0])>1){b.scrollTop=st[0];}}}catch(e){}return r;};}
 {const st=document.createElement('style');st.textContent=`.kho-det{grid-column:1/-1;position:sticky;top:0;z-index:3;min-height:104px;display:flex;align-items:center;margin:0 0 8px;padding:8px 10px;border-radius:14px;background:rgba(24,16,10,.97);border:1px solid rgba(242,197,90,.35);box-shadow:0 6px 14px rgba(0,0,0,.35)}
 .kho-det .det{margin:0;width:100%;background:none;border:0;padding:0;box-shadow:none}.kho-det>p{margin:0}.kho-det .row{flex-wrap:wrap;gap:6px}.kho-det .row .btn{min-height:40px;padding:0 12px}`;document.head.appendChild(st);}
+/* ---------- bày đồ trong nhà: chỗ ngủ và kho đồ đặt dưới mái ---------- */
+const khoIndoor=b=>{try{const c=cellAt(b.x,b.z);return !!(c&&(c[slotN('roof',0)]||c[slotN('floor',0)]));}catch(e){return false;}};
+{const at=GOALS.findIndex(x=>x.t==='Lợp 4 tấm mái');if(at>=0&&!GOALS.some(x=>x.t==='Mắc võng ngủ trong nhà')){
+    GOALS.splice(at+1,0,G_(1,'Mắc võng ngủ trong nhà','Xây → Nội thất → Võng (4 dây thừng, 6 sợi cỏ), đặt lên sàn trong nhà. Ngủ trong nhà có mái thì không ướt mưa, ấm hơn lều, và khi thoát game trong nhà sẽ được bảo hộ.',1,()=>S.builds.some(b=>{const d=pieceDef(b.k);return b.prog==null&&d&&d.bed&&!d.shelter&&khoIndoor(b);})?1:0));
+    AUG['Mắc võng ngủ trong nhà']=()=>{const b=S.builds.find(b=>b.prog!=null&&b.k==='hammock');return b?{k:'site',b}:{k:'place',piece:'hammock'};};}
+  const g=GOALS.find(x=>x.t==='Dựng giỏ đựng đồ');if(g)g.d='Xây → Giỏ đựng đồ (14 sợi cỏ, 4 cành), đặt trong nhà cho khỏi mưa. Mở Túi đồ bấm "Cất vật liệu vào kho" cho túi gọn; đồ trong kho gần vẫn dùng để chế tạo.';
+  const _gc=goalCheck;goalCheck=function(){try{if(S&&S.gv5!==1){S.gv5=1;if(S.goal>0){let i=0;while(i<GOALS.length){const [v,n]=goalProg(GOALS[i]);if(v<n)break;i++;}if(i<S.goal)S.goal=i;}}}catch(e){}return _gc.apply(this,arguments);};
+  // Tự làm: võng, giường nhỏ, giỏ, rương ưu tiên đặt lên ô sàn trống trong nhà (ô có mái trước), chừa ô sát cửa
+  const _sp=aq2Spots;aq2Spots=function(def){const out=_sp.apply(this,arguments);try{const fp=def.fp||[1,1];if(def.kind==='obj'&&fp[0]*fp[1]===1&&(def.bed||def.store)){const ins=[];for(const b of aq2Floors()){if(b.prog!=null)continue;const c=cellAt(b.x,b.z);if(!c||c[slotN('obj',0)])continue;
+          let walls=0;const cx=Math.floor(b.x/CELL),cz=Math.floor(b.z/CELL);for(const [ex,ez,r] of [[b.x,cz*CELL,0],[b.x,(cz+1)*CELL,0],[cx*CELL,b.z,1],[(cx+1)*CELL,b.z,1]]){const id=OCC.edge.get(edgeKey(ex,ez,r,0));const w=id&&BYID.get(id),wd=w&&pieceDef(w.k);if(wd&&!wd.door)walls++;}
+          ins.push({x:b.x,z:b.z,s:-5000-(c[slotN('roof',0)]?500:0)-walls*100+ins.length});}ins.sort((a,b)=>a.s-b.s);return ins.concat(out).slice(0,16);}}catch(e){}return out;};}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
