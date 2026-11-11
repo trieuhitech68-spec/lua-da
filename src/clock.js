@@ -24,7 +24,7 @@ function wcClockVN(){const t=wcDate();return String(t.getUTCHours()).padStart(2,
 function wcDateVN(){const t=wcDate();return t.getUTCDate()+'/'+(t.getUTCMonth()+1);}
 // gọi mỗi khung hình từ dayTick: chạy đồng hồ sinh hoạt riêng, đặt giờ trên trời theo giờ thật
 function wcStep(dt){if(S.tn==null)S.tn=S.day+(S.hour||0)/24;if(S.day>Math.floor(S.tn))S.tn=S.day;/* ngủ qua đêm, mã cũ tự tăng ngày */
-  S.tn+=Math.max(0,dt||0)/DAY_SEC;const nd=Math.floor(S.tn);if(nd>S.day){S.day=nd;if(G.on)uiToast(`Ngày công thứ ${S.day} của bạn · ${wcDateVN()} mùa ${SEASONS[wcSeason()].n}`,'');}
+  S.tn+=Math.max(0,dt||0)/DAY_SEC;const nd=Math.floor(S.tn);if(nd>S.day){S.day=nd;}
   S.hour=wcHour();wcSyncTick();}
 // thời tiết chung: mỗi 20 phút thật gieo một lần bằng số hiệu khung giờ → ai cũng ra cùng kết quả
 function wcRnd(n){let x=(n^0x9e3779b9)>>>0;x=Math.imul(x^(x>>>16),0x85ebca6b);x=Math.imul(x^(x>>>13),0xc2b2ae35);x^=x>>>16;return (x>>>0)/4294967296;}
@@ -40,7 +40,7 @@ function wcSyncTick(){const now=Date.now();if(now<WC.syncT)return;WC.syncT=now+6
   if(left>0){S.p.hp=Math.min(100,S.p.hp+12);S.p.stam=maxStam();uiToast(`Vừa ngủ dậy chưa lâu: nằm nghỉ một lát hồi sức. Khoảng ${Math.max(1,Math.ceil(left*DAY_SEC/60))} phút nữa mới ngủ giấc tiếp được.`,'');uiHud(true);return;}
   S.wcSlT=S.tn;const h=S.hour,d0=S.day;S.hour=20;/* mã gốc chỉ cho ngủ khi "trời tối": đặt tạm giờ để qua kiểm tra, wcStep trả lại giờ thật ở khung hình sau */
   try{_sl.apply(this,arguments);}finally{S.hour=h;}
-  setTimeout(()=>{if(!S)return;if(S.day===d0&&S.tn!=null)S.tn+=0.45;},4200);};}
+  };}
 // bảng giờ: thêm dòng nhỏ "giờ VN · mùa còn bao lâu" dưới dòng ngày
 {const _hud=uiHud;uiHud=function(){const r=_hud.apply(this,arguments);try{const el=document.querySelector('#game .h-time');if(el&&S){el.title='Giờ thật Việt Nam '+wcClockVN()+' ngày '+wcDateVN()+' · mùa '+SEASONS[wcSeason()].n+' còn '+wcSeasonLeftDays()+' ngày · mọi người chơi cùng giờ, cùng mùa';}}catch(e){}return r;};}
 // MÙA ĐÔNG KIỂU MIỀN BẮC VIỆT NAM (vì mùa theo tháng thật, đông kéo 3 tháng): rét 9-17°C, mưa phùn, cây trồng lớn chậm (40%) chứ không ngừng hẳn

@@ -45,7 +45,7 @@ heroHtml=function(){const h=heroS(),a=h.a,lv=heroLv(),xp=heroXp(),x0=30*(lv-1)*(
   const tile=(ic,n,v,s)=>`<div class="h2-st"><span>${ic}</span><div><small>${n}</small><b>${v}</b>${s?`<i>${s}</i>`:''}</div></div>`;
   const sk=Object.keys(SKILL).map(k=>{const l=skLv(k),x=S.sk[k]||0,b=12*(l+1)*(l+1),a0=12*l*l;return `<div class="h2-sk"><div><b>${SKILL[k]}</b><em>Cấp ${l}</em></div><div class="h2-bar"><i style="width:${clamp((x-a0)/(b-a0)*100,0,100)}%"></i></div><small class="muted">${Math.floor(x)}/${b} · nhanh hơn ${pc(0.06*l)}</small></div>`;}).join('');
   return `<div class="h2-top">${shot?`<div class="h2-pic"><img src="${shot}" alt="Chân dung nhân vật"><span class="h2-lv">Cấp ${lv}</span></div>`:`<div class="h2-pic h2-nopic"><b>${lv}</b><span class="h2-lv">Cấp</span></div>`}
-    <div class="h2-id"><b class="h2-name">${esc(S.name||'')}</b><span class="h2-rank">${RK[2]} ${RK[1]}</span><span class="small muted">${AGES[S.age||0].n} · ngày thứ ${S.day}</span>
+    <div class="h2-id"><b class="h2-name">${esc(S.name||'')}</b><span class="h2-rank">${RK[2]} ${RK[1]}</span><span class="small muted">${AGES[S.age||0].n} · ngày thứ ${wcAge()}</span>
       <div class="h2-pow"><small>LỰC CHIẾN</small><b>${heroPower().toLocaleString('vi-VN')}</b></div>
       <div class="h2-bar big"><i style="width:${clamp((xp-x0)/(x1-x0)*100,0,100)}%"></i></div><span class="small muted">Kinh nghiệm ${Math.floor(xp)}/${x1} · còn ${Math.max(0,Math.ceil(x1-xp))} lên cấp ${lv+1}</span>
       <span class="small muted">${NR?`Danh hiệu kế: ${NR[2]} ${NR[1]} ở cấp ${NR[0]}`:'Danh hiệu cao nhất'} · đang ${pc(0.02*ri)} sát thương và tay nghề</span></div></div>

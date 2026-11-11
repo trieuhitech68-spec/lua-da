@@ -2384,7 +2384,7 @@ function groundPick(sx,sy){const T=THREE,v=new T.Vector3((sx/innerWidth)*2-1,-(s
   for(let i=0;i<4;i++){if(Math.abs(dir.y)<1e-4)return null;const t=(y-o.y)/dir.y;if(t<=0)return null;p=o.clone().addScaledVector(dir,t);y=groundY(p.x,p.z);}return p;}
 /* ---------- ngày đêm, bầu trời ---------- */
 const SKYP={day:{top:'#3f78c0',hor:'#bcd6e6',gnd:'#6a7a4a',sun:'#fff0d4'},dusk:{top:'#3a3a78',hor:'#f0a070',gnd:'#4a3a3a',sun:'#ffb070'},night:{top:'#0a1024',hor:'#26324e',gnd:'#0c0e14',sun:'#8aa6ff'},storm:{top:'#4a5260',hor:'#7a8490',gnd:'#3a3e40',sun:'#c8ccd0'}};
-function dayTick(dt){const prevH=S.hour;if(typeof wcStep==='function')wcStep(dt);else{S.hour+=dt*24/DAY_SEC;if(S.hour>=24){S.hour-=24;S.day++;uiToast(`Ngày ${S.day} · Mùa ${SEASONS[seasonIdx()].n}`,'');}}
+function dayTick(dt){const prevH=S.hour;if(typeof wcStep==='function')wcStep(dt);else{S.hour+=dt*24/DAY_SEC;if(S.hour>=24){S.hour-=24;S.day++;uiToast(`Ngày ${wcAge()} · Mùa ${SEASONS[seasonIdx()].n}`,'');}}
   const h=S.hour,el=Math.sin((h-6)/12*Math.PI),day=clamp(el*3+0.25,0,1),dusk=clamp(1-Math.abs(el)*4,0,1)*(h>12?1:0.8),cloud=G.wxK||0;G.dayK=day;
   const sun=G.L.sun,sa=(h-6)/12*Math.PI,sx=Math.cos(sa)*-0.8,sy=Math.max(0.12,Math.sin(sa)),sz=0.35;sun.position.set(P.x+sx*900,P.y+sy*900,P.z+sz*900);sun.target.position.set(P.x,P.y,P.z);
   sun.intensity=1.6*Math.max(0,el)**0.6*day*(1-cloud*0.62);G.L.hemi.intensity=(0.1+0.14*day+(S.mode==='cozy'?0.07:0.03))*(1+cloud*0.4);G.moon.intensity=(1-day)*(S.mode==='cozy'?0.5:0.32)*(1-cloud*0.5);G.moon.position.set(P.x+300,P.y+700,P.z-200);G.moon.target.position.set(P.x,P.y,P.z);
@@ -2453,7 +2453,7 @@ function bootHot(){const h=window.claude&&window.claude.hot;try{if(h&&typeof h.s
   const go=d=>boot(d||{});try{if(h&&typeof h.ready==='function'){h.ready(go);return;}}catch(e){}go(h&&h.data||{});}
 function startGame(){if(G._starting||G.on)return;G._starting=1;uiLoading(true);const go=()=>{try{K3init();K3lightsInit();if(typeof K3fxInit==='function')K3fxInit();if(typeof K3charInit==='function')K3charInit();if(typeof SBmodelsInit==='function')SBmodelsInit();if(typeof K3char2Init==='function')try{K3char2Init();}catch(e){console.warn('người',e);}if(typeof SBmodels2Init==='function')try{SBmodels2Init();}catch(e){console.warn('mô hình 2',e);}if(typeof SBmodels3Init==='function')try{SBmodels3Init();}catch(e){console.warn('mô hình 3',e);}if(typeof SBmodels4aInit==='function')try{SBmodels4aInit();}catch(e){console.warn('mô hình 4a',e);}if(typeof SBmodels4bInit==='function')try{SBmodels4bInit();}catch(e){console.warn('mô hình 4b',e);}if(typeof SBmodels5Init==='function')try{SBmodels5Init();}catch(e){console.warn('mô hình 5',e);}if(typeof SBmodels6vInit==='function')try{SBmodels6vInit();}catch(e){console.warn('cây v6',e);}if(typeof SBmodels6cInit==='function')try{SBmodels6cInit();}catch(e){console.warn('thú người v6',e);}
     sceneInit();unlockCheck();uiHotbar();uiHud(true);uiLoading(false);inputInit();requestAnimationFrame(loop);G.lastSave=0;setTimeout(treeLoLater,2500);
-    uiToast(S.goal===0?'Bạn tỉnh dậy với hai bàn tay trắng. Hãy bắt đầu từ những cành khô quanh đây.':`Chào mừng trở lại, ${S.name}! Ngày ${S.day} · Mùa ${SEASONS[seasonIdx()].n}.`,'');}catch(e){console.error(e);uiLoading(false);uiError('Không khởi động được đồ họa 3D: '+e.message);}};
+    uiToast(S.goal===0?'Bạn tỉnh dậy với hai bàn tay trắng. Hãy bắt đầu từ những cành khô quanh đây.':`Chào mừng trở lại, ${S.name}! Ngày ${wcAge()} · Mùa ${SEASONS[seasonIdx()].n}.`,'');}catch(e){console.error(e);uiLoading(false);uiError('Không khởi động được đồ họa 3D: '+e.message);}};
   // cho màn "Đang tạo thế giới…" kịp hiện ra trước khi bắt đầu dựng (trước đây khoá luồng ngay → bấm Bắt đầu thấy đứng hình vài giây)
   if(window.THREE){requestAnimationFrame(()=>setTimeout(go,20));return;}const load=i=>{if(i>=TURLS.length){uiLoading(false);uiError('Không tải được thư viện 3D. Kiểm tra kết nối mạng rồi tải lại trang.');return;}const s=document.createElement('script');s.src=TURLS[i];s.onload=()=>{if(window.THREE)go();else load(i+1);};s.onerror=()=>{s.remove();load(i+1);};document.head.appendChild(s);};load(0);}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
@@ -2700,7 +2700,7 @@ function uiHud(force){if(!S)return;const p=S.p,h=Math.floor(S.hour),mi=Math.floo
   const bars=BAR.map(([k,ic,n,c])=>{const v=k==='stam'?p.stam/ms*100:p[k];const low=v<25;return `<div class="bar${low?' low':''}" title="${n}: ${Math.round(v)}"><span>${ic}</span><i style="--v:${clamp(v,0,100)}%;--c:${c}"></i></div>`;}).join('');
   const st=Object.keys(S.st||{}).map(k=>`<button class="sch" style="--c:${STATUS[k].col}" data-a="cure" data-t="${esc(STATUS[k].n+': '+STATUS[k].d+(STATUS[k].cure?' Chữa: '+ITEMS[STATUS[k].cure].n:''))}">${STATUS[k].n}</button>`).join('')+(p.wet>40?'<span class="sch" style="--c:#7fb8ff">Ướt</span>':'')+(p.warm<25?'<span class="sch" style="--c:#9fd8ff">Rét</span>':'')+((S.p.clean??90)<25?'<span class="sch" style="--c:#b8a27a">Bẩn: nên tắm</span>':'')+(S.buff&&S.buff.rested>TNOW()?'<span class="sch good" style="--c:#8ce07a">Khỏe khoắn</span>':'')+(S.p.repel>TNOW()?'<span class="sch good" style="--c:#b8e07a">Xua muỗi</span>':'');
   const html=`<div class="h-top"><b class="h-av">${esc((S.name||'?')[0])}</b><div class="h-id"><b>${esc(S.name)}</b><span>${AGES[S.age||0].n}</span></div></div>
-    <div class="h-time">Ngày ${S.day} · ${SEASONS[si].ic} ${SEASONS[si].n} · ${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')} ${wic} ${T!==''?T+'°C':''}</div><div class="bars">${bars}</div><div class="schs">${st}</div>`;
+    <div class="h-time">Ngày ${wcAge()} · ${SEASONS[si].ic} ${SEASONS[si].n} · ${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')} ${wic} ${T!==''?T+'°C':''}</div><div class="bars">${bars}</div><div class="schs">${st}</div>`;
   const el=$('#hud');if(el._h!==html){el._h=html;el.innerHTML=html;const hh=Math.round(el.offsetHeight+8)+'px';if(G._hudh!==hh){G._hudh=hh;document.documentElement.style.setProperty('--hudh',hh);}}
   const g=GOALS[S.goal];const gh=g?`<div class="g-k">Mục tiêu ${S.goal+1}/${GOALS.length}</div><b>${esc(g.t)}</b><p>${esc(g.d)}</p>${(()=>{const [v,n]=goalProg(g);return n>1?`<div class="g-p"><i style="--v:${v/n*100}%"></i><span>${v}/${n}</span></div>`:'';})()}`:'<div class="g-k">Tự do</div><b>Bạn đã hoàn thành mọi mục tiêu!</b><p>Hãy xây bộ lạc theo ý mình.</p>';
   const ge=$('#goal');if(ge._h!==gh){ge._h=gh;ge.innerHTML=gh;}}
@@ -2725,7 +2725,7 @@ function uiFly(id,n,src){if(!G.on)return;const [sx,sy]=src?scr(src[0],src[1],src
   uiFloat(`+${n} ${ITEMS[id].n}`,src?src[0]:P.x,src?src[1]+10:P.y+40,src?src[2]:P.z);}
 function uiFade(cb){const f=$('#fade');f.classList.add('on');G.paused=true;setTimeout(()=>{try{cb&&cb();}finally{setTimeout(()=>{f.classList.remove('on');G.paused=false;},350);}},800);}
 function uiAge(i){const A=AGES[i];const d=document.createElement('div');d.className='ageup';d.innerHTML=`<small>Bộ lạc bước sang</small><b>${esc(A.n)}</b><p>${esc(A.d)}</p>`;$('#game').appendChild(d);sfx('level');setTimeout(()=>d.remove(),5200);}
-function uiRecap(list){if(!list.length)return;G.paused=true;uiOverlay(true,`<div class="ov-card"><h2>Một ngày đã qua</h2><p>Hôm qua bạn đã ${esc(list.join(', '))}.</p><p class="muted">Ngày ${S.day} · Mùa ${SEASONS[seasonIdx()].n}. ${['Mùa xuân mưa nhiều, cây cối lớn nhanh.','Mùa hạ nắng nóng: nhớ mang theo nước.','Mùa thu: tích trữ thức ăn, củi và may áo ấm.','Mùa đông giá rét: ở gần lửa và dưới mái nhà.'][seasonIdx()]}</p><button class="btn big" data-a="recap">Ngày mới</button></div>`);}
+function uiRecap(list){if(!list.length)return;G.paused=true;uiOverlay(true,`<div class="ov-card"><h2>Một ngày đã qua</h2><p>Hôm qua bạn đã ${esc(list.join(', '))}.</p><p class="muted">Ngày ${wcAge()} · Mùa ${SEASONS[seasonIdx()].n}. ${['Mùa xuân mưa nhiều, cây cối lớn nhanh.','Mùa hạ nắng nóng: nhớ mang theo nước.','Mùa thu: tích trữ thức ăn, củi và may áo ấm.','Mùa đông giá rét: ở gần lửa và dưới mái nhà.'][seasonIdx()]}</p><button class="btn big" data-a="recap">Ngày mới</button></div>`);}
 function uiLoading(on){uiOverlay(on,on?'<div class="ov-card"><div class="spin"></div><p>Đang tạo thế giới…</p></div>':'');}
 function uiError(t){uiOverlay(true,`<div class="ov-card"><h2>Ôi!</h2><p>${esc(t)}</p><button class="btn" onclick="location.reload()">Tải lại</button></div>`);}
 function uiOverlay(on,html){const o=$('#overlay');o.hidden=!on;if(on)o.innerHTML=html;}
@@ -2786,7 +2786,7 @@ function uiBuildBar(on,def,why){const el=$('#buildBar');document.body.classList.
     <div class="bb-b"><button class="btn sm ghost" data-a="bb" data-k="rot" aria-label="Xoay">⟲</button><button class="btn sm ${rm?'red':'ghost'}" data-a="bb" data-k="rm" aria-label="Phá dỡ">🗑</button><button class="btn sm" data-a="bb" data-k="place" aria-label="Đặt">✔</button><button class="btn sm ghost" data-a="bb" data-k="exit" aria-label="Xong">✕</button></div>`;}
 function buildBtn(k){if(!G.build)return;if(k==='rot'){const B=G.build;if(B.def.kind==='roof'&&!B.def.cap){B.r=((B.rman?B.r:(B.pos?B.pos.r:0))+1)%4;B.rman=1;}else B.r=(B.r+1)%4;}else if(k==='rm'){G.build.rm=!G.build.rm;G.build.g.visible=!G.build.rm;uiBuildBar(true,G.build.def);}else if(k==='place'){if(G.build.rm)buildRemoveAt();else buildPlace();}else if(k==='exit')buildEnd();}
 /* ---------- màn bắt đầu ---------- */
-function uiStart(o){const has=!!S&&o.cont;if(has&&!o.form){uiOverlay(true,`<div class="ov-card start"><div class="logo">🔥</div><h1>Lửa Đá</h1><p class="sub">Từ hai bàn tay trắng</p><p class="muted">${esc(S.name)} · Ngày ${S.day} · Mùa ${SEASONS[Math.floor((S.day-1)/SEASON_DAYS)%4].n}</p><button class="btn big" data-a="cont">Chơi tiếp</button><button class="btn ghost" data-a="newf">Thế giới mới</button></div>`);return;}
+function uiStart(o){const has=!!S&&o.cont;if(has&&!o.form){uiOverlay(true,`<div class="ov-card start"><div class="logo">🔥</div><h1>Lửa Đá</h1><p class="sub">Từ hai bàn tay trắng</p><p class="muted">${esc(S.name)} · Ngày ${wcAge()} · Mùa ${SEASONS[Math.floor((S.day-1)/SEASON_DAYS)%4].n}</p><button class="btn big" data-a="cont">Chơi tiếp</button><button class="btn ghost" data-a="newf">Thế giới mới</button></div>`);return;}
   G.nlook=G.nlook||0;G.nmode=G.nmode||'cozy';uiOverlay(true,`<div class="ov-card start form"><div class="logo">🔥</div><h1>Lửa Đá</h1><p class="sub">Từ hai bàn tay trắng</p>
    <p class="small">Bạn tỉnh dậy giữa thung lũng hoang sơ thời Sơn Vi, không có gì trong tay. Nhặt cành, ghè đá, nhóm lửa, học nghề, dựng nhà, trồng trọt, vượt qua bốn mùa và dẫn bộ lạc đi tới thời đồ đồng.</p>
    <label class="fld">Tên của bạn<input id="nName" maxlength="16" value="${esc(S&&S.name||'Lửa')}"></label>
@@ -12526,7 +12526,7 @@ function mxAchTick(){const M=MXI(),fresh=[];for(const a of MXA){if(M.ach[a[0]])c
 function mxAchHtml(){const M=MXI(),n=MXA.filter(a=>M.ach[a[0]]).length;return `<div class="mxah"><b>${n}/${MXA.length}</b><i class="l4bar" style="--v:${n/MXA.length*100}%;--c:#ffd27a"></i></div><div class="mxach">${MXA.map(a=>{const ok=M.ach[a[0]];let v=0;try{v=a[4]();}catch(e){}const N=mxAN(a);
   return `<div class="mxa${ok?' ok':''}"><span class="mxai">${ok?a[1]:'🔒'}</span><span><b>${esc(a[2])}</b><br><span class="small muted">${esc(a[3])}${ok?' · ngày '+ok:N>1?` · ${Math.min(v,N)}/${N}`:''}</span></span></div>`;}).join('')}</div>`;}
 function mxStatHtml(){const si=seasonIdx(),yr=Math.floor((S.day-1)/(SEASON_DAYS*4))+1,km=(MXI().dist/20/1000);
-  const rows=[['📅 Ngày',`${S.day} · mùa ${SEASONS[si].n} năm ${yr}`],['🏺 Thời đại',AGES[S.age||0].n],['🚶 Đường đã đi',km>=1?km.toFixed(1)+' km':Math.round(km*1000)+' m'],['🗺️ Vùng đã tới',`${Object.keys(S.disc||{}).length}/${REG.length}`],
+  const rows=[['📅 Ngày',`${wcAge()} · mùa ${SEASONS[si].n} năm ${yr}`],['🏺 Thời đại',AGES[S.age||0].n],['🚶 Đường đã đi',km>=1?km.toFixed(1)+' km':Math.round(km*1000)+' m'],['🗺️ Vùng đã tới',`${Object.keys(S.disc||{}).length}/${REG.length}`],
     ['🪓 Lần đốn cây',mxgc('cnt:chop')],['⛏️ Lần đập đá',mxgc('cnt:mine')],['🍓 Lần hái lượm',mxgc('cnt:gather')+mxgc('cnt:herb')],['🏹 Thú săn được',mxgc('cnt:hunt')],['🐟 Cá bắt được',mxgc('cnt:fish')],['🌾 Lần thu hoạch',mxgc('cnt:harvest')+mxgc('cnt:riceHarvest')],
     ['🛠️ Đồ chế tạo',mxSum('craft:')],['🏠 Công trình đã dựng',mxSum('build:')],['🤝 Lần trao đổi',mxgc('cnt:trade')],['⚔️ Chiến binh Núi Đá bị hạ',mxgc('cnt:foe')],['🥁 Lễ hội',mxgc('cnt:festival')],['📜 Truyện cổ đã nghe',mxgc('cnt:legend')],['🎶 Nốt nhạc',mxgc('cnt:music')],['🍖 Bữa ăn',mxgc('cnt:eat')]];
   return `<div class="mxstat">${rows.map(([a,b])=>`<div><span>${a}</span><b>${esc(String(b))}</b></div>`).join('')}</div>`;}
@@ -16079,7 +16079,7 @@ function wcClockVN(){const t=wcDate();return String(t.getUTCHours()).padStart(2,
 function wcDateVN(){const t=wcDate();return t.getUTCDate()+'/'+(t.getUTCMonth()+1);}
 // gọi mỗi khung hình từ dayTick: chạy đồng hồ sinh hoạt riêng, đặt giờ trên trời theo giờ thật
 function wcStep(dt){if(S.tn==null)S.tn=S.day+(S.hour||0)/24;if(S.day>Math.floor(S.tn))S.tn=S.day;/* ngủ qua đêm, mã cũ tự tăng ngày */
-  S.tn+=Math.max(0,dt||0)/DAY_SEC;const nd=Math.floor(S.tn);if(nd>S.day){S.day=nd;if(G.on)uiToast(`Ngày công thứ ${S.day} của bạn · ${wcDateVN()} mùa ${SEASONS[wcSeason()].n}`,'');}
+  S.tn+=Math.max(0,dt||0)/DAY_SEC;const nd=Math.floor(S.tn);if(nd>S.day){S.day=nd;}
   S.hour=wcHour();wcSyncTick();}
 // thời tiết chung: mỗi 20 phút thật gieo một lần bằng số hiệu khung giờ → ai cũng ra cùng kết quả
 function wcRnd(n){let x=(n^0x9e3779b9)>>>0;x=Math.imul(x^(x>>>16),0x85ebca6b);x=Math.imul(x^(x>>>13),0xc2b2ae35);x^=x>>>16;return (x>>>0)/4294967296;}
@@ -16095,7 +16095,7 @@ function wcSyncTick(){const now=Date.now();if(now<WC.syncT)return;WC.syncT=now+6
   if(left>0){S.p.hp=Math.min(100,S.p.hp+12);S.p.stam=maxStam();uiToast(`Vừa ngủ dậy chưa lâu: nằm nghỉ một lát hồi sức. Khoảng ${Math.max(1,Math.ceil(left*DAY_SEC/60))} phút nữa mới ngủ giấc tiếp được.`,'');uiHud(true);return;}
   S.wcSlT=S.tn;const h=S.hour,d0=S.day;S.hour=20;/* mã gốc chỉ cho ngủ khi "trời tối": đặt tạm giờ để qua kiểm tra, wcStep trả lại giờ thật ở khung hình sau */
   try{_sl.apply(this,arguments);}finally{S.hour=h;}
-  setTimeout(()=>{if(!S)return;if(S.day===d0&&S.tn!=null)S.tn+=0.45;},4200);};}
+  };}
 // bảng giờ: thêm dòng nhỏ "giờ VN · mùa còn bao lâu" dưới dòng ngày
 {const _hud=uiHud;uiHud=function(){const r=_hud.apply(this,arguments);try{const el=document.querySelector('#game .h-time');if(el&&S){el.title='Giờ thật Việt Nam '+wcClockVN()+' ngày '+wcDateVN()+' · mùa '+SEASONS[wcSeason()].n+' còn '+wcSeasonLeftDays()+' ngày · mọi người chơi cùng giờ, cùng mùa';}}catch(e){}return r;};}
 // MÙA ĐÔNG KIỂU MIỀN BẮC VIỆT NAM (vì mùa theo tháng thật, đông kéo 3 tháng): rét 9-17°C, mưa phùn, cây trồng lớn chậm (40%) chứ không ngừng hẳn
@@ -16140,7 +16140,7 @@ function heroHtml(){const h=heroS(),a=h.a,lv=heroLv(),xp=heroXp(),x0=30*(lv-1)*(
   const attrs=HERO_A.map(([k,ic,n,d])=>`<div class="hero-at"><span class="hero-ic">${ic}</span><div><b>${n} <i>${a[k]}</i><small>/${HERO_MAX}</small></b><span class="small muted">Mỗi điểm: ${d}</span></div><button class="btn sm${pts>0&&a[k]<HERO_MAX?'':' ghost'}" data-a="heroup" data-k="${k}" ${pts>0&&a[k]<HERO_MAX?'':'disabled'}>＋</button></div>`).join('');
   const wear=Object.keys(S.wear||{}).filter(s=>S.wear[s]).map(s=>{const w=S.wear[s],id=typeof w==='string'?w:w&&w.id,I=id&&ITEMS[id];return I?esc(I.n):'';}).filter(Boolean).join(', ')||'chưa mặc gì';
   const sk=Object.keys(SKILL).map(k=>{const l=skLv(k),x=S.sk[k]||0,b=12*(l+1)*(l+1),a0=12*l*l;return `<tr><td>${SKILL[k]}</td><td><b>Cấp ${l}</b></td><td><div class="hero-bar"><i style="width:${clamp((x-a0)/(b-a0)*100,0,100)}%"></i></div></td><td class="muted">${Math.floor(x)}/${b}</td><td class="muted">nhanh hơn ${pc(0.06*l)}</td></tr>`;}).join('');
-  return `<div class="hero-top"><div class="hero-lv"><small>CẤP</small><b>${lv}</b></div><div class="hero-id"><b>${esc(S.name||'')}</b><span class="small muted">${AGES[S.age||0].n} · ngày thứ ${S.day} · uy tín ${Math.round(S.rep||0)}</span>
+  return `<div class="hero-top"><div class="hero-lv"><small>CẤP</small><b>${lv}</b></div><div class="hero-id"><b>${esc(S.name||'')}</b><span class="small muted">${AGES[S.age||0].n} · ngày thứ ${wcAge()} · uy tín ${Math.round(S.rep||0)}</span>
     <div class="hero-bar big"><i style="width:${clamp((xp-x0)/(x1-x0)*100,0,100)}%"></i></div><span class="small muted">Kinh nghiệm ${Math.floor(xp)} / ${x1} · còn ${Math.max(0,Math.ceil(x1-xp))} nữa lên cấp ${lv+1} (+2 điểm)</span></div></div>
   <p class="small muted">Kinh nghiệm nhân vật là tổng kinh nghiệm 10 kỹ năng: làm việc gì cũng giúp lên cấp. Mỗi cấp được 2 điểm để cộng vào 4 thuộc tính dưới đây.</p>
   <h3>Thuộc tính ${pts>0?`<span class="hero-pts">còn ${pts} điểm chưa cộng</span>`:''}</h3><div class="hero-ats">${attrs}</div>
@@ -16217,7 +16217,7 @@ heroHtml=function(){const h=heroS(),a=h.a,lv=heroLv(),xp=heroXp(),x0=30*(lv-1)*(
   const tile=(ic,n,v,s)=>`<div class="h2-st"><span>${ic}</span><div><small>${n}</small><b>${v}</b>${s?`<i>${s}</i>`:''}</div></div>`;
   const sk=Object.keys(SKILL).map(k=>{const l=skLv(k),x=S.sk[k]||0,b=12*(l+1)*(l+1),a0=12*l*l;return `<div class="h2-sk"><div><b>${SKILL[k]}</b><em>Cấp ${l}</em></div><div class="h2-bar"><i style="width:${clamp((x-a0)/(b-a0)*100,0,100)}%"></i></div><small class="muted">${Math.floor(x)}/${b} · nhanh hơn ${pc(0.06*l)}</small></div>`;}).join('');
   return `<div class="h2-top">${shot?`<div class="h2-pic"><img src="${shot}" alt="Chân dung nhân vật"><span class="h2-lv">Cấp ${lv}</span></div>`:`<div class="h2-pic h2-nopic"><b>${lv}</b><span class="h2-lv">Cấp</span></div>`}
-    <div class="h2-id"><b class="h2-name">${esc(S.name||'')}</b><span class="h2-rank">${RK[2]} ${RK[1]}</span><span class="small muted">${AGES[S.age||0].n} · ngày thứ ${S.day}</span>
+    <div class="h2-id"><b class="h2-name">${esc(S.name||'')}</b><span class="h2-rank">${RK[2]} ${RK[1]}</span><span class="small muted">${AGES[S.age||0].n} · ngày thứ ${wcAge()}</span>
       <div class="h2-pow"><small>LỰC CHIẾN</small><b>${heroPower().toLocaleString('vi-VN')}</b></div>
       <div class="h2-bar big"><i style="width:${clamp((xp-x0)/(x1-x0)*100,0,100)}%"></i></div><span class="small muted">Kinh nghiệm ${Math.floor(xp)}/${x1} · còn ${Math.max(0,Math.ceil(x1-xp))} lên cấp ${lv+1}</span>
       <span class="small muted">${NR?`Danh hiệu kế: ${NR[2]} ${NR[1]} ở cấp ${NR[0]}`:'Danh hiệu cao nhất'} · đang ${pc(0.02*ri)} sát thương và tay nghề</span></div></div>
@@ -18911,6 +18911,29 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 .h3-kns{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px}.h3-kn{display:flex;gap:9px;padding:9px 10px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);opacity:.6}.h3-kn.on{opacity:1;border-color:rgba(242,197,90,.45);background:rgba(242,197,90,.08)}
 .h3-kn>span{flex:none;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:12px;font-size:22px;background:#2a1c10;border:1px solid rgba(255,255,255,.14)}.h3-kn.on>span{border-color:#f2c55a}.h3-kn div{min-width:0;display:flex;flex-direction:column;gap:2px}.h3-kn b{font-size:13px}.h3-kn small{font-size:11px;color:#d8c8a8;line-height:1.25}.h3-kn em{font-style:normal;font-size:10.5px;color:#ffd27a}
 @media (min-width:700px){.h3-stage{grid-template-columns:84px 1fr 84px}.h3-fig{max-width:220px}}`;document.head.appendChild(st);}
+/* ===================== CƠ BẢN CHO NGƯỜI MỚI: NGÀY THEO LỊCH THẬT · CÂY CỎ QUANH NĂM · VẬT LIỆU CƠ BẢN GẦN NƠI BẮT ĐẦU · DỰNG CĂN CỨ TRƯỚC =====================
+   1. Ngày: số "Ngày N" trên màn hình là số ngày theo lịch thật (giờ Việt Nam) kể từ khi tạo nhân vật. Ngủ không làm sang ngày mới.
+      (Nhịp sinh hoạt bên trong: đói khát, cây lớn, củi cháy vẫn chạy theo "ngày công" 12 phút như cũ, chỉ không hiện ra và không nhảy khi ngủ.)
+   2. Mùa giờ theo lịch thật nên một mùa dài 3 tháng: không thể để rau má, ngải cứu, quả mọng, nấm… biến mất hẳn cả mùa đông (kẹt nhiệm vụ băng lá).
+      Mọi cây cỏ có quanh năm; mùa đông chỉ mọc lại chậm hơn (đã có sẵn trong hệ số mùa).
+   3. Quanh nơi bắt đầu (trong 30 m) luôn có đủ: rau má, ngải cứu, bạc hà, quả mọng, đá lửa, đất sét. Thiếu thì đổi vài bụi cỏ tranh gần đó thành thứ còn thiếu.
+   4. Nhiệm vụ chính: sống qua đêm đầu → DỰNG CĂN CỨ (bàn chế tác, san nền, sàn, vách, mái) → rồi mới tới thuốc men, săn bắn, giao thương, gốm, ruộng, đồng. */
+/* ---- 1. ngày thật ---- */
+function wcAge(){try{if(!S)return 1;const d=wcDayN();if(S.born==null||S.born>d)S.born=d;return Math.max(1,d-S.born+1);}catch(e){return 1;}}
+{const _sl=sleep;sleep=function(){if(!S||G.sleeping)return _sl.apply(this,arguments);const d0=S.day,t0=S.tn;const r=_sl.apply(this,arguments);if(G.sleeping){const fix=()=>{if(!S)return;if(S.day>d0&&t0!=null&&Math.floor(t0+0.02)<=d0){S.day=d0;S.tn=Math.min(d0+0.999,Math.max(t0,S.tn-1));}};
+      /* mã gốc cộng ngày lúc tỉnh dậy nếu đang buổi tối, mã đồng hồ cộng thêm nửa ngày công: gỡ cả hai */const iv=setInterval(()=>{if(!S||!G.sleeping){clearInterval(iv);fix();setTimeout(fix,300);}},200);setTimeout(fix,4400);setTimeout(fix,5200);}return r;};}
+/* ---- 2. cây cỏ quanh năm ---- */
+for(const t in RT)if(RT[t]&&RT[t].seasons){RT[t].ss0=RT[t].seasons;delete RT[t].seasons;}
+/* ---- 3. vật liệu cơ bản gần nơi bắt đầu ---- */
+{const _rg=resGen;resGen=function(seed){const r=_rg.apply(this,arguments);try{const sx=SPAWN[0],sz=SPAWN[1],want=[['centella',5],['mugwort',4],['berry',5],['mint',2],['flintRock',3],['clay',3],['flax',3]].filter(w=>RT[w[0]]);
+    const nearL=[];for(const q of RES){const d=Math.hypot(q.x-sx,q.z-sz);if(d<620)nearL.push([d,q]);}nearL.sort((a,b)=>a[0]-b[0]||a[1].i-b[1].i);
+    const pool=nearL.filter(([d,q])=>d>90&&!q.site&&(q.t==='tallgrass'||q.t==='fern'||q.t==='flowerY'||q.t==='flowerP')&&wdAt(q.x,q.z)<=0).map(e=>e[1]);let pi=0;
+    for(const [t,n] of want){let have=nearL.filter(([d,q])=>q.t===t).length;while(have<n&&pi<pool.length){const q=pool[pi];pi+=3;/* nhảy cách để rải đều, không dồn một chỗ */q.t=t;q.s=(0.9+((q.i*37)%20)/100)*(RT[t].sc||1);q.hp=RT[t].hp;have++;}}}catch(e){console.warn('cơ bản',e);}return r;};}
+/* ---- 4. dựng căn cứ trước ---- */
+{const base=['Dựng bàn chế tác','San nền khu ở','Lát nền nhà 4 ô','Dựng 6 bức vách','Lợp 4 tấm mái'],at=GOALS.findIndex(g=>g.t==='Ngủ qua đêm đầu tiên');
+  if(at>=0){const mv=base.map(t=>GOALS.find(g=>g.t===t)).filter(Boolean);if(mv.length===base.length){const rest=GOALS.filter(g=>!mv.includes(g)),k=rest.findIndex(g=>g.t==='Ngủ qua đêm đầu tiên')+1;mv.forEach(g=>g.e=1);GOALS.length=0;GOALS.push(...rest.slice(0,k),...mv,...rest.slice(k));}}
+  // bản lưu có trước khi đổi thứ tự: đứng lại ở mục chưa xong đầu tiên theo thứ tự mới (không thưởng lại các mục đã qua)
+  const _gc=goalCheck;goalCheck=function(){try{if(S&&S.gv!==2){S.gv=2;if(S.goal>0){let i=0;while(i<GOALS.length){const [v,n]=goalProg(GOALS[i]);if(v<n)break;i++;}if(i<S.goal)S.goal=i;}}}catch(e){}return _gc.apply(this,arguments);};}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
