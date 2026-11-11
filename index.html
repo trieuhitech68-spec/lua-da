@@ -2003,7 +2003,7 @@ function instGroup(parts,cap,opt){const T=THREE,opt_=opt||{},G=new T.Group();G.u
     flush(){if(!api.dirty)return;for(const im of ims)im.instanceMatrix.needsUpdate=true;api.dirty=0;},
     dispose(){ims.forEach(im=>{if(im.parent)im.parent.remove(im);im.dispose&&im.dispose();});}};return api;}
 /* ===================== LÕI GAME: TRẠNG THÁI, CẢNH 3D, NHÂN VẬT, THU THẬP, CHẾ TẠO, XÂY DỰNG ===================== */
-const SKEY='lua-da-tay-trang-v1',HOTN=6,INVN=24,REACH=26,DAY_SEC=720;// 1 ngày = 12 phút thật
+const SKEY='lua-da-tay-trang-v1',HOTN=6,INVN=24,REACH=26,DAY_SEC=1080;// 1 ngày = 18 phút thật (80 ngày game mỗi ngày thật, xem clock.js)
 let S=null;const G={on:false,t:0,keys:{},joy:{x:0,y:0,on:false},yaw:0.6,pitch:0.98,zoom:380,act:null,walkTo:null,build:null,panel:null,fx:[],flames:[],lights:[],lastSave:0,q:2,runBtn:false};
 const $=s=>document.querySelector(s);const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const TNOW=()=>S.day+S.hour/24;
@@ -2047,7 +2047,7 @@ function unlockCheck(){if(!S)return;const fresh=[];RECIPES.forEach(r=>{if(!S.kno
 const P={x:0,z:0,y:0,vy:0,air:false,ry:0,speed:0,model:null,rig:null,tool:null,toolId:null,anim:'idle',hurtT:0};
 function sceneInit(){const T=THREE,cv=document.createElement('canvas');cv.id='gl';$('#game').prepend(cv);const mob=Math.min(innerWidth,innerHeight)<600;
   startQ();const R=new T.WebGLRenderer({canvas:cv,antialias:(devicePixelRatio||1)<1.5&&G.q>0,powerPreference:'high-performance'});R.outputEncoding=T.sRGBEncoding;R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;G.R=R;
-  cv.addEventListener('webglcontextlost',e=>{e.preventDefault();G.lost=true;save();uiError('Thiết bị tạm dừng đồ họa. Tải lại trang để chơi tiếp (đã lưu).');},false);
+  cv.addEventListener('webglcontextlost',e=>{e.preventDefault();G.lost=true;try{localStorage.setItem('ldtt-lost',String((+localStorage.getItem('ldtt-lost')||0)+1));}catch(_){}save();uiError('Thiết bị tạm dừng đồ họa. Tải lại trang để chơi tiếp (đã lưu).');},false);
   const sc=new T.Scene();G.sc=sc;G.L=K3.lights(sc,0,R,{size:mob?380:520,fogNear:1500,fogFar:4400,shadowMap:mob?1536:2048,sky:true});G.sky=sc.children.find(o=>o.userData&&o.userData.sky);
   const sh=G.L.sun.shadow.camera;sh.near=10;sh.far=2600;G.moon=new T.DirectionalLight(0x8aa6ff,0);sc.add(G.moon);sc.add(G.moon.target);
   G.cam=new T.PerspectiveCamera(40,1,4,3000);resize();
@@ -2367,7 +2367,7 @@ function groundPick(sx,sy){const T=THREE,v=new T.Vector3((sx/innerWidth)*2-1,-(s
   for(let i=0;i<4;i++){if(Math.abs(dir.y)<1e-4)return null;const t=(y-o.y)/dir.y;if(t<=0)return null;p=o.clone().addScaledVector(dir,t);y=groundY(p.x,p.z);}return p;}
 /* ---------- ngày đêm, bầu trời ---------- */
 const SKYP={day:{top:'#3f78c0',hor:'#bcd6e6',gnd:'#6a7a4a',sun:'#fff0d4'},dusk:{top:'#3a3a78',hor:'#f0a070',gnd:'#4a3a3a',sun:'#ffb070'},night:{top:'#0a1024',hor:'#26324e',gnd:'#0c0e14',sun:'#8aa6ff'},storm:{top:'#4a5260',hor:'#7a8490',gnd:'#3a3e40',sun:'#c8ccd0'}};
-function dayTick(dt){const prevH=S.hour;S.hour+=dt*24/DAY_SEC;if(S.hour>=24){S.hour-=24;S.day++;uiToast(`Ngày ${S.day} · Mùa ${SEASONS[seasonIdx()].n}`,'');}
+function dayTick(dt){const prevH=S.hour;if(typeof wcStep==='function')wcStep();else{S.hour+=dt*24/DAY_SEC;if(S.hour>=24){S.hour-=24;S.day++;uiToast(`Ngày ${S.day} · Mùa ${SEASONS[seasonIdx()].n}`,'');}}
   const h=S.hour,el=Math.sin((h-6)/12*Math.PI),day=clamp(el*3+0.25,0,1),dusk=clamp(1-Math.abs(el)*4,0,1)*(h>12?1:0.8),cloud=G.wxK||0;G.dayK=day;
   const sun=G.L.sun,sa=(h-6)/12*Math.PI,sx=Math.cos(sa)*-0.8,sy=Math.max(0.12,Math.sin(sa)),sz=0.35;sun.position.set(P.x+sx*900,P.y+sy*900,P.z+sz*900);sun.target.position.set(P.x,P.y,P.z);
   sun.intensity=1.6*Math.max(0,el)**0.6*day*(1-cloud*0.62);G.L.hemi.intensity=(0.1+0.14*day+(S.mode==='cozy'?0.07:0.03))*(1+cloud*0.4);G.moon.intensity=(1-day)*(S.mode==='cozy'?0.5:0.32)*(1-cloud*0.5);G.moon.position.set(P.x+300,P.y+700,P.z-200);G.moon.target.position.set(P.x,P.y,P.z);
@@ -2381,9 +2381,9 @@ function die(){if(G.dying)return;G.dying=1;uiFade(()=>{const bed=S.builds.find(b
   if(S.mode==='survival'){let lost=0;S.inv.forEach((s,i)=>{if(s&&ITEMS[s.id].t==='res'&&Math.random()<0.5){S.inv[i]=null;lost++;}});if(lost)uiToast(`Bạn đánh rơi ${lost} ô đồ khi ngất.`,'bad');}
   save();G.dying=0;uiToast('Bạn ngất đi và tỉnh dậy ở nơi an toàn.','bad');uiHud(true);uiHotbar();});}
 /* ---------- ánh sáng lửa ---------- */
-function lightsTick(t){const T=THREE;if(!G.lights.length)for(let i=0;i<4;i++){const l=new T.PointLight(0xff9a50,0,300,1.7);G.sc.add(l);G.lights.push(l);}
-  const fl=G.flames.filter(f=>!f.off).map(f=>({f,d:Math.hypot(f.x-P.x,f.z-P.z)})).sort((a,b)=>a.d-b.d);const night=1-(G.dayK??1);
-  G.lights.forEach((l,i)=>{const e=fl[i];if(!e||e.d>900){l.intensity=0;return;}l.position.set(e.f.x,e.f.y+16,e.f.z);l.intensity=(0.6+night*2.2)*(0.85+0.15*Math.sin(t*13+e.f.ph));});
+function lightsTick(t){const T=THREE;if(!G.lights.length)for(let i=0;i<((G.q|0)>0?4:2);i++){const l=new T.PointLight(0xff9a50,0,300,1.7);G.sc.add(l);G.lights.push(l);}
+  const night=1-(G.dayK??1);if(t-(G.lgT||-9)>0.3){G.lgT=t;const fl=G.lgF||(G.lgF=[]);fl.length=0;for(const f of G.flames){if(f.off)continue;const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<900)fl.push({f,d});}fl.sort((a,b)=>a.d-b.d);}const fl=G.lgF||[];
+  G.lights.forEach((l,i)=>{const e=fl[i];if(!e||e.f.off){l.intensity=0;return;}l.position.set(e.f.x,e.f.y+16,e.f.z);l.intensity=(0.6+night*2.2)*(0.85+0.15*Math.sin(t*13+e.f.ph));});
   G.flames.forEach(f=>{const k=1+Math.sin(t*11+f.ph)*0.08;f.o.scale.set(1,k,1);});P.light.intensity=P.toolId==='torch'?(0.4+night*2.4):0;P.light.position.set(P.x,P.y+40,P.z);}
 /* ---------- vòng lặp ---------- */
 let LAST=0;
@@ -2397,10 +2397,11 @@ function loop(now){requestAnimationFrame(loop);if(!G.on||G.lost)return;const raw
 // máy yếu: tự giảm chất lượng
 function perfTick(dt){if(!(dt>0)||dt>0.25)return;G.pfWarm=(G.pfWarm||0)+dt;if(G.pfWarm<3)return;G.ft=(G.ft||dt)*0.94+dt*0.06;G.prT=(G.prT||0)+dt;if(G.prT<1.2)return;G.prT=0;const k=G.prK||1;
   // độ phân giải động: giữ khoảng 40-60 khung hình/giây. Cần 2 lần đo chậm liên tiếp mới hạ, 3 lần nhanh mới nâng; vừa hạ thì chờ 20 s mới nâng lại (tránh nhảy qua lại gây giật)
-  if(G.ft>0.027){G.pfUp=0;G.pfDn=(G.pfDn||0)+1;}else if(G.ft<0.0175){G.pfDn=0;G.pfUp=(G.pfUp||0)+1;}else{G.pfDn=0;G.pfUp=0;}
+  const cap=typeof SET!=='undefined'&&SET.fpsCap?1/SET.fpsCap:0,slow=Math.max(0.027,cap*1.22),fast=Math.max(0.0175,cap*1.08);// có giới hạn khung hình thì ngưỡng chậm/nhanh tính theo giới hạn đó
+  if(G.ft>slow){G.pfUp=0;G.pfDn=(G.pfDn||0)+1;}else if(G.ft<fast){G.pfDn=0;G.pfUp=(G.pfUp||0)+1;}else{G.pfDn=0;G.pfUp=0;}
   if(G.pfDn>=2&&k>0.55){G.pfDn=0;G.prK=Math.max(0.55,+(k-0.12).toFixed(2));G.pfDnT=G.t;resize();}
   else if(G.pfUp>=3&&k<1&&G.t-(G.pfDnT||-99)>20){G.pfUp=0;G.prK=Math.min(1,+(k+0.06).toFixed(2));resize();}
-  else if(G.ft>0.034&&k<=0.56&&G.q>0&&!G.noAdapt&&G.pfDn>=2){G.pfDn=0;G.q--;G.prK=0.8;applyQ();console.info('Giảm chất lượng đồ họa còn mức',G.q);}}
+  else if(G.ft>Math.max(0.034,cap*1.3)&&k<=0.56&&G.q>0&&!G.noAdapt&&G.pfDn>=2){G.pfDn=0;G.q--;G.prK=0.8;applyQ();console.info('Giảm chất lượng đồ họa còn mức',G.q);}}
 function moveTick(dt){let ix=0,iz=0;const k=G.keys,fp=isFP();if(k.KeyW||k.ArrowUp)iz-=1;if(k.KeyS||k.ArrowDown)iz+=1;if(k.KeyA||(!fp&&k.ArrowLeft))ix-=1;if(k.KeyD||(!fp&&k.ArrowRight))ix+=1;if(fp){if(k.ArrowLeft)P.ry+=dt*2.2;if(k.ArrowRight)P.ry-=dt*2.2;}swimCheck();if(G.work){if(Math.hypot(ix,iz)>0.3)workStop('Đã dừng tay.');}
   if(G.joy.on){ix=G.joy.x;iz=G.joy.y;}let m=Math.hypot(ix,iz);
   // nhảy + trọng lực
@@ -2440,8 +2441,9 @@ function startGame(){if(G._starting||G.on)return;G._starting=1;uiLoading(true);c
   if(window.THREE){requestAnimationFrame(()=>setTimeout(go,20));return;}const load=i=>{if(i>=TURLS.length){uiLoading(false);uiError('Không tải được thư viện 3D. Kiểm tra kết nối mạng rồi tải lại trang.');return;}const s=document.createElement('script');s.src=TURLS[i];s.onload=()=>{if(window.THREE)go();else load(i+1);};s.onerror=()=>{s.remove();load(i+1);};document.head.appendChild(s);};load(0);}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
 /* ===================== SỰ SỐNG: CƠ THỂ, BỆNH, THỜI TIẾT, BỐN MÙA, THÚ VẬT, CÔN TRÙNG ===================== */
-const seasonIdx=()=>Math.floor((S.day-1)/SEASON_DAYS)%4;
-const seasonDay=()=>((S.day-1)%SEASON_DAYS)+1;
+// mùa và ngày trong mùa lấy theo đồng hồ chung (clock.js) để mọi người cùng mùa
+const seasonIdx=()=>typeof wcSeason==='function'?wcSeason():Math.floor((S.day-1)/SEASON_DAYS)%4;
+const seasonDay=()=>typeof wcSeasonDay==='function'?wcSeasonDay():((S.day-1)%SEASON_DAYS)+1;
 const isNight=()=>S.hour>=19||S.hour<5.5;
 /* ---------- mùa: tuyết phủ và lá đổi màu bằng shader dùng chung cho mọi vật liệu ---------- */
 const SEA={uSnow:{value:0},uAut:{value:0},uWet:{value:0}};
@@ -2495,8 +2497,8 @@ function bodyTick(dt){const p=S.p,cozy=S.mode==='cozy',gh=dt*24/DAY_SEC,T=ambien
   for(const k in S.st){S.st[k]-=gh;if(S.st[k]<=0){delete S.st[k];uiToast(`Đã khỏi ${STATUS[k].n}.`,'good');uiHud(true);}}
   if(p.hp<=0)die();}
 /* ---------- thời tiết ---------- */
-function weatherTick(dt){const now=TNOW();if(!S.wx||now>=S.wx.until){const si=seasonIdx(),rp=SEASONS[si].rain,r=Math.random();let type='clear';
-    if(r<rp)type=si===3?'snow':(Math.random()<0.16?'storm':'rain');else if(r<rp+0.22)type='cloudy';const prev=S.wx&&S.wx.type;S.wx={type,until:now+0.12+Math.random()*0.3};
+function weatherTick(dt){const now=TNOW(),WX=typeof wcWeather==='function'?wcWeather():null;if(!S.wx||now>=S.wx.until||(WX&&S.wx.slot!==WX.slot)){const si=seasonIdx(),rp=SEASONS[si].rain,r=Math.random();let type='clear';
+    if(r<rp)type=si===3?'snow':(Math.random()<0.16?'storm':'rain');else if(r<rp+0.22)type='cloudy';const prev=S.wx&&S.wx.type;S.wx={type,until:now+0.12+Math.random()*0.3};if(WX){type=WX.type;S.wx={type,until:WX.until,slot:WX.slot};}
     if(type!==prev&&G.on){const msg={clear:'Trời quang đãng.',cloudy:'Mây kéo đến.',rain:'Trời đổ mưa: tìm chỗ trú kẻo ướt và lạnh.',storm:'Giông bão! Sấm chớp, gió lạnh: mau về nhà.',snow:'Tuyết rơi.'}[type];uiToast((type==='rain'||type==='storm'?'🌧 ':type==='snow'?'❄ ':'')+msg,type==='storm'?'bad':'');}}
   const want=S.wx.type==='rain'?0.8:S.wx.type==='storm'?1:S.wx.type==='snow'?0.85:S.wx.type==='cloudy'?0.25:0;G.wxK=(G.wxK||0)+(want-(G.wxK||0))*Math.min(1,dt*0.4);G.wxType=S.wx.type;
   precipTick(dt);if(S.wx.type==='storm'&&Math.random()<dt*0.12){G.flash=1;setTimeout(()=>sfx('thunder'),300+Math.random()*900);}}
@@ -2837,7 +2839,9 @@ function applyQ(){const q=G.q|0,sun=G.L.sun;resize();sun.castShadow=q>0;const ms
   G.fogF=[3600,4600,5800][q];G.fogN=Math.round(G.fogF*0.5);G.treeD=[1500,2200,3100][q];G.cam.far=G.fogF+300;G.cam.updateProjectionMatrix();grassInit();
   }
 function startQ(){let q=null;try{const v=localStorage.getItem('ldtt-qu');if(v!==null){q=+v;G.noAdapt=true;}}catch(e){}
-  if(q===null){const mob=Math.min(innerWidth,innerHeight)<600||/Android|iPhone|iPad/i.test(navigator.userAgent);q=mob?0:1;}G.q=clamp(q,0,2);}
+  if(q===null){const mob=Math.min(innerWidth,innerHeight)<600||/Android|iPhone|iPad/i.test(navigator.userAgent);q=mob?0:1;}
+  // lần trước thiết bị đã ngắt đồ hoạ (hết bộ nhớ): lần này chạy mức nhẹ và độ phân giải thấp hơn
+  try{const L=+localStorage.getItem('ldtt-lost')||0;if(L>0){q=0;G.noAdapt=false;G.prK=L>1?0.6:0.75;G.lostN=L;}}catch(e){}G.q=clamp(q,0,2);}
 /* ---------- lưới vùng sinh thái (tra nhanh cho cỏ, bản đồ) ---------- */
 const BCODE=['water','beach','meadow','edge','forest','bank','rock','peak'];let BG=null;
 function biomeGridBuild(){BG=new Uint8Array(HN*HN);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const x=-WSIZE/2+i*HSTEP,z=-WSIZE/2+j*HSTEP;BG[j*HN+i]=Math.max(0,BCODE.indexOf(biome(x,z)));}}
@@ -9649,7 +9653,8 @@ function SBmodels6vInit(){const M=window.SBM;if(!M||M.v6v)return;M.v6v=1;
   const impBuild=(k,s)=>TREE[k]?M.tree(k,s,1):M[k](1);
   let IMP=null;
   M.v6bake=()=>{if(IMP!==null)return IMP;IMP=false;let r=null;const old=TIME.value;
-    try{const CW=512,CH=1024,AW=4096,AH=4096,cols=AW/CW;r=new T.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true,premultipliedAlpha:false});r.setPixelRatio(1);r.setSize(AW,AH,false);
+    try{// máy yếu / điện thoại: ảnh cây xa 2048² (trước 4096² ngốn vài trăm MB lúc dựng → trắng màn, trình duyệt tải lại)
+      const lite=(typeof G!=='undefined'&&(G.q|0)<2)||Math.min(innerWidth,innerHeight)<700||/Android|iPhone|iPad/i.test(navigator.userAgent),CW=lite?256:512,CH=lite?512:1024,AW=lite?2048:4096,AH=AW,cols=AW/CW;r=new T.WebGLRenderer({alpha:true,antialias:!lite,preserveDrawingBuffer:true,premultipliedAlpha:false});r.setPixelRatio(1);r.setSize(AW,AH,false);
       r.outputEncoding=T.sRGBEncoding;r.toneMapping=T.NoToneMapping;r.setClearColor(0x000000,0);r.autoClear=false;r.clear();
       const sc=new T.Scene();sc.add(new T.AmbientLight(0xffffff,0.62));const dl=new T.DirectionalLight(0xffffff,0.32);dl.position.set(0.2,1,0.5);sc.add(dl);
       TIME.value=0;const info={};r.setScissorTest(true);
@@ -9662,7 +9667,7 @@ function SBmodels6vInit(){const M=window.SBM;if(!M||M.v6v)return;M.v6v=1;
       const cv=document.createElement('canvas');cv.width=AW;cv.height=AH;const c2=cv.getContext('2d');c2.drawImage(r.domElement,0,0);const id=c2.getImageData(0,0,AW,AH);
       let n=0;for(let i=3;i<id.data.length;i+=4*97)if(id.data[i]>128)n++;if(n<50)throw new Error('impostor bake empty');
       bleed(id.data,AW,AH);const tex=dataTex(id.data,AW,AH,{srgb:1,an:16});tex.userData={tsz:AW};const mat=mkMat('v6Imp',{map:tex,side:DS,alphaTest:0.5,roughness:1,color:new T.Color(0.8,0.79,0.81)},2);MT.v6Imp=mat;
-      IMP={tex,info,mat,canvas:cv};}
+      cv.width=cv.height=1;IMP={tex,info,mat,canvas:null};}
     catch(e){console.warn('v6 impostor bake failed',e);IMP=false;}
     finally{TIME.value=old;if(r){try{r.dispose();r.forceContextLoss();}catch(_){}}}
     return IMP;};
@@ -11837,7 +11842,7 @@ function l4Scan(){let best=null,bd=1e9;for(const b of S.builds){if(b.prog!=null|
       else if(L4CROP[c.k]){uiToast(`${L4CROP[c.k].n} mới được ${Math.round(c.p*100)}%.`,'');return;}}}
   return _as(t);};}
 /* ===================== 12. TINH THẦN, LỄ HỘI, TỔ TIÊN, KỂ CHUYỆN, VĂN THÂN, GIA ĐÌNH ===================== */
-const l4SeasonKey=()=>Math.floor((S.day-1)/SEASON_DAYS);
+const l4SeasonKey=()=>typeof wcDayN==='function'?Math.floor(wcDayN()/SEASON_DAYS):Math.floor((S.day-1)/SEASON_DAYS);
 const l4Spirit=(n,why)=>{const L=l4S();L.sp=clamp(L.sp+n,0,100);if(why)uiFloat((n>0?'+':'')+n+' tinh thần',P.x,P.y+48,P.z,n>0?'#ffd27a':'#b8a8d8');};
 function l4Offer(b){const L=l4S();if((L.offer||0)===S.day){uiToast('Hôm nay đã dâng lễ rồi.','');return;}const pick=['meatCooked','fishCooked','riceCooked','comLam','bread','boiledMeat','flower','berry','banana','rice'].find(k=>invCount(k)>0);
   if(!pick){uiToast('Cần một món lễ: đồ ăn chín, gạo, quả hoặc hoa.','bad');return;}
@@ -12805,7 +12810,7 @@ function m2Fill(keep){const p=$('#panel'),h=p&&p.querySelector('.p-head h2'),bd=
 {const _uo=uiOpen;uiOpen=function(k,o,keep){if(k==='m2'){_uo(k,o,keep);m2Fill(keep);m2Badge();return;}return _uo(k,o,keep);};}
 const m2DayDue=()=>{const D=S&&S.m2&&S.m2.dl;if(!D||!D.d)return 0;return (D.got!==D.d?1:0)+(D.tasks||[]).filter(T=>!T.ok&&m2TVal(T)>=T.n).length+(D.wk&&!D.wk.ok&&m2TVal(D.wk)>=D.wk.n?1:0);};
 function m2Menu(){const m=$('#menu');if(!m||m.querySelector('[data-ui="m2"]'))return;const b=document.createElement('button');b.setAttribute('data-ui','m2');b.setAttribute('aria-label','Làng');b.innerHTML='<span>🏮</span><i>Làng</i><em class="m2dot" hidden></em>';
-  const j=m.querySelector('[data-ui="journal"]');m.insertBefore(b,j||null);const acts=$('.acts');if(acts&&!$('#m2emoBtn')){acts.insertAdjacentHTML('afterbegin','<button id="m2emoBtn" class="rbtn sm" aria-label="Cử chỉ">😊<i>Cử chỉ</i></button>');}}
+  const j=m.querySelector('[data-ui="journal"]');if(j&&j.parentNode)j.parentNode.insertBefore(b,j);else (m.querySelector('.ui5-more')||m).appendChild(b);const acts=$('.acts');if(acts&&!$('#m2emoBtn')){acts.insertAdjacentHTML('afterbegin','<button id="m2emoBtn" class="rbtn sm" aria-label="Cử chỉ">😊<i>Cử chỉ</i></button>');}}
 function m2Badge(){const d=document.querySelector('#menu [data-ui="m2"] .m2dot');if(!d||!S)return;let n=0;try{n=m2Unread()+m2MailNew()+m2DayDue()+(m2Net()?Object.keys(M2K.frIn).filter(u=>m2FrState(u)==='in'&&!M2I().frNo[u]).length:0);}catch(e){}d.hidden=!n;d.textContent=n>9?'9+':n;}
 // rung (điện thoại) và hiệu ứng khi nhận quà
 function m2Vib(p){try{if(localStorage.getItem('ldtt-hap')==='0')return;if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
@@ -13785,8 +13790,12 @@ function landRebuild(f){terrainColors();const S2=TCS*HSTEP;for(let cj=0;cj<TCN;c
 function landCheck(r){const x=P.x,z=P.z;if(wdAt(x,z)>0.2)return 'Không san nền dưới nước.';if(slopeAt(x,z)>0.9)return 'Dốc quá, chọn chỗ bằng hơn.';
   if(typeof inCave==='function'&&inCave(x,z))return 'Trong hang đã có nền sẵn.';
   const tool=hasTool('dig')||hasTool('hoe')||hasTool('pick');if(!tool)return 'Cần Gậy đào (hoặc cuốc) để đào gốc, san đất.';
-  let big=0;for(const i of near(x,z,r+20)){const q=RES[i];if(q.st!==0||q.lock)continue;if(Math.hypot(q.x-x,q.z-z)>r)continue;if(RT[q.t].tool==='axe')big++;}
-  if(big)return `Còn ${big} cây lớn trong khu này: chặt bằng rìu trước đã.`;
+  // cây lớn còn đứng trong khu (khúc gỗ đổ không tính: san nền sẽ dọn luôn). Báo rõ cây nào, cách bao xa, hướng nào và nháy sáng chỗ cây
+  //  → hết cảnh "báo còn cây mà nhìn không thấy cây đâu" (cây ở sau lưng, lẫn trong cỏ, hoặc bị đất vùi sau lần san trước).
+  const bl=[];for(const i of near(x,z,r+20)){const q=RES[i];if(q.st!==0||q.lock)continue;const d=Math.hypot(q.x-x,q.z-z);if(d>r)continue;if(RT[q.t].tool==='axe'&&q.t!=='log')bl.push({q,d});}
+  if(bl.length){bl.sort((a,b)=>a.d-b.d);const q=bl[0].q,ang=Math.atan2(q.x-x,-(q.z-z)),dir=['Bắc','Đông Bắc','Đông','Đông Nam','Nam','Tây Nam','Tây','Tây Bắc'][((Math.round(ang/(Math.PI/4))%8)+8)%8];
+    try{bl.slice(0,8).forEach(o=>{const gy=hAt(o.q.x,o.q.z);if(o.q.wy==null&&Math.abs(o.q.y-(gy-1.2))>3){o.q.y=gy-1.2;resShow(o.q);}for(let k=0;k<3;k++)puff(o.q.x,gy+14+k*22,o.q.z,'#ffd24a',8);});RI.forEach(v=>v.api.flush());}catch(e){}
+    return `Còn ${bl.length} cây lớn trong khu này (đang nháy vàng). Gần nhất: ${RT[q.t].n||'cây'}, cách ${Math.max(1,Math.round(bl[0].d/20))} m về phía ${dir}. Chặt bằng rìu trước đã.`;}
   for(const b of S.builds)if(Math.hypot(b.x-x,b.z-z)<r*0.85)return 'Khu này đã có công trình. San nền trước khi xây.';return null;}
 function landStart(r){r=+r||110;const why=landCheck(r);if(why){uiToast(why,'bad');sfx('no');return;}const ng=needGate(true);if(ng){uiToast(ng,'bad');sfx('no');return;}
   const k=r/110;uiClose();buildEnd&&buildEnd();
@@ -13797,7 +13806,10 @@ function landDone(r){const x=P.x,z=P.z;let sum=0,n=0;for(let a=0;a<12;a++){const
   // cây cỏ trong khu: nhổ sạch, không mọc lại
   const got={};let cleared=0;for(const i of near(x,z,r+20)){const q=RES[i];if(q.st!==0||q.lock||Math.hypot(q.x-x,q.z-z)>r)continue;const Y=RT[q.t].yield||{};for(const k in Y){const v=Y[k];const c=Array.isArray(v)?v[0]:v;if(c>0&&Math.random()<0.6)got[k]=(got[k]||0)+c;}q.st=1;q.hp=0;q.rg=1e12;S.res[q.i]=[1,1e12];resShow(q);cleared++;}
   for(const k in S.res){const q=RES[+k];if(q&&S.res[k][0]===1&&Math.hypot(q.x-x,q.z-z)<r)S.res[k]=[1,1e12];}
-  RI.forEach(v=>v.api.flush());flatApply(f);landRebuild(f);P.y=hAt(P.x,P.z);
+  flatApply(f);
+  // mặt đất quanh rìa (tới 1,3 lần bán kính) cũng đổi độ cao: đặt lại cây cỏ, đá ở đó theo mặt đất mới, kẻo bị vùi dưới đất hoặc lơ lửng
+  for(const i of near(x,z,r*1.3+30)){const q=RES[i];if(q.wy!=null)continue;const ny=hAt(q.x,q.z)-1.2;if(Math.abs(ny-q.y)>0.3){q.y=ny;try{resShow(q);}catch(e){}}}
+  RI.forEach(v=>v.api.flush());landRebuild(f);P.y=hAt(P.x,P.z);
   if(Object.keys(got).length)give(got,[x,P.y+10,z]);puff(x,P.y+4,z,'#a88a62',14);sfx('build');addXp('build',4+r/20);S.p.stam=Math.max(0,S.p.stam-r/8);
   uiToast(`🟫 Đã san xong nền đất ${Math.round(r*2/20)} m. Cỏ cây trong khu sẽ không mọc lại — dựng nhà thôi!`,'gold');save();}
 // cây cỏ không mọc lại trong khu đã san
@@ -15923,6 +15935,107 @@ document.addEventListener('input',e=>{if(e.target&&e.target.closest&&e.target.cl
 .adm-ln{display:flex;flex-direction:column;gap:6px}
 .adm-go{margin-left:4px}
 `;document.head.appendChild(s);})();
+/* ===================== ĐỒNG HỒ CHUNG: GIỜ MÁY CHỦ VIỆT NAM (UTC+7) · BỐN MÙA · THỜI TIẾT GIỐNG NHAU CHO MỌI NGƯỜI =====================
+   Trước đây mỗi nhân vật tự chạy đồng hồ riêng (người đang ngày 3 mùa xuân, người ngày 40 mùa đông). Giờ mọi máy tính CÙNG một công thức
+   từ giờ thật của máy chủ (lệch múi +7): giờ trong ngày, mùa, ngày trong mùa và thời tiết đều giống nhau ở cùng một thời điểm.
+     · 1 ngày trong game = DAY_SEC giây thật (18 phút) → 80 ngày game mỗi ngày thật.
+     · 1 mùa = SEASON_DAYS ngày game (72 phút), 1 năm = 4 giờ 48 phút. Mùa xuân bắt đầu đúng 00:00, 04:48, 09:36, 14:24, 19:12 giờ Việt Nam.
+     · "Ngày N" trên bảng là số ngày RIÊNG nhân vật đã sống (tăng khi qua nửa đêm lúc đang chơi hoặc khi ngủ; vắng mặt lâu chỉ tính 1 ngày
+       để vật nuôi, người nhà không chết đói khi bạn nghỉ chơi). Hạn dùng (TNOW) vì vậy luôn chỉ tăng, không nhảy lùi.
+     · Giờ máy chủ lấy bằng hàm ld_now() (supabase_setup.sql); chưa có / mất mạng thì dùng đồng hồ của máy (điện thoại vốn tự chỉnh giờ). */
+const WC={off:0,syncT:0,ok:false,tz:7*3600000};
+const wcMs=()=>Date.now()+WC.off+WC.tz;
+const wcDayMs=()=>DAY_SEC*1000;
+const wcDayN=()=>Math.floor(wcMs()/wcDayMs());
+const wcHour=()=>{const d=wcDayMs();return (wcMs()%d)/d*24;};
+const wcSeason=()=>Math.floor(wcDayN()/SEASON_DAYS)%4;
+const wcSeasonDay=()=>(wcDayN()%SEASON_DAYS)+1;
+// số phút thật còn lại tới mùa kế
+function wcSeasonLeftMin(){const d=wcDayMs(),L=d*SEASON_DAYS;return Math.ceil((L-(wcMs()%L))/60000);}
+function wcClockVN(){const t=new Date(wcMs());return String(t.getUTCHours()).padStart(2,'0')+':'+String(t.getUTCMinutes()).padStart(2,'0');}
+// gọi mỗi khung hình từ dayTick: đặt giờ chung, tăng ngày riêng khi sang ngày mới
+function wcStep(){const d=wcDayN();if(S.wcD==null)S.wcD=d;else if(d!==S.wcD){if(d>S.wcD){S.day++;if(G.on)uiToast(`Ngày ${S.day} của bạn · Mùa ${SEASONS[wcSeason()].n} (còn ${wcSeasonLeftMin()} phút) · giờ Việt Nam ${wcClockVN()}`,'');}S.wcD=d;}
+  S.hour=wcHour();wcSyncTick();}
+// thời tiết chung: mỗi 1/4 ngày game gieo một lần bằng số hiệu khung giờ → ai cũng ra cùng kết quả
+function wcRnd(n){let x=(n^0x9e3779b9)>>>0;x=Math.imul(x^(x>>>16),0x85ebca6b);x=Math.imul(x^(x>>>13),0xc2b2ae35);x^=x>>>16;return (x>>>0)/4294967296;}
+function wcWeather(){const q=wcDayMs()/4,slot=Math.floor(wcMs()/q),si=wcSeason(),rp=SEASONS[si].rain,r=wcRnd(slot),r2=wcRnd(slot*7+3);let type='clear';
+  if(r<rp)type=si===3?'snow':(r2<0.16?'storm':'rain');else if(r<rp+0.22)type='cloudy';return {type,slot,until:TNOW()+(q-(wcMs()%q))/wcDayMs()+0.0005};}
+// đồng bộ với giờ máy chủ (10 phút một lần; lỗi thì thử lại sau 1 phút)
+function wcSyncTick(){const now=Date.now();if(now<WC.syncT)return;WC.syncT=now+60000;if(typeof LDB==='undefined'||!LDB.sb||!LDB.sb.rpc)return;const t0=now;
+  try{Promise.resolve(LDB.sb.rpc('ld_now')).then(r=>{const v=r&&!r.error?+r.data:NaN;if(v>1e12&&v<1e14){const t1=Date.now();WC.off=Math.round(v-(t0+t1)/2);WC.ok=true;WC.syncT=t1+600000;}}).catch(()=>{});}catch(e){}}
+// ngủ: mỗi đêm chung chỉ "qua đêm" được một lần (trời vẫn theo giờ chung nên thức dậy có thể còn tối)
+{const _sl=sleep;sleep=function(b){if(!G.sleeping&&isNight()){const h=wcHour(),night=wcDayN()-(h<12?1:0);if(S.wcSl===night){S.p.hp=Math.min(100,S.p.hp+12);S.p.stam=maxStam();uiToast('Đêm nay bạn đã ngủ một giấc rồi. Nằm nghỉ hồi sức; trời sáng theo giờ chung của máy chủ.','');uiHud(true);return;}S.wcSl=night;
+    setTimeout(()=>{if(S&&isNight())uiToast('🌙 Trời vẫn tối theo giờ chung của mọi người: ngoài kia còn đêm.','');},4200);}return _sl.apply(this,arguments);};}
+// bảng giờ: thêm dòng nhỏ "giờ VN · mùa còn bao lâu" dưới dòng ngày
+{const _hud=uiHud;uiHud=function(){const r=_hud.apply(this,arguments);try{const el=document.querySelector('#game .h-time');if(el&&S){el.title='Giờ Việt Nam '+wcClockVN()+' · mùa '+SEASONS[wcSeason()].n+' còn '+wcSeasonLeftMin()+' phút · mọi người chơi cùng ngày, cùng mùa';}}catch(e){}return r;};}
+/* ===================== NHÂN VẬT: CẤP ĐỘ · ĐIỂM THUỘC TÍNH · BẢNG THÔNG SỐ CHI TIẾT =====================
+   - Cấp nhân vật tính từ TỔNG kinh nghiệm của 10 kỹ năng: cấp = 1 + ⌊√(tổng/30)⌋. Mỗi cấp cho 2 điểm thuộc tính.
+   - 4 thuộc tính (mỗi thứ tối đa 30 điểm), cộng thẳng vào công thức có sẵn bằng cách bọc hàm (không sửa tệp cũ):
+       Sức mạnh  : +3% sát thương, vung nhanh hơn 1,5% mỗi điểm            (animalDamage, foeDamage, swingPer)
+       Thể chất  : +4 thể lực tối đa, giảm 2% sát thương nhận vào (tối đa 50%) (maxStam, animalAttack, foeHit)
+       Nhanh nhẹn: +1% tốc độ di chuyển mỗi điểm                            (move)
+       Khéo léo  : chế tạo / xây / làm việc nhanh hơn 2,5% mỗi điểm         (workTick)
+   - Bảng "Nhân vật" (tab đầu của bảng 🧍 Cơ thể): mọi con số đang áp dụng lên nhân vật, từ đâu mà có, và cấp sau được gì.
+   Lưu: S.hero={a:{str,vit,agi,dex}}. */
+const HERO_A=[['str','💪','Sức mạnh','+3% sát thương, vung rìu / cuốc / vũ khí nhanh hơn 1,5%'],['vit','❤️','Thể chất','+4 thể lực tối đa, giảm 2% sát thương nhận vào'],['agi','🏃','Nhanh nhẹn','+1% tốc độ đi và chạy'],['dex','✋','Khéo léo','chế tạo, xây dựng, làm việc nhanh hơn 2,5%']];
+const HERO_MAX=30;
+function heroS(){if(!S.hero||typeof S.hero!=='object')S.hero={a:{}};const a=S.hero.a||(S.hero.a={});for(const [k] of HERO_A)a[k]=clamp(a[k]|0,0,HERO_MAX);return S.hero;}
+const heroA=k=>S&&S.hero&&S.hero.a?(S.hero.a[k]|0):0;
+function heroXp(){let t=0;for(const k in SKILL)t+=S.sk[k]||0;return t;}
+function heroLv(){return 1+Math.floor(Math.sqrt(heroXp()/30));}
+function heroPts(){const a=heroS().a;let used=0;for(const [k] of HERO_A)used+=a[k];return Math.max(0,(heroLv()-1)*2-used);}
+function heroUp(k){const a=heroS().a;if(!(k in a)||heroPts()<=0)return;if(a[k]>=HERO_MAX){uiToast('Thuộc tính này đã tối đa '+HERO_MAX+' điểm.','');return;}a[k]++;sfx('level');save();uiHud(true);if(G.panel==='l4')uiOpenRefresh();}
+function heroReset(){const h=heroS();if(!Object.values(h.a).some(v=>v>0))return;for(const [k] of HERO_A)h.a[k]=0;uiToast('Đã trả lại toàn bộ điểm thuộc tính để chia lại.','');save();if(G.panel==='l4')uiOpenRefresh();}
+/* ---------- áp thuộc tính vào công thức ---------- */
+{const _ms=maxStam;maxStam=function(){return _ms()+heroA('vit')*4;};}
+{const _sp=swingPer;swingPer=function(t){return _sp(t)/(1+0.015*heroA('str'));};}
+{const _ad=animalDamage;animalDamage=function(a,dmg){return _ad(a,dmg*(1+0.03*heroA('str')));};}
+{const _fd=foeDamage;foeDamage=function(f,dmg){return _fd(f,dmg*(1+0.03*heroA('str')));};}
+const heroDef=()=>Math.min(0.5,0.02*heroA('vit'));
+function heroSoak(hp0){const lost=hp0-S.p.hp,k=heroDef();if(lost>0&&k>0&&S.p.hp>0)S.p.hp=Math.min(100,S.p.hp+lost*k);}
+{const _aa=animalAttack;animalAttack=function(a){const h=S.p.hp;const r=_aa.apply(this,arguments);heroSoak(h);return r;};}
+{const _fh=foeHit;foeHit=function(f,t){const h=S.p.hp;const r=_fh.apply(this,arguments);if(t&&t.pl)heroSoak(h);return r;};}
+{const _mv=move;move=function(dx,dz,m,dt,run){return _mv(dx,dz,m*(1+0.01*heroA('agi')),dt,run);};}
+{const _wt=workTick;workTick=function(dt){return _wt(dt*(1+0.025*heroA('dex')));};}
+// lên cấp nhân vật: báo và nhắc chia điểm
+{const _ax=addXp;addXp=function(k,n){const a=S?heroLv():0;const r=_ax.apply(this,arguments);if(S){const b=heroLv();if(b>a){uiToast(`⭐ Nhân vật lên cấp ${b}! Được ${(b-a)*2} điểm thuộc tính: mở 🧍 Cơ thể → Nhân vật để cộng.`,'gold');try{puff(P.x,P.y+30,P.z,'#ffd27a',14);}catch(e){}}}return r;};}
+/* ---------- bảng thông số ---------- */
+function heroRow(n,v,src){return `<tr><td>${n}</td><td><b>${v}</b></td><td class="muted">${src||''}</td></tr>`;}
+function heroHtml(){const h=heroS(),a=h.a,lv=heroLv(),xp=heroXp(),x0=30*(lv-1)*(lv-1),x1=30*lv*lv,pts=heroPts(),pc=v=>(v>=0?'+':'')+Math.round(v*100)+'%';
+  const tool=selTool(),TI=tool&&ITEMS[tool],arm=typeof m3Arm==='function'?m3Arm():0,pow=fistPow(),hunt=skLv('hunt'),dmg=pow*(1+0.06*hunt)*(1+0.03*a.str);
+  const attrs=HERO_A.map(([k,ic,n,d])=>`<div class="hero-at"><span class="hero-ic">${ic}</span><div><b>${n} <i>${a[k]}</i><small>/${HERO_MAX}</small></b><span class="small muted">Mỗi điểm: ${d}</span></div><button class="btn sm${pts>0&&a[k]<HERO_MAX?'':' ghost'}" data-a="heroup" data-k="${k}" ${pts>0&&a[k]<HERO_MAX?'':'disabled'}>＋</button></div>`).join('');
+  const wear=Object.keys(S.wear||{}).filter(s=>S.wear[s]).map(s=>{const w=S.wear[s],id=typeof w==='string'?w:w&&w.id,I=id&&ITEMS[id];return I?esc(I.n):'';}).filter(Boolean).join(', ')||'chưa mặc gì';
+  const sk=Object.keys(SKILL).map(k=>{const l=skLv(k),x=S.sk[k]||0,b=12*(l+1)*(l+1),a0=12*l*l;return `<tr><td>${SKILL[k]}</td><td><b>Cấp ${l}</b></td><td><div class="hero-bar"><i style="width:${clamp((x-a0)/(b-a0)*100,0,100)}%"></i></div></td><td class="muted">${Math.floor(x)}/${b}</td><td class="muted">nhanh hơn ${pc(0.06*l)}</td></tr>`;}).join('');
+  return `<div class="hero-top"><div class="hero-lv"><small>CẤP</small><b>${lv}</b></div><div class="hero-id"><b>${esc(S.name||'')}</b><span class="small muted">${AGES[S.age||0].n} · ngày thứ ${S.day} · uy tín ${Math.round(S.rep||0)}</span>
+    <div class="hero-bar big"><i style="width:${clamp((xp-x0)/(x1-x0)*100,0,100)}%"></i></div><span class="small muted">Kinh nghiệm ${Math.floor(xp)} / ${x1} · còn ${Math.max(0,Math.ceil(x1-xp))} nữa lên cấp ${lv+1} (+2 điểm)</span></div></div>
+  <p class="small muted">Kinh nghiệm nhân vật là tổng kinh nghiệm 10 kỹ năng: làm việc gì cũng giúp lên cấp. Mỗi cấp được 2 điểm để cộng vào 4 thuộc tính dưới đây.</p>
+  <h3>Thuộc tính ${pts>0?`<span class="hero-pts">còn ${pts} điểm chưa cộng</span>`:''}</h3><div class="hero-ats">${attrs}</div>
+  <div class="row"><button class="btn sm ghost" data-a="heroreset">↺ Chia lại điểm</button></div>
+  <h3>Chiến đấu</h3><table class="hero-tb">
+    ${heroRow('Sát thương mỗi đòn',dmg.toFixed(2),`${TI?esc(TI.n):'tay không'} ${pow.toFixed(1)} × Săn bắt cấp ${hunt} (${pc(0.06*hunt)}) × Sức mạnh (${pc(0.03*a.str)})`)}
+    ${heroRow('Giáp, khiên chặn',Math.round(arm*100)+'%','từ áo giáp, khiên đang mặc')}
+    ${heroRow('Giảm sát thương nhận vào',Math.round(heroDef()*100)+'%','Thể chất ×2% (tối đa 50%), cộng thêm sau giáp')}
+    ${heroRow('Tốc độ ra đòn',pc(0.06*hunt+0.015*a.str),'Săn bắt + Sức mạnh')}
+  </table>
+  <h3>Cơ thể</h3><table class="hero-tb">
+    ${heroRow('Máu',Math.round(S.p.hp)+' / 100','ăn chín, ngủ, thuốc để hồi')}
+    ${heroRow('Thể lực tối đa',Math.round(maxStam()),`gốc 100 + Thể lực cấp ${skLv('run')} ×5 + Thể chất ${a.vit} ×4, trừ khi ốm mệt`)}
+    ${heroRow('Tốc độ di chuyển',pc(0.01*a.agi),'Nhanh nhẹn ×1%; đường mòn +12%, lội nước chậm hơn')}
+    ${heroRow('Tốc độ làm việc',pc(0.025*a.dex),'Khéo léo ×2,5%; đói, khát, sốt làm chậm')}
+    ${heroRow('Đang mặc',wear,'đổi ở tab Y phục')}
+  </table>
+  <h3>Kỹ năng</h3><table class="hero-tb sk">${sk}</table>
+  <p class="small muted">Kỹ năng lên cấp nhờ làm nhiều: cấp L cần 12×L² kinh nghiệm. Mỗi cấp làm việc đó nhanh hơn 6% và mở công thức, công trình khó hơn.</p>`;}
+L4TABS.unshift(['hero','Nhân vật']);
+{const _bh=l4BodyHtml;l4BodyHtml=function(){return G.l4tab==='hero'?heroHtml():_bh.apply(this,arguments);};}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="heroup"],[data-a="heroreset"]');if(!b||!S)return;e.stopImmediatePropagation();if(b.dataset.a==='heroup')heroUp(b.dataset.k);else heroReset();},true);
+// mở bảng Cơ thể lần đầu thì vào tab Nhân vật; có điểm chưa cộng thì chấm đỏ trên nút
+{const _uo=uiOpen;uiOpen=function(k,o,keep){if(k==='l4'&&!(o&&o.tab)&&!G.l4tab)G.l4tab='hero';return _uo.apply(this,arguments);};}
+{const st=document.createElement('style');st.textContent=`.hero-top{display:flex;gap:12px;align-items:center;margin-bottom:8px}.hero-lv{flex:none;width:64px;height:64px;border-radius:16px;background:linear-gradient(160deg,#f2c55a,#b9792a);color:#2a1608;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.4)}.hero-lv small{font-size:10px;font-weight:800;letter-spacing:.08em}.hero-lv b{font-family:Bungee,sans-serif;font-size:26px;line-height:1}
+.hero-id{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.hero-id>b{font-size:16px}.hero-bar{height:6px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden;min-width:60px}.hero-bar.big{height:9px}.hero-bar i{display:block;height:100%;background:linear-gradient(90deg,#f2c55a,#ff8a3a)}
+.hero-ats{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-bottom:8px}.hero-at{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}.hero-at>div{flex:1;min-width:0;display:flex;flex-direction:column}.hero-ic{font-size:22px}.hero-at b i{font-style:normal;color:#f2c55a;font-size:16px}.hero-at b small{color:#a89878;font-weight:400}.hero-at .btn{min-width:44px;min-height:44px;font-size:18px}
+.hero-pts{font-size:11.5px;font-weight:700;color:#2a1608;background:#f2c55a;border-radius:10px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+.hero-tb{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:6px}.hero-tb td{padding:6px 6px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}.hero-tb td:nth-child(2){white-space:nowrap;color:#f6e3b4}.hero-tb td:nth-child(3){font-size:11.5px}.hero-tb.sk td{vertical-align:middle}.hero-tb.sk td:nth-child(3){width:30%}`;document.head.appendChild(st);}
 /* ===================== ĐĂNG NHẬP / ĐĂNG KÝ (bản web) · CHỈ CÒN THẾ GIỚI CHUNG =====================
    - Bản web (backend.js, LDB.mode==='web'): màn hình đầu là Đăng nhập / Đăng ký / Quên mật khẩu. Đăng nhập xong mới vào danh sách nhân vật.
    - Không còn "Một mình": nhân vật mới luôn ở thế giới chung (cả trên claude.ai khi có máy chủ).
@@ -16763,7 +16876,7 @@ document.addEventListener('pointerdown',e=>{if(!CRE.open)return;const c=e.target
    - Móc nhỏ trong ui.js (inputInit): G.lookS (độ nhạy), G.lookInv (đảo trục dọc), G.lefty (cần điều khiển bên phải). */
 const SET_VER='1.8',SET_BUILD='2026-11-06',SET_MAIL='lienhe@lanhdia.app';// SET_MAIL: địa chỉ góp ý (chỗ giữ chỗ — thay bằng địa chỉ thật)
 const SETK='ldtt-set';
-const SETD={tab:'acc',res:1,dynRes:true,view:1,shadow:'auto',grass:1,post:'auto',fpsCap:0,
+const SETD={tab:'acc',res:1,dynRes:true,view:1,shadow:'auto',grass:1,post:'auto',fpsCap:(Math.min(innerWidth,innerHeight)<700||/Android|iPhone|iPad/i.test(navigator.userAgent))?30:60,
   vMaster:1,vMusic:1,vFx:1,vAmb:1,bgMute:true,
   sens:1,invY:false,joyS:1,joyO:1,lefty:false,btnS:1,autoRun:true,vib:true,tapMove:true,dbl:'none',
   hudO:1,mini:1,hints:true,dmg:true,lang:'vi',
@@ -17089,7 +17202,7 @@ const MP={ok:false,started:false,db:null,room:null,user:null,uid:null,seed:null,
 const MPA=new Set(['idle','walk','run','sneak','swim','sit','sleep','chop','mine','gather','hammer','throw','whittle','lash','dig','drink','knap','carve','cook','grind']);
 const MPCOL=['#e5532c','#f2c55a','#5aa0e6','#7ac46a','#b06ad8','#e66aa8','#4ac0b8','#d8d0c0'];
 const MPEMB=['🔥','🌙','🐉','🦅','🐘','🌾','⛰️','🐟','🐃','🌊'];
-const MP_SPAWN_FREE=320,MP_NEAR=1500,MP_FAR=2000,MP_MAXSUB=12,MP_SHOW=12,MP_BCAP=2000,MP_RCAP=4000,MP_DOCMAX=190000;
+const MP_SPAWN_FREE=320,MP_NEAR=2600,MP_FAR=3400,MP_MAXSUB=24,MP_SHOW=12,MP_BCAP=2000,MP_RCAP=6000,MP_CLANMAX=70,MP_DOCMAX=190000;
 const mpIdOk=v=>typeof v==='string'&&/^[A-Za-z0-9_\-.:@+~]{1,128}$/.test(v);
 const mpNum=(v,a,b)=>typeof v==='number'&&isFinite(v)&&v>=a&&v<=b;
 const mpTxt=(v,n)=>typeof v==='string'?v.replace(/[\u0000-\u001f\u007f-\u009f­​-‏‪-‮⁠-⁯﻿]/g,'').replace(/\s+/g,' ').trim().slice(0,n):'';
@@ -17124,14 +17237,14 @@ async function mpStart(){if(MP.started||!MP.ok||!S||!S.mp||!G.on)return;MP.start
   sub(MP.db.collection('clans').limit(300),s=>{const o={};for(const d of s.docs){const v=mpValClan(d.id,d.data());if(v)o[d.id]=v;}MP.clans=o;MP.loaded.clans=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;});
   sub(MP.db.collection('claims').limit(800),s=>{const o={};for(const d of s.docs){const v=mpValClaim(d.id,d.data());if(v)o[d.id]=v;}MP.claims=o;MP.loaded.claims=1;MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;MP.tick.near=-9;});
   const cur=await mpGetDoc('players/'+MP.uid);const v=cur&&mpValPlayer(MP.uid,cur);
-  MP.me={look:S.look|0,clan:v?v.clan:null,req:v?v.req:null,w:S.seed,lastSeen:mpNow()};mpPut('players/'+MP.uid,Object.assign({},MP.me));
+  MP.me={look:S.look|0,clan:v?v.clan:null,req:v?v.req:null,w:S.seed,lastSeen:mpNow(),h:v?v.h:null};mpPut('players/'+MP.uid,Object.assign({},MP.me));
   const bh=await mpGetDoc('builds/'+MP.uid);MP.bHad=!!(bh&&bh.n>0);
   const g=await mpGetDoc('gifts/'+MP.uid);MP.myGifts={list:g&&Array.isArray(g.list)?g.list.filter(x=>x&&typeof x==='object').slice(-12):[]};
   if(!Array.isArray(S.mpGot))S.mpGot=[];if(MP.room)mpRoomInit();}
-function mpValPlayer(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;return {look:mpNum(d.look,0,LOOKS.length-1)?d.look|0:0,clan:mpIdOk(d.clan)?d.clan:null,req:mpIdOk(d.req)?d.req:null,w:mpNum(d.w,0,4.3e9)?d.w:0,lastSeen:mpNum(d.lastSeen,0,1e14)?d.lastSeen:0};}
+function mpValPlayer(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;return {look:mpNum(d.look,0,LOOKS.length-1)?d.look|0:0,clan:mpIdOk(d.clan)?d.clan:null,req:mpIdOk(d.req)?d.req:null,w:mpNum(d.w,0,4.3e9)?d.w:0,lastSeen:mpNum(d.lastSeen,0,1e14)?d.lastSeen:0,h:Array.isArray(d.h)&&d.h.length===3&&mpNum(d.h[0],-2e4,2e4)&&mpNum(d.h[1],-2e4,2e4)&&mpNum(d.h[2],0,4e4)?[d.h[0],d.h[1],d.h[2]]:null};}
 function mpValZone(z){if(!z||typeof z!=='object'||!mpNum(z.x,-2e4,2e4)||!mpNum(z.z,-2e4,2e4)||!mpNum(z.r,40,600))return null;return {x:z.x,z:z.z,r:z.r};}
 function mpValClan(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;const name=mpTxt(d.name,24);if(!name||d.leader!==id||!Array.isArray(d.members))return null;
-  const members=[...new Set(d.members.filter(mpIdOk))].slice(0,60);if(!members.includes(id))members.unshift(id);
+  const members=[...new Set(d.members.filter(mpIdOk))].slice(0,MP_CLANMAX);if(!members.includes(id))members.unshift(id);
   return {id,name,leader:id,members,color:typeof d.color==='string'&&/^#[0-9a-fA-F]{6}$/.test(d.color)?d.color:MPCOL[7],emblem:MPEMB.includes(d.emblem)?d.emblem:'🔥',createdAt:mpNum(d.createdAt,0,1e14)?d.createdAt:0,zone:mpValZone(d.zone),deny:Array.isArray(d.deny)?d.deny.filter(mpIdOk).slice(0,60):[]};}
 function mpValClaim(id,d){if(!mpIdOk(id))return null;const z=mpValZone(d);if(!z||z.r>480)return null;return z;}
 // bộ tộc thật sự của một người: họ nhận mình thuộc bộ tộc đó VÀ thủ lĩnh đã ghi tên họ
@@ -17200,8 +17313,8 @@ function mpLandHtml(){const c=MP.claims[MP.uid],cid=mpMyClan(),cl=cid&&MP.clans[
   return `${mine}${MP.ro?'':`<div class="row"><button class="btn sm" data-a="mpclaim"${why?' disabled':''}>${c?'Dời mốc về chỗ đứng':'Cắm mốc lãnh thổ tại đây'} (${Math.round(R/20)} m)</button>${c&&c.r<R&&Math.hypot(P.x-c.x,P.z-c.z)>=0?`<button class="btn sm ghost" data-a="mpgrow">Mở rộng tại chỗ cũ</button>`:''}${c?`<button class="btn sm ${G.mpArm==='unclaim'?'red':'ghost'}" data-a="mpunclaim">${G.mpArm==='unclaim'?'Bấm lần nữa':'Bỏ lãnh thổ'}</button>`:''}</div>`}
     ${why&&!MP.ro?`<p class="small warn">${esc(why)}</p>`:''}${zone}
     ${lead&&!MP.ro?`<div class="row"><button class="btn sm" data-a="mpzone"${zw?' disabled':''}>${cl.zone?'Dời vùng chung về đây':'Đặt vùng chung của bộ tộc tại đây'} (${Math.round(mpZoneR(cl)/20)} m)</button>${cl.zone?'<button class="btn sm ghost" data-a="mpunzone">Bỏ vùng chung</button>':''}</div>${zw?`<p class="small warn">${esc(zw)}</p>`:''}`:''}
-    <p class="hint">Công trình đã xong nằm trong lãnh thổ của bạn hoặc vùng chung của bộ tộc sẽ hiện ra cho mọi người (đã chia sẻ ${MP.bInfo.n} món${MP.bInfo.at?', lần cuối '+new Date(MP.bInfo.at).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}):''}). Xây ngoài lãnh thổ thì chỉ mình bạn thấy. Người khác bộ tộc không xây được trong đất của bạn. Vùng quanh Trảng Khởi Đầu là đất chung, không ai cắm mốc được.</p>`;}
-function mpZoneR(cl){return Math.min(460,220+25*Math.min(10,cl?cl.members.length:1));}
+    <p class="hint">Mọi công trình đã xong của bạn đều hiện ra cho người chơi khác khi họ tới gần (đã chia sẻ ${MP.bInfo.n} món${MP.bInfo.at?', lần cuối '+new Date(MP.bInfo.at).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}):''}). Cắm mốc để giữ đất: người khác bộ tộc không xây được trong đất của bạn. Vùng quanh Trảng Khởi Đầu là đất chung, không ai cắm mốc được.</p>`;}
+function mpZoneR(cl){const n=cl?cl.members.length:1;return Math.min(600,220+25*Math.min(10,n)+3*Math.max(0,n-10));}
 function mpChatHtml(){const cid=mpMyClan();if(!cid)return '<p class="small">Gia nhập một bộ tộc để trò chuyện cùng mọi người.</p>';
   return `<div class="mp-chat"></div><div class="mp-send"><input id="mpChat" maxlength="160" placeholder="Nhắn cả bộ tộc…"><button class="btn sm" data-a="mpsay">Gửi</button></div><p class="hint">Tin nhắn hiện cho người trong bộ tộc. Đừng gửi thông tin riêng tư.</p>`;}
 function mpNearHtml(){if(G.mpGiftTo)return mpGiftHtml();const L=[...MP.rp.values()].filter(r=>r.ok).map(r=>({r,d:Math.hypot(r.x-P.x,r.z-P.z)})).sort((a,b)=>a.d-b.d).slice(0,30);
@@ -17238,7 +17351,7 @@ function mpClanMake(){if(mpMyClan()){uiToast('Bạn đã ở trong một bộ t�
   mpClanWrite({name,leader:MP.uid,members:[MP.uid],color:G.mpCol||MPCOL[0],emblem:G.mpEm||MPEMB[0],createdAt:mpNow(),zone:null,deny:[]});mpSaveMe({clan:MP.uid,req:null});
   uiToast(`🤝 Đã lập ${mpCT(name)}! Rủ mọi người gia nhập nhé.`,'gold');sfx('level');}
 function mpClanReq(cid){if(cid&&!MP.clans[cid])return;if(cid&&mpMyClan()){uiToast('Rời bộ tộc hiện tại trước đã.','bad');return;}mpSaveMe({req:cid});if(cid)uiToast('Đã gửi lời xin gia nhập. Chờ thủ lĩnh đồng ý nhé.','');}
-function mpClanAccept(u,yes){const c=MP.clans[MP.uid];if(!c||!mpIdOk(u))return;if(yes){if(c.members.length>=40){uiToast('Bộ tộc đã đủ 40 người.','bad');return;}if(!c.members.includes(u))mpClanWrite(mpClanDoc(c,{members:c.members.concat(u),deny:c.deny.filter(x=>x!==u)}));uiToast(`Đã nhận ${mpName(u)} vào bộ tộc.`,'good');}
+function mpClanAccept(u,yes){const c=MP.clans[MP.uid];if(!c||!mpIdOk(u))return;if(yes){if(c.members.length>=MP_CLANMAX){uiToast('Liên minh đã đủ '+MP_CLANMAX+' người.','bad');return;}if(!c.members.includes(u))mpClanWrite(mpClanDoc(c,{members:c.members.concat(u),deny:c.deny.filter(x=>x!==u)}));uiToast(`Đã nhận ${mpName(u)} vào bộ tộc.`,'good');}
   else mpClanWrite(mpClanDoc(c,{deny:c.deny.concat(u).slice(-50)}));}
 function mpClanKick(u){const c=MP.clans[MP.uid];if(!c||u===MP.uid)return;mpClanWrite(mpClanDoc(c,{members:c.members.filter(x=>x!==u)}));}
 function mpClanLeave(){const cid=mpMyClan();if(!cid)return;if(cid===MP.uid){mpPut('clans/'+MP.uid,null);delete MP.clans[MP.uid];uiToast('Bộ tộc đã giải tán.','');}else uiToast('Bạn đã rời bộ tộc.','');mpSaveMe({clan:null,req:null});}
@@ -17270,18 +17383,24 @@ function mpLandWhy(x,z){const my=mpMyClan();
 // nơi công trình của MÌNH được chia sẻ
 function mpShareAt(x,z){const c=MP.claims[MP.uid];if(c&&Math.hypot(x-c.x,z-c.z)<c.r+20)return true;const cl=MP.clans[mpMyClan()];return !!(cl&&cl.zone&&Math.hypot(x-cl.zone.x,z-cl.zone.z)<cl.zone.r+20);}
 // nơi công trình của người khác được phép hiện (chống vẽ bậy khắp bản đồ)
-function mpAllowAt(uid,x,z){const c=MP.claims[uid];if(c&&Math.hypot(x-c.x,z-c.z)<c.r+24)return true;const cl=MP.clans[mpClanOf(uid)];return !!(cl&&cl.zone&&Math.hypot(x-cl.zone.x,z-cl.zone.z)<cl.zone.r+24);}
+// (trước đây chỉ hiện nhà nằm trong đất đã cắm mốc → hầu như không ai thấy nhà ai. Giờ nhà ở đâu cũng hiện, trừ khi nằm trong đất của người / liên minh KHÁC)
+function mpAllowAt(uid,x,z){const c=MP.claims[uid];if(c&&Math.hypot(x-c.x,z-c.z)<c.r+24)return true;const mc=mpClanOf(uid),cl=MP.clans[mc];if(cl&&cl.zone&&Math.hypot(x-cl.zone.x,z-cl.zone.z)<cl.zone.r+24)return true;
+  for(const u in MP.claims){if(u===uid)continue;const o=MP.claims[u];if(Math.hypot(x-o.x,z-o.z)<o.r-4&&!(mc&&mpClanOf(u)===mc))return false;}
+  for(const id in MP.clans){if(id===mc)continue;const z2=MP.clans[id].zone;if(z2&&Math.hypot(x-z2.x,z-z2.z)<z2.r-4)return false;}return true;}
 /* ---------- chia sẻ công trình của mình (gộp ghi: 5 giây sau thay đổi cuối) ---------- */
-function mpEncodeMine(){const a=[];const R=v=>Math.round(v*10)/10;for(const b of S.builds){if(b.prog!=null||!pieceDef(b.k)||!mpShareAt(b.x,b.z))continue;a.push(b.id+','+b.k+','+R(b.x)+','+R(b.y)+','+R(b.z)+','+(Math.round((b.r||0)*100)/100)+','+((b.lv|0)||0));if(a.length>=MP_BCAP)break;}return {s:a.join(';'),n:a.length};}
+function mpEncodeMine(){const a=[];const R=v=>Math.round(v*10)/10;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const b of S.builds){if(b.prog!=null||b.remote||!pieceDef(b.k))continue;if(b.x<x0)x0=b.x;if(b.x>x1)x1=b.x;if(b.z<z0)z0=b.z;if(b.z>z1)z1=b.z;a.push(b.id+','+b.k+','+R(b.x)+','+R(b.y)+','+R(b.z)+','+(Math.round((b.r||0)*100)/100)+','+((b.lv|0)||0));if(a.length>=MP_BCAP)break;}return {s:a.join(';'),n:a.length,h:a.length?[Math.round((x0+x1)/2),Math.round((z0+z1)/2),Math.round(Math.hypot(x1-x0,z1-z0)/2)]:null};}
 function mpSigTick(){if(MP.ro)return;const e=mpEncodeMine(),now=mpNow();if(e.s!==MP.bSig){MP.bSig=e.s;MP.bSigT=now;return;}if(MP.bDone===e.s||MP.bBusy||now-MP.bSigT<5000)return;
   if(MP.bDone===null&&!e.n&&!MP.bHad){MP.bDone=e.s;return;}mpPushBuilds(e);}
 async function mpPushBuilds(e){MP.bBusy=true;const base='builds/'+MP.uid,ver=mpNow().toString(36)+Math.random().toString(36).slice(2,6);
   try{let parts=0,d=e.s;if(d.length>MP_DOCMAX){parts=Math.ceil(d.length/MP_DOCMAX);for(let i=0;i<parts;i++)await MP.db.doc(base+'/p/'+i).set({ver,s:d.slice(i*MP_DOCMAX,(i+1)*MP_DOCMAX)});d='';}
-    await MP.db.doc(base).set({v:1,w:S.seed,d,parts,ver,n:e.n,at:mpNow()});MP.bDone=e.s;MP.bInfo={n:e.n,at:mpNow()};MP.dirty.ui=true;}catch(er){mpErr(er&&er.code);MP.bSigT=mpNow()+20000;}MP.bBusy=false;}
+    await MP.db.doc(base).set({v:1,w:S.seed,d,parts,ver,n:e.n,at:mpNow()});MP.bDone=e.s;MP.bInfo={n:e.n,at:mpNow()};MP.dirty.ui=true;
+    // ghi "chỗ ở" (tâm + bán kính cụm công trình) vào hồ sơ để người khác biết đến gần thì tải nhà mình
+    if(MP.me&&JSON.stringify(MP.me.h||null)!==JSON.stringify(e.h||null))mpSaveMe({h:e.h});}catch(er){mpErr(er&&er.code);MP.bSigT=mpNow()+20000;}MP.bBusy=false;}
 /* ---------- công trình của người khác: tải khi ở gần, vẽ chung đường instancing, chỉ để nhìn / va chạm ---------- */
 function mpNearTick(){const now=new Map();const add=(u,d)=>{if(u===MP.uid||!mpIdOk(u))return;if(!now.has(u)||now.get(u)>d)now.set(u,d);};
   for(const u in MP.claims){const c=MP.claims[u];add(u,Math.hypot(P.x-c.x,P.z-c.z)-c.r);}
-  for(const id in MP.clans){const cl=MP.clans[id];if(!cl.zone)continue;const d=Math.hypot(P.x-cl.zone.x,P.z-cl.zone.z)-cl.zone.r;if(d<MP_FAR)for(const m of cl.members)add(m,d);}
+  for(const u in MP.players){const p=MP.players[u];if(p.h&&p.w===S.seed)add(u,Math.hypot(P.x-p.h[0],P.z-p.h[1])-p.h[2]);}
+  for(const id in MP.clans){const cl=MP.clans[id];if(!cl.zone)continue;const d=Math.hypot(P.x-cl.zone.x,P.z-cl.zone.z)-cl.zone.r;if(d<MP_FAR)for(const m of cl.members){const p=MP.players[m];if(!(p&&p.h))add(m,d+40);}}
   const want=[...now].filter(([u,d])=>d<MP_NEAR||(MP.bsub.has(u)&&d<MP_FAR)).sort((a,b)=>a[1]-b[1]).slice(0,MP_MAXSUB).map(a=>a[0]);const W=new Set(want);
   for(const [u,s] of MP.bsub)if(!W.has(u)){try{s.un();}catch(e){}MP.bsub.delete(u);MP.braw.delete(u);mpRemoteApply(u);}
   for(const u of want)if(!MP.bsub.has(u)){const s={un:()=>{},ver:null};MP.bsub.set(u,s);try{s.un=MP.db.doc('builds/'+u).onSnapshot(sn=>mpBuildSnap(u,s,sn),()=>{});}catch(e){}}}

@@ -1,6 +1,7 @@
 /* ===================== SỰ SỐNG: CƠ THỂ, BỆNH, THỜI TIẾT, BỐN MÙA, THÚ VẬT, CÔN TRÙNG ===================== */
-const seasonIdx=()=>Math.floor((S.day-1)/SEASON_DAYS)%4;
-const seasonDay=()=>((S.day-1)%SEASON_DAYS)+1;
+// mùa và ngày trong mùa lấy theo đồng hồ chung (clock.js) để mọi người cùng mùa
+const seasonIdx=()=>typeof wcSeason==='function'?wcSeason():Math.floor((S.day-1)/SEASON_DAYS)%4;
+const seasonDay=()=>typeof wcSeasonDay==='function'?wcSeasonDay():((S.day-1)%SEASON_DAYS)+1;
 const isNight=()=>S.hour>=19||S.hour<5.5;
 /* ---------- mùa: tuyết phủ và lá đổi màu bằng shader dùng chung cho mọi vật liệu ---------- */
 const SEA={uSnow:{value:0},uAut:{value:0},uWet:{value:0}};
@@ -54,8 +55,8 @@ function bodyTick(dt){const p=S.p,cozy=S.mode==='cozy',gh=dt*24/DAY_SEC,T=ambien
   for(const k in S.st){S.st[k]-=gh;if(S.st[k]<=0){delete S.st[k];uiToast(`Đã khỏi ${STATUS[k].n}.`,'good');uiHud(true);}}
   if(p.hp<=0)die();}
 /* ---------- thời tiết ---------- */
-function weatherTick(dt){const now=TNOW();if(!S.wx||now>=S.wx.until){const si=seasonIdx(),rp=SEASONS[si].rain,r=Math.random();let type='clear';
-    if(r<rp)type=si===3?'snow':(Math.random()<0.16?'storm':'rain');else if(r<rp+0.22)type='cloudy';const prev=S.wx&&S.wx.type;S.wx={type,until:now+0.12+Math.random()*0.3};
+function weatherTick(dt){const now=TNOW(),WX=typeof wcWeather==='function'?wcWeather():null;if(!S.wx||now>=S.wx.until||(WX&&S.wx.slot!==WX.slot)){const si=seasonIdx(),rp=SEASONS[si].rain,r=Math.random();let type='clear';
+    if(r<rp)type=si===3?'snow':(Math.random()<0.16?'storm':'rain');else if(r<rp+0.22)type='cloudy';const prev=S.wx&&S.wx.type;S.wx={type,until:now+0.12+Math.random()*0.3};if(WX){type=WX.type;S.wx={type,until:WX.until,slot:WX.slot};}
     if(type!==prev&&G.on){const msg={clear:'Trời quang đãng.',cloudy:'Mây kéo đến.',rain:'Trời đổ mưa: tìm chỗ trú kẻo ướt và lạnh.',storm:'Giông bão! Sấm chớp, gió lạnh: mau về nhà.',snow:'Tuyết rơi.'}[type];uiToast((type==='rain'||type==='storm'?'🌧 ':type==='snow'?'❄ ':'')+msg,type==='storm'?'bad':'');}}
   const want=S.wx.type==='rain'?0.8:S.wx.type==='storm'?1:S.wx.type==='snow'?0.85:S.wx.type==='cloudy'?0.25:0;G.wxK=(G.wxK||0)+(want-(G.wxK||0))*Math.min(1,dt*0.4);G.wxType=S.wx.type;
   precipTick(dt);if(S.wx.type==='storm'&&Math.random()<dt*0.12){G.flash=1;setTimeout(()=>sfx('thunder'),300+Math.random()*900);}}

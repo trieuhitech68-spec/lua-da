@@ -276,7 +276,7 @@ function m2Fill(keep){const p=$('#panel'),h=p&&p.querySelector('.p-head h2'),bd=
 {const _uo=uiOpen;uiOpen=function(k,o,keep){if(k==='m2'){_uo(k,o,keep);m2Fill(keep);m2Badge();return;}return _uo(k,o,keep);};}
 const m2DayDue=()=>{const D=S&&S.m2&&S.m2.dl;if(!D||!D.d)return 0;return (D.got!==D.d?1:0)+(D.tasks||[]).filter(T=>!T.ok&&m2TVal(T)>=T.n).length+(D.wk&&!D.wk.ok&&m2TVal(D.wk)>=D.wk.n?1:0);};
 function m2Menu(){const m=$('#menu');if(!m||m.querySelector('[data-ui="m2"]'))return;const b=document.createElement('button');b.setAttribute('data-ui','m2');b.setAttribute('aria-label','Làng');b.innerHTML='<span>🏮</span><i>Làng</i><em class="m2dot" hidden></em>';
-  const j=m.querySelector('[data-ui="journal"]');m.insertBefore(b,j||null);const acts=$('.acts');if(acts&&!$('#m2emoBtn')){acts.insertAdjacentHTML('afterbegin','<button id="m2emoBtn" class="rbtn sm" aria-label="Cử chỉ">😊<i>Cử chỉ</i></button>');}}
+  const j=m.querySelector('[data-ui="journal"]');if(j&&j.parentNode)j.parentNode.insertBefore(b,j);else (m.querySelector('.ui5-more')||m).appendChild(b);const acts=$('.acts');if(acts&&!$('#m2emoBtn')){acts.insertAdjacentHTML('afterbegin','<button id="m2emoBtn" class="rbtn sm" aria-label="Cử chỉ">😊<i>Cử chỉ</i></button>');}}
 function m2Badge(){const d=document.querySelector('#menu [data-ui="m2"] .m2dot');if(!d||!S)return;let n=0;try{n=m2Unread()+m2MailNew()+m2DayDue()+(m2Net()?Object.keys(M2K.frIn).filter(u=>m2FrState(u)==='in'&&!M2I().frNo[u]).length:0);}catch(e){}d.hidden=!n;d.textContent=n>9?'9+':n;}
 // rung (điện thoại) và hiệu ứng khi nhận quà
 function m2Vib(p){try{if(localStorage.getItem('ldtt-hap')==='0')return;if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}

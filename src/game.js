@@ -1,5 +1,5 @@
 /* ===================== LÕI GAME: TRẠNG THÁI, CẢNH 3D, NHÂN VẬT, THU THẬP, CHẾ TẠO, XÂY DỰNG ===================== */
-const SKEY='lua-da-tay-trang-v1',HOTN=6,INVN=24,REACH=26,DAY_SEC=720;// 1 ngày = 12 phút thật
+const SKEY='lua-da-tay-trang-v1',HOTN=6,INVN=24,REACH=26,DAY_SEC=1080;// 1 ngày = 18 phút thật (80 ngày game mỗi ngày thật, xem clock.js)
 let S=null;const G={on:false,t:0,keys:{},joy:{x:0,y:0,on:false},yaw:0.6,pitch:0.98,zoom:380,act:null,walkTo:null,build:null,panel:null,fx:[],flames:[],lights:[],lastSave:0,q:2,runBtn:false};
 const $=s=>document.querySelector(s);const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const TNOW=()=>S.day+S.hour/24;
@@ -43,7 +43,7 @@ function unlockCheck(){if(!S)return;const fresh=[];RECIPES.forEach(r=>{if(!S.kno
 const P={x:0,z:0,y:0,vy:0,air:false,ry:0,speed:0,model:null,rig:null,tool:null,toolId:null,anim:'idle',hurtT:0};
 function sceneInit(){const T=THREE,cv=document.createElement('canvas');cv.id='gl';$('#game').prepend(cv);const mob=Math.min(innerWidth,innerHeight)<600;
   startQ();const R=new T.WebGLRenderer({canvas:cv,antialias:(devicePixelRatio||1)<1.5&&G.q>0,powerPreference:'high-performance'});R.outputEncoding=T.sRGBEncoding;R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;G.R=R;
-  cv.addEventListener('webglcontextlost',e=>{e.preventDefault();G.lost=true;save();uiError('Thiết bị tạm dừng đồ họa. Tải lại trang để chơi tiếp (đã lưu).');},false);
+  cv.addEventListener('webglcontextlost',e=>{e.preventDefault();G.lost=true;try{localStorage.setItem('ldtt-lost',String((+localStorage.getItem('ldtt-lost')||0)+1));}catch(_){}save();uiError('Thiết bị tạm dừng đồ họa. Tải lại trang để chơi tiếp (đã lưu).');},false);
   const sc=new T.Scene();G.sc=sc;G.L=K3.lights(sc,0,R,{size:mob?380:520,fogNear:1500,fogFar:4400,shadowMap:mob?1536:2048,sky:true});G.sky=sc.children.find(o=>o.userData&&o.userData.sky);
   const sh=G.L.sun.shadow.camera;sh.near=10;sh.far=2600;G.moon=new T.DirectionalLight(0x8aa6ff,0);sc.add(G.moon);sc.add(G.moon.target);
   G.cam=new T.PerspectiveCamera(40,1,4,3000);resize();
@@ -363,7 +363,7 @@ function groundPick(sx,sy){const T=THREE,v=new T.Vector3((sx/innerWidth)*2-1,-(s
   for(let i=0;i<4;i++){if(Math.abs(dir.y)<1e-4)return null;const t=(y-o.y)/dir.y;if(t<=0)return null;p=o.clone().addScaledVector(dir,t);y=groundY(p.x,p.z);}return p;}
 /* ---------- ngày đêm, bầu trời ---------- */
 const SKYP={day:{top:'#3f78c0',hor:'#bcd6e6',gnd:'#6a7a4a',sun:'#fff0d4'},dusk:{top:'#3a3a78',hor:'#f0a070',gnd:'#4a3a3a',sun:'#ffb070'},night:{top:'#0a1024',hor:'#26324e',gnd:'#0c0e14',sun:'#8aa6ff'},storm:{top:'#4a5260',hor:'#7a8490',gnd:'#3a3e40',sun:'#c8ccd0'}};
-function dayTick(dt){const prevH=S.hour;S.hour+=dt*24/DAY_SEC;if(S.hour>=24){S.hour-=24;S.day++;uiToast(`Ngày ${S.day} · Mùa ${SEASONS[seasonIdx()].n}`,'');}
+function dayTick(dt){const prevH=S.hour;if(typeof wcStep==='function')wcStep();else{S.hour+=dt*24/DAY_SEC;if(S.hour>=24){S.hour-=24;S.day++;uiToast(`Ngày ${S.day} · Mùa ${SEASONS[seasonIdx()].n}`,'');}}
   const h=S.hour,el=Math.sin((h-6)/12*Math.PI),day=clamp(el*3+0.25,0,1),dusk=clamp(1-Math.abs(el)*4,0,1)*(h>12?1:0.8),cloud=G.wxK||0;G.dayK=day;
   const sun=G.L.sun,sa=(h-6)/12*Math.PI,sx=Math.cos(sa)*-0.8,sy=Math.max(0.12,Math.sin(sa)),sz=0.35;sun.position.set(P.x+sx*900,P.y+sy*900,P.z+sz*900);sun.target.position.set(P.x,P.y,P.z);
   sun.intensity=1.6*Math.max(0,el)**0.6*day*(1-cloud*0.62);G.L.hemi.intensity=(0.1+0.14*day+(S.mode==='cozy'?0.07:0.03))*(1+cloud*0.4);G.moon.intensity=(1-day)*(S.mode==='cozy'?0.5:0.32)*(1-cloud*0.5);G.moon.position.set(P.x+300,P.y+700,P.z-200);G.moon.target.position.set(P.x,P.y,P.z);
@@ -377,9 +377,9 @@ function die(){if(G.dying)return;G.dying=1;uiFade(()=>{const bed=S.builds.find(b
   if(S.mode==='survival'){let lost=0;S.inv.forEach((s,i)=>{if(s&&ITEMS[s.id].t==='res'&&Math.random()<0.5){S.inv[i]=null;lost++;}});if(lost)uiToast(`Bạn đánh rơi ${lost} ô đồ khi ngất.`,'bad');}
   save();G.dying=0;uiToast('Bạn ngất đi và tỉnh dậy ở nơi an toàn.','bad');uiHud(true);uiHotbar();});}
 /* ---------- ánh sáng lửa ---------- */
-function lightsTick(t){const T=THREE;if(!G.lights.length)for(let i=0;i<4;i++){const l=new T.PointLight(0xff9a50,0,300,1.7);G.sc.add(l);G.lights.push(l);}
-  const fl=G.flames.filter(f=>!f.off).map(f=>({f,d:Math.hypot(f.x-P.x,f.z-P.z)})).sort((a,b)=>a.d-b.d);const night=1-(G.dayK??1);
-  G.lights.forEach((l,i)=>{const e=fl[i];if(!e||e.d>900){l.intensity=0;return;}l.position.set(e.f.x,e.f.y+16,e.f.z);l.intensity=(0.6+night*2.2)*(0.85+0.15*Math.sin(t*13+e.f.ph));});
+function lightsTick(t){const T=THREE;if(!G.lights.length)for(let i=0;i<((G.q|0)>0?4:2);i++){const l=new T.PointLight(0xff9a50,0,300,1.7);G.sc.add(l);G.lights.push(l);}
+  const night=1-(G.dayK??1);if(t-(G.lgT||-9)>0.3){G.lgT=t;const fl=G.lgF||(G.lgF=[]);fl.length=0;for(const f of G.flames){if(f.off)continue;const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<900)fl.push({f,d});}fl.sort((a,b)=>a.d-b.d);}const fl=G.lgF||[];
+  G.lights.forEach((l,i)=>{const e=fl[i];if(!e||e.f.off){l.intensity=0;return;}l.position.set(e.f.x,e.f.y+16,e.f.z);l.intensity=(0.6+night*2.2)*(0.85+0.15*Math.sin(t*13+e.f.ph));});
   G.flames.forEach(f=>{const k=1+Math.sin(t*11+f.ph)*0.08;f.o.scale.set(1,k,1);});P.light.intensity=P.toolId==='torch'?(0.4+night*2.4):0;P.light.position.set(P.x,P.y+40,P.z);}
 /* ---------- vòng lặp ---------- */
 let LAST=0;
@@ -393,10 +393,11 @@ function loop(now){requestAnimationFrame(loop);if(!G.on||G.lost)return;const raw
 // máy yếu: tự giảm chất lượng
 function perfTick(dt){if(!(dt>0)||dt>0.25)return;G.pfWarm=(G.pfWarm||0)+dt;if(G.pfWarm<3)return;G.ft=(G.ft||dt)*0.94+dt*0.06;G.prT=(G.prT||0)+dt;if(G.prT<1.2)return;G.prT=0;const k=G.prK||1;
   // độ phân giải động: giữ khoảng 40-60 khung hình/giây. Cần 2 lần đo chậm liên tiếp mới hạ, 3 lần nhanh mới nâng; vừa hạ thì chờ 20 s mới nâng lại (tránh nhảy qua lại gây giật)
-  if(G.ft>0.027){G.pfUp=0;G.pfDn=(G.pfDn||0)+1;}else if(G.ft<0.0175){G.pfDn=0;G.pfUp=(G.pfUp||0)+1;}else{G.pfDn=0;G.pfUp=0;}
+  const cap=typeof SET!=='undefined'&&SET.fpsCap?1/SET.fpsCap:0,slow=Math.max(0.027,cap*1.22),fast=Math.max(0.0175,cap*1.08);// có giới hạn khung hình thì ngưỡng chậm/nhanh tính theo giới hạn đó
+  if(G.ft>slow){G.pfUp=0;G.pfDn=(G.pfDn||0)+1;}else if(G.ft<fast){G.pfDn=0;G.pfUp=(G.pfUp||0)+1;}else{G.pfDn=0;G.pfUp=0;}
   if(G.pfDn>=2&&k>0.55){G.pfDn=0;G.prK=Math.max(0.55,+(k-0.12).toFixed(2));G.pfDnT=G.t;resize();}
   else if(G.pfUp>=3&&k<1&&G.t-(G.pfDnT||-99)>20){G.pfUp=0;G.prK=Math.min(1,+(k+0.06).toFixed(2));resize();}
-  else if(G.ft>0.034&&k<=0.56&&G.q>0&&!G.noAdapt&&G.pfDn>=2){G.pfDn=0;G.q--;G.prK=0.8;applyQ();console.info('Giảm chất lượng đồ họa còn mức',G.q);}}
+  else if(G.ft>Math.max(0.034,cap*1.3)&&k<=0.56&&G.q>0&&!G.noAdapt&&G.pfDn>=2){G.pfDn=0;G.q--;G.prK=0.8;applyQ();console.info('Giảm chất lượng đồ họa còn mức',G.q);}}
 function moveTick(dt){let ix=0,iz=0;const k=G.keys,fp=isFP();if(k.KeyW||k.ArrowUp)iz-=1;if(k.KeyS||k.ArrowDown)iz+=1;if(k.KeyA||(!fp&&k.ArrowLeft))ix-=1;if(k.KeyD||(!fp&&k.ArrowRight))ix+=1;if(fp){if(k.ArrowLeft)P.ry+=dt*2.2;if(k.ArrowRight)P.ry-=dt*2.2;}swimCheck();if(G.work){if(Math.hypot(ix,iz)>0.3)workStop('Đã dừng tay.');}
   if(G.joy.on){ix=G.joy.x;iz=G.joy.y;}let m=Math.hypot(ix,iz);
   // nhảy + trọng lực

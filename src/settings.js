@@ -5,7 +5,7 @@
    - Móc nhỏ trong ui.js (inputInit): G.lookS (độ nhạy), G.lookInv (đảo trục dọc), G.lefty (cần điều khiển bên phải). */
 const SET_VER='1.8',SET_BUILD='2026-11-06',SET_MAIL='lienhe@lanhdia.app';// SET_MAIL: địa chỉ góp ý (chỗ giữ chỗ — thay bằng địa chỉ thật)
 const SETK='ldtt-set';
-const SETD={tab:'acc',res:1,dynRes:true,view:1,shadow:'auto',grass:1,post:'auto',fpsCap:0,
+const SETD={tab:'acc',res:1,dynRes:true,view:1,shadow:'auto',grass:1,post:'auto',fpsCap:(Math.min(innerWidth,innerHeight)<700||/Android|iPhone|iPad/i.test(navigator.userAgent))?30:60,
   vMaster:1,vMusic:1,vFx:1,vAmb:1,bgMute:true,
   sens:1,invY:false,joyS:1,joyO:1,lefty:false,btnS:1,autoRun:true,vib:true,tapMove:true,dbl:'none',
   hudO:1,mini:1,hints:true,dmg:true,lang:'vi',

@@ -545,7 +545,8 @@ function SBmodels6vInit(){const M=window.SBM;if(!M||M.v6v)return;M.v6v=1;
   const impBuild=(k,s)=>TREE[k]?M.tree(k,s,1):M[k](1);
   let IMP=null;
   M.v6bake=()=>{if(IMP!==null)return IMP;IMP=false;let r=null;const old=TIME.value;
-    try{const CW=512,CH=1024,AW=4096,AH=4096,cols=AW/CW;r=new T.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true,premultipliedAlpha:false});r.setPixelRatio(1);r.setSize(AW,AH,false);
+    try{// máy yếu / điện thoại: ảnh cây xa 2048² (trước 4096² ngốn vài trăm MB lúc dựng → trắng màn, trình duyệt tải lại)
+      const lite=(typeof G!=='undefined'&&(G.q|0)<2)||Math.min(innerWidth,innerHeight)<700||/Android|iPhone|iPad/i.test(navigator.userAgent),CW=lite?256:512,CH=lite?512:1024,AW=lite?2048:4096,AH=AW,cols=AW/CW;r=new T.WebGLRenderer({alpha:true,antialias:!lite,preserveDrawingBuffer:true,premultipliedAlpha:false});r.setPixelRatio(1);r.setSize(AW,AH,false);
       r.outputEncoding=T.sRGBEncoding;r.toneMapping=T.NoToneMapping;r.setClearColor(0x000000,0);r.autoClear=false;r.clear();
       const sc=new T.Scene();sc.add(new T.AmbientLight(0xffffff,0.62));const dl=new T.DirectionalLight(0xffffff,0.32);dl.position.set(0.2,1,0.5);sc.add(dl);
       TIME.value=0;const info={};r.setScissorTest(true);
@@ -558,7 +559,7 @@ function SBmodels6vInit(){const M=window.SBM;if(!M||M.v6v)return;M.v6v=1;
       const cv=document.createElement('canvas');cv.width=AW;cv.height=AH;const c2=cv.getContext('2d');c2.drawImage(r.domElement,0,0);const id=c2.getImageData(0,0,AW,AH);
       let n=0;for(let i=3;i<id.data.length;i+=4*97)if(id.data[i]>128)n++;if(n<50)throw new Error('impostor bake empty');
       bleed(id.data,AW,AH);const tex=dataTex(id.data,AW,AH,{srgb:1,an:16});tex.userData={tsz:AW};const mat=mkMat('v6Imp',{map:tex,side:DS,alphaTest:0.5,roughness:1,color:new T.Color(0.8,0.79,0.81)},2);MT.v6Imp=mat;
-      IMP={tex,info,mat,canvas:cv};}
+      cv.width=cv.height=1;IMP={tex,info,mat,canvas:null};}
     catch(e){console.warn('v6 impostor bake failed',e);IMP=false;}
     finally{TIME.value=old;if(r){try{r.dispose();r.forceContextLoss();}catch(_){}}}
     return IMP;};

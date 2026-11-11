@@ -22,8 +22,12 @@ function landRebuild(f){terrainColors();const S2=TCS*HSTEP;for(let cj=0;cj<TCN;c
 function landCheck(r){const x=P.x,z=P.z;if(wdAt(x,z)>0.2)return 'Không san nền dưới nước.';if(slopeAt(x,z)>0.9)return 'Dốc quá, chọn chỗ bằng hơn.';
   if(typeof inCave==='function'&&inCave(x,z))return 'Trong hang đã có nền sẵn.';
   const tool=hasTool('dig')||hasTool('hoe')||hasTool('pick');if(!tool)return 'Cần Gậy đào (hoặc cuốc) để đào gốc, san đất.';
-  let big=0;for(const i of near(x,z,r+20)){const q=RES[i];if(q.st!==0||q.lock)continue;if(Math.hypot(q.x-x,q.z-z)>r)continue;if(RT[q.t].tool==='axe')big++;}
-  if(big)return `Còn ${big} cây lớn trong khu này: chặt bằng rìu trước đã.`;
+  // cây lớn còn đứng trong khu (khúc gỗ đổ không tính: san nền sẽ dọn luôn). Báo rõ cây nào, cách bao xa, hướng nào và nháy sáng chỗ cây
+  //  → hết cảnh "báo còn cây mà nhìn không thấy cây đâu" (cây ở sau lưng, lẫn trong cỏ, hoặc bị đất vùi sau lần san trước).
+  const bl=[];for(const i of near(x,z,r+20)){const q=RES[i];if(q.st!==0||q.lock)continue;const d=Math.hypot(q.x-x,q.z-z);if(d>r)continue;if(RT[q.t].tool==='axe'&&q.t!=='log')bl.push({q,d});}
+  if(bl.length){bl.sort((a,b)=>a.d-b.d);const q=bl[0].q,ang=Math.atan2(q.x-x,-(q.z-z)),dir=['Bắc','Đông Bắc','Đông','Đông Nam','Nam','Tây Nam','Tây','Tây Bắc'][((Math.round(ang/(Math.PI/4))%8)+8)%8];
+    try{bl.slice(0,8).forEach(o=>{const gy=hAt(o.q.x,o.q.z);if(o.q.wy==null&&Math.abs(o.q.y-(gy-1.2))>3){o.q.y=gy-1.2;resShow(o.q);}for(let k=0;k<3;k++)puff(o.q.x,gy+14+k*22,o.q.z,'#ffd24a',8);});RI.forEach(v=>v.api.flush());}catch(e){}
+    return `Còn ${bl.length} cây lớn trong khu này (đang nháy vàng). Gần nhất: ${RT[q.t].n||'cây'}, cách ${Math.max(1,Math.round(bl[0].d/20))} m về phía ${dir}. Chặt bằng rìu trước đã.`;}
   for(const b of S.builds)if(Math.hypot(b.x-x,b.z-z)<r*0.85)return 'Khu này đã có công trình. San nền trước khi xây.';return null;}
 function landStart(r){r=+r||110;const why=landCheck(r);if(why){uiToast(why,'bad');sfx('no');return;}const ng=needGate(true);if(ng){uiToast(ng,'bad');sfx('no');return;}
   const k=r/110;uiClose();buildEnd&&buildEnd();
@@ -34,7 +38,10 @@ function landDone(r){const x=P.x,z=P.z;let sum=0,n=0;for(let a=0;a<12;a++){const
   // cây cỏ trong khu: nhổ sạch, không mọc lại
   const got={};let cleared=0;for(const i of near(x,z,r+20)){const q=RES[i];if(q.st!==0||q.lock||Math.hypot(q.x-x,q.z-z)>r)continue;const Y=RT[q.t].yield||{};for(const k in Y){const v=Y[k];const c=Array.isArray(v)?v[0]:v;if(c>0&&Math.random()<0.6)got[k]=(got[k]||0)+c;}q.st=1;q.hp=0;q.rg=1e12;S.res[q.i]=[1,1e12];resShow(q);cleared++;}
   for(const k in S.res){const q=RES[+k];if(q&&S.res[k][0]===1&&Math.hypot(q.x-x,q.z-z)<r)S.res[k]=[1,1e12];}
-  RI.forEach(v=>v.api.flush());flatApply(f);landRebuild(f);P.y=hAt(P.x,P.z);
+  flatApply(f);
+  // mặt đất quanh rìa (tới 1,3 lần bán kính) cũng đổi độ cao: đặt lại cây cỏ, đá ở đó theo mặt đất mới, kẻo bị vùi dưới đất hoặc lơ lửng
+  for(const i of near(x,z,r*1.3+30)){const q=RES[i];if(q.wy!=null)continue;const ny=hAt(q.x,q.z)-1.2;if(Math.abs(ny-q.y)>0.3){q.y=ny;try{resShow(q);}catch(e){}}}
+  RI.forEach(v=>v.api.flush());landRebuild(f);P.y=hAt(P.x,P.z);
   if(Object.keys(got).length)give(got,[x,P.y+10,z]);puff(x,P.y+4,z,'#a88a62',14);sfx('build');addXp('build',4+r/20);S.p.stam=Math.max(0,S.p.stam-r/8);
   uiToast(`🟫 Đã san xong nền đất ${Math.round(r*2/20)} m. Cỏ cây trong khu sẽ không mọc lại — dựng nhà thôi!`,'gold');save();}
 // cây cỏ không mọc lại trong khu đã san

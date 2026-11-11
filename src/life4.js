@@ -364,7 +364,7 @@ function l4Scan(){let best=null,bd=1e9;for(const b of S.builds){if(b.prog!=null|
       else if(L4CROP[c.k]){uiToast(`${L4CROP[c.k].n} mới được ${Math.round(c.p*100)}%.`,'');return;}}}
   return _as(t);};}
 /* ===================== 12. TINH THẦN, LỄ HỘI, TỔ TIÊN, KỂ CHUYỆN, VĂN THÂN, GIA ĐÌNH ===================== */
-const l4SeasonKey=()=>Math.floor((S.day-1)/SEASON_DAYS);
+const l4SeasonKey=()=>typeof wcDayN==='function'?Math.floor(wcDayN()/SEASON_DAYS):Math.floor((S.day-1)/SEASON_DAYS);
 const l4Spirit=(n,why)=>{const L=l4S();L.sp=clamp(L.sp+n,0,100);if(why)uiFloat((n>0?'+':'')+n+' tinh thần',P.x,P.y+48,P.z,n>0?'#ffd27a':'#b8a8d8');};
 function l4Offer(b){const L=l4S();if((L.offer||0)===S.day){uiToast('Hôm nay đã dâng lễ rồi.','');return;}const pick=['meatCooked','fishCooked','riceCooked','comLam','bread','boiledMeat','flower','berry','banana','rice'].find(k=>invCount(k)>0);
   if(!pick){uiToast('Cần một món lễ: đồ ăn chín, gạo, quả hoặc hoa.','bad');return;}

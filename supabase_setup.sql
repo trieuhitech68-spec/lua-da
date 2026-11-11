@@ -201,6 +201,11 @@ create or replace function public.ld_docs_touch() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
   new.updated_at := now();
+  -- liên minh (bộ tộc): tối đa 70 thành viên
+  if split_part(new.path, '/', 1) = 'clans' and jsonb_typeof(new.data -> 'members') = 'array'
+     and jsonb_array_length(new.data -> 'members') > 70 then
+    raise exception 'ld_clan_full: liên minh tối đa 70 người' using errcode = '53400';
+  end if;
   -- (cột sinh tự động chưa có giá trị trong trigger BEFORE nên tính chủ từ đường dẫn)
   if tg_op = 'INSERT' and public.ld_owner(new.path) is not null
      and not exists (select 1 from public.docs d where d.path = new.path)
@@ -325,6 +330,12 @@ create or replace function public.ld_ms(t timestamptz) returns bigint
 language sql immutable set search_path = '' as $$ select (extract(epoch from t) * 1000)::bigint $$;
 revoke all on function public.ld_ms(timestamptz) from public, anon;
 grant execute on function public.ld_ms(timestamptz) to authenticated;
+
+-- giờ máy chủ (mili giây) để mọi máy chơi chung một đồng hồ: ngày đêm, bốn mùa, thời tiết giống nhau (src/clock.js)
+create or replace function public.ld_now() returns bigint
+language sql stable set search_path = '' as $$ select (extract(epoch from clock_timestamp()) * 1000)::bigint $$;
+revoke all on function public.ld_now() from public;
+grant execute on function public.ld_now() to anon, authenticated;
 
 -- chép danh sách khóa / cấm chat còn hiệu lực ra config/mod (người chơi đọc được, chỉ có mã người chơi + hạn)
 create or replace function public.ld_mod_sync() returns void

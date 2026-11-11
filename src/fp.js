@@ -7,7 +7,9 @@ function applyQ(){const q=G.q|0,sun=G.L.sun;resize();sun.castShadow=q>0;const ms
   G.fogF=[3600,4600,5800][q];G.fogN=Math.round(G.fogF*0.5);G.treeD=[1500,2200,3100][q];G.cam.far=G.fogF+300;G.cam.updateProjectionMatrix();grassInit();
   }
 function startQ(){let q=null;try{const v=localStorage.getItem('ldtt-qu');if(v!==null){q=+v;G.noAdapt=true;}}catch(e){}
-  if(q===null){const mob=Math.min(innerWidth,innerHeight)<600||/Android|iPhone|iPad/i.test(navigator.userAgent);q=mob?0:1;}G.q=clamp(q,0,2);}
+  if(q===null){const mob=Math.min(innerWidth,innerHeight)<600||/Android|iPhone|iPad/i.test(navigator.userAgent);q=mob?0:1;}
+  // lần trước thiết bị đã ngắt đồ hoạ (hết bộ nhớ): lần này chạy mức nhẹ và độ phân giải thấp hơn
+  try{const L=+localStorage.getItem('ldtt-lost')||0;if(L>0){q=0;G.noAdapt=false;G.prK=L>1?0.6:0.75;G.lostN=L;}}catch(e){}G.q=clamp(q,0,2);}
 /* ---------- lưới vùng sinh thái (tra nhanh cho cỏ, bản đồ) ---------- */
 const BCODE=['water','beach','meadow','edge','forest','bank','rock','peak'];let BG=null;
 function biomeGridBuild(){BG=new Uint8Array(HN*HN);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const x=-WSIZE/2+i*HSTEP,z=-WSIZE/2+j*HSTEP;BG[j*HN+i]=Math.max(0,BCODE.indexOf(biome(x,z)));}}
