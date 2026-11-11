@@ -215,7 +215,7 @@ function m2MktHtml(){const t=G.m2mt||'board',tabs=[['board','⚖️ Đổi hàng
 
 /* ===================== 8. XẾP HẠNG ===================== */
 function m2MyStats(){let terr=0;try{const c=MP.claims[MP.uid];terr=c?c.r:0;}catch(e){}return {w:S.seed,d:S.day|0,h:mxgc('cnt:hunt'),b:m2Sum('build:'),a:Object.keys((S.mx&&S.mx.ach)||{}).length,r:Object.keys(S.disc||{}).length,k:Math.round((S.mx&&S.mx.dist||0)/20/100)/10,t:terr|0,cl:mpMyClan()||null};}
-function m2ValLb(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||(S&&d.w!==S.seed))return null;const n=(v,b)=>mpNum(v,0,b)?Math.floor(v*10)/10:0;return {d:n(d.d,1e6),h:n(d.h,1e7),b:n(d.b,1e7),a:n(d.a,1e4),r:n(d.r,1e3),k:n(d.k,1e6),t:n(d.t,1e4),cl:m2Id(d.cl)?d.cl:null,at:mpNum(d.at,0,1e14)?d.at:0};}
+function m2ValLb(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||(S&&d.w!==S.seed))return null;const n=(v,b)=>mpNum(v,0,b)?Math.floor(v*10)/10:0;return {d:n(d.d,1e6),h:n(d.h,1e7),b:n(d.b,1e7),a:n(d.a,1e4),r:n(d.r,1e3),k:n(d.k,1e6),t:n(d.t,1e4),p:n(d.p,1e7),cl:m2Id(d.cl)?d.cl:null,at:mpNum(d.at,0,1e14)?d.at:0};}
 async function m2LbLoad(){if(!m2Net())return;try{const s=await mpTO(MP.db.collection('lb').limit(500).get(),10000);const o={};for(const d of s.docs){const v=m2ValLb(d.id,d.data());if(v)o[d.id]=v;}M2K.lb=o;M2K.lbT=Date.now();}catch(e){}}
 function m2LbPush(){if(!m2Net())return;const s=m2MyStats(),k=JSON.stringify(s);if(k===M2K.lbK)return;M2K.lbK=k;mpPut('lb/'+MP.uid,Object.assign(s,{at:Date.now()}));M2K.lb[MP.uid]=m2ValLb(MP.uid,Object.assign({},s,{at:Date.now()}));}
 const M2LB=[['d','📅 Ngày sống',''],['h','🏹 Thú săn',''],['b','🏠 Công trình',''],['a','🏆 Thành tựu',''],['r','🗺️ Vùng đất',''],['k','🚶 Đường đi',' km'],['clan','🤝 Bộ tộc','']];

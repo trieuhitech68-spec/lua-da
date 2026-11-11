@@ -12810,7 +12810,7 @@ function m2MktHtml(){const t=G.m2mt||'board',tabs=[['board','⚖️ Đổi hàng
 
 /* ===================== 8. XẾP HẠNG ===================== */
 function m2MyStats(){let terr=0;try{const c=MP.claims[MP.uid];terr=c?c.r:0;}catch(e){}return {w:S.seed,d:S.day|0,h:mxgc('cnt:hunt'),b:m2Sum('build:'),a:Object.keys((S.mx&&S.mx.ach)||{}).length,r:Object.keys(S.disc||{}).length,k:Math.round((S.mx&&S.mx.dist||0)/20/100)/10,t:terr|0,cl:mpMyClan()||null};}
-function m2ValLb(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||(S&&d.w!==S.seed))return null;const n=(v,b)=>mpNum(v,0,b)?Math.floor(v*10)/10:0;return {d:n(d.d,1e6),h:n(d.h,1e7),b:n(d.b,1e7),a:n(d.a,1e4),r:n(d.r,1e3),k:n(d.k,1e6),t:n(d.t,1e4),cl:m2Id(d.cl)?d.cl:null,at:mpNum(d.at,0,1e14)?d.at:0};}
+function m2ValLb(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||(S&&d.w!==S.seed))return null;const n=(v,b)=>mpNum(v,0,b)?Math.floor(v*10)/10:0;return {d:n(d.d,1e6),h:n(d.h,1e7),b:n(d.b,1e7),a:n(d.a,1e4),r:n(d.r,1e3),k:n(d.k,1e6),t:n(d.t,1e4),p:n(d.p,1e7),cl:m2Id(d.cl)?d.cl:null,at:mpNum(d.at,0,1e14)?d.at:0};}
 async function m2LbLoad(){if(!m2Net())return;try{const s=await mpTO(MP.db.collection('lb').limit(500).get(),10000);const o={};for(const d of s.docs){const v=m2ValLb(d.id,d.data());if(v)o[d.id]=v;}M2K.lb=o;M2K.lbT=Date.now();}catch(e){}}
 function m2LbPush(){if(!m2Net())return;const s=m2MyStats(),k=JSON.stringify(s);if(k===M2K.lbK)return;M2K.lbK=k;mpPut('lb/'+MP.uid,Object.assign(s,{at:Date.now()}));M2K.lb[MP.uid]=m2ValLb(MP.uid,Object.assign({},s,{at:Date.now()}));}
 const M2LB=[['d','📅 Ngày sống',''],['h','🏹 Thú săn',''],['b','🏠 Công trình',''],['a','🏆 Thành tựu',''],['r','🗺️ Vùng đất',''],['k','🚶 Đường đi',' km'],['clan','🤝 Bộ tộc','']];
@@ -17956,6 +17956,7 @@ setInterval(()=>{try{if(MP.ok&&document.querySelector('.ov-card.cr'))mpSrvForm(n
      · Chủ nhà có PHÒNG THỦ: số người "Giữ cổng", "Canh gác", "Lính" của họ (tối đa 6) hiện ra thành lính gác ngay khi mình động vào nhà họ,
        mạnh theo cấp trung bình của những người đó. Rào cọc và chòi canh của họ làm lính gác trâu hơn.
      · Mỗi ngày thật chỉ phá được tối đa 25 món của cùng một người. Đi cướp thì mất khiên của chính mình.
+     · Chòi canh của họ bắn tên, hố chông gây thương; mang Cây húc cổng thì phá tường rào nhanh gấp 3 (xem cuối tệp).
      · Chủ nhà: món bị phá trở thành công trình dang dở (phải đóng lại, không tốn thêm vật liệu); đồ chứa bị phá mất 30% đồ bên trong.
        Sau khi bị cướp được khiên bảo vệ 12 giờ thật. Có bảng "Nhật ký cướp phá" trong 🤝 Liên minh → Lãnh thổ.
    DỮ LIỆU: biên bản nằm trong sites/<uid>.R = {<uid nạn nhân>:{at, ids:[mã công trình…]}} (ghi chung với tài liệu điểm tài nguyên, không cần SQL mới).
@@ -18034,6 +18035,30 @@ function pvpHtml(){if(!pvpOn())return '';const P0=pvpS(),now=pvpNow(),lv=typeof 
 if(typeof mpLandHtml==='function'){const _lh=mpLandHtml;mpLandHtml=function(){let h=_lh.apply(this,arguments);try{h=pvpHtml()+h;}catch(e){}return h;};}
 // món mình đã phá không hiện lại khi tải lại nhà họ (cho tới khi biên bản hết hạn hoặc chủ nhà dựng lại và mã đổi)
 if(typeof mpRemoteApply==='function'){const _ra=mpRemoteApply;mpRemoteApply=function(u){try{const o=S&&S.pvp&&S.pvp.out&&S.pvp.out[u],raw=MP.braw.get(u);if(o&&raw&&raw.length&&pvpNow()-o.at<PVP_DAY)MP.braw.set(u,raw.filter(e=>!o.ids.includes(e.lid)));}catch(e){}return _ra.apply(this,arguments);};}
+/* ---------- CÔNG TRÌNH PHÒNG THỦ CỦA CHỦ NHÀ CÓ TÁC DỤNG KHI BỊ CƯỚP ----------
+   Sau khi mình động vào nhà ai (10 phút kể từ lần phá gần nhất), công trình thủ của người đó "thức dậy" trên máy mình:
+     · Chòi canh (cần chủ nhà có ít nhất 1 người gác): bắn tên vào mình trong tầm 16 m, 2,6 giây một phát.
+     · Hố chông: giẫm phải mất máu, chảy máu; mỗi hố 20 giây mới sập lại.
+   Rào cọc, tường, cổng của họ vốn đã chắn lối (va chạm) nên muốn vào trong phải phá.
+   CÂY HÚC CỔNG (chế ở bàn chế tác: 6 gỗ, 4 dây thừng): mang trong túi thì phá rào cọc, tường, cổng nhanh gấp 3; dùng 10 lần thì hỏng một cây. */
+Object.assign(ITEMS,{ram:{n:'Cây húc cổng',t:'res',ds:'Thân gỗ lớn buộc dây cho nhiều tay cùng húc. Mang theo thì phá rào cọc, tường, cổng của kẻ địch nhanh gấp ba; húc 10 lần thì hỏng.'}});
+if(typeof EMO==='object')EMO.ram='🪵';if(typeof M2V==='object')M2V.ram=8;
+RECIPES.push({id:'ram',out:{ram:1},in:{wood:6,rope:4},st:'workbench',req:['wood','rope'],lv:{build:3}});
+const pvpHostile=uid=>!!(PVP.spawned[uid]&&G.t-PVP.spawned[uid]<600);
+const pvpIsWall=k=>/palisade|Wall|wall|gate|Gate|fence|Fence|rampart/.test(k);
+function pvpHurt(dmg,txt){const cozy=S.mode==='cozy',arm=typeof m3Arm==='function'?m3Arm():0,def=typeof heroDef==='function'?heroDef():0;dmg=dmg*(cozy?0.5:1)*(1-arm)*(1-def);S.p.hp=Math.max(0,S.p.hp-dmg);P.hurtT=0.4;sfx('hurt');try{uiFloat('−'+Math.round(dmg)+(txt?' '+txt:''),P.x,P.y+44,P.z,'#ff8a7a');}catch(e){}uiHud(true);if(S.p.hp<=0)die();}
+function pvpDefTick(){if(!pvpOn()||!S||G.paused||G.sleeping||!MP.bcur)return;PVP.pit=PVP.pit||{};PVP.tw=PVP.tw||{};
+  for(const [uid,cur] of MP.bcur){if(!pvpHostile(uid))continue;const p=MP.players[uid],df=p&&p.df,lv=df?clamp(df[1]|0||1,1,10):1;
+    for(const o of cur.values()){const b=o.b;if(!BYID.has(b.id))continue;const d=Math.hypot(b.x-P.x,b.z-P.z);
+      if(b.k==='spikePit'&&d<17&&G.t-(PVP.pit[b.id]||-99)>20){PVP.pit[b.id]=G.t;pvpHurt(12+lv,'hố chông');try{addStatus('bleed');}catch(e){}uiToast('🩸 Sa hố chông của '+mpName(uid)+'!','bad');}
+      else if(b.k==='watchtower'&&df&&df[0]>0&&d<320&&G.t-(PVP.tw[b.id]||-99)>2.6){PVP.tw[b.id]=G.t;if(Math.random()<0.7){pvpHurt(4+lv*0.9,'tên');try{puff(P.x,P.y+30,P.z,'#d8c8a0',3);}catch(e){}}else{try{uiFloat('Trượt!',P.x,P.y+50,P.z,'#c8f0ff');}catch(e){}}
+        if(!PVP.twTip){PVP.twTip=1;uiToast('🏹 Chòi canh của '+mpName(uid)+' đang bắn tên: phá chòi hoặc ra khỏi tầm 16 m.','bad');}}}}}
+setInterval(()=>{try{if(G.on)pvpDefTick();}catch(e){}},400);
+// cây húc cổng: bọc pvpStart để rút ngắn thời gian phá tường, rào, cổng
+{const _ps=pvpStart;pvpStart=function(t){const had=!!G.work;_ps.apply(this,arguments);try{if(!had&&G.work&&t&&t.b&&pvpIsWall(t.b.k)&&invCount('ram')>0){G.work.steps.forEach(s=>{s.t/=3;});G.work.steps[0].n='Húc đổ '+t.def.n.toLowerCase();const P0=pvpS();P0.ramU=(P0.ramU||0)+1;if(P0.ramU>=10){P0.ramU=0;invTake('ram',1);uiHotbar();uiToast('Cây húc cổng đã nứt gãy sau 10 lần húc.','');}}}catch(e){}};}
+// bảng xếp hạng: thêm cột "Cướp phá"
+if(typeof m2MyStats==='function'){const _ms=m2MyStats;m2MyStats=function(){const s=_ms.apply(this,arguments);try{s.p=(S.cnt&&S.cnt['cnt:pvp'])||0;}catch(e){}return s;};}
+if(typeof M2LB!=='undefined'&&!M2LB.some(x=>x[0]==='p'))M2LB.splice(Math.max(0,M2LB.length-1),0,['p','⚔️ Cướp phá','']);
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
