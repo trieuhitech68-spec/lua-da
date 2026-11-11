@@ -55,3 +55,6 @@ RLSITE.push(
   {id:'dao_ngoc',land:'dao',n:'Rạn ngọc trai Quần Đảo',ic:'🦪',cat:'shell',regs:['halong','beach','cliffs','delta'],minD:1500,rich:3,water:1,pearl:0.5,y:{shell:7,pearl:1},nodes:[['shellBed',14]],d:'Rạn đá ngầm phủ kín trai ngọc. Cá sấu nước mặn nằm chờ ngay bãi.'},
   {id:'dao_vang',land:'dao',n:'Bãi vàng Đảo Núi Lửa',ic:'🟡',cat:'ore',regs:['basalt','hotspring','jungle','lake'],minD:1500,rich:3,y:{gold:4,stone:2},nodes:[['goldPan',12],['flintRock',3]],d:'Cát đen chân núi lửa lẫn vàng cốm. Thuồng luồng canh dòng suối nóng.'},
   {id:'dao_muoi',land:'dao',n:'Đồng muối Rừng Đước',ic:'🧂',cat:'salt',regs:['mangrove','delta','savanna','beach'],minD:1500,rich:3,water:1,y:{salt:8,fish:3},nodes:[['saltPan',14],['reedBed',4]],d:'Bãi triều rộng kết muối trắng. Trâu rừng đảo về liếm muối mỗi chiều.'});
+// điểm riêng của vùng xa không tìm được chỗ ở các miền ưu tiên → thử mọi miền còn lại (không để vùng thiếu mỏ)
+{const _rp=rlPick;rlPick=function(def,usedReg,used){let q=_rp.apply(this,arguments);if(!q&&def.land){const regs=REG.filter(g=>g.r>200&&!/^gate_|^(start|village|camp|cave|banyan)$/.test(g.id)&&!def.regs.includes(g.id)).map(g=>g.id);
+    q=_rp.call(this,Object.assign({},def,{regs}),usedReg,used);if(!q)q=_rp.call(this,Object.assign({},def,{regs:def.regs.concat(regs),minD:900}),new Set(),used);}return q;};}
