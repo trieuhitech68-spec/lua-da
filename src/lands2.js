@@ -44,3 +44,14 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 if(typeof NVQ!=='undefined')NVQ.push({id:'gate',ic:'⛩️',t:'Đi qua cổng sang vùng đất khác',d:'Tìm cổng đá ⛩️ ở rìa bản đồ (mở 🗺️ Bản đồ để cắm cờ tới cổng). Tây Bắc cần cấp 8, Biển Đảo cần cấp 12.',n:1,f:()=>nvC('cnt:gate'),rw:{bronze:2,meatCooked:4},lv:8});
 
 {const _sv=save;save=function(){if(G.ldLeaving===2)return;return _sv.apply(this,arguments);};}
+
+/* ---------- mỏ và thú chúa riêng của từng vùng xa ---------- */
+Object.assign(KHU_BOSS,{tb_sat:{kind:'bear',n:'Gấu tuyết Hoàng Liên',lv:9,loot:{hide:10,bone:6,meat:10,ironOre:12,coal:6}},tb_ngoc:{kind:'tiger',n:'Hổ trắng Đồng Văn',lv:10,loot:{hide:12,bone:6,meat:8,jade:4}},tb_than:{kind:'wolf',n:'Sói tuyết đầu đàn',lv:8,loot:{hide:6,bone:4,meat:6,coal:12}},
+  dao_ngoc:{kind:'crocodile',n:'Cá sấu nước mặn',lv:9,loot:{hide:10,meat:10,pearl:4,shell:8}},dao_vang:{kind:'crocodile',n:'Thuồng luồng núi lửa',lv:10,loot:{hide:10,meat:8,gold:6}},dao_muoi:{kind:'gaur',n:'Trâu rừng đảo',lv:8,loot:{hide:8,bone:6,meat:18,salt:10}}});
+RLSITE.push(
+  {id:'tb_sat',land:'tb',n:'Mỏ sắt Hoàng Liên',ic:'⚒️',cat:'ore',regs:['range','vista','plateau','hills'],minD:1800,rich:3,y:{ironOre:6,coal:2,stone:2},nodes:[['ironRock',14],['coalRock',6],['boulder',3]],d:'Vỉa sắt lớn nhất vùng, lộ trên sườn núi tuyết. Gấu tuyết giữ cửa mỏ.'},
+  {id:'tb_ngoc',land:'tb',n:'Mỏ ngọc Đồng Văn',ic:'🟢',cat:'stone',regs:['karst','cliffs','cave','chasm'],minD:1800,rich:3,y:{jade:2,stone:3},nodes:[['jadeRock',10],['flintRock',4]],d:'Khe đá tai mèo lấp lánh vân ngọc. Hổ trắng rình trên vách.'},
+  {id:'tb_than',land:'tb',n:'Vỉa than Mộc Châu',ic:'⬛',cat:'ore',regs:['pineplat','hotspring','forest','bamboovl'],minD:1800,rich:3,y:{coal:7,stone:1},nodes:[['coalRock',14],['pineG',4]],d:'Đồi thông lộ vỉa than đen dày. Bầy sói tuyết quanh quẩn.'},
+  {id:'dao_ngoc',land:'dao',n:'Rạn ngọc trai Quần Đảo',ic:'🦪',cat:'shell',regs:['halong','beach','cliffs','delta'],minD:1500,rich:3,water:1,pearl:0.5,y:{shell:7,pearl:1},nodes:[['shellBed',14]],d:'Rạn đá ngầm phủ kín trai ngọc. Cá sấu nước mặn nằm chờ ngay bãi.'},
+  {id:'dao_vang',land:'dao',n:'Bãi vàng Đảo Núi Lửa',ic:'🟡',cat:'ore',regs:['basalt','hotspring','jungle','lake'],minD:1500,rich:3,y:{gold:4,stone:2},nodes:[['goldPan',12],['flintRock',3]],d:'Cát đen chân núi lửa lẫn vàng cốm. Thuồng luồng canh dòng suối nóng.'},
+  {id:'dao_muoi',land:'dao',n:'Đồng muối Rừng Đước',ic:'🧂',cat:'salt',regs:['mangrove','delta','savanna','beach'],minD:1500,rich:3,water:1,y:{salt:8,fish:3},nodes:[['saltPan',14],['reedBed',4]],d:'Bãi triều rộng kết muối trắng. Trâu rừng đảo về liếm muối mỗi chiều.'});

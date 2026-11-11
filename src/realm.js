@@ -89,7 +89,7 @@ function rlPick(def,usedReg,used){for(const lx of [0,1])for(const rid of def.reg
     if(best){usedReg.add(rid);return {x:+best[0].toFixed(1),z:+best[1].toFixed(1),reg:rid};}}return null;}
 function rlGen(seed){const R0=rlS();if(R0.wv!==WV){R0.wv=WV;R0.pos={};R0.s={};R0.kn={};R0.pro={};R0.t={};}
   RL.sites=[];RL.byId={};const usedReg=new Set(),used=[];
-  for(const def of RLSITE){let p=R0.pos[def.id];if(!(p&&Array.isArray(p)&&isFinite(p[0])&&isFinite(p[1]))){const q=rlPick(def,usedReg,used);if(!q){R0.pos[def.id]=[null,null];continue;}p=R0.pos[def.id]=[q.x,q.z,q.reg];}
+  for(const def of RLSITE){if(def.land&&def.land!==(typeof landCur==='function'?landCur().id:'c'))continue;/* điểm riêng của một vùng đất (lands2.js) */let p=R0.pos[def.id];if(!(p&&Array.isArray(p)&&isFinite(p[0])&&isFinite(p[1]))){const q=rlPick(def,usedReg,used);if(!q){R0.pos[def.id]=[null,null];continue;}p=R0.pos[def.id]=[q.x,q.z,q.reg];}
     if(p[0]==null)continue;const s={id:def.id,def,x:p[0],z:p[1],reg:p[2]||(regionAt(p[0],p[1])||{}).id};usedReg.add(s.reg);used.push(s);RL.sites.push(s);RL.byId[s.id]=s;}
   // dọn chỗ dựng trại/mốc (đổi loại tại chỗ, giữ số thứ tự)
   const base0=RES.length;for(const s of RL.sites){const cr=s.def.tribe?140:30;for(const i of near(s.x,s.z,cr+20)){const q=RES[i];if(!q||i>=base0||RT[q.t].pass)continue;if(Math.hypot(q.x-s.x,q.z-s.z)>cr)continue;q.t='tallgrass';q.s=RT.tallgrass.sc||1;q.hp=RT.tallgrass.hp;}}

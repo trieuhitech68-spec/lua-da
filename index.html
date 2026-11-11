@@ -8034,9 +8034,12 @@ try{if(/[?&]vn=1/.test(location.search))localStorage.removeItem('ldtt-wv4');else
    Vùng xa dựng bằng bộ sinh địa hình bản đồ tròn (WV 3) với hạt giống riêng suy từ hạt giống gốc, rồi biến đổi độ cao theo vùng.
    S.land = mã vùng đang ở; S.seed0 = hạt giống gốc; S.seed = hạt giống của vùng đang ở. Phần 2 (đi qua cổng, lưu riêng từng vùng) ở lands2.js. */
 const LANDS=[{id:'c',n:'Đất Trung Tâm',ic:'🏠',lv:0,need:1,d:'Nơi bắt đầu. Nhà chính, lãnh thổ và bảo hộ khi vắng chỉ có ở đây.'},
-  {id:'tb',n:'Tây Bắc Núi Cao',ic:'🏔️',lv:6,need:8,d:'Núi dựng cao gấp rưỡi, đèo dốc, tuyết phủ. Giàu quặng đồng, thiếc, sắt, than đá và gỗ thông cổ thụ. Gấu, sói, hổ mạnh.',hf:h=>h>0?h*1.5+Math.min(14,h):h,
+  {id:'tb',n:'Tây Bắc Núi Cao',ic:'🏔️',lv:6,need:8,d:'Núi dựng cao gấp rưỡi, đèo dốc, tuyết phủ. Giàu quặng đồng, thiếc, sắt, than đá và gỗ thông cổ thụ. Gấu, sói, hổ mạnh.',hf:(h,x,z)=>{if(h<=0)return h;let v=h*1.5+Math.min(14,h);/* dãy núi thứ hai ở phía nam + lòng chảo Điện Biên ở giữa: bố cục khác hẳn vùng trung tâm */
+     const s=ss(600,2600,z)*(1-ss(5200,6600,Math.hypot(x,z)));v+=s*(60+NS.ridge(x/850+5,z/850-3,4)*330);const bd=Math.hypot((x+1600)/1500,(z-900)/1000);if(bd<1.3){const k=1-ss(0.55,1.3,bd);v=v*(1-k)+(34+NS.fbm(x/400,z/400,2)*8)*k;}return v;},
    reg:{start:'Bản Đầu Nguồn',range:'Dãy Hoàng Liên',pineplat:'Cao Nguyên Mộc Châu',karst:'Cao Nguyên Đá Đồng Văn',terrace:'Ruộng Bậc Thang Mù Cang Chải',canyon:'Hẻm Vực Tu Sản',vista:'Đèo Ô Quy Hồ',plateau:'Sơn Nguyên Tà Phình',bamboovl:'Thung Lũng Mường Thanh',hotspring:'Suối Khoáng Mường La',basalt:'Núi Lửa Ngủ Yên',forest:'Rừng Pơ Mu',village:'Bản Người Thái'}},
-  {id:'dao',n:'Biển Đảo Phương Nam',ic:'🏝️',lv:10,need:12,d:'Nước biển dâng nhấn chìm đồng bằng: còn lại quần đảo, đầm phá, bãi cát trắng. Giàu muối, sò ngọc, vàng sa khoáng, cọ, tre, chuối. Cá sấu và bò tót.',hf:h=>h>0?(h-22)*0.86:h,
+  {id:'dao',n:'Biển Đảo Phương Nam',ic:'🏝️',lv:10,need:12,d:'Nước biển dâng nhấn chìm đồng bằng: còn lại quần đảo, đầm phá, bãi cát trắng. Giàu muối, sò ngọc, vàng sa khoáng, cọ, tre, chuối. Cá sấu và bò tót.',hf:(h,x,z)=>{let v=h>0?(h-22)*0.86:h;/* đảo núi lửa lớn phía đông nam + chuỗi đảo nhỏ rải trên biển */
+     const dv=Math.hypot(x-2700,z-2900)+NS.fbm(x/200,z/200,2)*60;if(dv<1300){const c=Math.pow(1-ss(120,1300,dv),1.4)*420-(dv<160?130*(1-(dv/160)**2):0);v=Math.max(v,c-6);}
+     if(v<2&&Math.hypot(x,z)<6600){const n=NS.fbm(x/330+9,z/330-4,3);if(n>0.3)v=Math.max(v,(n-0.3)*90-4);}return v;},
    reg:{start:'Đảo Lớn',halong:'Quần Đảo Đá',beach:'Bãi San Hô',mangrove:'Rừng Đước',lake:'Đầm Phá',delta:'Cửa Biển',cliffs:'Mũi Đá Dựng',trangan:'Vụng Thuyền',jungle:'Rừng Dừa',savanna:'Đồng Cỏ Đảo',range:'Đỉnh Đảo Mây',karst:'Hòn Đá Vôi',village:'Làng Chài'}}];
 const landCur=()=>LANDS.find(L=>L.id===(typeof S==='object'&&S&&S.land||'c'))||LANDS[0];
 function landSeed(id){const s0=seed0(),i=LANDS.findIndex(L=>L.id===id);return i<=0?s0:((s0*31+i*7919)%2000000000)+1;}
@@ -13330,7 +13333,7 @@ function rlPick(def,usedReg,used){for(const lx of [0,1])for(const rid of def.reg
     if(best){usedReg.add(rid);return {x:+best[0].toFixed(1),z:+best[1].toFixed(1),reg:rid};}}return null;}
 function rlGen(seed){const R0=rlS();if(R0.wv!==WV){R0.wv=WV;R0.pos={};R0.s={};R0.kn={};R0.pro={};R0.t={};}
   RL.sites=[];RL.byId={};const usedReg=new Set(),used=[];
-  for(const def of RLSITE){let p=R0.pos[def.id];if(!(p&&Array.isArray(p)&&isFinite(p[0])&&isFinite(p[1]))){const q=rlPick(def,usedReg,used);if(!q){R0.pos[def.id]=[null,null];continue;}p=R0.pos[def.id]=[q.x,q.z,q.reg];}
+  for(const def of RLSITE){if(def.land&&def.land!==(typeof landCur==='function'?landCur().id:'c'))continue;/* điểm riêng của một vùng đất (lands2.js) */let p=R0.pos[def.id];if(!(p&&Array.isArray(p)&&isFinite(p[0])&&isFinite(p[1]))){const q=rlPick(def,usedReg,used);if(!q){R0.pos[def.id]=[null,null];continue;}p=R0.pos[def.id]=[q.x,q.z,q.reg];}
     if(p[0]==null)continue;const s={id:def.id,def,x:p[0],z:p[1],reg:p[2]||(regionAt(p[0],p[1])||{}).id};usedReg.add(s.reg);used.push(s);RL.sites.push(s);RL.byId[s.id]=s;}
   // dọn chỗ dựng trại/mốc (đổi loại tại chỗ, giữ số thứ tự)
   const base0=RES.length;for(const s of RL.sites){const cr=s.def.tribe?140:30;for(const i of near(s.x,s.z,cr+20)){const q=RES[i];if(!q||i>=base0||RT[q.t].pass)continue;if(Math.hypot(q.x-s.x,q.z-s.z)>cr)continue;q.t='tallgrass';q.s=RT.tallgrass.sc||1;q.hp=RT.tallgrass.hp;}}
@@ -18704,6 +18707,17 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 if(typeof NVQ!=='undefined')NVQ.push({id:'gate',ic:'⛩️',t:'Đi qua cổng sang vùng đất khác',d:'Tìm cổng đá ⛩️ ở rìa bản đồ (mở 🗺️ Bản đồ để cắm cờ tới cổng). Tây Bắc cần cấp 8, Biển Đảo cần cấp 12.',n:1,f:()=>nvC('cnt:gate'),rw:{bronze:2,meatCooked:4},lv:8});
 
 {const _sv=save;save=function(){if(G.ldLeaving===2)return;return _sv.apply(this,arguments);};}
+
+/* ---------- mỏ và thú chúa riêng của từng vùng xa ---------- */
+Object.assign(KHU_BOSS,{tb_sat:{kind:'bear',n:'Gấu tuyết Hoàng Liên',lv:9,loot:{hide:10,bone:6,meat:10,ironOre:12,coal:6}},tb_ngoc:{kind:'tiger',n:'Hổ trắng Đồng Văn',lv:10,loot:{hide:12,bone:6,meat:8,jade:4}},tb_than:{kind:'wolf',n:'Sói tuyết đầu đàn',lv:8,loot:{hide:6,bone:4,meat:6,coal:12}},
+  dao_ngoc:{kind:'crocodile',n:'Cá sấu nước mặn',lv:9,loot:{hide:10,meat:10,pearl:4,shell:8}},dao_vang:{kind:'crocodile',n:'Thuồng luồng núi lửa',lv:10,loot:{hide:10,meat:8,gold:6}},dao_muoi:{kind:'gaur',n:'Trâu rừng đảo',lv:8,loot:{hide:8,bone:6,meat:18,salt:10}}});
+RLSITE.push(
+  {id:'tb_sat',land:'tb',n:'Mỏ sắt Hoàng Liên',ic:'⚒️',cat:'ore',regs:['range','vista','plateau','hills'],minD:1800,rich:3,y:{ironOre:6,coal:2,stone:2},nodes:[['ironRock',14],['coalRock',6],['boulder',3]],d:'Vỉa sắt lớn nhất vùng, lộ trên sườn núi tuyết. Gấu tuyết giữ cửa mỏ.'},
+  {id:'tb_ngoc',land:'tb',n:'Mỏ ngọc Đồng Văn',ic:'🟢',cat:'stone',regs:['karst','cliffs','cave','chasm'],minD:1800,rich:3,y:{jade:2,stone:3},nodes:[['jadeRock',10],['flintRock',4]],d:'Khe đá tai mèo lấp lánh vân ngọc. Hổ trắng rình trên vách.'},
+  {id:'tb_than',land:'tb',n:'Vỉa than Mộc Châu',ic:'⬛',cat:'ore',regs:['pineplat','hotspring','forest','bamboovl'],minD:1800,rich:3,y:{coal:7,stone:1},nodes:[['coalRock',14],['pineG',4]],d:'Đồi thông lộ vỉa than đen dày. Bầy sói tuyết quanh quẩn.'},
+  {id:'dao_ngoc',land:'dao',n:'Rạn ngọc trai Quần Đảo',ic:'🦪',cat:'shell',regs:['halong','beach','cliffs','delta'],minD:1500,rich:3,water:1,pearl:0.5,y:{shell:7,pearl:1},nodes:[['shellBed',14]],d:'Rạn đá ngầm phủ kín trai ngọc. Cá sấu nước mặn nằm chờ ngay bãi.'},
+  {id:'dao_vang',land:'dao',n:'Bãi vàng Đảo Núi Lửa',ic:'🟡',cat:'ore',regs:['basalt','hotspring','jungle','lake'],minD:1500,rich:3,y:{gold:4,stone:2},nodes:[['goldPan',12],['flintRock',3]],d:'Cát đen chân núi lửa lẫn vàng cốm. Thuồng luồng canh dòng suối nóng.'},
+  {id:'dao_muoi',land:'dao',n:'Đồng muối Rừng Đước',ic:'🧂',cat:'salt',regs:['mangrove','delta','savanna','beach'],minD:1500,rich:3,water:1,y:{salt:8,fish:3},nodes:[['saltPan',14],['reedBed',4]],d:'Bãi triều rộng kết muối trắng. Trâu rừng đảo về liếm muối mỗi chiều.'});
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
