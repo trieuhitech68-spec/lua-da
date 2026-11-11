@@ -1055,8 +1055,8 @@ function SBmodels6cInit(){const M=window.SBM,K=(typeof K3!=='undefined')?K3:wind
     const mkArm=(s)=>{const nm=s<0?'L':'R',arm=new T.Group(),fore=new T.Group(),hand=new T.Group();arm.name='arm'+nm;fore.name='fore'+nm;hand.name='hand'+nm;
       arm.position.set(s*SH,7.85,-0.1);torso.add(arm);fore.position.set(0,-6.6,0);arm.add(fore);hand.position.set(0,-5.3,0);fore.add(hand);
       const ab=fem?0.86:1,m=bw,aS=soup(arm,60),fS=soup(fore,60),hS2=soup(hand,55),uk=sleeves?'hide':'skin';
-      const AR=[HRG(0.78,.4*ab*m,.4*ab*m,.42*ab*m,{cx:s*0.0}),HRG(0.5,.8*ab*m,.8*ab*m,.82*ab*m,{cx:s*0.08}),HRG(-0.3,1.04*ab*m,0.98*ab*m,1.0*ab*m,{cx:s*0.2}),HRG(-1.6,1.04*ab*m,0.98*ab*m,0.98*ab*m,{cx:s*0.22}),HRG(-3.4,.86*ab*m,.98*ab*m,.9*ab*m,{cx:s*0.08}),HRG(-5.6,.74*ab,.78*ab,.8*ab),HRG(-6.6,.68*ab,.7*ab,.74*ab),HRG(-7.0,.62*ab,.62*ab,.66*ab)];
-      let slEnd=-1;if(sleeves){AR.splice(6,0,HRG(-5.2,.95*ab,1.0*ab,1.0*ab),HRG(-5.25,.74*ab,.78*ab,.8*ab));slEnd=6;}
+      const AR=[HRG(0.78,.4*ab*m,.4*ab*m,.42*ab*m,{cx:s*0.0}),HRG(0.5,.8*ab*m,.8*ab*m,.82*ab*m,{cx:s*0.08}),HRG(-0.3,0.97*ab*m,0.95*ab*m,0.97*ab*m,{cx:s*0.16}),HRG(-1.6,0.98*ab*m,0.95*ab*m,0.95*ab*m,{cx:s*0.18}),/* vai, bắp tay trên thu gọn ~6% (trước phồng như bóng) */HRG(-3.4,.86*ab*m,.98*ab*m,.9*ab*m,{cx:s*0.08}),HRG(-5.6,.74*ab,.78*ab,.8*ab),HRG(-6.6,.68*ab,.7*ab,.74*ab),HRG(-7.0,.62*ab,.62*ab,.66*ab)];
+      let slEnd=-1;if(sleeves){AR.splice(6,0,HRG(-5.2,.86*ab,.9*ab,.9*ab),HRG(-5.25,.74*ab,.78*ab,.8*ab));/* gấu tay áo bớt loe */slEnd=6;}
       hloft(aS,AR,{n:10,step:1.6,key:j=>j<slEnd-0.01?'hide':'skin',td:sleeves?7:4,cap0:[s*0.0,0.85,0],col:(p,u,r)=>r.src<slEnd-0.01?mul(TOP,0.96+0.08*vn3(p[0]*0.4,p[1]*0.4,p[2]*0.4,6)):skinAt(p,0.05*ss(-5.5,-6.8,p[1])),
         mod:(p,u,r)=>{if(sleeves&&Math.abs(r.src-6)<0.01){p[1]-=0.3*hsh(Math.round(u*12/TAU),s+3,seed,2);}if(!sleeves&&!fem){p[2]+=0.07*gss(p[1],-2.3,1.0)*Math.max(0,Math.cos(u));}return p;}});
       const FR=[HRG(0.5,.66*ab,.66*ab,.7*ab),HRG(-1.3,.8*ab*m,.84*ab*m,.82*ab*m),HRG(-3.4,.6*ab*m,.66*ab*m,.64*ab),HRG(-5.0,.38*ab,.52*ab,.5*ab),HRG(-5.5,.36*ab,.48*ab,.46*ab)];

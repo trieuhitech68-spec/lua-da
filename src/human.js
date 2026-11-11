@@ -271,7 +271,7 @@ function K3char2Init(){const K=(typeof K3!=='undefined')?K3:window.K3;if(!K||!K.
   const PO={};
   PO.idle=(R,t,o)=>{const b=Math.sin(t*2.1),w=Math.sin(t*0.31);R.torso.rotation.x=0.02+b*0.01;R.torso.scale.y=1+b*0.008;R.head.rotation.set(0.04+Math.sin(t*0.53)*0.03,Math.sin(t*0.23)*0.18,0);
     R.hips.rotation.z=w*0.025;R.hips.position.x=-w*0.25*R.dims.h;R.torso.rotation.z=-w*0.03;R.legL.rotation.z=-0.02-w*0.025;R.legR.rotation.z=0.02-w*0.025;
-    R.armL.rotation.x=b*0.03;R.armR.rotation.x=-b*0.03;R.foreL.rotation.x=-0.15;R.foreR.rotation.x=-0.18;carry(R,o,0);};
+    R.armL.rotation.x=0.03+b*0.03;R.armR.rotation.x=0.05-b*0.03;R.armL.rotation.z=-0.045;R.armR.rotation.z=0.05;R.foreL.rotation.x=-0.24;R.foreR.rotation.x=-0.3;carry(R,o,0);};
   function carry(R,o,sw){const tl=o&&o.tool;if(tl==='torch'){R.armR.rotation.set(-0.55+sw*0.05,0,0.12);R.foreR.rotation.set(-1.0,0,0);R.handR.rotation.set(0.02,0,0);}
     else if(tl==='spear'){R.armR.rotation.set(-0.12+sw*0.1,0,0.12);R.foreR.rotation.set(-1.4,0,0);R.handR.rotation.set(0,0,0);}
     else if(tl){R.foreR.rotation.x=Math.min(R.foreR.rotation.x,-0.3);R.handR.rotation.x=0.25;}}

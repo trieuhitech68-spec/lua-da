@@ -96,7 +96,7 @@ H3PO.idle=(R,k,o)=>{const K=h3ik(),t=o.t,br=o.tired?Math.sin(t*4.2):Math.sin(t*(
   K.hipsAt(R,-w*0.35,17.45-Math.abs(w)*0.12,0);R.hips.rotation.set(0,w2*0.05,w*0.03);
   K.feet(R,-1.9,0.4+w2*0.3,2.0,-0.2);R.torso.rotation.set(0.03+br*0.012*(1+H3.pant*2),-w2*0.04,-w*0.035);R.torso.scale.set(1,1+br*0.009*(1+H3.pant*2.5),1);
   R.head.rotation.set(0.04+(o.headP||0),(o.headY||0)-w2*0.04,0);
-  R.armL.rotation.set(br*0.03,0,-0.09-br*0.01*H3.pant);R.armR.rotation.set(-br*0.03,0,0.09+br*0.01*H3.pant);R.foreL.rotation.x=-0.16;R.foreR.rotation.x=-0.2;
+  R.armL.rotation.set(0.03+br*0.03,0,-0.05-br*0.01*H3.pant);R.armR.rotation.set(0.05-br*0.03,0,0.055+br*0.01*H3.pant);R.foreL.rotation.x=-0.24;R.foreR.rotation.x=-0.3;/* tay buông sát người hơn, khuỷu hơi gập: dáng đứng bớt cứng */
   if(o.tired>0.5){// chống tay lên gối, thở dốc
     K.hipsAt(R,0,15.2,-1.4);R.hips.rotation.set(0.2,0,0);K.feet(R,-2.4,1.2,2.4,0.6);R.torso.rotation.set(0.65+br*0.04,0,0);R.head.rotation.set(-0.55+br*0.05,(o.headY||0)*0.3,0);
     K.armTo(R,-1,-2.5,10.6,4.4,-0.8,0,-0.5);K.armTo(R,1,2.5,10.6,4.4,0.8,0,-0.5);}
