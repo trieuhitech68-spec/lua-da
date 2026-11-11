@@ -271,15 +271,15 @@ function crBody(G,R,a){const U=G.userData,T=THREE;if(!U.crB){const B={dims:Objec
     const nk=new T.Group();nk.name='crNeck';nk.position.copy(R.head.position);R.torso.add(nk);R.head.position.set(0,0,0);nk.add(R.head);U.crNeckG=nk;}
   const B=U.crB,k=1+0.055*a.ht,kl=1-0.045*a.ll;R.dims.h=B.dims.h*k;R.hips.scale.setScalar(B.hipsS*k);R.headY=B.headY*k;R.headR=B.headR*k;
   U.crSpine.scale.setScalar(kl);U.crSpine.rotation.x=0.085*a.po;U.crNeckG.rotation.x=-0.06*a.po;R.head.scale.setScalar(1+0.06*a.hz);
-  const ka=1+0.06*a.al,sw=1+0.08*a.sh+0.02*a.fa;['L','R'].forEach(n=>{const s=n==='L'?-1:1;const ar=R['arm'+n];if(!ar)return;ar.position.copy(B.pos['arm'+n]);ar.position.x*=sw;R['fore'+n].position.copy(B.pos['fore'+n]).multiplyScalar(ka);R['hand'+n].position.copy(B.pos['hand'+n]).multiplyScalar(ka);
+  const ka=1+0.06*a.al,sw=0.955+0.08*a.sh+0.02*a.fa;/* vai gốc hẹp bớt 4,5% cho tay bớt dạng ra */['L','R'].forEach(n=>{const s=n==='L'?-1:1;const ar=R['arm'+n];if(!ar)return;ar.position.copy(B.pos['arm'+n]);ar.position.x*=sw;R['fore'+n].position.copy(B.pos['fore'+n]).multiplyScalar(ka);R['hand'+n].position.copy(B.pos['hand'+n]).multiplyScalar(ka);
     R['leg'+n].position.copy(B.pos['leg'+n]);R['leg'+n].position.x*=1+0.05*a.hp+0.02*a.fa;});R.dims.up=B.dims.up*ka;R.dims.fore=B.dims.fore*ka;
   const warp=(bone,fn)=>{if(!bone)return;bone.children.forEach(m=>{if(!m.isMesh)return;const pa=m.geometry.attributes.position;for(let i=0;i<pa.count;i++){const q=fn(pa.getX(i),pa.getY(i),pa.getZ(i));pa.setXYZ(i,q[0],q[1],q[2]);}pa.needsUpdate=true;m.geometry.computeBoundingSphere();});};
   const fem=!!a.f;warp(R.torso,(x,y,z)=>{const top=1-crSS(8.5,9.4,y),c=crGs(y,fem?4.95:5.2,1.4),w=crGs(y,1.4,1.5),sh=crSS(5.8,8.4,y);const kx=1+(0.08*a.sh*sh+0.05*a.cs*c+0.09*a.wa*w+0.05*a.fa*(0.5+0.5*w))*top;
     const kz=1+(0.06*a.cs*c*(z>0?1.4:0.4)+0.08*a.wa*w*(z>0?1.3:0.6)+0.08*a.fa*w*(z>0?1.4:0.7))*top;return [x*kx,y,z*kz];});
   if(R.cloak)R.cloak.scale.set(sw,1,1+0.05*a.fa);
   warp(R.hips,(x,y,z)=>{const k=1+(0.07*a.hp+0.05*a.fa)*crSS(-2.2,0.5,y);return [x*k,y,z*(1+(0.04*a.hp+0.05*a.fa)*crSS(-2.2,0.5,y))];});
-  const kt=1+0.12*a.at+0.05*a.fa,kf=1+0.09*a.at+0.04*a.fa;['L','R'].forEach(n=>{warp(R['arm'+n],(x,y,z)=>[x*kt,y*ka,z*kt]);warp(R['fore'+n],(x,y,z)=>[x*kf,y*ka,z*kf]);const kh=1+0.1*a.hn;warp(R['hand'+n],(x,y,z)=>[x*kh,y*kh,z*kh]);
-    const kL=1+0.1*a.lt+0.05*a.fa;warp(R['leg'+n],(x,y,z)=>[x*kL,y,z*kL]);warp(R['shin'+n],(x,y,z)=>[x*(1+(kL-1)*0.8),y,z*(1+(kL-1)*0.8)]);});}
+  const kt=1.13+0.12*a.at+0.05*a.fa,kf=1.11+0.09*a.at+0.04*a.fa;/* bắp tay, cẳng tay gốc to thêm ~12% (trước mảnh như que) */['L','R'].forEach(n=>{warp(R['arm'+n],(x,y,z)=>[x*kt,y*ka,z*kt]);warp(R['fore'+n],(x,y,z)=>[x*kf,y*ka,z*kf]);const kh=1+0.1*a.hn;warp(R['hand'+n],(x,y,z)=>[x*kh,y*kh,z*kh]);
+    const kL=1.12+0.1*a.lt+0.05*a.fa;/* đùi, bắp chân gốc to thêm 12% */warp(R['leg'+n],(x,y,z)=>[x*kL,y,z*kL]);warp(R['shin'+n],(x,y,z)=>[x*(1+(kL-1)*0.8),y,z*(1+(kL-1)*0.8)]);});}
 /* ---------- hậu kỳ chính ---------- */
 function crPost(G,a,keep,mode){const R=G.userData.rig;if(!R||!R.head)return;const U=G.userData,fem=!!a.f;U.crApp=a;
   if(U.crTail===undefined)U.crTail=R.hair||null;
@@ -342,7 +342,7 @@ function crSkinMatHQ(base){const k='skinHQ'+base.uuid;if(CR_MAT[k])return CR_MAT
 function crHairTexHQ(){if(CR_MAT.hairTex)return CR_MAT.hairTex;const W=512,H=1024,c=crCanvas(W,H),g=c.getContext('2d'),im=g.createImageData(W,H),A=new Float32Array(W*H),L=new Float32Array(W*H).fill(0.5),R=crRng(909);
   for(let s=0;s<5200;s++){const x0=R()*W,len=(0.5+0.5*R())*500,lum=0.5+0.5*R(),wave=(R()-0.5)*6,ph=R()*6;for(let y=0;y<len;y++){const f=y/len,x=Math.round(x0+wave*f*f+Math.sin(f*4+ph)*0.8);const ix=((x%W)+W)%W,i=y*W+ix,a=f<0.82?1:1-(f-0.82)/0.18;
       if(a>A[i]){A[i]=a;L[i]=lum*(0.7+0.3*f)*(1+0.35*Math.exp(-Math.pow((f-0.22)/0.07,2)));}}}
-  {const cut=Array.from({length:W},()=>8+R()*34);for(let y=0;y<44;y++)for(let x=0;x<W;x++){const i=y*W+x;if(y<cut[x]&&A[i]<0.95){A[i]=Math.max(A[i],y<cut[x]-4?1:0.6);L[i]=0.42+0.12*R();}}}
+  {const p1=R()*6,p2=R()*6,p3=R()*6,cut=Array.from({length:W},(_,x)=>22+9*Math.sin(x*0.045+p1)+5*Math.sin(x*0.12+p2)+2.5*Math.sin(x*0.31+p3)+1.5*R());/* mép mái lượn mềm (trước: ngẫu nhiên từng cột → răng cưa) */for(let y=0;y<44;y++)for(let x=0;x<W;x++){const i=y*W+x;if(y<cut[x]&&A[i]<0.95){A[i]=Math.max(A[i],y<cut[x]-4?1:0.6);L[i]=0.42+0.12*R();}}}
   for(let y=512;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x,e=(x%20);A[i]=e<16?1:0;L[i]=0.7+0.2*(e>1&&e<14?1:0.5);}
   for(let i=0;i<W*H;i++){const l=Math.min(1,L[i]);im.data[i*4]=im.data[i*4+1]=im.data[i*4+2]=l*255;im.data[i*4+3]=A[i]*255;}g.putImageData(im,0,0);
   const t=new THREE.CanvasTexture(c);t.flipY=false;t.wrapS=THREE.RepeatWrapping;t.anisotropy=8;return CR_MAT.hairTex=t;}

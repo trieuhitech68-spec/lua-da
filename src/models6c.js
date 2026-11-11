@@ -973,7 +973,7 @@ function SBmodels6cInit(){const M=window.SBM,K=(typeof K3!=='undefined')?K3:wind
         if(rr<0.62)return mul(irisC,0.3);return mix(C('#a09284'),C('#86685c'),ss(0.6,0.95,rr));},{rot:null});});
     // eyebrows (cards), ears
     const fz=(x,y)=>HD.disp(Math.asin(Math.min(0.999,Math.pow(Math.abs(x)/HD.prof(y).xh,1.25)))*(x<0?-1:1),y)[0][2];
-    [-1,1].forEach(s=>{const pts=[],nn=[],w=[],bt=fem?0.03:0;for(let i=0;i<=3;i++){const t=i/3,x=s*(0.22+0.9*t),y=3.84+bt+0.08*Math.sin(t*PI*0.9)-(fem?0:0.04)*t-0.06*t*t;pts.push([x,y,fz(x,y)+0.05]);nn.push(nrm3([s*0.25*t,0.15,1]));w.push((fem?0.07:0.095)*(1-0.55*t));}
+    [-1,1].forEach(s=>{const pts=[],nn=[],w=[],bt=fem?0.03:0;for(let i=0;i<=3;i++){const t=i/3,x=s*(0.22+0.9*t),y=3.84+bt+0.08*Math.sin(t*PI*0.9)-(fem?0:0.04)*t-0.06*t*t;pts.push([x,y,fz(x,y)+0.05]);nn.push(nrm3([s*0.25*t,0.15,1]));w.push((fem?0.07:0.095)*0.4*(1-0.55*t));/* thẻ mày (sợi tóc cắt alpha → mép răng cưa) thu mảnh, nằm dưới khối mày bầu dục của hunt3 */}
       hcard(hrS,pts,nn,w,mul(HC,0.85),0.1+0.3*(s>0?1:0),0.3+0.3*(s>0?1:0),0.02,0.22);
       // ear: cupped shell facing forward-out
       const ec=[s*(HD.prof(3.2).xh+0.05),3.15,-0.28],ef=nrm3([s*0.9,0,0.45]),eu=[0,1,0],er=nrm3(crs(eu,ef));

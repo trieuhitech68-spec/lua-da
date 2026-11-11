@@ -293,14 +293,14 @@ function h3faceKit(R){if(R._h3f!==undefined)return R._h3f;R._h3f=null;if(!window
         if(Math.abs(x-0.62)<0.13&&Math.abs(y-3.4)<0.13&&z>eyeZ)eyeZ=z;if(Math.abs(x)<0.12&&Math.abs(y-2.28)<0.16&&z>mZ)mZ=z;if(Math.abs(x-0.6)<0.16&&Math.abs(y-3.86)<0.12&&z>bZ)bZ=z;
         const d=Math.abs(x-1.0)+Math.abs(y-2.85);if(z>0.5&&d<skd){skd=d;sk=ca?new T.Color(ca.getX(i),ca.getY(i),ca.getZ(i)):(m.material&&m.material.color?m.material.color.clone():null);}}});
     if(eyeZ<0.5||eyeZ>4)return null;if(mZ<0.5)mZ=eyeZ+0.25;if(bZ<0.5)bZ=eyeZ+0.05;
-    const FG=H3.FG||(H3.FG={lid:new T.SphereGeometry(0.34,10,5,0,Math.PI*2,0,Math.PI/2),iris:new T.CircleGeometry(0.16,12),pup:new T.CircleGeometry(0.075,10),brow:new T.BoxGeometry(0.62,0.1,0.07),
+    const FG=H3.FG||(H3.FG={lid:new T.SphereGeometry(0.34,10,5,0,Math.PI*2,0,Math.PI/2),iris:new T.CircleGeometry(0.16,12),pup:new T.CircleGeometry(0.075,10),brow:new T.SphereGeometry(0.5,14,7).scale(0.9,0.16,0.085),/* bầu dục thon hai đầu (trước là hộp chữ nhật) */
       mh:[new T.BoxGeometry(0.34,0.045,0.03).translate(-0.17,0,0),new T.BoxGeometry(0.34,0.045,0.03).translate(0.17,0,0)],mo:new T.SphereGeometry(0.2,10,6),
       mIris:new T.MeshStandardMaterial({color:0x2a180c,roughness:0.25}),mPup:new T.MeshBasicMaterial({color:0x050404}),mBrow:new T.MeshStandardMaterial({color:0x24180f,roughness:0.9}),mMouth:new T.MeshBasicMaterial({color:0x34120e})});
     const mLid=new T.MeshStandardMaterial({color:sk||new T.Color('#b07a52'),roughness:0.75});
     const g=new T.Group();g.name='h3face';R.head.add(g);const ez=eyeZ-0.3,F={g,lid:[],iris:[],brow:[],mh:[],mo:null,nb:1+Math.random()*3,bk:0,c:{br:0,bi:0,sm:0,op:0,lid:0.1,ly:0,lp:0},sac:{x:0,y:0,t:0}};
     [-1,1].forEach(s=>{const pv=new T.Group();pv.position.set(s*0.62,3.4,ez);g.add(pv);const l=new T.Mesh(FG.lid,mLid);pv.add(l);F.lid.push(pv);
       const ip=new T.Group();ip.position.set(s*0.62,3.4,ez);g.add(ip);const ir=new T.Mesh(FG.iris,FG.mIris);ir.position.z=0.312;ip.add(ir);const pu=new T.Mesh(FG.pup,FG.mPup);pu.position.z=0.316;ip.add(pu);F.iris.push(ip);
-      const b=new T.Mesh(FG.brow,FG.mBrow);b.position.set(s*0.62,3.9,bZ+0.04);b.rotation.y=s*0.18;g.add(b);F.brow.push(b);});
+      const b=new T.Mesh(FG.brow,FG.mBrow);Object.defineProperty(b,'castShadow',{get:()=>false,set(){}});/* lông mày không đổ bóng (bóng răng cưa in lên mặt) */b.position.set(s*0.62,3.9,bZ+0.04);b.rotation.y=s*0.18;g.add(b);F.brow.push(b);});
     const mg=new T.Group();mg.position.set(0,2.3,mZ+0.02);g.add(mg);F.mg=mg;F.mh=FG.mh.map(gg=>{const m=new T.Mesh(gg,FG.mMouth);mg.add(m);return m;});F.mo=new T.Mesh(FG.mo,FG.mMouth);F.mo.scale.set(1.5,0.1,0.5);F.mo.position.set(0,-0.04,-0.06);mg.add(F.mo);
     g.traverse(o=>{o.layers.mask=R.head.layers.mask;if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});R._h3f=F;return F;}catch(e){console.warn('hunt3 mặt',e);return null;}}
 // nét mặt mục tiêu: br (+ nhướn / − cau), bi (đầu lông mày trong nhướn: lo âu, đau), sm (cười +/mếu −), op (há miệng), lid (khép mi; âm = mở to)
