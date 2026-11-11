@@ -25,7 +25,7 @@ function solBodies(x,z,py){const pr=7,push=(bx,bz,r)=>{const dx=x-bx,dz=z-bz,d=M
   try{if(typeof MP==='object'&&MP.rp)MP.rp.forEach(v=>{const vx=v.x!=null?v.x:v.o&&v.o.position.x,vz=v.z!=null?v.z:v.o&&v.o.position.z;if(vx==null||Math.abs(vx-x)>40||Math.abs(vz-z)>40)return;push(vx,vz,5);});}catch(e){}
   return [x,z];}
 {const _c=collide;collide=function(nx,nz){if(!S||!G.on||typeof OCC==='undefined')return _c(nx,nz);const ox=P.x,oz=P.z,py=P.y;let c=_c(nx,nz),x=c[0],z=c[1];
-    try{/* LEO LÊN MÁI: đang nhảy mà bị tường hoặc lều chặn → bám mép, đu lên mái nhà / nóc lều (tốn 10 thể lực). Tường không có mái thì không leo được. */
+    try{/* LEO LÊN MÁI: đang nhảy mà bị tường hoặc lều chặn → bám mép, đu lên mái nhà (tốn 10 thể lực). Tường không có mái thì không leo được. */
       if(P.air&&!G.swim&&!G.ride&&Math.hypot(x-nx,z-nz)>0.3){const dx=nx-ox,dz=nz-oz,l=Math.hypot(dx,dz);if(l>0.01){for(const k of [16,26,36]){const ax=ox+dx/l*k,az=oz+dz/l*k,t=solTopAt(ax,az);
             if(t!=null&&t>py+6&&t-py<96){if(S.p.stam<10){if(G.t-(G._solNo||0)>4){G._solNo=G.t;uiToast('😮‍💨 Không đủ sức đu lên mái.','');}break;}S.p.stam-=10;P.y=t+1;P.vy=0;P.air=false;sfx('jump');try{addXp('run',1);}catch(e){}
               if(!G._solTip){G._solTip=1;uiToast('🧗 Đã leo lên mái. Bước ra mép là nhảy xuống.','');}return [ax,az];}}}}}catch(e){}
@@ -44,5 +44,5 @@ if(typeof animalsTick==='function'){const _at=animalsTick;animalsTick=function(d
 /* ---------- đứng được trên mái nhà và nóc lều ---------- */
 const SOL_HUT=34;
 function solTopAt(x,z){try{const c=cellAt(x,z);if(!c)return null;let top=null;for(let L=0;L<=LVMAX;L++){const id=c[slotN('roof',L)];if(id){const b=BYID.get(id);if(b&&b.prog==null){/* tấm mái dốc: mép thấp (y+48) ở phía +z của tấm, nóc (y+78) ở phía −z, dày 5; xoay theo b.r */const d=pieceDef(b.k),th=(b.r||0)*Math.PI/2,lz=(x-b.x)*Math.sin(th)+(z-b.z)*Math.cos(th);const t=d&&d.cap?b.y+LVH+8:b.y+51+clamp((20-lz)/40,0,1)*30;if(top==null||t>top)top=t;}}}
-    if(top==null){for(let L=0;L<=LVMAX;L++){const id=c[slotN('obj',L)];if(!id)continue;const b=BYID.get(id);if(!b)continue;const r=solRectOf(b);if(r&&x>r[0]&&x<r[2]&&z>r[1]&&z<r[3])top=b.y+SOL_HUT;}}return top;}catch(e){return null;}}
+    /* lều, chuồng: mái nhọn, không đứng lên được (trước cho leo thì người lún vào chóp lều) */return top;}catch(e){return null;}}
 {const _gy=groundY;groundY=function(x,z,yRef){const g=_gy(x,z,yRef);try{if(typeof OCC!=='undefined'&&OCC.cell.size){const t=solTopAt(x,z);if(t!=null&&t>g){const ref=yRef==null?P.y:yRef;if(ref>=t-10)return t;}}}catch(e){}return g;};}
