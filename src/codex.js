@@ -32,18 +32,18 @@ function cxChip(id,n){return `<span class="chip">${cxIc(id)}${n!=null?n:''}${n==
 function cxCost(c){return Object.entries(c||{}).filter(([i])=>ITEMS[i]).map(([i,v])=>`<span class="chip" title="${esc(ITEMS[i].n)}">${cxIc(i)}${v}</span>`).join('');}
 function cxRtCat(t){const D=RT[t];if(!D)return 'plant';if(D.tool==='pick'||D.sk==='mine'||/Rock$|^(clay|saltPan|pebble|scree|pathStone|bones|shellBed)$/.test(t))return 'min';if(D.tool==='axe'||D.uproot||/^(log|deadLog|bamboo|palm)$/.test(t))return 'tree';return 'plant';}
 function cxDisc(id){return !!(S.disc&&S.disc[id]);}
-function cxSeenXZ(x,z){const c=WSIZE/FOGN,i=Math.floor((x+WSIZE/2)/c),j=Math.floor((z+WSIZE/2)/c);return i>=0&&j>=0&&i<FOGN&&j<FOGN&&fogSeen(i,j);}
+function cxSeenXZ(x,z){const c=WSIZE/FOGN,i=Math.floor((x+WSIZE/2)/c),j=Math.floor((z+WOZ)/c);return i>=0&&j>=0&&i<FOGN&&j<FOGN&&fogSeen(i,j);}
 function cxStName(st){return st?(ST_N[st]||(pieceDef(st)||{}).n||st):'Làm bằng tay';}
 /* ---------- dữ liệu phân bố: lấy mẫu RES một lần vào lưới thô (trùng lưới sương mù 64×64) + đếm theo vùng ---------- */
 function cxD(){const key=(S.seed|0)+'|'+WV+'|'+RES.length+'|'+REG.length;let D=CX.d;if(D&&D.key===key)return D;
   const N=FOGN,cw=WSIZE/N,H=WSIZE/2,grid={},tot={},byReg={};
-  for(let n=0;n<RES.length;n++){const q=RES[n],t=q.t;if(!RT[t])continue;let g=grid[t];if(!g)g=grid[t]=new Uint16Array(N*N);const i=Math.floor((q.x+H)/cw),j=Math.floor((q.z+H)/cw);
+  for(let n=0;n<RES.length;n++){const q=RES[n],t=q.t;if(!RT[t])continue;let g=grid[t];if(!g)g=grid[t]=new Uint16Array(N*N);const i=Math.floor((q.x+H)/cw),j=Math.floor((q.z+WOZ)/cw);
     if(i>=0&&j>=0&&i<N&&j<N&&g[j*N+i]<65535)g[j*N+i]++;tot[t]=(tot[t]||0)+1;const r=regionAt(q.x,q.z);if(r){const m=byReg[r.id]||(byReg[r.id]={});m[t]=(m[t]||0)+1;}}
   CX.dc={};return CX.d={key,grid,tot,byReg};}
 /* ---------- hồ sơ một vùng: địa hình, khí hậu, thú, độ nguy hiểm, đồ nên mang ---------- */
 function cxRI(r){const key=(S.seed|0)+'|'+WV+'|'+REG.length;if(!CX.ri||CX.ri.key!==key)CX.ri={key};const D=CX.ri;if(D[r.id])return D[r.id];const bc={};let n=0,hs=0,hn=0,hm=-1e9;
   const pts=[[0,0]];for(const f of [0.33,0.66,0.92])for(let a=0;a<12;a++)pts.push([Math.cos(a*0.5236+f)*f,Math.sin(a*0.5236+f)*f]);
-  for(const [u,v] of pts){const x=r.x+u*r.r,z=r.z+v*r.r;if(Math.abs(x)>WSIZE/2||Math.abs(z)>WSIZE/2)continue;const b=wdAt(x,z)>0.3?'water':bAt(x,z);bc[b]=(bc[b]||0)+1;n++;const h=hAt(x,z);if(b!=='water'){hs+=h;hn++;}if(h>hm)hm=h;}
+  for(const [u,v] of pts){const x=r.x+u*r.r,z=r.z+v*r.r;if(Math.abs(x)>WSIZE/2||z<-WOZ||z>WSIZE-WOZ)continue;const b=wdAt(x,z)>0.3?'water':bAt(x,z);bc[b]=(bc[b]||0)+1;n++;const h=hAt(x,z);if(b!=='water'){hs+=h;hn++;}if(h>hm)hm=h;}
   for(const k in bc)bc[k]/=n||1;const hav=hn?hs/hn:0,wet=(bc.water||0)+(bc.bank||0);
   const an=[];for(const k in ANIMALS){const A=ANIMALS[k];if(!A.n0||!A.bio||!A.bio.length)continue;const strong=!!(A.reg&&A.reg.includes(r.id));let bf=0;for(const b of A.bio)bf+=bc[b]||0;
     let lv=strong?2:bf>=0.3?1:0;if(k==='crocodile'&&!strong&&wet<0.12)lv=0;if(r.id==='start'&&A.aggro!=='never')lv=0;if(lv)an.push([k,lv]);}
@@ -88,8 +88,8 @@ function cxNodes(kinds){const out=[];if(typeof h3cellNodes!=='function'||!kinds.
 function cxDist(key){if(CX.dc[key])return CX.dc[key];const D=cxD(),T=cxTypes(key),N=FOGN,cw=WSIZE/N,H=WSIZE/2,cell=new Float32Array(N*N),ts=new Set(T.rt);
   for(const t of T.rt){const g=D.grid[t];if(!g)continue;for(let n=0;n<N*N;n++)if(g[n])cell[n]+=g[n];}
   const pts=[];let best=null,bd=1e18;const cand=(x,z,n)=>{const d=(x-P.x)*(x-P.x)+(z-P.z)*(z-P.z);if(d<bd){bd=d;best={x,z,n};}};
-  for(const q of RES){if(!ts.has(q.t))continue;const i=Math.floor((q.x+H)/cw),j=Math.floor((q.z+H)/cw);if(i<0||j<0||i>=N||j>=N||!fogSeen(i,j))continue;if(pts.length<3000)pts.push(q.x,q.z);cand(q.x,q.z,RT[q.t].n);}
-  for(const n of cxNodes(T.nd)){const i=Math.floor((n.x+H)/cw),j=Math.floor((n.z+H)/cw);cell[j*N+i]+=1;pts.push(n.x,n.z);cand(n.x,n.z,H3NODE[n.kind].n);}
+  for(const q of RES){if(!ts.has(q.t))continue;const i=Math.floor((q.x+H)/cw),j=Math.floor((q.z+WOZ)/cw);if(i<0||j<0||i>=N||j>=N||!fogSeen(i,j))continue;if(pts.length<3000)pts.push(q.x,q.z);cand(q.x,q.z,RT[q.t].n);}
+  for(const n of cxNodes(T.nd)){const i=Math.floor((n.x+H)/cw),j=Math.floor((n.z+WOZ)/cw);cell[j*N+i]+=1;pts.push(n.x,n.z);cand(n.x,n.z,H3NODE[n.kind].n);}
   const live=[];if(T.an)for(const a of (G.animals||[])){if(!a.alive||a.kind!==T.an||!cxSeenXZ(a.x,a.z))continue;live.push(a.x,a.z);cand(a.x,a.z,a.n||ANIMALS[T.an].n);}
   let mx=0,known=0;for(let n=0;n<N*N;n++){if(!cell[n])continue;if(fogSeen(n%N,(n/N)|0)){known++;if(cell[n]>mx)mx=cell[n];}}
   const regs=[];for(const r of REG){let c=0;if(T.an){const a=cxRI(r).an.find(v=>v[0]===T.an);c=a?a[1]*8:0;}else{const m=D.byReg[r.id]||{};for(const t of T.rt)c+=m[t]||0;if(T.nd.length&&cxRI(r).nd.some(k=>T.nd.includes(k)))c+=4;}if(c>0)regs.push([r,c]);}
@@ -97,19 +97,19 @@ function cxDist(key){if(CX.dc[key])return CX.dc[key];const D=cxD(),T=cxTypes(key
 /* ---------- vẽ bản đồ (dùng tranh bản đồ sẵn có; sương mù như bảng Bản đồ) ---------- */
 function cxCanvas(cv,V,img){const box=cv.parentElement.getBoundingClientRect(),W=Math.max(220,Math.floor(Math.min(box.width||330,440))),pr=Math.min(2,devicePixelRatio||1);
   if(cv.width!==W*pr){cv.width=W*pr;cv.height=W*pr;cv.style.width=W+'px';cv.style.height=W+'px';}const c=cv.getContext('2d');c.setTransform(pr,0,0,pr,0,0);c.fillStyle='#d9c49a';c.fillRect(0,0,W,W);c.imageSmoothingEnabled=true;
-  if(img)c.drawImage(img,0,0,W,W);else{const mb=mapBase(),N=mb.width;c.drawImage(mb,(V.x0+WSIZE/2)/WSIZE*N,(V.z0+WSIZE/2)/WSIZE*N,V.span/WSIZE*N,V.span/WSIZE*N,0,0,W,W);}
+  if(img)c.drawImage(img,0,0,W,W);else{const mb=mapBase(),N=mb.width;c.drawImage(mb,(V.x0+WSIZE/2)/WSIZE*N,(V.z0+WOZ)/WSIZE*N,V.span/WSIZE*N,V.span/WSIZE*N,0,0,W,W);}
   const sx=x=>(x-V.x0)/V.span*W,sy=z=>(z-V.z0)/V.span*W,cw=WSIZE/FOGN;cxGridImg(c,cxFogCv(),V,W);
-  const i0=Math.max(0,Math.floor((V.x0+WSIZE/2)/cw)),j0=Math.max(0,Math.floor((V.z0+WSIZE/2)/cw)),i1=Math.min(FOGN-1,Math.ceil((V.x0+V.span+WSIZE/2)/cw)),j1=Math.min(FOGN-1,Math.ceil((V.z0+V.span+WSIZE/2)/cw));
+  const i0=Math.max(0,Math.floor((V.x0+WSIZE/2)/cw)),j0=Math.max(0,Math.floor((V.z0+WOZ)/cw)),i1=Math.min(FOGN-1,Math.ceil((V.x0+V.span+WSIZE/2)/cw)),j1=Math.min(FOGN-1,Math.ceil((V.z0+V.span+WOZ)/cw));
   cv._V=V;return {c,W,sx,sy,k:W/V.span,i0,j0,i1,j1,cw};}
 // lưới 64×64 vẽ thành ảnh nhỏ rồi phóng to có làm mịn (sương mù, bản đồ nhiệt mềm mép, không có đường kẻ)
-function cxGridImg(c,img,V,W){const N=FOGN;c.imageSmoothingEnabled=true;c.drawImage(img,(V.x0+WSIZE/2)/WSIZE*N,(V.z0+WSIZE/2)/WSIZE*N,V.span/WSIZE*N,V.span/WSIZE*N,0,0,W,W);}
+function cxGridImg(c,img,V,W){const N=FOGN;c.imageSmoothingEnabled=true;c.drawImage(img,(V.x0+WSIZE/2)/WSIZE*N,(V.z0+WOZ)/WSIZE*N,V.span/WSIZE*N,V.span/WSIZE*N,0,0,W,W);}
 function cxFogCv(){const N=FOGN,cv=CX.fogCv||(CX.fogCv=mkCanvas(N,N)),c=cv.getContext('2d'),im=c.createImageData(N,N),d=im.data;
   for(let j=0;j<N;j++)for(let i=0;i<N;i++)if(!fogSeen(i,j)){const k=(j*N+i)*4;d[k]=214;d[k+1]=192;d[k+2]=148;d[k+3]=214;}c.putImageData(im,0,0);return cv;}
 // khung nhìn vừa khít phần đã khám phá
 function cxFitView(){const N=FOGN,cw=WSIZE/N;let a=N,b=N,e=-1,f=-1;for(let j=0;j<N;j++)for(let i=0;i<N;i++)if(fogSeen(i,j)){if(i<a)a=i;if(i>e)e=i;if(j<b)b=j;if(j>f)f=j;}
-  if(e<0)return {x0:P.x-1500,z0:P.z-1500,span:3000};const x0=-WSIZE/2+(a-1)*cw,x1=-WSIZE/2+(e+2)*cw,z0=-WSIZE/2+(b-1)*cw,z1=-WSIZE/2+(f+2)*cw,sp=Math.min(WSIZE,Math.max(3000,x1-x0,z1-z0)),cx=(x0+x1)/2,cz=(z0+z1)/2;
-  return {x0:clamp(cx-sp/2,-WSIZE/2,WSIZE/2-sp),z0:clamp(cz-sp/2,-WSIZE/2,WSIZE/2-sp),span:sp};}
-const cxView=()=>CX.dv==='all'?{x0:-WSIZE/2,z0:-WSIZE/2,span:WSIZE}:cxFitView();
+  if(e<0)return {x0:P.x-1500,z0:P.z-1500,span:3000};const x0=-WSIZE/2+(a-1)*cw,x1=-WSIZE/2+(e+2)*cw,z0=-WOZ+(b-1)*cw,z1=-WOZ+(f+2)*cw,sp=Math.min(WSIZE,Math.max(3000,x1-x0,z1-z0)),cx=(x0+x1)/2,cz=(z0+z1)/2;
+  return {x0:clamp(cx-sp/2,-WSIZE/2,WSIZE/2-sp),z0:clamp(cz-sp/2,-WOZ,WSIZE-WOZ-sp),span:sp};}
+const cxView=()=>CX.dv==='all'?{x0:-WSIZE/2,z0:-WOZ,span:WSIZE}:cxFitView();
 const cxVBtn=()=>`<div class="mapz"><button data-a="cxdv" data-v="${CX.dv==='all'?'fit':'all'}" aria-label="Đổi tầm nhìn">${CX.dv==='all'?'◎':'⤢'}</button></div>`;
 function cxLbl(c,t,x,y,f){c.font=f;c.lineWidth=3;c.strokeStyle='rgba(255,246,226,.9)';c.strokeText(t,x,y);c.fillStyle='#3a2410';c.fillText(t,x,y);}
 function cxMe(o){const {c,sx,sy}=o;if(S.mark){c.font='16px system-ui';c.textAlign='center';c.fillText('📍',sx(S.mark.x),sy(S.mark.z)-2);}const px=sx(P.x),py=sy(P.z);

@@ -29,13 +29,13 @@ function regionsBuild(){const R=[],far=(x,z,d)=>R.every(r=>Math.hypot(r.x-x,r.z-
   REG=R;}
 function regionAt(x,z){let best=null,bs=1;for(const r of REG){const k=Math.hypot(r.x-x,r.z-z)/r.r;if(k<bs){bs=k;best=r;}}return best;}
 /* ---------- đường mòn: tìm đường ít dốc trên lưới thưa (A*), làm phẳng, lối lội qua sông ---------- */
-function trailPath(a,b){const C=40,N=Math.ceil(WSIZE/C),idx=(i,j)=>j*N+i,toI=v=>Math.round((v+WSIZE/2)/C),toW=i=>-WSIZE/2+i*C;
-  const si=toI(a[0]),sj=toI(a[1]),ti=toI(b[0]),tj=toI(b[1]);const g=new Float32Array(N*N).fill(1e9),came=new Int32Array(N*N).fill(-1),H=[],push=e=>{H.push(e);let k=H.length-1;while(k>0){const p=(k-1)>>1;if(H[p][0]<=H[k][0])break;[H[p],H[k]]=[H[k],H[p]];k=p;}},pop=()=>{const t=H[0],l=H.pop();if(H.length){H[0]=l;let k=0;for(;;){const a=2*k+1,b2=a+1;let m=k;if(a<H.length&&H[a][0]<H[m][0])m=a;if(b2<H.length&&H[b2][0]<H[m][0])m=b2;if(m===k)break;[H[m],H[k]]=[H[k],H[m]];k=m;}}return t;},done=new Uint8Array(N*N);push([0,si,sj]);g[idx(si,sj)]=0;let it=0;
-  const cost=(i,j)=>{const x=toW(i),z=toW(j),h=hAt(x,z),wd=wdAt(x,z);if(wd>7)return 400;if(wd>0.5)return 30;const sl=slopeAt(x,z);return 1+sl*9+(sl>0.7?60:0)+(h>260?6:0);};
+function trailPath(a,b){const C=40,N=Math.ceil(WSIZE/C),idx=(i,j)=>j*N+i,toI=v=>Math.round((v+WSIZE/2)/C),toW=i=>-WSIZE/2+i*C,toJ=v=>Math.round((v+WOZ)/C),toZ=j=>-WOZ+j*C;
+  const si=toI(a[0]),sj=toJ(a[1]),ti=toI(b[0]),tj=toJ(b[1]);const g=new Float32Array(N*N).fill(1e9),came=new Int32Array(N*N).fill(-1),H=[],push=e=>{H.push(e);let k=H.length-1;while(k>0){const p=(k-1)>>1;if(H[p][0]<=H[k][0])break;[H[p],H[k]]=[H[k],H[p]];k=p;}},pop=()=>{const t=H[0],l=H.pop();if(H.length){H[0]=l;let k=0;for(;;){const a=2*k+1,b2=a+1;let m=k;if(a<H.length&&H[a][0]<H[m][0])m=a;if(b2<H.length&&H[b2][0]<H[m][0])m=b2;if(m===k)break;[H[m],H[k]]=[H[k],H[m]];k=m;}}return t;},done=new Uint8Array(N*N);push([0,si,sj]);g[idx(si,sj)]=0;let it=0;
+  const cost=(i,j)=>{const x=toW(i),z=toZ(j),h=hAt(x,z),wd=wdAt(x,z);if(wd>7)return 400;if(wd>0.5)return 30;const sl=slopeAt(x,z);return 1+sl*9+(sl>0.7?60:0)+(h>260?6:0);};
   while(H.length&&it++<220000){const [,i,j]=pop();if(done[idx(i,j)])continue;done[idx(i,j)]=1;if(i===ti&&j===tj)break;
     for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){const ni=i+di,nj=j+dj;if(ni<0||nj<0||ni>=N||nj>=N)continue;const st=(di&&dj?1.414:1)*cost(ni,nj),ng=g[idx(i,j)]+st;
       if(ng<g[idx(ni,nj)]){g[idx(ni,nj)]=ng;came[idx(ni,nj)]=idx(i,j);push([ng+Math.hypot(ni-ti,nj-tj)*1.1,ni,nj]);}}}
-  const out=[];let c=idx(ti,tj);if(came[c]<0)return null;while(c>=0){out.push([toW(c%N),toW(Math.floor(c/N))]);c=came[c];}out.reverse();
+  const out=[];let c=idx(ti,tj);if(came[c]<0)return null;while(c>=0){out.push([toW(c%N),toZ(Math.floor(c/N))]);c=came[c];}out.reverse();
   // làm mềm (Chaikin) và uốn nhẹ cho tự nhiên
   let p=out;for(let k=0;k<3;k++){const q=[p[0]];for(let i=0;i<p.length-1;i++){const [x0,z0]=p[i],[x1,z1]=p[i+1];q.push([x0*0.75+x1*0.25,z0*0.75+z1*0.25],[x0*0.25+x1*0.75,z0*0.25+z1*0.75]);}q.push(p[p.length-1]);p=q;}
   return p.map(([x,z],i)=>[x+NS.fbm(x/160,z/160+40,2)*16,z+NS.fbm(x/160+20,z/160,2)*16]);}
@@ -43,15 +43,15 @@ function trailsBuild(){TRAILS=[];TRL=new Float32Array(HN*HN);const R=id=>REG.fin
   const pairs=[['start','ford'],['start','banyan'],['banyan','savanna'],['start','lake'],['lake','beach'],['ford','gorge'],['gorge','forest'],['forest','range'],['start','plateau'],['plateau','chasm'],['plateau','falls'],['chasm','karst'],['karst','cave'],['ford','bamboo'],['bamboo','savanna'],['start','jungle'],['jungle','delta'],['delta','beach'],['jungle','cliffs'],['hills','cliffs'],['karst','hills'],['start','village'],['village','bamboo'],['hills','camp'],['camp','chasm']].concat(typeof trails4==='function'?trails4():[]);
   for(const [a,b] of pairs){const A=R(a),B=R(b);if(!A||!B)continue;const p=trailPath([A.x,A.z],[B.x,B.z]);if(p)TRAILS.push({a,b,p});}
   // vẽ vào lưới: cường độ theo khoảng cách tới đường
-  const W=13;for(const t of TRAILS){const p=t.p;for(let k=0;k<p.length-1;k++){const [x0,z0]=p[k],[x1,z1]=p[k+1];const i0=Math.floor((Math.min(x0,x1)-W*2+WSIZE/2)/HSTEP),i1=Math.ceil((Math.max(x0,x1)+W*2+WSIZE/2)/HSTEP),j0=Math.floor((Math.min(z0,z1)-W*2+WSIZE/2)/HSTEP),j1=Math.ceil((Math.max(z0,z1)+W*2+WSIZE/2)/HSTEP);
-      for(let j=Math.max(0,j0);j<=Math.min(HN-1,j1);j++)for(let i=Math.max(0,i0);i<=Math.min(HN-1,i1);i++){const x=-WSIZE/2+i*HSTEP,z=-WSIZE/2+j*HSTEP,dx=x1-x0,dz=z1-z0,l2=dx*dx+dz*dz||1;let u=((x-x0)*dx+(z-z0)*dz)/l2;u=clamp(u,0,1);
+  const W=13;for(const t of TRAILS){const p=t.p;for(let k=0;k<p.length-1;k++){const [x0,z0]=p[k],[x1,z1]=p[k+1];const i0=Math.floor((Math.min(x0,x1)-W*2+WSIZE/2)/HSTEP),i1=Math.ceil((Math.max(x0,x1)+W*2+WSIZE/2)/HSTEP),j0=Math.floor((Math.min(z0,z1)-W*2+WOZ)/HSTEP),j1=Math.ceil((Math.max(z0,z1)+W*2+WOZ)/HSTEP);
+      for(let j=Math.max(0,j0);j<=Math.min(HN-1,j1);j++)for(let i=Math.max(0,i0);i<=Math.min(HN-1,i1);i++){const x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,dx=x1-x0,dz=z1-z0,l2=dx*dx+dz*dz||1;let u=((x-x0)*dx+(z-z0)*dz)/l2;u=clamp(u,0,1);
         const d=Math.hypot(x-(x0+dx*u),z-(z0+dz*u)),v=1-ss(W*0.55,W*1.6,d);if(v>TRL[j*HN+i])TRL[j*HN+i]=v;}}}
   // làm phẳng mặt đường, lối lội qua nước nông
   const H2=HG.slice();for(let j=1;j<HN-1;j++)for(let i=1;i<HN-1;i++){const v=TRL[j*HN+i];if(v<=0)continue;const k=j*HN+i;let avg=0;for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++)avg+=HG[k+dj*HN+di];avg/=9;let h=HG[k]*(1-v*0.7)+avg*v*0.7-v*0.5;const w=WG[k];if(w>-900&&h<w-0.5)h=Math.max(h,(w-3.5)*v+h*(1-v));H2[k]=h;}HG=H2;}
-function trailAt(x,z){if(!TRL)return 0;const i=Math.round((x+WSIZE/2)/HSTEP),j=Math.round((z+WSIZE/2)/HSTEP);if(i<0||j<0||i>=HN||j>=HN)return 0;return TRL[j*HN+i];}
+function trailAt(x,z){if(!TRL)return 0;const i=Math.round((x+WSIZE/2)/HSTEP),j=Math.round((z+WOZ)/HSTEP);if(i<0||j<0||i>=HN||j>=HN)return 0;return TRL[j*HN+i];}
 /* ---------- khám phá: sương mù trên bản đồ (64×64 ô) ---------- */
 const FOGN=64;
-function fogReveal(x,z,r){if(!S.fogm||S.fogm.length!==FOGN*FOGN/32)S.fogm=Array(FOGN*FOGN/32).fill(0);const c=WSIZE/FOGN,ci=Math.floor((x+WSIZE/2)/c),cj=Math.floor((z+WSIZE/2)/c),rr=Math.ceil(r/c);
+function fogReveal(x,z,r){if(!S.fogm||S.fogm.length!==FOGN*FOGN/32)S.fogm=Array(FOGN*FOGN/32).fill(0);const c=WSIZE/FOGN,ci=Math.floor((x+WSIZE/2)/c),cj=Math.floor((z+WOZ)/c),rr=Math.ceil(r/c);
   for(let j=cj-rr;j<=cj+rr;j++)for(let i=ci-rr;i<=ci+rr;i++){if(i<0||j<0||i>=FOGN||j>=FOGN)continue;if(Math.hypot(i-ci,j-cj)>rr)continue;const n=j*FOGN+i;S.fogm[n>>5]|=(1<<(n&31));}}
 function fogSeen(i,j){const n=j*FOGN+i;return !!(S.fogm&&(S.fogm[n>>5]&(1<<(n&31))));}
 function exploreTick(){if(G.t-(G.expT||0)<0.6)return;G.expT=G.t;if(!S.fogm)fogReveal(SPAWN[0],SPAWN[1],520);fogReveal(P.x,P.z,isFP()?300:360);
@@ -64,20 +64,20 @@ function mapPix(x,z,col,c2){const h=hAt(x,z);let b=BCODE[bgAt(x,z)];const wd=wdA
 function mapRender(x0,z0,span,N){const cv=mkCanvas(N,N),c=cv.getContext('2d'),im=c.createImageData(N,N),col=new THREE.Color(),c2=new THREE.Color();
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){mapPix(x0+(i+0.5)/N*span,z0+(j+0.5)/N*span,col,c2);const k=(j*N+i)*4;im.data[k]=col.r*255;im.data[k+1]=col.g*255;im.data[k+2]=col.b*255;im.data[k+3]=255;}
   c.putImageData(im,0,0);c.strokeStyle='#4f88a6';c.lineCap='round';c.lineJoin='round';const t=v=>v/span*N;for(const r of RIV){for(let i=1;i<r.pts.length;i++){const f=i/r.pts.length;c.lineWidth=Math.max(1.4,(r.w[0]+(r.w[1]-r.w[0])*f)/span*N*1.3);c.beginPath();c.moveTo(t(r.pts[i-1][0]-x0),t(r.pts[i-1][1]-z0));c.lineTo(t(r.pts[i][0]-x0),t(r.pts[i][1]-z0));c.stroke();}}return cv;}
-function mapBase(){return MAPIMG||(MAPIMG=mapRender(-WSIZE/2,-WSIZE/2,WSIZE,320));}
+function mapBase(){return MAPIMG||(MAPIMG=mapRender(-WSIZE/2,-WOZ,WSIZE,320));}
 function mapDetail(V){if(V.z<1.8)return null;const d=G.mapDet;if(d&&Math.abs(d.z-V.z)<1e-6&&Math.abs(d.x0-V.x0)<1&&Math.abs(d.z0-V.z0)<1)return d.cv;clearTimeout(G.mapDetH);G.mapDetH=setTimeout(()=>{if(!$('#mapcv'))return;const W=mapView();G.mapDet={z:W.z,x0:W.x0,z0:W.z0,cv:mapRender(W.x0,W.z0,W.span,260)};mapDraw();},180);return null;}
-function mapView(){const v=G.mapV||(G.mapV={z:1,cx:0,cz:0});const half=WSIZE/2/v.z,lim=WSIZE/2-half;v.cx=clamp(v.cx,-lim,lim);v.cz=clamp(v.cz,-lim,lim);return {z:v.z,x0:v.cx-half,z0:v.cz-half,span:half*2};}
+function mapView(){const v=G.mapV||(G.mapV={z:1,cx:0,cz:0});const half=WSIZE/2/v.z,lim=WSIZE/2-half;v.cx=clamp(v.cx,-lim,lim);v.cz=clamp(v.cz,-WOZ+half,WSIZE-WOZ-half);return {z:v.z,x0:v.cx-half,z0:v.cz-half,span:half*2};}
 function mapZoom(f,fx,fz){const v=G.mapV||(G.mapV={z:1,cx:0,cz:0});const nz=clamp(v.z*f,1,10);if(fx==null){fx=v.cx;fz=v.cz;}const k=1-v.z/nz;v.cx+=(fx-v.cx)*k;v.cz+=(fz-v.cz)*k;v.z=nz;mapDraw();}
 function mapDraw(){const cv=$('#mapcv');if(!cv)return;const box=cv.parentElement.getBoundingClientRect(),sz=Math.floor(Math.min(box.width,innerHeight*0.72,720)),pr=Math.min(2,devicePixelRatio||1);
   if(cv.width!==sz*pr){cv.width=sz*pr;cv.height=sz*pr;cv.style.width=sz+'px';cv.style.height=sz+'px';}const c=cv.getContext('2d');c.setTransform(pr,0,0,pr,0,0);const W=sz,V=mapView(),toS=v=>v,sx=x=>(x-V.x0)/V.span*W,sy=z=>(z-V.z0)/V.span*W;
-  c.fillStyle='#d9c49a';c.fillRect(0,0,W,W);c.imageSmoothingEnabled=true;const mb=mapBase(),N=mb.width;c.drawImage(mb,(V.x0+WSIZE/2)/WSIZE*N,(V.z0+WSIZE/2)/WSIZE*N,V.span/WSIZE*N,V.span/WSIZE*N,0,0,W,W);{const dt=mapDetail(V);if(dt)c.drawImage(dt,0,0,W,W);}
+  c.fillStyle='#d9c49a';c.fillRect(0,0,W,W);c.imageSmoothingEnabled=true;const mb=mapBase(),N=mb.width;c.drawImage(mb,(V.x0+WSIZE/2)/WSIZE*N,(V.z0+WOZ)/WSIZE*N,V.span/WSIZE*N,V.span/WSIZE*N,0,0,W,W);{const dt=mapDetail(V);if(dt)c.drawImage(dt,0,0,W,W);}
   // sương mù chưa khám phá: giấy da cũ
-  const cw=WSIZE/FOGN;c.fillStyle='rgba(214,192,148,0.8)';const i0=Math.max(0,Math.floor((V.x0+WSIZE/2)/cw)),j0=Math.max(0,Math.floor((V.z0+WSIZE/2)/cw)),i1=Math.min(FOGN-1,Math.ceil((V.x0+V.span+WSIZE/2)/cw)),j1=Math.min(FOGN-1,Math.ceil((V.z0+V.span+WSIZE/2)/cw));
-  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++)if(!fogSeen(i,j)){const x=sx(-WSIZE/2+i*cw),y=sy(-WSIZE/2+j*cw),s=cw/V.span*W;c.fillRect(Math.floor(x),Math.floor(y),Math.ceil(s)+1,Math.ceil(s)+1);}
-  c.strokeStyle='rgba(90,60,30,.35)';c.lineWidth=1;for(let k=1;k<8;k++){const g=-WSIZE/2+k*WSIZE/8,x=sx(g),y=sy(g);c.beginPath();c.moveTo(x,0);c.lineTo(x,W);c.moveTo(0,y);c.lineTo(W,y);c.stroke();}
+  const cw=WSIZE/FOGN;c.fillStyle='rgba(214,192,148,0.8)';const i0=Math.max(0,Math.floor((V.x0+WSIZE/2)/cw)),j0=Math.max(0,Math.floor((V.z0+WOZ)/cw)),i1=Math.min(FOGN-1,Math.ceil((V.x0+V.span+WSIZE/2)/cw)),j1=Math.min(FOGN-1,Math.ceil((V.z0+V.span+WOZ)/cw));
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++)if(!fogSeen(i,j)){const x=sx(-WSIZE/2+i*cw),y=sy(-WOZ+j*cw),s=cw/V.span*W;c.fillRect(Math.floor(x),Math.floor(y),Math.ceil(s)+1,Math.ceil(s)+1);}
+  c.strokeStyle='rgba(90,60,30,.35)';c.lineWidth=1;for(let k=1;k<8;k++){const g=-WSIZE/2+k*WSIZE/8,x=sx(g),y=sy(g+WSIZE/2-WOZ);c.beginPath();c.moveTo(x,0);c.lineTo(x,W);c.moveTo(0,y);c.lineTo(W,y);c.stroke();}
   const lbl=(t,x,y,f)=>{c.font=f;c.lineWidth=3;c.strokeStyle='rgba(255,246,226,.85)';c.strokeText(t,x,y);c.fillStyle='#3a2410';c.fillText(t,x,y);};
   c.textAlign='center';
-  for(const r of REG){const known=S.disc&&S.disc[r.id];const x=sx(r.x),y=sy(r.z);if(x<-60||y<-30||x>W+60||y>W+30)continue;if(!known){const fi=Math.floor((r.x+WSIZE/2)/WSIZE*FOGN),fj=Math.floor((r.z+WSIZE/2)/WSIZE*FOGN);if(!fogSeen(fi,fj))continue;}
+  for(const r of REG){const known=S.disc&&S.disc[r.id];const x=sx(r.x),y=sy(r.z);if(x<-60||y<-30||x>W+60||y>W+30)continue;if(!known){const fi=Math.floor((r.x+WSIZE/2)/WSIZE*FOGN),fj=Math.floor((r.z+WOZ)/WSIZE*FOGN);if(!fogSeen(fi,fj))continue;}
     c.font=(14+V.z*1.5|0)+'px system-ui';c.fillText(r.ic,x,y+5);lbl(known?r.n:'???',x,y+20,'700 '+(11+Math.min(4,V.z*0.5)).toFixed(1)+'px "Be Vietnam Pro",system-ui,sans-serif');}
   // công trình, nhà
   const bs=Math.max(3,Math.min(8,V.z*1.2));c.fillStyle='#7a2e12';for(const b of S.builds){const d=pieceDef(b.k);if(!d||d.kind==='edge'||d.kind==='roof')continue;c.fillRect(sx(b.x)-bs/2,sy(b.z)-bs/2,bs,bs);}
@@ -126,7 +126,7 @@ function decorPlan(){DECO_PLAN=[];SCOL=[];const R=rng((S.seed|0)+31),K=REG.find(
   if(B)DECO_PLAN.push({k:'banyan',x:B.x,z:B.z,y:hAt(B.x,B.z)-2,ry:R()*6.283,s:1,r:40});
   DECO_PLAN.forEach(d=>{if(d.k!=='cave'&&d.k!=='village')SCOL.push({x:d.x,z:d.z,r:d.k==='banyan'?22:d.r*0.9});});}
 // nền trong hang phẳng, thấp hơn sàn hang để đất không trồi vào
-function caveFlatten(){const d=DECO_PLAN.find(o=>o.k==='cave');if(!d)return;const c=Math.cos(d.ry),s=Math.sin(d.ry);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const x=-WSIZE/2+i*HSTEP,z=-WSIZE/2+j*HSTEP,dx=x-d.x,dz=z-d.z;if(Math.abs(dx)>220||Math.abs(dz)>220)continue;const lx=dx*c-dz*s,lz=dx*s+dz*c;
+function caveFlatten(){const d=DECO_PLAN.find(o=>o.k==='cave');if(!d)return;const c=Math.cos(d.ry),s=Math.sin(d.ry);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,dx=x-d.x,dz=z-d.z;if(Math.abs(dx)>220||Math.abs(dz)>220)continue;const lx=dx*c-dz*s,lz=dx*s+dz*c;
     const k=(1-ss(52,80,Math.abs(lx)))*(1-ss(130,165,lz))*(1-ss(-60,-90,lz));if(k>0){const t=d.y-0.5;HG[j*HN+i]=HG[j*HN+i]*(1-k)+Math.min(HG[j*HN+i],t)*k;}}}
 function decoBlock(x,z){for(const d of DECO_PLAN){if(Math.hypot(d.x-x,d.z-z)<d.r+(d.k==='banyan'?150:d.k==='cave'?90:12))return true;}return false;}
 function decorBuild(){const T=THREE,by=new Map();for(const d of DECO_PLAN){if(d.k==='village')continue;const key=d.k==='karst'||d.k==='cliffRock'?d.k+'|'+d.v:d.k;if(!by.has(key))by.set(key,[]);by.get(key).push(d);}

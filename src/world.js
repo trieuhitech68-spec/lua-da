@@ -4,6 +4,9 @@
    ba con suối nhập vào, có thác ở chỗ đổ dốc. Mặt nước sông có độ cao riêng (không phải mực nước biển). */
 // WR: bán kính thế giới (vùng chơi). WCR: thước bố cục lõi cũ (vị trí các vùng gốc). WV: phiên bản thế giới — world4.js đặt lại WR/WSEG/... theo bản lưu.
 let WR=5200,WSEG=448,WSIZE=WR*2+800,WV=2,WRES=1;const WCR=5200;
+// WOZ: khoảng từ mép BẮC của khung lưới tới gốc toạ độ (trục z). Thế giới 2-3: khung cân quanh gốc (WOZ=WSIZE/2).
+// Thế giới 4 (hình chữ S) kéo khung về phía nam: z chạy từ -WOZ tới WSIZE-WOZ. Trục x luôn cân: -WSIZE/2 … WSIZE/2.
+let WOZ=WSIZE/2;
 let NS=null,RIV=[],RBK=null,WFALLS=[],SPAWN=[0,0];
 const F=(fx,fz)=>[fx*WCR,fz*WCR];
 function noiseInit(seed){const R=rng(seed||1),P=new Uint8Array(512),G=[];for(let i=0;i<256;i++){P[i]=i;const a=R()*Math.PI*2;G.push([Math.cos(a),Math.sin(a)]);}
@@ -77,12 +80,12 @@ function rawH(x,z){let h=baseH(x,z);const q=riverQ(x,z);if(q.r<0)return h;const 
 function ss(a,b,x){const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);}
 // lưới độ cao + lưới mặt nước (sông có độ cao riêng; biển/hồ ở mực 0)
 let HG=null,WG=null;let HN=WSEG+1,HSTEP=WSIZE/WSEG;
-function heightsBuild(){riversSurface();HG=new Float32Array(HN*HN);WG=new Float32Array(HN*HN);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const x=-WSIZE/2+i*HSTEP,z=-WSIZE/2+j*HSTEP,h=rawH(x,z);HG[j*HN+i]=h;
+function heightsBuild(){riversSurface();HG=new Float32Array(HN*HN);WG=new Float32Array(HN*HN);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,h=rawH(x,z);HG[j*HN+i]=h;
     const q=riverQ(x,z);let w=h<0?0:-999;if(q.r>=0&&q.d<q.w*0.5+HSTEP&&q.s>0.5)w=Math.max(w,q.s);WG[j*HN+i]=w;}}
-function hAt(x,z){const fx=(x+WSIZE/2)/HSTEP,fz=(z+WSIZE/2)/HSTEP;let i=Math.floor(fx),j=Math.floor(fz);if(i<0||j<0||i>=WSEG||j>=WSEG)return -60;const tx=fx-i,tz=fz-j;
+function hAt(x,z){const fx=(x+WSIZE/2)/HSTEP,fz=(z+WOZ)/HSTEP;let i=Math.floor(fx),j=Math.floor(fz);if(i<0||j<0||i>=WSEG||j>=WSEG)return -60;const tx=fx-i,tz=fz-j;
   const a=HG[j*HN+i],b=HG[j*HN+i+1],c=HG[(j+1)*HN+i],d=HG[(j+1)*HN+i+1];return a+(b-a)*tx+((c+(d-c)*tx)-(a+(b-a)*tx))*tz;}
 // mặt nước tại điểm (hoặc -999 nếu khô); độ sâu nước
-function waterAt(x,z){const fx=(x+WSIZE/2)/HSTEP,fz=(z+WSIZE/2)/HSTEP,i=Math.round(fx),j=Math.round(fz);if(i<0||j<0||i>=HN||j>=HN)return 0;let w=WG[j*HN+i];
+function waterAt(x,z){const fx=(x+WSIZE/2)/HSTEP,fz=(z+WOZ)/HSTEP,i=Math.round(fx),j=Math.round(fz);if(i<0||j<0||i>=HN||j>=HN)return 0;let w=WG[j*HN+i];
   if(w<-900){const i0=Math.floor(fx),j0=Math.floor(fz);for(const [a,b] of [[i0,j0],[i0+1,j0],[i0,j0+1],[i0+1,j0+1]]){if(a>=0&&b>=0&&a<HN&&b<HN&&WG[b*HN+a]>w)w=WG[b*HN+a];}}return w;}
 function wdAt(x,z){const w=waterAt(x,z);if(w<-900)return 0;return Math.max(0,w-hAt(x,z));}
 function slopeAt(x,z){const e=12;return Math.hypot(hAt(x+e,z)-hAt(x-e,z),hAt(x,z+e)-hAt(x,z-e))/(2*e);}
@@ -97,7 +100,7 @@ const BCOL={water:'#5c6a52',beach:'#d8c48e',meadow:'#8db552',edge:'#6f9e44',fore
 /* ---------- mặt đất chia 8×8 khối, mỗi khối 3 mức chi tiết theo khoảng cách ---------- */
 let TCN=8,TCS=WSEG/TCN;let TCOL=null,TNRM=null,TSPL=null,TCH=[];
 function terrainColors(){const T=THREE,c=new T.Color(),c2=new T.Color();TCOL=new Float32Array(HN*HN*3);TNRM=new Float32Array(HN*HN*3);TSPL=new Float32Array(HN*HN*4);
-  for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const k=j*HN+i,x=-WSIZE/2+i*HSTEP,z=-WSIZE/2+j*HSTEP,h=HG[k];
+  for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const k=j*HN+i,x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,h=HG[k];
     const hl=HG[j*HN+Math.max(0,i-1)],hr=HG[j*HN+Math.min(HN-1,i+1)],hu=HG[Math.max(0,j-1)*HN+i],hd=HG[Math.min(HN-1,j+1)*HN+i];let nx=hl-hr,ny=2*HSTEP,nz=hu-hd;const nl=Math.hypot(nx,ny,nz);TNRM[k*3]=nx/nl;TNRM[k*3+1]=ny/nl;TNRM[k*3+2]=nz/nl;
     const sl=Math.hypot(hr-hl,hd-hu)/(2*HSTEP);let b=BG?BCODE[bgAt(x,z)]:biome(x,z);const wet=WG[k]>-900&&WG[k]-h>0.3;if(wet)b='water';
     c.set(BCOL[b]);const v=NS.fbm(x/140+3,z/140-8,2);c.offsetHSL(v*0.02,v*0.06,v*0.05);
@@ -109,7 +112,7 @@ function terrainColors(){const T=THREE,c=new T.Color(),c2=new T.Color();TCOL=new
     const dn=NS.fbm(x/55+9,z/55-4,2);if(b==='meadow'||b==='edge'||b==='forest'){c2.set(dn>0.12?'#6b5a3a':'#a6b85a');c.lerp(c2,Math.max(0,Math.abs(dn)-0.12)*1.4);}
     TCOL[k*3]=c.r;TCOL[k*3+1]=c.g;TCOL[k*3+2]=c.b;TSPL.set(splatAt(k,x,z,h,b,sl,wet),k*4);}}
 function terrainChunk(ci,cj,step){const T=THREE,n=TCS/step+1,pos=[],nor=[],col=[],idx=[],spl=[];const i0=ci*TCS,j0=cj*TCS;
-  for(let b=0;b<n;b++)for(let a=0;a<n;a++){const i=Math.min(HN-1,i0+a*step),j=Math.min(HN-1,j0+b*step),k=j*HN+i;pos.push(-WSIZE/2+i*HSTEP,HG[k],-WSIZE/2+j*HSTEP);nor.push(TNRM[k*3],TNRM[k*3+1],TNRM[k*3+2]);col.push(TCOL[k*3],TCOL[k*3+1],TCOL[k*3+2]);spl.push(TSPL[k*4],TSPL[k*4+1],TSPL[k*4+2],TSPL[k*4+3]);}
+  for(let b=0;b<n;b++)for(let a=0;a<n;a++){const i=Math.min(HN-1,i0+a*step),j=Math.min(HN-1,j0+b*step),k=j*HN+i;pos.push(-WSIZE/2+i*HSTEP,HG[k],-WOZ+j*HSTEP);nor.push(TNRM[k*3],TNRM[k*3+1],TNRM[k*3+2]);col.push(TCOL[k*3],TCOL[k*3+1],TCOL[k*3+2]);spl.push(TSPL[k*4],TSPL[k*4+1],TSPL[k*4+2],TSPL[k*4+3]);}
   for(let b=0;b<n-1;b++)for(let a=0;a<n-1;a++){const p=b*n+a;idx.push(p,p+n,p+1,p+1,p+n,p+n+1);}
   // váy che khe nứt giữa các mức chi tiết
   const edge=[];for(let a=0;a<n;a++)edge.push(a);for(let b=1;b<n;b++)edge.push(b*n+n-1);for(let a=n-2;a>=0;a--)edge.push((n-1)*n+a);for(let b=n-2;b>0;b--)edge.push(b*n);
@@ -118,7 +121,7 @@ function terrainChunk(ci,cj,step){const T=THREE,n=TCS/step+1,pos=[],nor=[],col=[
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('normal',new T.Float32BufferAttribute(nor,3));g.setAttribute('color',new T.Float32BufferAttribute(col,3));g.setAttribute('splat',new T.Float32BufferAttribute(spl,4));g.setIndex(idx);g.computeBoundingSphere();return g;}
 function terrainMesh(){const T=THREE;terrainColors();const m=new T.MeshStandardMaterial({vertexColors:true,roughness:0.96,metalness:0,side:T.DoubleSide});terrainSplatMat(m);
   const grp=new T.Group();TCH=[];for(let cj=0;cj<TCN;cj++)for(let ci=0;ci<TCN;ci++){const L=[1,2,4].map(st=>{const me=new T.Mesh(terrainChunk(ci,cj,st),m);me.receiveShadow=true;me.visible=st===4;grp.add(me);return me;});
-    TCH.push({L,x:-WSIZE/2+(ci+0.5)*TCS*HSTEP,z:-WSIZE/2+(cj+0.5)*TCS*HSTEP,cur:2});}grp.userData.mat=m;grp.material=m;return grp;}
+    TCH.push({L,x:-WSIZE/2+(ci+0.5)*TCS*HSTEP,z:-WOZ+(cj+0.5)*TCS*HSTEP,cur:2});}grp.userData.mat=m;grp.material=m;return grp;}
 function terrainLod(){if(!TCH.length)return;const cx=G.cam.position.x,cz=G.cam.position.z,S2=TCS*HSTEP,q=G.q|0;for(const c of TCH){const d=Math.hypot(c.x-cx,c.z-cz)/S2;const l=d<1.15+q*0.25?0:d<2.6+q*0.4?1:2;if(l!==c.cur){c.L[c.cur].visible=false;c.L[l].visible=true;c.cur=l;}}}
 function waterMat(){const T=THREE,m=new T.MeshStandardMaterial({color:'#2e6f8f',roughness:0.12,metalness:0.15,transparent:true,opacity:0.78,depthWrite:false});
   m.onBeforeCompile=sh=>{sh.uniforms.time=K3.GU?K3.GU.time:{value:0};sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vWp;').replace('#include <worldpos_vertex>','#include <worldpos_vertex>\n  vWp=(modelMatrix*vec4(transformed,1.0)).xyz;');

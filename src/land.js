@@ -4,19 +4,19 @@
    Lưu trong S.flat = [{x,z,r,h}], áp lại vào lưới độ cao mỗi lần tải. */
 const LAND_SZ=[['Nhỏ',70],['Vừa',110],['Rộng',150]];
 function flatK(f,x,z){const d=Math.hypot(x-f.x,z-f.z);return 1-ss(f.r*0.78,f.r*1.18,d);}
-function flatApply(f){const i0=Math.max(0,Math.floor((f.x-f.r*1.3+WSIZE/2)/HSTEP)),i1=Math.min(HN-1,Math.ceil((f.x+f.r*1.3+WSIZE/2)/HSTEP)),j0=Math.max(0,Math.floor((f.z-f.r*1.3+WSIZE/2)/HSTEP)),j1=Math.min(HN-1,Math.ceil((f.z+f.r*1.3+WSIZE/2)/HSTEP));
-  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const x=-WSIZE/2+i*HSTEP,z=-WSIZE/2+j*HSTEP,k=flatK(f,x,z);if(k<=0)continue;const n=j*HN+i;HG[n]=HG[n]*(1-k)+f.h*k;}}
+function flatApply(f){const i0=Math.max(0,Math.floor((f.x-f.r*1.3+WSIZE/2)/HSTEP)),i1=Math.min(HN-1,Math.ceil((f.x+f.r*1.3+WSIZE/2)/HSTEP)),j0=Math.max(0,Math.floor((f.z-f.r*1.3+WOZ)/HSTEP)),j1=Math.min(HN-1,Math.ceil((f.z+f.r*1.3+WOZ)/HSTEP));
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,k=flatK(f,x,z);if(k<=0)continue;const n=j*HN+i;HG[n]=HG[n]*(1-k)+f.h*k;}}
 function inFlat(x,z){for(const f of (S.flat||[]))if(Math.hypot(x-f.x,z-f.z)<f.r)return f;return null;}
 // tải game: áp các khu đã san sau khi làm phẳng hang
 {const _cf=caveFlatten;caveFlatten=function(){_cf();(S.flat||[]).forEach(flatApply);};}
 // tô màu đất nện cho khu đã san
 {const _tc=terrainColors;terrainColors=function(){_tc();if(!S.flat||!S.flat.length)return;const c=new THREE.Color(),e=new THREE.Color('#8b6a48');
-  for(const f of S.flat){const i0=Math.max(0,Math.floor((f.x-f.r*1.2+WSIZE/2)/HSTEP)),i1=Math.min(HN-1,Math.ceil((f.x+f.r*1.2+WSIZE/2)/HSTEP)),j0=Math.max(0,Math.floor((f.z-f.r*1.2+WSIZE/2)/HSTEP)),j1=Math.min(HN-1,Math.ceil((f.z+f.r*1.2+WSIZE/2)/HSTEP));
-    for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const x=-WSIZE/2+i*HSTEP,z=-WSIZE/2+j*HSTEP,k=flatK(f,x,z)*0.9;if(k<=0)continue;const n=j*HN+i;c.setRGB(TCOL[n*3],TCOL[n*3+1],TCOL[n*3+2]).lerp(e,k);TCOL[n*3]=c.r;TCOL[n*3+1]=c.g;TCOL[n*3+2]=c.b;
+  for(const f of S.flat){const i0=Math.max(0,Math.floor((f.x-f.r*1.2+WSIZE/2)/HSTEP)),i1=Math.min(HN-1,Math.ceil((f.x+f.r*1.2+WSIZE/2)/HSTEP)),j0=Math.max(0,Math.floor((f.z-f.r*1.2+WOZ)/HSTEP)),j1=Math.min(HN-1,Math.ceil((f.z+f.r*1.2+WOZ)/HSTEP));
+    for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,k=flatK(f,x,z)*0.9;if(k<=0)continue;const n=j*HN+i;c.setRGB(TCOL[n*3],TCOL[n*3+1],TCOL[n*3+2]).lerp(e,k);TCOL[n*3]=c.r;TCOL[n*3+1]=c.g;TCOL[n*3+2]=c.b;
       const s=TSPL;s[n*4]=s[n*4]*(1-k);s[n*4+1]=s[n*4+1]*(1-k)+k;s[n*4+2]=s[n*4+2]*(1-k);s[n*4+3]=s[n*4+3]*(1-k);
       TNRM[n*3]*=1-k;TNRM[n*3+1]=TNRM[n*3+1]*(1-k)+k;TNRM[n*3+2]*=1-k;}}};}
 // dựng lại các khối địa hình chạm vào khu vừa san
-function landRebuild(f){terrainColors();const S2=TCS*HSTEP;for(let cj=0;cj<TCN;cj++)for(let ci=0;ci<TCN;ci++){const x0=-WSIZE/2+ci*S2,z0=-WSIZE/2+cj*S2;
+function landRebuild(f){terrainColors();const S2=TCS*HSTEP;for(let cj=0;cj<TCN;cj++)for(let ci=0;ci<TCN;ci++){const x0=-WSIZE/2+ci*S2,z0=-WOZ+cj*S2;
     if(f.x+f.r*1.3<x0||f.x-f.r*1.3>x0+S2||f.z+f.r*1.3<z0||f.z-f.r*1.3>z0+S2)continue;const c=TCH[cj*TCN+ci];if(!c)continue;[1,2,4].forEach((st,li)=>{const me=c.L[li];const old=me.geometry;me.geometry=terrainChunk(ci,cj,st);old.dispose();});}
   try{if(typeof grassInit==='function')grassInit();}catch(e){}}
 function landCheck(r){const x=P.x,z=P.z;if(wdAt(x,z)>0.2)return 'Không san nền dưới nước.';if(slopeAt(x,z)>0.9)return 'Dốc quá, chọn chỗ bằng hơn.';

@@ -81,11 +81,11 @@ function t3U(){if(T3.U)return T3.U;const T=THREE,su=G.sky&&G.sky.material&&G.sky
 /* ---------- kế hoạch suối nhỏ (chỉ để nhìn): lần theo sườn dốc từ mạch nước xuống tới sông/biển ---------- */
 function t3Plan(){T3.brooks=[];T3.BW=new Float32Array(HN*HN).fill(-999);T3.BD=new Float32Array(HN*HN).fill(1e9);T3.TQ=new Float32Array(HN*HN*4);
   const R=rng(((S&&S.seed)|0)*3+777),avoid=['village','camp','start','banyan','cave','ford','falls'].map(id=>REG.find(r=>r.id===id)).filter(Boolean);
-  const gi=v=>Math.round((v+WSIZE/2)/HSTEP),gw=i=>-WSIZE/2+i*HSTEP,bad=(x,z)=>avoid.some(r=>Math.hypot(r.x-x,r.z-z)<r.r*0.85)||decoBlock(x,z);
+  const gi=v=>Math.round((v+WSIZE/2)/HSTEP),gw=i=>-WSIZE/2+i*HSTEP,gj=v=>Math.round((v+WOZ)/HSTEP),gz=j=>-WOZ+j*HSTEP,bad=(x,z)=>avoid.some(r=>Math.hypot(r.x-x,r.z-z)<r.r*0.85)||decoBlock(x,z);
   let tries=0;while(T3.brooks.length<64&&tries<5000){tries++;const x=(R()*2-1)*WR*0.82,z=(R()*2-1)*WR*0.82,h=hAt(x,z);if(h<30||h>430)continue;const sl=slopeAt(x,z);if(sl<0.1||sl>0.85)continue;
     const m=moist(x,z)+jungleK(x,z)*0.45-savannaK(x,z)*0.7;if(m<-0.06)continue;if(riverQ(x,z).d<260||wdAt(x,z)>0||bad(x,z))continue;if(T3.brooks.some(b=>Math.hypot(b.p[0][0]-x,b.p[0][1]-z)<520))continue;
-    let i=gi(x),j=gi(z);const path=[],seen=new Set();let ok=false;
-    for(let st=0;st<420;st++){const k=j*HN+i,wx=gw(i),wz=gw(j);path.push([wx,wz]);seen.add(k);if(WG[k]>-900||HG[k]<1){ok=true;break;}const q=riverQ(wx,wz);if(q.r>=0&&q.d<q.w*0.5+4){ok=true;break;}if(bad(wx,wz))break;
+    let i=gi(x),j=gj(z);const path=[],seen=new Set();let ok=false;
+    for(let st=0;st<420;st++){const k=j*HN+i,wx=gw(i),wz=gz(j);path.push([wx,wz]);seen.add(k);if(WG[k]>-900||HG[k]<1){ok=true;break;}const q=riverQ(wx,wz);if(q.r>=0&&q.d<q.w*0.5+4){ok=true;break;}if(bad(wx,wz))break;
       let best=-1,bh=HG[k]+1.2;for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){const ni=i+di,nj=j+dj;if(ni<1||nj<1||ni>=HN-1||nj>=HN-1)continue;const nk=nj*HN+ni;if(seen.has(nk))continue;const hh=HG[nk]+(di&&dj?0.3:0);if(hh<bh){bh=hh;best=nk;}}
       if(best<0)break;i=best%HN;j=Math.floor(best/HN);}
     if(!ok||path.length<16)continue;
@@ -96,7 +96,7 @@ function t3Plan(){T3.brooks=[];T3.BW=new Float32Array(HN*HN).fill(-999);T3.BD=ne
     const y=rs.map(([x,z])=>hAt(x,z)+0.45);for(let a=1;a<y.length;a++)y[a]=Math.min(y[a],y[a-1]+0.3);// không chảy ngược dốc nhiều
     T3.brooks.push({p:rs,y});
     // in dấu vào lưới: mực nước gần & độ ẩm cho mặt đất (vệt ướt, rêu dọc suối)
-    rs.forEach(([bx,bz],n)=>{const i0=gi(bx),j0=gi(bz);for(let dj=-2;dj<=2;dj++)for(let di=-2;di<=2;di++){const ii=i0+di,jj=j0+dj;if(ii<0||jj<0||ii>=HN||jj>=HN)continue;const k=jj*HN+ii,d=Math.hypot(gw(ii)-bx,gw(jj)-bz);if(d<T3.BD[k]){T3.BD[k]=d;T3.BW[k]=y[n];}}});}}
+    rs.forEach(([bx,bz],n)=>{const i0=gi(bx),j0=gj(bz);for(let dj=-2;dj<=2;dj++)for(let di=-2;di<=2;di++){const ii=i0+di,jj=j0+dj;if(ii<0||jj<0||ii>=HN||jj>=HN)continue;const k=jj*HN+ii,d=Math.hypot(gw(ii)-bx,gz(jj)-bz);if(d<T3.BD[k]){T3.BD[k]=d;T3.BW[k]=y[n];}}});}}
 /* ---------- trọng số trộn + dữ liệu phụ cho mỗi đỉnh ---------- */
 // splat: [cỏ, đất, đá, cát/sỏi]; tq: [mực nước gần, độ ẩm, đất đỏ, cỏ khô]
 splatAt=function(k,x,z,h,b,sl,wet){const tr=typeof trailAt==='function'?trailAt(x,z):0,q=riverQ(x,z),TQ=T3.TQ;
@@ -224,7 +224,7 @@ varying vec4 vF;varying vec4 vD;
 #elif defined(FALL)
 varying vec3 vU;
 #else
-uniform sampler2D tDep;uniform vec3 uB;
+uniform sampler2D tDep;uniform vec3 uB;uniform float uOz;
 #endif
 varying vec3 vW;
 #include <fog_pars_fragment>
@@ -249,7 +249,7 @@ void main(){vec3 toC=cameraPosition-vW;float dist=length(toC);vec3 V=toC/dist;fl
  float rough=clamp(spd/45.0,0.0,1.0);float amp=mix(0.32,1.25,rough);vec2 nw=(side*nt.x+dir*nt.y)*amp;
  float calm=1.0-rough;
 #else
- vec2 tc=vec2(((vW.x+uB.x)*uB.y+0.5)*uB.z,((vW.z+uB.x)*uB.y+0.5)*uB.z);vec4 dd=texture2D(tDep,tc);float ins=step(0.0,tc.x)*step(tc.x,1.0)*step(0.0,tc.y)*step(tc.y,1.0);
+ vec2 tc=vec2(((vW.x+uB.x)*uB.y+0.5)*uB.z,((vW.z+uOz)*uB.y+0.5)*uB.z);vec4 dd=texture2D(tDep,tc);float ins=step(0.0,tc.x)*step(tc.x,1.0)*step(0.0,tc.y)*step(tc.y,1.0);
  float depth=mix(64.0,dd.r*64.0,ins);float calm=mix(0.0,dd.g,ins);float fx=0.0;float spd=0.0;
  vec4 n1=texture2D(tW,vW.xz*(1.0/95.0)+vec2(t*0.011,t*0.006));vec2 nt=n1.xy-0.5;float fm=n1.a;
  #if WQ>0
@@ -301,7 +301,7 @@ function t3WaterMat(kind){const T=THREE,U=t3U(),tx=t3Tex();const un=Object.assig
   const m=new T.ShaderMaterial({uniforms:un,defines:def,vertexShader:T3_WATER_VS,fragmentShader:T3_WATER_FS,transparent:true,depthWrite:false,fog:true,side:kind==='fall'?T.DoubleSide:T.FrontSide});
   m.userData.noSea=1;T3.wmats.push(m);return m;}
 // độ sâu biển/hồ: R = độ sâu (0..64), G = mức lặng (hồ trong đất liền lặng, biển khơi động)
-function t3DepthTex(){const T=THREE,d=new Uint8Array(HN*HN*4);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const k=j*HN+i,x=-WSIZE/2+i*HSTEP,z=-WSIZE/2+j*HSTEP,r=Math.hypot(x,z*1.04)/WR;
+function t3DepthTex(){const T=THREE,d=new Uint8Array(HN*HN*4);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const k=j*HN+i,x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,r=Math.hypot(x,z*1.04)/WR;
     d[k*4]=Math.round(clamp((0.5-HG[k])/64,0,1)*255);d[k*4+1]=Math.round((0.25+0.75*(1-ss(0.7,0.86,r)))*255);d[k*4+3]=255;}
   const t=new T.DataTexture(d,HN,HN,T.RGBAFormat,T.UnsignedByteType);t.wrapS=t.wrapT=T.ClampToEdgeWrapping;t.magFilter=t.minFilter=T.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;}
 /* ---------- dải nước sông & suối nhỏ: một lưới chung, một lệnh vẽ ---------- */
@@ -371,7 +371,7 @@ function t3Rocks(){const T=THREE,R=rng(((S&&S.seed)|0)*7+99),L=[];
   // sắp ngẫu nhiên để khi giảm số lượng (chất lượng thấp) vẫn rải đều
   for(let i=L.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[L[i],L[j]]=[L[j],L[i]];}
   const geo=t3RockGeo(),mat=new T.MeshStandardMaterial({vertexColors:true,roughness:0.88,metalness:0}),C=3,cs=WSIZE/C,cells=new Map(),grp=new T.Group();
-  L.forEach(r=>{const key=Math.min(C-1,Math.max(0,Math.floor((r[0]+WSIZE/2)/cs)))+','+Math.min(C-1,Math.max(0,Math.floor((r[2]+WSIZE/2)/cs)));if(!cells.has(key))cells.set(key,[]);cells.get(key).push(r);});
+  L.forEach(r=>{const key=Math.min(C-1,Math.max(0,Math.floor((r[0]+WSIZE/2)/cs)))+','+Math.min(C-1,Math.max(0,Math.floor((r[2]+WOZ)/cs)));if(!cells.has(key))cells.set(key,[]);cells.get(key).push(r);});
   const M=new T.Matrix4(),Q=new T.Quaternion(),E=new T.Euler(),V=new T.Vector3(),SC=new T.Vector3(),CL=new T.Color();T3.rocks=[];
   for(const list of cells.values()){let mnx=1e9,mxx=-1e9,mnz=1e9,mxz=-1e9,mny=1e9,mxy=-1e9;list.forEach(r=>{mnx=Math.min(mnx,r[0]);mxx=Math.max(mxx,r[0]);mnz=Math.min(mnz,r[2]);mxz=Math.max(mxz,r[2]);mny=Math.min(mny,r[1]);mxy=Math.max(mxy,r[1]);});
     const g=new T.BufferGeometry();for(const k in geo.attributes)g.setAttribute(k,geo.attributes[k]);const c=new T.Vector3((mnx+mxx)/2,(mny+mxy)/2,(mnz+mxz)/2);g.boundingSphere=new T.Sphere(c,Math.hypot(mxx-mnx,mxy-mny,mxz-mnz)/2+40);
@@ -381,7 +381,7 @@ function t3Rocks(){const T=THREE,R=rng(((S&&S.seed)|0)*7+99),L=[];
   return grp;}
 /* ---------- mặt nước tổng: biển/hồ + sông/suối + thác + đá ---------- */
 waterMesh=function(){const T=THREE,grp=new T.Group(),U=t3U();
-  const seaM=t3WaterMat('sea');seaM.uniforms.tDep={value:t3DepthTex()};seaM.uniforms.uB={value:new T.Vector3(WSIZE/2,1/HSTEP,1/HN)};
+  const seaM=t3WaterMat('sea');seaM.uniforms.tDep={value:t3DepthTex()};seaM.uniforms.uB={value:new T.Vector3(WSIZE/2,1/HSTEP,1/HN)};seaM.uniforms.uOz={value:WOZ};
   const g=new T.PlaneGeometry(WSIZE*2.5,WSIZE*2.5,1,1);g.rotateX(-Math.PI/2);const sea=new T.Mesh(g,seaM);sea.position.y=0.5;sea.renderOrder=2;grp.add(sea);
   try{const rg=t3RiverGeo();if(rg.index&&rg.index.count){const rm=new T.Mesh(rg,t3WaterMat('river'));rm.renderOrder=2;grp.add(rm);}}catch(e){console.warn('sông',e);}
   try{const f=t3Falls();if(f)grp.add(f);}catch(e){console.warn('thác',e);}

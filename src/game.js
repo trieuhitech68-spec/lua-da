@@ -108,7 +108,7 @@ function stubModel(spec){const K=K3,k=spec[0],a=spec[1];
 const RI=new Map();
 // tài nguyên vẽ hàng loạt: vật nhỏ chia ô 700 du (chỉ vẽ gần), cây lớn chia ô 1800 du, cây xa dùng mô hình giản lược
 const RCH=1150,BIGRX=/^(tree|bamboo|palm|banyan|savannaTree|boulder\|3)/;
-function resInstances(){const groups=new Map(),protos=new Map();const lazyLo=!G.impDone&&!!(window.SBM&&SBM.v6bake&&SBM.treeLo);G.loQ=[];const ck=(x,z,c)=>Math.floor((x+WSIZE/2)/c)+','+Math.floor((z+WSIZE/2)/c);
+function resInstances(){const groups=new Map(),protos=new Map();const lazyLo=!G.impDone&&!!(window.SBM&&SBM.v6bake&&SBM.treeLo);G.loQ=[];const ck=(x,z,c)=>Math.floor((x+WSIZE/2)/c)+','+Math.floor((z+WOZ)/c);
   const use=(spec,q)=>{const sk=spec.join('|'),big=BIGRX.test(sk),k=sk+'@'+ck(q.x,q.z,big?1800:700);let e=groups.get(k);if(!e){e={sk,spec,qs:[],big};groups.set(k,e);}e.qs.push(q);return k;};
   RES.forEach(q=>{const D=RT[q.t];q.y=q.wy!=null?q.wy:hAt(q.x,q.z)-1.2;q.gk=use(D.m,q);if(D.stump)q.sk=use(D.stump,q);if(D.empty)q.ek=use(D.empty,q);});
   const proto=(sk,lo)=>{const key=sk+(lo?'#lo':'');let pr=protos.get(key);if(pr)return pr;const spec=sk.split('|').map(v=>/^\d+$/.test(v)?+v:v);let lg=null;if(lo&&window.SBM&&SBM.treeLo&&spec[0]==='tree'){try{lg=SBM.treeLo(spec[1],1,spec[2]);}catch(e){}}let parts=protoParts(lo?(lg||stubModel(spec)):model(spec));if(!lo&&(BIGRX.test(sk)||/^banana/.test(sk)))parts.forEach(pt=>pt.mat=occMat(pt.mat));

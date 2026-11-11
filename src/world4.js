@@ -9,7 +9,7 @@
    regionsBuild, decorPlan, decorBuild, resGen, waterMesh, mapBase, mapPix, mapHtml, skyTick, sceneInit, fixSave, newGame. */
 const W4={Z:{},ZL:[],ZG:null,ZK:null,chin:null,volc:[3300,-5150],hot:null,ring:null,mist:null,steam:null};
 // cấu hình kích thước theo phiên bản thế giới (gọi trước khi dựng thế giới)
-function worldCfg(v){WV=v>=3?3:2;if(WV>=3){WR=7400;WSEG=576;TCN=9;WRES=1.45;}else{WR=5200;WSEG=448;TCN=8;WRES=1;}WSIZE=WR*2+800;HN=WSEG+1;HSTEP=WSIZE/WSEG;TCS=WSEG/TCN;}
+function worldCfg(v){WV=v>=3?3:2;if(WV>=3){WR=7400;WSEG=576;TCN=9;WRES=1.45;}else{WR=5200;WSEG=448;TCN=8;WRES=1;}WSIZE=WR*2+800;WOZ=WSIZE/2;HN=WSEG+1;HSTEP=WSIZE/WSEG;TCS=WSEG/TCN;}
 /* ---------- các vùng mới: tâm, bán trục (đơn vị thế giới) ---------- */
 const W4ZONES=[
   {id:'trangan',x:4900,z:-1350,rx:1050,rz:880,e0:0.6,e1:1.0},
@@ -28,7 +28,7 @@ function z4d(Z,x,z){const dx=(x-Z.x)/Z.rx,dz=(z-Z.z)/Z.rz,d2=dx*dx+dz*dz;if(d2>2
 function z4k(Z,x,z){const d=z4d(Z,x,z);return d>=9?0:1-ss(Z.e0||0.62,Z.e1||1.05,d);}
 // tra nhanh trên lưới (sau khi dựng độ cao): {id vùng mạnh nhất, trọng số}
 const _z4={id:null,k:0,Z:null};
-function z4At(x,z){_z4.id=null;_z4.k=0;_z4.Z=null;if(!W4.ZG||WV<3)return _z4;const i=Math.round((x+WSIZE/2)/HSTEP),j=Math.round((z+WSIZE/2)/HSTEP);if(i<0||j<0||i>=HN||j>=HN)return _z4;const n=j*HN+i,g=W4.ZG[n];if(!g)return _z4;_z4.Z=W4ZONES[g-1];_z4.id=_z4.Z.id;_z4.k=W4.ZK[n]/255;return _z4;}
+function z4At(x,z){_z4.id=null;_z4.k=0;_z4.Z=null;if(!W4.ZG||WV<3)return _z4;const i=Math.round((x+WSIZE/2)/HSTEP),j=Math.round((z+WOZ)/HSTEP);if(i<0||j<0||i>=HN||j>=HN)return _z4;const n=j*HN+i,g=W4.ZG[n];if(!g)return _z4;_z4.Z=W4ZONES[g-1];_z4.id=_z4.Z.id;_z4.k=W4.ZK[n]/255;return _z4;}
 function z4kAt(id,x,z){const q=z4At(x,z);return q.id===id?q.k:0;}
 /* ---------- tra nhanh khoảng cách tới một đường gấp khúc (sông Chín Tầng, kênh) ---------- */
 function plBuild(P,C,m){const B=new Map();for(let k=0;k<P.length-1;k++){const [ax,az]=P[k],[bx,bz]=P[k+1];for(let i=Math.floor((Math.min(ax,bx)-m)/C);i<=Math.floor((Math.max(ax,bx)+m)/C);i++)for(let j=Math.floor((Math.min(az,bz)-m)/C);j<=Math.floor((Math.max(az,bz)+m)/C);j++){const key=i*4096+j;let L=B.get(key);if(!L)B.set(key,L=[]);L.push(k);}}return {P,B,C,q:{d:1e9,f:0}};}
@@ -111,7 +111,7 @@ function baseH4(x,z){const fx=x/WCR,fz=z/WCR,Q=W4.Z;let k,d;
   return h;}
 {const _bh=baseH;baseH=function(x,z){return WV>=3?baseH4(x,z):_bh(x,z);};}
 // lưới vùng: vùng mạnh nhất + trọng số tại mỗi ô
-function w4ZoneGrid(){W4.ZG=new Uint8Array(HN*HN);W4.ZK=new Uint8Array(HN*HN);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const x=-WSIZE/2+i*HSTEP,z=-WSIZE/2+j*HSTEP;let bk=0,bz=0;
+function w4ZoneGrid(){W4.ZG=new Uint8Array(HN*HN);W4.ZK=new Uint8Array(HN*HN);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP;let bk=0,bz=0;
     for(const Z of W4ZONES){if(Z.id==='canyon'||Math.abs(x-Z.x)>Z.rx*1.6||Math.abs(z-Z.z)>Z.rz*1.6)continue;const k=z4k(Z,x,z);if(k>bk){bk=k;bz=Z.i+1;}}
     if(bk<0.05&&W4.chin){const q=plQ(W4.chin,x,z);if(q.d<300&&q.f<CHIN.end+0.02){bk=1-ss(120,300,q.d);bz=W4.Z.canyon.i+1;}}
     W4.ZG[j*HN+i]=bk>0.02?bz:0;W4.ZK[j*HN+i]=Math.round(bk*255);}}
@@ -157,7 +157,7 @@ function w4Tint(id,k,x,z,h,sl,c,n){const t=W4TINT[id];if(t){const a=t[1]*k;c[0]+
   if(id==='terrace'){const cl=n!=null?w4TCls(n):(sl>0.3?1:0),tc=cl===1||cl===3?[0.47,0.36,0.24]:cl===2?[0.25,0.33,0.15]:cl===0?[0.54,0.75,0.27]:[0.42,0.52,0.22],a=(cl===1||cl===3?0.72:cl===2?0.6:0.45)*k;c[0]+=(tc[0]-c[0])*a;c[1]+=(tc[1]-c[1])*a;c[2]+=(tc[2]-c[2])*a;}
   if(id==='basalt'&&sl>0.6){const a=0.5*k;c[0]+=(0.24-c[0])*a;c[1]+=(0.22-c[1])*a;c[2]+=(0.21-c[2])*a;}}
 {const _tc=terrainColors;terrainColors=function(){_tc();if(WV<3||!W4.ZG)return;const c=[0,0,0];for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const n=j*HN+i,g=W4.ZG[n];if(!g)continue;const Z=W4ZONES[g-1],k=W4.ZK[n]/255;
-    if(WG[n]>-900&&WG[n]-HG[n]>0.3)continue;const x=-WSIZE/2+i*HSTEP,z=-WSIZE/2+j*HSTEP;c[0]=TCOL[n*3];c[1]=TCOL[n*3+1];c[2]=TCOL[n*3+2];w4Tint(Z.id,k,x,z,HG[n],1-TNRM[n*3+1]*TNRM[n*3+1]>0.0?Math.sqrt(1-TNRM[n*3+1]*TNRM[n*3+1])/Math.max(0.2,TNRM[n*3+1]):0,c,n);TCOL[n*3]=c[0];TCOL[n*3+1]=c[1];TCOL[n*3+2]=c[2];}};}
+    if(WG[n]>-900&&WG[n]-HG[n]>0.3)continue;const x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP;c[0]=TCOL[n*3];c[1]=TCOL[n*3+1];c[2]=TCOL[n*3+2];w4Tint(Z.id,k,x,z,HG[n],1-TNRM[n*3+1]*TNRM[n*3+1]>0.0?Math.sqrt(1-TNRM[n*3+1]*TNRM[n*3+1])/Math.max(0.2,TNRM[n*3+1]):0,c,n);TCOL[n*3]=c[0];TCOL[n*3+1]=c[1];TCOL[n*3+2]=c[2];}};}
 /* ---------- vùng có tên ---------- */
 const W4REG={
   trangan:['Thung Lũng Tràng An','Hồ nước xanh lặng giữa rừng tháp đá vôi dựng đứng. Kênh nước len qua chân núi, chèo thuyền ra được tận biển đông.','🛶'],
@@ -356,20 +356,20 @@ void main(){vec2 d=gl_PointCoord-0.5;float r=length(d)*2.0;float a=exp(-r*r*3.0)
   return grp;}
 {const _wm=waterMesh;waterMesh=function(){const g=_wm();if(WV>=3){try{g.add(w4Fx());}catch(e){console.warn('sương vùng mới',e);}try{g.add(w4TerraceFx());}catch(e){console.warn('ruộng bậc thang',e);}}return g;};}
 /* ---------- Đồi Bậc Thang: nước đọng lấp lánh trên mặt bậc + bờ đất thấp dọc mép bậc (mỗi thứ 1 lệnh vẽ) ---------- */
-function w4TerraceFx(){const T=THREE,grp=new T.Group(),Z=W4.Z.terrace;if(!Z||!HG)return grp;const R=Z.rx*1.1,gi=v=>Math.round((v+WSIZE/2)/HSTEP),gw=i=>-WSIZE/2+i*HSTEP;
-  const i0=Math.max(1,gi(Z.x-R)),i1=Math.min(HN-2,gi(Z.x+R)),j0=Math.max(1,gi(Z.z-R)),j1=Math.min(HN-2,gi(Z.z+R)),W=i1-i0+1,H=j1-j0+1;
+function w4TerraceFx(){const T=THREE,grp=new T.Group(),Z=W4.Z.terrace;if(!Z||!HG)return grp;const R=Z.rx*1.1,gi=v=>Math.round((v+WSIZE/2)/HSTEP),gw=i=>-WSIZE/2+i*HSTEP,gj=v=>Math.round((v+WOZ)/HSTEP),gzz=j=>-WOZ+j*HSTEP;
+  const i0=Math.max(1,gi(Z.x-R)),i1=Math.min(HN-2,gi(Z.x+R)),j0=Math.max(1,gj(Z.z-R)),j1=Math.min(HN-2,gj(Z.z+R)),W=i1-i0+1,H=j1-j0+1;
   const dep=new Float32Array(W*H).fill(-2),cls=new Uint8Array(W*H).fill(4),zk=new Float32Array(W*H);
-  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const n=j*HN+i,l=(j-j0)*W+(i-i0),x=gw(i),z=gw(j),q=z4At(x,z);if(q.id!=='terrace')continue;zk[l]=q.k;
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const n=j*HN+i,l=(j-j0)*W+(i-i0),x=gw(i),z=gzz(j),q=z4At(x,z);if(q.id!=='terrace')continue;zk[l]=q.k;
     if(WG[n]>-900||trailAt(x,z)>0.12)continue;const c=w4TCls(n);cls[l]=c;if(c===1||c===3){dep[l]=-1.6;continue;}if(c!==0&&c!==2)continue;const pk=w4PoolK(x,z,q.k);if(pk>0.05)dep[l]=-0.6+pk*(c===2?3.2:5.4);}
   // tấm nước: chỉ những tam giác nằm phẳng trên mặt bậc
-  const pos=[],aF=[],aD=[],idx=[],vid=new Int32Array(W*H).fill(-1);const V=(i,j)=>{const l=(j-j0)*W+(i-i0);if(vid[l]<0){const x=gw(i),z=gw(j);vid[l]=pos.length/3;pos.push(x,HG[j*HN+i]+0.55,z);aF.push(x,z,1,0);aD.push(dep[l],0,0,0);}return vid[l];};
+  const pos=[],aF=[],aD=[],idx=[],vid=new Int32Array(W*H).fill(-1);const V=(i,j)=>{const l=(j-j0)*W+(i-i0);if(vid[l]<0){const x=gw(i),z=gzz(j);vid[l]=pos.length/3;pos.push(x,HG[j*HN+i]+0.55,z);aF.push(x,z,1,0);aD.push(dep[l],0,0,0);}return vid[l];};
   const tri=(a,b,c)=>{const L=[a,b,c],hs=L.map(([i,j])=>HG[j*HN+i]),ds=L.map(([i,j])=>dep[(j-j0)*W+(i-i0)]);if(Math.max(...hs)-Math.min(...hs)>1.6||Math.max(...ds)<=0.05)return;idx.push(V(...a),V(...b),V(...c));};
   for(let j=j0;j<j1;j++)for(let i=i0;i<i1;i++){tri([i,j],[i,j+1],[i+1,j]);tri([i+1,j],[i,j+1],[i+1,j+1]);}
   if(idx.length&&typeof t3WaterMat==='function'){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('aF',new T.Float32BufferAttribute(aF,4));g.setAttribute('aD',new T.Float32BufferAttribute(aD,4));g.setIndex(idx);g.computeBoundingSphere();
     const me=new T.Mesh(g,t3WaterMat('river'));me.renderOrder=2;grp.add(me);W4.pools=me;}
   // bờ đất: một khúc ngắn ở mỗi đỉnh mép bậc, xoay theo đường đồng mức
   const B=[];for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const l=(j-j0)*W+(i-i0),c=cls[l];if((c!==1&&c!==3)||zk[l]<0.6)continue;const n=j*HN+i,gx=HG[n+1]-HG[n-1],gz=HG[n+HN]-HG[n-HN],gl=Math.hypot(gx,gz)||1,tx=-gz/gl,tz=gx/gl;
-    B.push([gw(i)-gx/gl*3,HG[n]-1.4,gw(j)-gz/gl*3,Math.atan2(-tz,tx),0.85+((i*7+j*13)%5)*0.06]);}
+    B.push([gw(i)-gx/gl*3,HG[n]-1.4,gzz(j)-gz/gl*3,Math.atan2(-tz,tx),0.85+((i*7+j*13)%5)*0.06]);}
   if(B.length){const g=w4BundGeo(),m=new T.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0,flatShading:true});let cx=0,cz=0,cy=0;B.forEach(b=>{cx+=b[0];cy+=b[1];cz+=b[2];});cx/=B.length;cy/=B.length;cz/=B.length;let r=0;B.forEach(b=>{r=Math.max(r,Math.hypot(b[0]-cx,b[2]-cz)+40);});
     const api=instGroup([{geo:g,mat:occMat(m)}],B.length,{sphere:{x:cx,y:cy,z:cz,r},shadow:false});B.forEach((b,k)=>api.set(k,b[0],b[1],b[2],b[3],b[4]));api.flush();grp.add(api.G);W4.bunds=api;}
   return grp;}
@@ -406,7 +406,7 @@ function w4Tick(){if(WV<3)return;w4RingTick();const dt=G.dt||0.016;
   if(W4.hot&&G.on&&!G.paused){const d=Math.hypot(P.x-W4.hot[0],P.z-W4.hot[1]);if(d<170&&wdAt(P.x,P.z)>0.4){S.p.warm=Math.min(100,(S.p.warm||0)+dt*5);if(!G.w4hotT||G.t-G.w4hotT>60){G.w4hotT=G.t;uiToast('♨️ Nước suối ấm sực, người bạn ấm dần lên.','good');}}}}
 {const _st=skyTick;skyTick=function(){_st();try{w4Tick();}catch(e){}};}
 /* ---------- bản đồ: phân giải cao hơn cho thế giới rộng, tô màu vùng mới ---------- */
-{const _mb=mapBase;mapBase=function(){if(WV<3)return _mb();return MAPIMG||(MAPIMG=mapRender(-WSIZE/2,-WSIZE/2,WSIZE,420));};}
+{const _mb=mapBase;mapBase=function(){if(WV<3)return _mb();return MAPIMG||(MAPIMG=mapRender(-WSIZE/2,-WOZ,WSIZE,420));};}
 {const _mp=mapPix;mapPix=function(x,z,col,c2){_mp(x,z,col,c2);if(WV<3)return;const q=z4At(x,z);if(!q.id||wdAt(x,z)>0.3)return;const c=[col.r,col.g,col.b];w4Tint(q.id,Math.min(1,q.k*1.3),x,z,hAt(x,z),slopeAt(x,z),c);col.setRGB(c[0],c[1],c[2]);};}
 /* ---------- phiên bản thế giới trong bản lưu ---------- */
 // fixSave cũ xoá S.res khi wv!==2: bản lưu thế giới 3 giữ nguyên

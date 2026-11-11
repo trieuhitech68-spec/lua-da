@@ -12,8 +12,8 @@ function startQ(){let q=null;try{const v=localStorage.getItem('ldtt-qu');if(v!==
   try{const L=+localStorage.getItem('ldtt-lost')||0;if(L>0){q=0;G.noAdapt=false;G.prK=L>1?0.6:0.75;G.lostN=L;}}catch(e){}G.q=clamp(q,0,2);}
 /* ---------- lưới vùng sinh thái (tra nhanh cho cỏ, bản đồ) ---------- */
 const BCODE=['water','beach','meadow','edge','forest','bank','rock','peak'];let BG=null;
-function biomeGridBuild(){BG=new Uint8Array(HN*HN);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const x=-WSIZE/2+i*HSTEP,z=-WSIZE/2+j*HSTEP;BG[j*HN+i]=Math.max(0,BCODE.indexOf(biome(x,z)));}}
-function bgAt(x,z){if(!BG)return 2;const i=Math.round((x+WSIZE/2)/HSTEP),j=Math.round((z+WSIZE/2)/HSTEP);if(i<0||j<0||i>=HN||j>=HN)return 0;return BG[j*HN+i];}
+function biomeGridBuild(){BG=new Uint8Array(HN*HN);for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP;BG[j*HN+i]=Math.max(0,BCODE.indexOf(biome(x,z)));}}
+function bgAt(x,z){if(!BG)return 2;const i=Math.round((x+WSIZE/2)/HSTEP),j=Math.round((z+WOZ)/HSTEP);if(i<0||j<0||i>=HN||j>=HN)return 0;return BG[j*HN+i];}
 /* ---------- cỏ dày quanh người chơi: luôn đi theo, xa thì nhỏ dần ---------- */
 function grassInit(){const T=THREE;if(G.grass){G.sc.remove(G.grass);G.grass.geometry.dispose();G.grass=null;}
   const q=G.q|0,N=[1800,3600,6000][q],R=[190,250,320][q];G.gR=R;const R2=rng(4242),pts=[];
