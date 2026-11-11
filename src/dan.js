@@ -20,7 +20,7 @@ const danCustom=f=>f.job==='gate'||f.job==='soldier';
 function danS(){if(!S.dan||typeof S.dan!=='object')S.dan={on:1};return S.dan;}
 function danXp(f,n){f.xp=(f.xp||0)+n;const need=8*danLv(f);if(f.xp>=need&&danLv(f)<DAN_MAXLV){f.xp-=need;f.lv=danLv(f)+1;if(Math.hypot(f.x-P.x,f.z-P.z)<900)uiToast(`⭐ ${f.n} lên cấp ${f.lv} (${DAN_SP[danSp(f)][1]}).`,'good');}}
 /* ---------- cấp của chiến binh theo vùng ---------- */
-function danFoeLv(f){if(f._lvA)return;f._lvA=1;const d=Math.hypot(f.x-SPAWN[0],f.z-SPAWN[1]);f.lv=clamp(1+Math.floor(d/1400)+(Math.random()<0.35?1:0),1,DAN_MAXLV);const k=1+0.2*(f.lv-1);f.hp*=k;if(f.hp0)f.hp0*=k;if(f.dmg)f.dmg*=1+0.12*(f.lv-1);}
+function danFoeLv(f){if(f._lvA)return;f._lvA=1;f.lv=clamp((typeof khuLv==='function'?khuLv(f.x,f.z):1+Math.floor(Math.hypot(f.x-SPAWN[0],f.z-SPAWN[1])/1000))+(Math.random()<0.35?1:0),1,DAN_MAXLV);const k=1+0.2*(f.lv-1);f.hp*=k;if(f.hp0)f.hp0*=k;if(f.dmg)f.dmg*=1+0.12*(f.lv-1);}
 {const _ft=foesTick;foesTick=function(dt){if(G.foes)for(const f of G.foes)if(!f._lvA&&f.alive)danFoeLv(f);return _ft.apply(this,arguments);};}
 {const _fh=foeHit;foeHit=function(f,t){if(!f||f.dmg||!(f.lv>1))return _fh.apply(this,arguments);const old=FOE.dmg;FOE.dmg=old*(1+0.12*(f.lv-1));try{return _fh.apply(this,arguments);}finally{FOE.dmg=old;}};}
 {const _ti=targetInfo;targetInfo=function(t){const r=_ti.apply(this,arguments);try{if(r&&t&&t.type==='foe'&&t.a){if(t.a.lv)r.name='Cấp '+t.a.lv+' · '+r.name;if(danS().on&&invCount('rope')>0&&freeBed())r.verb='Đánh (hạ gục sẽ trói bắt)';}}catch(e){}return r;};}

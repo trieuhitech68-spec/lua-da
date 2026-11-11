@@ -76,7 +76,7 @@ const rlRound=(n,m)=>n<=0?0:Math.max(1,Math.floor(n*m+Math.random()));
 /* ---------- sinh điểm giàu & cụm tài nguyên (nối CUỐI RES) ---------- */
 function rlScore(x,z,def,dd,used,lx){const h=hAt(x,z);if(h<3||h>330||wdAt(x,z)>0)return -1e9;const camp=!!def.tribe,cr=camp?120:40;
   let sl=slopeAt(x,z);for(let a=0;a<6;a++){const ax=x+Math.cos(a*1.047)*cr*0.7,az=z+Math.sin(a*1.047)*cr*0.7;if(wdAt(ax,az)>0)return -1e9;sl=Math.max(sl,slopeAt(ax,az));}
-  if(sl>(camp?0.24:0.34)+(lx?0.08:0))return -1e9;if(Math.hypot(x-SPAWN[0],z-SPAWN[1])<(lx?1100:1500))return -1e9;
+  if(sl>(camp?0.24:0.34)+(lx?0.08:0))return -1e9;if(Math.hypot(x-SPAWN[0],z-SPAWN[1])<(def.minD?def.minD*(lx?0.8:1):(lx?1100:1500)))return -1e9;// minD: điểm cấp cao phải ở xa nơi bắt đầu (khu.js)
   for(const s of used)if(Math.hypot(s.x-x,s.z-z)<(lx?420:650))return -1e9;
   for(const g of REG)if((g.id==='village'||g.id==='camp'||g.id==='start'||g.id==='cave'||g.id==='banyan')&&Math.hypot(g.x-x,g.z-z)<(lx?400:520))return -1e9;
   for(const d of DECO_PLAN)if(Math.hypot(d.x-x,d.z-z)<d.r+(lx?cr*0.5:cr+10))return -1e9;
