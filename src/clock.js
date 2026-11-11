@@ -29,7 +29,8 @@ function wcStep(dt){if(S.tn==null)S.tn=S.day+(S.hour||0)/24;if(S.day>Math.floor(
 // thời tiết chung: mỗi 20 phút thật gieo một lần bằng số hiệu khung giờ → ai cũng ra cùng kết quả
 function wcRnd(n){let x=(n^0x9e3779b9)>>>0;x=Math.imul(x^(x>>>16),0x85ebca6b);x=Math.imul(x^(x>>>13),0xc2b2ae35);x^=x>>>16;return (x>>>0)/4294967296;}
 function wcWeather(){const q=1200000,slot=Math.floor(wcMs()/q),si=wcSeason(),rp=SEASONS[si].rain,r=wcRnd(slot),r2=wcRnd(slot*7+3);let type='clear';
-  if(r<rp)type=si===3?'snow':(r2<0.16?'storm':'rain');else if(r<rp+0.22)type='cloudy';return {type,slot,until:TNOW()+(q-(wcMs()%q))/(DAY_SEC*1000)+0.0005};}
+  if(r<rp)type=si===3?(r2<0.08?'snow':'rain'):(r2<0.16?'storm':'rain');/* đông: mưa phùn là chính, thỉnh thoảng mới có đợt tuyết */
+  else if(r<rp+0.22)type='cloudy';return {type,slot,until:TNOW()+(q-(wcMs()%q))/(DAY_SEC*1000)+0.0005};}
 // đồng bộ với giờ máy chủ (10 phút một lần; lỗi thì thử lại sau 1 phút)
 function wcSyncTick(){const now=Date.now();if(now<WC.syncT)return;WC.syncT=now+60000;if(typeof LDB==='undefined'||!LDB.sb||!LDB.sb.rpc)return;const t0=now;
   try{Promise.resolve(LDB.sb.rpc('ld_now')).then(r=>{const v=r&&!r.error?+r.data:NaN;if(v>1e12&&v<1e14){const t1=Date.now();WC.off=Math.round(v-(t0+t1)/2);WC.ok=true;WC.syncT=t1+600000;}}).catch(()=>{});}catch(e){}}
@@ -38,3 +39,7 @@ function wcSyncTick(){const now=Date.now();if(now<WC.syncT)return;WC.syncT=now+6
     setTimeout(()=>{if(!S)return;if(S.day===d0&&S.tn!=null)S.tn+=0.45;if(isNight())uiToast('🌙 Ngủ dậy khỏe lại rồi, nhưng ngoài trời vẫn tối: giờ trong game là giờ thật ở Việt Nam ('+wcClockVN()+').','');},4200);}return _sl.apply(this,arguments);};}
 // bảng giờ: thêm dòng nhỏ "giờ VN · mùa còn bao lâu" dưới dòng ngày
 {const _hud=uiHud;uiHud=function(){const r=_hud.apply(this,arguments);try{const el=document.querySelector('#game .h-time');if(el&&S){el.title='Giờ thật Việt Nam '+wcClockVN()+' ngày '+wcDateVN()+' · mùa '+SEASONS[wcSeason()].n+' còn '+wcSeasonLeftDays()+' ngày · mọi người chơi cùng giờ, cùng mùa';}}catch(e){}return r;};}
+// MÙA ĐÔNG KIỂU MIỀN BẮC VIỆT NAM (vì mùa theo tháng thật, đông kéo 3 tháng): rét 9-17°C, mưa phùn, cây trồng lớn chậm (40%) chứ không ngừng hẳn
+Object.assign(SEASONS[3],{temp:[17,9],rain:0.4,grow:0.4});
+// ĐÊM SÁNG TRĂNG: giờ thật thì người chơi buổi tối luôn gặp đêm → đêm sáng hơn hẳn để vẫn làm việc, xây dựng được (thú đêm, kẻ cướp vẫn như cũ)
+{const _dt=dayTick;dayTick=function(dt){const r=_dt.apply(this,arguments);try{const n=1-(G.dayK??1);if(n>0&&G.moon&&G.L){G.moon.intensity*=1+1.3*n;G.L.hemi.intensity+=0.13*n;}}catch(e){}return r;};}

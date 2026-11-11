@@ -2458,7 +2458,8 @@ function seasonMat(m){if(!m||!m.isMeshStandardMaterial||m.userData.sea||m.userDa
   m.customProgramCacheKey=()=>pk()+'|sea';m.needsUpdate=true;}
 function seasonPatchAll(root){(root||G.sc).traverse(o=>{if(!o.material)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(seasonMat);});}
 function seasonTick(dt){const si=seasonIdx(),sd=seasonDay(),f=typeof wcSeasonProg==='function'?wcSeasonProg():(S.hour/24+sd-1)/SEASON_DAYS;// tiến độ trong mùa 0..1
-  const snowT=si===3?Math.min(1,f*3)*0.9:si===0?Math.max(0,0.9-f*6):0,autT=si===2?Math.min(0.9,f*2.2):si===3?0.55:si===0?Math.max(0,0.5-f*4):0;
+  // giờ thật: mùa đông dài 3 tháng nên chỉ phủ trắng khi đang có đợt tuyết (rét đậm), không trắng suốt mùa
+  const wcR=typeof wcSeason==='function',snowT=wcR?(S.wx&&S.wx.type==='snow'?0.9:0):si===3?Math.min(1,f*3)*0.9:si===0?Math.max(0,0.9-f*6):0,autT=si===2?Math.min(0.9,f*2.2):si===3?0.55:si===0?Math.max(0,0.5-f*4):0;
   SEA.uSnow.value+=(snowT-SEA.uSnow.value)*Math.min(1,dt*0.5);SEA.uAut.value+=(autT-SEA.uAut.value)*Math.min(1,dt*0.5);SEA.uWet.value+=(((G.wxK||0)>0.3&&S.wx&&S.wx.type!=='snow'?0.8:0)-SEA.uWet.value)*Math.min(1,dt*0.3);
   if(G.seasonShown!==si){const first=G.seasonShown==null;G.seasonShown=si;resSeasonal();if(!first){uiToast(`${SEASONS[si].ic} Mùa ${SEASONS[si].n} đã đến. ${['Cây cối đâm chồi, mưa nhiều.','Nắng nóng: khát nhanh hơn, quả mọng chín rộ.','Lá vàng rơi, nấm mọc nhiều: hãy tích trữ cho mùa đông.','Tuyết rơi, giá rét: cần lửa, nhà kín và áo ấm. Cây trồng ngừng lớn.'][si]}`,'gold');sfx('level');}}}
 // tài nguyên theo mùa: ngoài mùa thì tàn (ẩn) hoặc hết quả
@@ -15966,7 +15967,8 @@ function wcStep(dt){if(S.tn==null)S.tn=S.day+(S.hour||0)/24;if(S.day>Math.floor(
 // thời tiết chung: mỗi 20 phút thật gieo một lần bằng số hiệu khung giờ → ai cũng ra cùng kết quả
 function wcRnd(n){let x=(n^0x9e3779b9)>>>0;x=Math.imul(x^(x>>>16),0x85ebca6b);x=Math.imul(x^(x>>>13),0xc2b2ae35);x^=x>>>16;return (x>>>0)/4294967296;}
 function wcWeather(){const q=1200000,slot=Math.floor(wcMs()/q),si=wcSeason(),rp=SEASONS[si].rain,r=wcRnd(slot),r2=wcRnd(slot*7+3);let type='clear';
-  if(r<rp)type=si===3?'snow':(r2<0.16?'storm':'rain');else if(r<rp+0.22)type='cloudy';return {type,slot,until:TNOW()+(q-(wcMs()%q))/(DAY_SEC*1000)+0.0005};}
+  if(r<rp)type=si===3?(r2<0.08?'snow':'rain'):(r2<0.16?'storm':'rain');/* đông: mưa phùn là chính, thỉnh thoảng mới có đợt tuyết */
+  else if(r<rp+0.22)type='cloudy';return {type,slot,until:TNOW()+(q-(wcMs()%q))/(DAY_SEC*1000)+0.0005};}
 // đồng bộ với giờ máy chủ (10 phút một lần; lỗi thì thử lại sau 1 phút)
 function wcSyncTick(){const now=Date.now();if(now<WC.syncT)return;WC.syncT=now+60000;if(typeof LDB==='undefined'||!LDB.sb||!LDB.sb.rpc)return;const t0=now;
   try{Promise.resolve(LDB.sb.rpc('ld_now')).then(r=>{const v=r&&!r.error?+r.data:NaN;if(v>1e12&&v<1e14){const t1=Date.now();WC.off=Math.round(v-(t0+t1)/2);WC.ok=true;WC.syncT=t1+600000;}}).catch(()=>{});}catch(e){}}
@@ -15975,6 +15977,10 @@ function wcSyncTick(){const now=Date.now();if(now<WC.syncT)return;WC.syncT=now+6
     setTimeout(()=>{if(!S)return;if(S.day===d0&&S.tn!=null)S.tn+=0.45;if(isNight())uiToast('🌙 Ngủ dậy khỏe lại rồi, nhưng ngoài trời vẫn tối: giờ trong game là giờ thật ở Việt Nam ('+wcClockVN()+').','');},4200);}return _sl.apply(this,arguments);};}
 // bảng giờ: thêm dòng nhỏ "giờ VN · mùa còn bao lâu" dưới dòng ngày
 {const _hud=uiHud;uiHud=function(){const r=_hud.apply(this,arguments);try{const el=document.querySelector('#game .h-time');if(el&&S){el.title='Giờ thật Việt Nam '+wcClockVN()+' ngày '+wcDateVN()+' · mùa '+SEASONS[wcSeason()].n+' còn '+wcSeasonLeftDays()+' ngày · mọi người chơi cùng giờ, cùng mùa';}}catch(e){}return r;};}
+// MÙA ĐÔNG KIỂU MIỀN BẮC VIỆT NAM (vì mùa theo tháng thật, đông kéo 3 tháng): rét 9-17°C, mưa phùn, cây trồng lớn chậm (40%) chứ không ngừng hẳn
+Object.assign(SEASONS[3],{temp:[17,9],rain:0.4,grow:0.4});
+// ĐÊM SÁNG TRĂNG: giờ thật thì người chơi buổi tối luôn gặp đêm → đêm sáng hơn hẳn để vẫn làm việc, xây dựng được (thú đêm, kẻ cướp vẫn như cũ)
+{const _dt=dayTick;dayTick=function(dt){const r=_dt.apply(this,arguments);try{const n=1-(G.dayK??1);if(n>0&&G.moon&&G.L){G.moon.intensity*=1+1.3*n;G.L.hemi.intensity+=0.13*n;}}catch(e){}return r;};}
 /* ===================== NHÂN VẬT: CẤP ĐỘ · ĐIỂM THUỘC TÍNH · BẢNG THÔNG SỐ CHI TIẾT =====================
    - Cấp nhân vật tính từ TỔNG kinh nghiệm của 10 kỹ năng: cấp = 1 + ⌊√(tổng/30)⌋. Mỗi cấp cho 2 điểm thuộc tính.
    - 4 thuộc tính (mỗi thứ tối đa 30 điểm), cộng thẳng vào công thức có sẵn bằng cách bọc hàm (không sửa tệp cũ):
@@ -16043,6 +16049,116 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 .hero-ats{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-bottom:8px}.hero-at{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}.hero-at>div{flex:1;min-width:0;display:flex;flex-direction:column}.hero-ic{font-size:22px}.hero-at b i{font-style:normal;color:#f2c55a;font-size:16px}.hero-at b small{color:#a89878;font-weight:400}.hero-at .btn{min-width:44px;min-height:44px;font-size:18px}
 .hero-pts{font-size:11.5px;font-weight:700;color:#2a1608;background:#f2c55a;border-radius:10px;padding:2px 8px;margin-left:6px;vertical-align:middle}
 .hero-tb{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:6px}.hero-tb td{padding:6px 6px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}.hero-tb td:nth-child(2){white-space:nowrap;color:#f6e3b4}.hero-tb td:nth-child(3){font-size:11.5px}.hero-tb.sk td{vertical-align:middle}.hero-tb.sk td:nth-child(3){width:30%}`;document.head.appendChild(st);}
+/* ===================== NÂNG CẤP & SỬA CHỮA CÔNG TRÌNH =====================
+   Công trình đã xong của mình nâng được 3 bậc (b.up = 1..3: Gia cố → Kiên cố → Tinh xảo). Mỗi bậc tốn vật liệu (60% giá gốc × bậc)
+   và cần kỹ năng Xây dựng cấp 2 × bậc. Tác dụng thật (chỉ những loại dưới đây mới nâng được):
+     · đồ chứa (giỏ, rương, kệ, chum, kho…): +50% số ô mỗi bậc
+     · bếp, lò có củi: củi cháy lâu hơn 20% mỗi bậc
+     · mái, vách chịu mưa nắng (B3W): mục chậm hơn 25% mỗi bậc
+   Bảng "Nâng cấp & sửa chữa" (mở từ bảng Xây dựng) liệt kê công trình quanh mình: món nào đang mục thì sửa, món nào nâng được thì nâng. */
+const UP_MAX=3,UP_N=['','Gia cố','Kiên cố','Tinh xảo'],UP_R=420;
+function upKind(b){const d=pieceDef(b.k);if(!d)return null;if(d.store&&b.k!=='trough')return 'store';if(d.fuel)return 'fuel';if(typeof B3W!=='undefined'&&B3W[b.k]&&(B3W[b.k].decay||B3W[b.k].rainOnly))return 'weather';return null;}
+function upEffect(b,n){const k=upKind(b),d=pieceDef(b.k);return k==='store'?`chứa ${Math.round(d.store*(1+0.5*n))} ô (gốc ${d.store})`:k==='fuel'?`củi cháy lâu hơn ${20*n}%`:k==='weather'?`mục chậm hơn ${25*n}%`:'';}
+function upCost(b,n){const d=pieceDef(b.k),c={};for(const k in (d.cost||{}))c[k]=Math.max(1,Math.ceil(d.cost[k]*0.6*n));if(!Object.keys(c).length)c.wood=2*n;return c;}
+function upCostTxt(c){return Object.keys(c).map(k=>{const h=haveCount(k);return `<span class="${h>=c[k]?'':'up-miss'}">${c[k]} ${esc(ITEMS[k]?ITEMS[k].n:k)}</span>`;}).join(' · ');}
+function upMine(b){return b&&b.prog==null&&!b.remote&&pieceDef(b.k);}
+function upStoreFit(b){const d=pieceDef(b.k);if(!d||!d.store||!b.up)return;const st=S.store[b.id]||(S.store[b.id]=Array(d.store).fill(null)),want=Math.round(d.store*(1+0.5*b.up));while(st.length<want)st.push(null);}
+function upDo(id){const b=BYID.get(id)||S.builds.find(x=>String(x.id)===String(id));if(!upMine(b)||!upKind(b))return;const d=pieceDef(b.k),n=(b.up|0)+1;if(n>UP_MAX)return;
+  if(Math.hypot(b.x-P.x,b.z-P.z)>160){uiToast(`Lại gần ${d.n.toLowerCase()} hơn rồi nâng cấp.`,'bad');sfx('no');return;}
+  if(skLv('build')<n*2){uiToast(`Cần kỹ năng Xây dựng cấp ${n*2} để nâng lên bậc ${n}.`,'bad');sfx('no');return;}
+  const c=upCost(b,n);if(!canPay(c)){uiToast('Thiếu vật liệu để nâng cấp.','bad');sfx('no');return;}{const ng=needGate(true);if(ng){uiToast(ng,'bad');sfx('no');return;}}
+  uiClose();const sp=1+skLv('build')*0.08;
+  G.work={r:{out:{}},steps:[['Đo đạc, chuẩn bị vật liệu','gather',1.6,'pick'],['Gia cố khung, chèn nêm','hammer',2.6,'thud'],['Hoàn thiện, kiểm tra','lash',1.8,'build']].map(s=>({n:s[0],a:s[1],t:s[2]*n/sp,fx:s[3]})),
+    i:0,t:0,left:1,done:0,x:P.x,z:P.z,sk:'build',icon:Object.keys(c)[0],fn:()=>{if(!canPay(c)){uiToast('Thiếu vật liệu, chưa nâng cấp xong.','bad');return;}pay(c);b.up=n;upStoreFit(b);if(b.cond!=null)b.cond=100;
+      addXp('build',6*n);cnt('cnt','upgrade');puff(b.x,(b.y||P.y)+30,b.z,'#ffd27a',14);sfx('level');uiToast(`⬆️ ${d.n} lên bậc ${n} (${UP_N[n]}): ${upEffect(b,n)}.`,'gold');save();}};workUi();}
+function upRepair(id){const b=BYID.get(id)||S.builds.find(x=>String(x.id)===String(id));if(!upMine(b)||typeof b3Repair!=='function')return;if(Math.hypot(b.x-P.x,b.z-P.z)>160){uiToast('Lại gần hơn rồi sửa.','bad');sfx('no');return;}uiClose();b3Repair(b);}
+function upHtml(){const L=[];for(const b of S.builds){if(!upMine(b))continue;const dist=Math.hypot(b.x-P.x,b.z-P.z);if(dist>UP_R)continue;const kind=upKind(b),W=typeof B3W!=='undefined'?B3W[b.k]:null,rep=W&&W.rep&&b.cond!=null&&b.cond<95;if(!kind&&!rep)continue;L.push({b,dist,kind,rep,W});}
+  L.sort((a,b)=>(b.rep-a.rep)||(a.dist-b.dist));
+  if(!L.length)return `<p class="small muted">Quanh đây (trong ${Math.round(UP_R/20)} m) chưa có công trình nào nâng cấp hay cần sửa. Nâng được: đồ chứa (giỏ, rương, kệ, chum, kho thóc), bếp và lò, mái và vách chịu mưa nắng.</p>`;
+  const rows=L.slice(0,60).map(o=>{const b=o.b,d=pieceDef(b.k),up=b.up|0,n=up+1,near=o.dist<=160;let h=`<div class="up-row"><div class="up-main"><b>${esc(d.n)} ${up?`<i class="up-star">${'★'.repeat(up)}</i>`:''}</b><span class="small muted">cách ${Math.max(1,Math.round(o.dist/20))} m${b.cond!=null?` · độ bền ${Math.round(b.cond)}%`:''}${up?` · ${UP_N[up]}: ${upEffect(b,up)}`:''}</span>`;
+    if(o.rep)h+=`<span class="small up-warn">Đang mục: sửa tốn ${upCostTxt(o.W.rep)}</span>`;
+    if(o.kind&&up<UP_MAX)h+=`<span class="small">Bậc ${n} (${UP_N[n]}): ${upEffect(b,n)} · tốn ${upCostTxt(upCost(b,n))}${skLv('build')<n*2?` · <span class="up-miss">cần Xây dựng cấp ${n*2}</span>`:''}</span>`;else if(o.kind)h+=`<span class="small muted">Đã bậc cao nhất.</span>`;
+    h+=`</div><div class="up-acts">${o.rep?`<button class="btn sm" data-a="uprep" data-id="${esc(String(b.id))}" ${near?'':'disabled'}>🔧 Sửa</button>`:''}${o.kind&&up<UP_MAX?`<button class="btn sm${near&&canPay(upCost(b,n))&&skLv('build')>=n*2?'':' ghost'}" data-a="updo" data-id="${esc(String(b.id))}" ${near?'':'disabled'}>⬆️ Nâng</button>`:''}</div></div>`;return h;}).join('');
+  return `<p class="small muted">Công trình của bạn trong ${Math.round(UP_R/20)} m. Đứng cách dưới 8 m mới sửa hoặc nâng được. Mỗi bậc cần Xây dựng cấp 2 × bậc.</p>${rows}`;}
+/* ---------- tác dụng ---------- */
+{const _ft=fuelTick;fuelTick=function(gh){const snap=[];if(S&&gh>0)for(const b of S.builds)if(b.up&&(S.fuel[b.id]||0)>0)snap.push([b,S.fuel[b.id]]);const r=_ft.apply(this,arguments);for(const [b,f0] of snap){const f1=S.fuel[b.id]||0;if(f1>0&&f1<f0)S.fuel[b.id]=f1+(f0-f1)*Math.min(0.6,0.2*b.up);}return r;};}
+if(typeof b3Hourly==='function'){const _bh=b3Hourly;b3Hourly=function(gh){const snap=[];if(S&&gh>0)for(const b of S.builds)if(b.up&&b.cond>0&&b.prog==null)snap.push([b,b.cond]);const r=_bh.apply(this,arguments);for(const [b,c0] of snap){if(b.cond>0&&b.cond<c0)b.cond=b.cond+(c0-b.cond)*Math.min(0.75,0.25*b.up);}return r;};}
+{const _ti=targetInfo;targetInfo=function(t){const r=_ti.apply(this,arguments);try{if(r&&t&&t.b&&t.b.up&&r.name&&!/★/.test(r.name))r.name+=' '+'★'.repeat(t.b.up);}catch(e){}return r;};}
+/* ---------- bảng ---------- */
+{const _uo=uiOpen;uiOpen=function(k,o,keep){if(k!=='upg')return _uo.apply(this,arguments);if(!G.on)return;if(G.build)buildEnd();G.popt=o||{};G.panel='upg';const p=$('#panel');p.hidden=false;document.body.classList.add('pan');
+  const sc=p.querySelector('.p-body')?p.querySelector('.p-body').scrollTop:0;p.innerHTML=`<div class="p-head"><h2>Nâng cấp & sửa chữa</h2><button class="p-x" data-ui="close" aria-label="Đóng">✕</button></div><div class="p-body">${upHtml()}</div>`;if(keep)p.querySelector('.p-body').scrollTop=sc;if(document.pointerLockElement)document.exitPointerLock();};}
+{const _bh=buildHtml;buildHtml=function(){return `<div class="landbox"><b>⬆️ Nâng cấp & sửa chữa</b><span class="small muted">Nâng bậc đồ chứa, bếp lò, mái vách; sửa chỗ đang mục. Xem danh sách công trình quanh bạn.</span><div class="row"><button class="btn sm" data-a="upopen">Mở danh sách</button></div></div>`+_bh();};}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="updo"],[data-a="uprep"],[data-a="upopen"]');if(!b||!S)return;e.stopImmediatePropagation();const a=b.dataset.a;if(a==='upopen'){sfx('pick');uiOpen('upg');}else if(a==='updo')upDo(b.dataset.id);else upRepair(b.dataset.id);},true);
+{const st=document.createElement('style');st.textContent=`.up-row{display:flex;gap:10px;align-items:center;padding:9px 10px;margin-bottom:7px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}.up-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.up-star{font-style:normal;color:#f2c55a}.up-acts{flex:none;display:flex;flex-direction:column;gap:5px}.up-acts .btn{min-height:40px;white-space:nowrap}.up-miss{color:#ff9a8a}.up-warn{color:#ffb86a}`;document.head.appendChild(st);}
+/* ===================== THỔ DÂN: BẮT SỐNG · CẤP ĐỘ THEO VÙNG · SỞ TRƯỜNG · GIỮ CỔNG · LÀM LÍNH =====================
+   - Chiến binh các bộ lạc có CẤP (1..10) tăng theo khoảng cách tới Trảng Khởi Đầu: càng xa càng trâu (máu +20%, đòn +12% mỗi cấp).
+   - Mang Dây thừng trong túi và còn giường trống: hạ gục một chiến binh thì TRÓI BẮT thay vì giết (tốn 1 dây thừng). Tù binh về ở như
+     người nhà (S.folk) kèm: cap (đang là tù binh), loy (lòng trung thành 0..100), lv (cấp, giữ từ lúc bắt), sp (sở trường), xp.
+   - Cho ăn đủ mỗi ngày công: +12 trung thành; bỏ đói: −20. Tới 100 thì quy phục hẳn (hết là tù binh); về 0 thì trốn mất.
+   - Cấp và sở trường có tác dụng: làm đúng sở trường nhanh hơn 40%, mỗi cấp nhanh thêm 10%; đòn đánh = 2 + cấp (chiến binh ×1,5).
+     Làm việc, đánh trận thì lên kinh nghiệm, lên cấp (tối đa 10). Người làng mời về cũng có cấp và sở trường theo nghề cũ.
+   - Hai vị trí mới: "Giữ cổng" (đứng ở cổng gần nhà nhất, đánh kẻ cướp và thú dữ lại gần, gác cả đêm) và "Lính theo bạn"
+     (đi theo người chơi, cùng đánh chiến binh, thú dữ: dùng để đi chiếm điểm tài nguyên). "Canh gác" cũ giờ đánh cả kẻ cướp.
+   - Bảng 👥 Dân làng: danh sách mọi người, cấp, sở trường, trung thành, đổi việc tại chỗ. */
+const DAN_SP={wood:['🪓','Thợ rừng'],stone:['⛏️','Thợ đá'],gather:['🧺','Hái lượm'],guard:['🛡️','Chiến binh'],cook:['🍲','Bếp núc']};
+const DAN_ROLE={hunter:'guard',gatherer:'gather',potter:'cook',elder:'cook',chief:'guard',child:'gather'};
+const DAN_NAMES=['Khả','Lục','Mộc','Sơn','Thạch','Vũ','Điền','Hổ','Lang','Ngạn','Trác','Bàng','Cồ','Đô','Giáp','Hùng','Kha','Lữ','Mạc','Nùng'];
+const DAN_MAXLV=10;
+JOBN.gate='Giữ cổng';JOBN.soldier='Lính theo bạn';
+const danLv=f=>clamp(f.lv|0||1,1,DAN_MAXLV);
+const danSp=f=>f.sp||(f.sp=DAN_ROLE[f.role]||'gather');
+const danDmg=f=>(2+danLv(f))*(danSp(f)==='guard'?1.5:1);
+const danCustom=f=>f.job==='gate'||f.job==='soldier';
+function danS(){if(!S.dan||typeof S.dan!=='object')S.dan={on:1};return S.dan;}
+function danXp(f,n){f.xp=(f.xp||0)+n;const need=8*danLv(f);if(f.xp>=need&&danLv(f)<DAN_MAXLV){f.xp-=need;f.lv=danLv(f)+1;if(Math.hypot(f.x-P.x,f.z-P.z)<900)uiToast(`⭐ ${f.n} lên cấp ${f.lv} (${DAN_SP[danSp(f)][1]}).`,'good');}}
+/* ---------- cấp của chiến binh theo vùng ---------- */
+function danFoeLv(f){if(f._lvA)return;f._lvA=1;const d=Math.hypot(f.x-SPAWN[0],f.z-SPAWN[1]);f.lv=clamp(1+Math.floor(d/1400)+(Math.random()<0.35?1:0),1,DAN_MAXLV);const k=1+0.2*(f.lv-1);f.hp*=k;if(f.hp0)f.hp0*=k;if(f.dmg)f.dmg*=1+0.12*(f.lv-1);}
+{const _ft=foesTick;foesTick=function(dt){if(G.foes)for(const f of G.foes)if(!f._lvA&&f.alive)danFoeLv(f);return _ft.apply(this,arguments);};}
+{const _fh=foeHit;foeHit=function(f,t){if(!f||f.dmg||!(f.lv>1))return _fh.apply(this,arguments);const old=FOE.dmg;FOE.dmg=old*(1+0.12*(f.lv-1));try{return _fh.apply(this,arguments);}finally{FOE.dmg=old;}};}
+{const _ti=targetInfo;targetInfo=function(t){const r=_ti.apply(this,arguments);try{if(r&&t&&t.type==='foe'&&t.a){if(t.a.lv)r.name='Cấp '+t.a.lv+' · '+r.name;if(danS().on&&invCount('rope')>0&&freeBed())r.verb='Đánh (hạ gục sẽ trói bắt)';}}catch(e){}return r;};}
+/* ---------- bắt sống ---------- */
+function danCapture(foe){const bed=freeBed();if(!bed)return false;slotsTake(S.inv,'rope',1);S.folk=S.folk||[];S.recruited=S.recruited||{};const used=new Set(S.folk.map(f=>f.n));let n=DAN_NAMES[Math.floor(Math.random()*DAN_NAMES.length)];for(let i=2;used.has(n)&&i<99;i++)n=n.split(' ')[0]+' '+i;
+  const sps=Object.keys(DAN_SP),sp=Math.random()<0.4?'guard':sps[Math.floor(Math.random()*sps.length)];
+  const f={n,role:'hunter',seed:900+Math.floor(Math.random()*90),sex:'m',bed:bed.id,job:'idle',x:foe.x,z:foe.z,fed:TNOW(),cap:1,loy:30,lv:foe.lv||1,sp,xp:0,from:foe.n||FOE.n};S.folk.push(f);folkSpawn(f);
+  foe.dieT=99;cnt('cnt','capture');sfx('level');uiToast(`🪢 Đã trói bắt ${f.n} (cấp ${f.lv}, ${DAN_SP[sp][1].toLowerCase()}). Cho ăn đủ để thu phục; mở 👥 Dân làng để giao việc.`,'gold');save();uiHotbar&&uiHotbar();return true;}
+{const _fd=foeDamage;foeDamage=function(f,dmg){const al=f&&f.alive;const r=_fd.apply(this,arguments);try{if(al&&f&&!f.alive&&S&&danS().on&&invCount('rope')>0){if(!danCapture(f)&&!G.danBedTip){G.danBedTip=1;uiToast('Muốn bắt sống thổ dân thì cần còn giường trống ở nhà.','');}}}catch(e){console.warn('thổ dân',e);}return r;};}
+/* ---------- trung thành ---------- */
+{const _fh=folkHourly;folkHourly=function(gh){const r=_fh.apply(this,arguments);if(!S||!S.folk)return r;const d=Math.floor(TNOW());for(const f of S.folk.slice()){if(!f.cap)continue;if(f.loyD==null){f.loyD=d;continue;}if(f.loyD===d)continue;f.loyD=d;const fed=TNOW()-(f.fed||0)<1.3;f.loy=clamp((f.loy||0)+(fed?12:-20),0,100);
+    if(f.loy>=100){f.cap=0;uiToast(`🤝 ${f.n} đã quy phục, thành người của bộ tộc bạn.`,'gold');sfx('level');}
+    else if(f.loy<=0){S.folk=S.folk.filter(o=>o!==f);if(f._o)G.sc.remove(f._o);uiToast(`${f.n} bị bỏ đói, đã trốn về bộ lạc cũ.`,'bad');}}save();return r;};}
+/* ---------- làm việc theo cấp, sở trường · giữ cổng · làm lính ---------- */
+function danEnemy(ax,az,r){let best=null,bd=r;if(G.foes)for(const e of G.foes){if(!e.alive)continue;const d=Math.hypot(e.x-ax,e.z-az);if(d<bd){bd=d;best={e,foe:1};}}
+  for(const a of G.animals){if(!a.alive||a.state!=='chase'||!a.o||!a.o.visible)continue;const d=Math.hypot(a.x-ax,a.z-az);if(d<bd){bd=d;best={e:a,foe:0};}}return best;}
+function danGate(home){let best=null,bd=700;for(const b of S.builds){if(b.prog!=null||!/gate/i.test(b.k))continue;const d=Math.hypot(b.x-home.x,b.z-home.z);if(d<bd){bd=d;best=b;}}return best||home;}
+function danStrike(f,t){if(t.foe)foeDamage(t.e,danDmg(f));else animalDamage(t.e,danDmg(f));danXp(f,1);}
+function danPost(f,dt){if(!f._o)folkSpawn(f);const home=folkHome(f),sol=f.job==='soldier';let ax,az;if(sol){ax=P.x-Math.sin(P.ry||0)*40+((f.seed%5)-2)*14;az=P.z-Math.cos(P.ry||0)*40+((f.seed%3)-1)*14;}else{const g=danGate(home);ax=g.x+((f.seed%3)-1)*18;az=g.z+18;}
+  let tx=ax,tz=az,pose='idle',sp=sol?150:70;f._t=(f._t||0)-dt;const t=danEnemy(sol?P.x:ax,sol?P.z:az,sol?260:240);
+  if(t){tx=t.e.x;tz=t.e.z;sp=sol?150:110;if(Math.hypot(t.e.x-f.x,t.e.z-f.z)<(t.e.r||9)+16){tx=f.x;tz=f.z;pose='chop';f._ry=Math.atan2(t.e.x-f.x,t.e.z-f.z);if(f._t<=0){f._t=1.1;danStrike(f,t);}}}
+  const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(sol&&d>1400){f.x=ax;f.z=az;}else if(d>6&&pose!=='chop'){f.x+=dx/d*Math.min(d,sp*dt);f.z+=dz/d*Math.min(d,sp*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*(sp>100?2:1.4);}
+  f._o.position.set(f.x,groundY(f.x,f.z,(f._o.position.y||0)+10),f.z);f._o.rotation.y=lerpAng(f._o.rotation.y,f._ry||0,Math.min(1,dt*6));
+  if(K3.char2Pose&&f._rig&&Math.hypot(P.x-f.x,P.z-f.z)<800){try{K3.char2Pose(f._rig,pose,pose==='walk'?f._g:G.t+f.seed,{});}catch(e){}}}
+{const _ft=folkTick;folkTick=function(dt){if(!S||!S.folk||!S.folk.length)return _ft.apply(this,arguments);const all=S.folk,cus=all.filter(danCustom);
+  if(cus.length){S.folk=all.filter(f=>!danCustom(f));try{_ft.apply(this,arguments);}finally{S.folk=all;}for(const f of cus){try{danPost(f,dt);}catch(e){}}}else _ft.apply(this,arguments);
+  for(const f of all){if(danCustom(f))continue;const st=f._st;
+    if(st==='work'&&f._t>0)f._t-=dt*(0.1*(danLv(f)-1)+(f.job===danSp(f)?0.4:0));
+    if(f._pst==='work'&&st==='back')danXp(f,1);f._pst=st;
+    // canh gác: đánh cả kẻ cướp lại gần nhà
+    if(f.job==='guard'&&G.foes&&G.foes.length&&!(S.hour>=20||S.hour<6)){const home=folkHome(f);let e=null,bd=280;for(const o of G.foes){if(!o.alive)continue;const d=Math.hypot(o.x-home.x,o.z-home.z);if(d<bd){bd=d;e=o;}}
+      if(e){const d=Math.hypot(e.x-f.x,e.z-f.z);if(d>e.r+16){f.x+=(e.x-f.x)/d*Math.min(d,60*dt);f.z+=(e.z-f.z)/d*Math.min(d,60*dt);}else{f._gt=(f._gt||0)-dt;if(f._gt<=0){f._gt=1.1;foeDamage(e,danDmg(f));danXp(f,1);}}}}}};}
+/* ---------- bảng ---------- */
+function danCard(f){const sp=DAN_SP[danSp(f)],lv=danLv(f);return `<div class="dan-info"><span class="dan-lv">Cấp ${lv}</span><span>${sp[0]} ${sp[1]}</span><span class="muted">đòn ${danDmg(f).toFixed(1)} · làm nhanh +${Math.round((0.1*(lv-1)+(f.job===danSp(f)?0.4:0))*100)}%</span>${f.cap?`<span class="dan-cap">Tù binh · trung thành ${Math.round(f.loy||0)}/100</span>`:''}</div>${f.cap?`<div class="hero-bar"><i style="width:${clamp(f.loy||0,0,100)}%"></i></div>`:''}`;}
+{const _fh=folkHtml;folkHtml=function(){const f=G.folkCur;if(!f)return _fh.apply(this,arguments);return danCard(f)+`<p class="small muted">${f.cap?'Cho ăn đủ mỗi ngày (để thức ăn trong giỏ, rương, chum) thì trung thành tăng 12; bỏ đói thì giảm 20 và có thể trốn mất. ':''}Giao đúng sở trường thì làm nhanh hơn 40%. Giữ cổng: gác ở cổng gần nhà cả ngày lẫn đêm. Lính theo bạn: đi cùng, đánh chiến binh và thú dữ.</p>`+_fh.apply(this,arguments);};}
+function danHtml(){const L=S.folk||[],D=danS(),beds=S.builds.filter(b=>{const d=pieceDef(b.k);return d&&d.bed&&b.prog==null;}).length;
+  const rows=L.map((f,i)=>`<div class="up-row dan-row"><div class="up-main"><b>${esc(f.n)}</b>${danCard(f)}<div class="chipsel">${Object.keys(JOBN).filter(j=>j!=='farm').map(j=>`<button class="tb sm${f.job===j?' on':''}" data-a="danjob" data-i="${i}" data-j="${j}">${JOBN[j]}</button>`).join('')}</div></div></div>`).join('');
+  return `<div class="landbox"><b>🪢 Bắt sống thổ dân</b><span class="small muted">Mang Dây thừng và còn giường trống: hạ gục chiến binh sẽ trói bắt thay vì giết (tốn 1 dây). Vùng càng xa, thổ dân cấp càng cao. Đang có ${invCount('rope')} dây thừng · ${L.length}/${beds} giường có người.</span>
+    <div class="row"><button class="btn sm${D.on?'':' ghost'}" data-a="dantog">${D.on?'✔ Đang bật bắt sống':'Đang tắt: hạ gục là giết'}</button></div></div>
+  ${L.length?rows:'<p class="small muted">Chưa có ai ở cùng. Mời dân Làng Suối Tây (tình thân từ 40) hoặc bắt sống chiến binh các bộ lạc.</p>'}`;}
+{const _uo=uiOpen;uiOpen=function(k,o,keep){if(k!=='dan')return _uo.apply(this,arguments);if(!G.on)return;if(G.build)buildEnd();G.popt=o||{};G.panel='dan';const p=$('#panel');p.hidden=false;document.body.classList.add('pan');
+  const sc=p.querySelector('.p-body')?p.querySelector('.p-body').scrollTop:0;p.innerHTML=`<div class="p-head"><h2>Dân làng & thổ dân</h2><button class="p-x" data-ui="close" aria-label="Đóng">✕</button></div><div class="p-body">${danHtml()}</div>`;if(keep)p.querySelector('.p-body').scrollTop=sc;if(document.pointerLockElement)document.exitPointerLock();};}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="danjob"],[data-a="dantog"]');if(!b||!S)return;e.stopImmediatePropagation();if(b.dataset.a==='dantog'){const D=danS();D.on=D.on?0:1;}else{const f=(S.folk||[])[+b.dataset.i];if(f){f.job=b.dataset.j;f._st='idle';}}sfx('pick');save();uiOpenRefresh();},true);
+function danMenu(){const m=$('#menu');if(!m||m.querySelector('[data-ui="dan"]'))return;const b=document.createElement('button');b.setAttribute('data-ui','dan');b.setAttribute('aria-label','Dân làng');b.innerHTML='<span>👥</span><i>Dân làng</i>';const j=m.querySelector('[data-ui="journal"]');if(j&&j.parentNode)j.parentNode.insertBefore(b,j);else m.appendChild(b);}
+setInterval(()=>{try{if(G.on&&S)danMenu();}catch(e){}},1500);
+{const st=document.createElement('style');st.textContent=`.dan-info{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:12px;margin:2px 0 4px}.dan-lv{font-weight:800;color:#2a1608;background:#f2c55a;border-radius:8px;padding:1px 7px}.dan-cap{color:#ffb86a;font-weight:700}.dan-row .chipsel{margin-top:6px}`;document.head.appendChild(st);}
 /* ===================== ĐĂNG NHẬP / ĐĂNG KÝ (bản web) · CHỈ CÒN THẾ GIỚI CHUNG =====================
    - Bản web (backend.js, LDB.mode==='web'): màn hình đầu là Đăng nhập / Đăng ký / Quên mật khẩu. Đăng nhập xong mới vào danh sách nhân vật.
    - Không còn "Một mình": nhân vật mới luôn ở thế giới chung (cả trên claude.ai khi có máy chủ).
