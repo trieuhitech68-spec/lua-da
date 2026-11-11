@@ -18879,7 +18879,7 @@ if(typeof animalsTick==='function'){const _at=animalsTick;animalsTick=function(d
 
 /* ---------- đứng được trên mái nhà và nóc lều ---------- */
 const SOL_HUT=34;
-function solTopAt(x,z){try{const c=cellAt(x,z);if(!c)return null;let top=null;for(let L=0;L<=LVMAX;L++){const id=c[slotN('roof',L)];if(id){const b=BYID.get(id);if(b&&b.prog==null){const t=b.y+LVH+8;if(top==null||t>top)top=t;}}}
+function solTopAt(x,z){try{const c=cellAt(x,z);if(!c)return null;let top=null;for(let L=0;L<=LVMAX;L++){const id=c[slotN('roof',L)];if(id){const b=BYID.get(id);if(b&&b.prog==null){/* tấm mái dốc: mép thấp (y+48) ở phía +z của tấm, nóc (y+78) ở phía −z, dày 5; xoay theo b.r */const d=pieceDef(b.k),th=(b.r||0)*Math.PI/2,lz=(x-b.x)*Math.sin(th)+(z-b.z)*Math.cos(th);const t=d&&d.cap?b.y+LVH+8:b.y+51+clamp((20-lz)/40,0,1)*30;if(top==null||t>top)top=t;}}}
     if(top==null){for(let L=0;L<=LVMAX;L++){const id=c[slotN('obj',L)];if(!id)continue;const b=BYID.get(id);if(!b)continue;const r=solRectOf(b);if(r&&x>r[0]&&x<r[2]&&z>r[1]&&z<r[3])top=b.y+SOL_HUT;}}return top;}catch(e){return null;}}
 {const _gy=groundY;groundY=function(x,z,yRef){const g=_gy(x,z,yRef);try{if(typeof OCC!=='undefined'&&OCC.cell.size){const t=solTopAt(x,z);if(t!=null&&t>g){const ref=yRef==null?P.y:yRef;if(ref>=t-10)return t;}}}catch(e){}return g;};}
 /* ===================== NHÂN VẬT (bản 3): MÀN HÌNH "TƯỚNG" =====================
