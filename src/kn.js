@@ -8,7 +8,7 @@
         cấp 10 🦁 Gầm thét      : thú dữ và chiến binh trong 15 m hoảng sợ bỏ chạy 6 giây (20 thể lực, hồi 40 giây)
         cấp 15 🌀 Quét vòng     : đánh mọi kẻ địch quanh mình trong 5 m       (25 thể lực, hồi 15 giây)
    3. Cụm nút tay phải có HAI TRANG: nút ⇄ (hoặc vuốt ngang trên cụm nút) đổi giữa trang Hành động (Khom, Ngồi, Ném, Chạy, Nhảy…)
-      và trang Kỹ năng (các kỹ năng đã học, có vòng hồi chiêu). Nút Hành động to, nút Đánh luôn hiện ở cả hai trang. Máy tính: phím Z X C V B N. */
+      và trang Kỹ năng (các kỹ năng đã học, có vòng hồi chiêu; kèm các nút ít dùng: Cử chỉ, Chế nhanh, Tự đi). Nút Hành động to, nút Đánh luôn hiện ở cả hai trang. Máy tính: phím Z X C V B N. */
 const KN={cd:{},pow:0,rally:0,dash:0,page:0};
 const KNS=[
  {id:'pow',lv:3,ic:'💥',n:'Đòn mạnh',d:'Đòn kế tiếp gây ×2,5 sát thương.',st:15,cd:8,key:'KeyZ'},
@@ -53,8 +53,10 @@ if(typeof heroHtml==='function'){const _hh=heroHtml;heroHtml=function(){let h=_h
   const i=h.indexOf('<h3>Chỉ số</h3>');const blk=`<h3>Kỹ năng chủ động</h3><p class="small muted">Tự học khi nhân vật đủ cấp. Dùng ở cụm nút tay phải: bấm ⇄ hoặc vuốt ngang để sang trang Kỹ năng.</p><div class="h2-ens">${rows}</div>`;h=i>0?h.slice(0,i)+blk+h.slice(i):h+blk;}catch(e){}return h;};}
 {const st=document.createElement('style');st.textContent=`#game .acts .kn-b{display:none;position:relative}#game .acts .kn-b span{font-size:19px;line-height:1}#game .acts .kn-b em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:50%;font-style:normal;font-weight:800;font-size:12px;color:#fff;pointer-events:none}
 #game .acts .kn-b.kn-cd em,#game .acts .kn-b.kn-lock em{background:rgba(10,6,4,.72)}#game .acts .kn-b.kn-lock em{font-size:9.5px;color:#cbb994}#game .acts .kn-b.on{border-color:#ffd27a;box-shadow:0 0 12px rgba(255,210,122,.8)}
-#game .acts.kn-p2>.rbtn:not(.kn-b):not(#knSw):not(#u7atk):not(#u7cap):not(.actbtn){display:none!important}#game .acts.kn-p2 .kn-b{display:flex;width:46px;height:46px}
+#game .acts.kn-p2>.rbtn:not(.kn-b):not(#knSw):not(#u7atk):not(#u7cap):not(.actbtn):not(#m2emoBtn):not(#m3qc):not(#m3auto){display:none!important}#game .acts:not(.kn-p2)>#m2emoBtn,#game .acts:not(.kn-p2)>#m3qc,#game .acts:not(.kn-p2)>#m3auto{display:none!important}#game .acts.kn-p2>#m2emoBtn{grid-area:4/1!important}#game .acts.kn-p2>#m3qc{grid-area:4/2!important}#game .acts.kn-p2>#m3auto{grid-area:4/3!important}/* Cử chỉ, Chế nhanh, Tự đi dời sang trang 2 cho trang Hành động gọn */#game .acts.kn-p2 .kn-b{display:flex;width:46px;height:46px}
 #game .acts.kn-p2 .kn-b[data-kn="pow"]{grid-area:1/2!important}#game .acts.kn-p2 .kn-b[data-kn="dash"]{grid-area:1/3!important}#game .acts.kn-p2 .kn-b[data-kn="rally"]{grid-area:1/4!important}#game .acts.kn-p2 .kn-b[data-kn="heal"]{grid-area:2/2!important}#game .acts.kn-p2 .kn-b[data-kn="roar"]{grid-area:3/2!important}#game .acts.kn-p2 .kn-b[data-kn="spin"]{grid-area:2/1!important}
 #game .acts #knSw{grid-area:3/1!important;border-color:rgba(242,197,90,.7)}#game .acts #knSw.kn-new{box-shadow:0 0 0 2px #ff6a3a,0 0 12px #ff6a3a}#game .acts #u7atk{grid-area:1/1!important}#game .acts:not(.kn-p2) #u7cap{grid-area:2/1!important}#game .acts.kn-p2 #u7cap{display:none!important}
 #game .acts .kn-b i{font-size:9px;white-space:nowrap}
 .h2-en.kn-off{opacity:.5}body.building #knSw,body.building .kn-b{display:none!important}@media (pointer:fine){#game .acts .kn-b{display:none!important}}`;document.head.appendChild(st);}
+// thông báo nổi không đè lên cụm nút (cụm nút giờ cao 4 hàng)
+{const st=document.createElement('style');st.textContent='@media (max-width:600px){#game .toasts{bottom:calc(var(--u-sb,10px) + 338px)!important}}';document.head.appendChild(st);}

@@ -3,13 +3,13 @@
      · Xưởng (bàn chế tác, trạm khắc, khung dệt, chỗ nặn gốm, phiến đá mài dưới mái): chế tạo, làm việc nhanh hơn 20%.
      · Nhà bếp (bếp lửa, lò bếp dưới mái): nấu nướng nhanh hơn 25%, đứng gần ấm và hồi thể lực nhanh hơn.
      · Lò rèn (lò luyện, lò nung dưới mái): nung, luyện, đúc nhanh hơn 20%.
-     · Nhà kho (giỏ, rương, kệ, chum, kho thóc dưới mái): đồ chứa không bị mưa (ghi nhận, chưa có tác dụng số).
+     · Nhà kho (giỏ, rương, kệ, chum, kho thóc dưới mái): thịt, cá, đồ ăn lâu hỏng hơn 50% (chỉ cần có một nhà kho).
      · Nhà ở (giường, chỗ ngủ dưới mái): cỡ nhà theo số tấm mái quanh giường: Lều (1-3) · Nhà nhỏ (4-8) · Nhà lớn (9-15) · Nhà dài (16+).
        Mỗi bậc +5 thể lực tối đa; ngủ trong nhà từ bậc Nhà nhỏ trở lên được "Khỏe khoắn" lâu gấp đôi.
-     · Chuồng trại (chuồng gà, máng ăn, chuồng trâu… dưới mái): vật nuôi quanh đó không bỏ đi khi trời mưa bão (ghi chú, chưa có tác dụng số).
+     · Chuồng trại (chuồng gà, máng ăn… dưới mái): gà ở chuồng có mái đẻ trứng nhiều hơn 50%.
    Bảng "🏠 Nhà của bạn" (trong Xây dựng → Nâng cấp) liệt kê nhà nào đang có chức năng gì; tên công trình khi lại gần cũng ghi chức năng. */
 const NHA={list:[],t:-9,home:0,tip:{}};
-const NHA_K={work:['🛠️','Xưởng','chế tạo, làm việc nhanh hơn 20%'],cook:['🍲','Nhà bếp','nấu nướng nhanh hơn 25%'],forge:['⚒️','Lò rèn','nung, luyện, đúc nhanh hơn 20%'],store:['📦','Nhà kho','đồ cất khô ráo dưới mái'],home:['🏠','Nhà ở','thêm thể lực tối đa, ngủ ngon hơn'],barn:['🐓','Chuồng trại','vật nuôi có chỗ trú']};
+const NHA_K={work:['🛠️','Xưởng','chế tạo, làm việc nhanh hơn 20%'],cook:['🍲','Nhà bếp','nấu nướng nhanh hơn 25%'],forge:['⚒️','Lò rèn','nung, luyện, đúc nhanh hơn 20%'],store:['📦','Nhà kho','thịt, cá, đồ ăn lâu hỏng hơn 50%'],home:['🏠','Nhà ở','thêm thể lực tối đa, ngủ ngon hơn'],barn:['🐓','Chuồng trại','gà trong chuồng có mái đẻ trứng nhiều hơn 50%']};
 const NHA_HOME=[[1,'Lều'],[4,'Nhà nhỏ'],[9,'Nhà lớn'],[16,'Nhà dài']];
 function nhaKind(b){const d=pieceDef(b.k);if(!d)return null;if(d.bed)return 'home';if(/^(workbench|carveBench|loom|potter|grindSlab|mortar)$/.test(b.k))return 'work';if(/^(smelter|kiln)$/.test(b.k))return 'forge';if(d.fuel||/hearth|campfire|Hearth/.test(b.k))return 'cook';
   if(d.store&&b.k!=='trough')return 'store';if(/coop|trough|pigPen|buffaloShed|duckHouse|goatShed|Roost/i.test(b.k))return 'barn';return null;}
@@ -19,6 +19,8 @@ function nhaScan(){NHA.t=G.t;const L=[];let home=0;const roofs=S.builds.filter(b
   if(home>NHA.home&&G.on&&NHA.t>20)uiToast(`🏠 Nhà của bạn giờ là ${NHA_HOME[home-1][1]}: thể lực tối đa +${home*5}.`,'gold');NHA.home=home;NHA.list=L;
   for(const o of L){if(o.k==='home'||NHA.tip[o.b.id])continue;NHA.tip[o.b.id]=1;if(G.on&&G.t>20&&Math.hypot(o.b.x-P.x,o.b.z-P.z)<300){const K=NHA_K[o.k];uiToast(`${K[0]} ${pieceDef(o.b.k).n} dưới mái thành ${K[1]}: ${K[2]}.`,'good');}}}
 setInterval(()=>{try{if(G.on&&S&&S.builds)nhaScan();}catch(e){}},4000);
+function nhaHas(k){return NHA.list.some(o=>o.k===k);}
+function nhaIs(b,k){return NHA.list.some(o=>o.b===b&&o.k===k);}
 function nhaNear(k,r){for(const o of NHA.list)if(o.k===k&&Math.hypot(o.b.x-P.x,o.b.z-P.z)<(r||120))return o;return null;}
 /* ---------- tác dụng ---------- */
 {const _ms=maxStam;maxStam=function(){return _ms()+NHA.home*5;};}

@@ -78,7 +78,7 @@ function petsHourly(gh){if(!S.pets||!S.pets.length)return;const day=TNOW();let c
     if(day-(p.fed||0)>0.5){const tr=S.builds.find(b=>b.k==='trough'&&b.prog==null&&Math.hypot(b.x-p.x,b.z-p.z)<160&&(S.store[b.id]||[]).some(Boolean));if(tr){const st=S.store[tr.id];const i=st.findIndex(Boolean);if(i>=0){st[i].n--;if(st[i].n<=0)st[i]=null;p.fed=day;}}}
     if(day-(p.fed||0)>2.5){S.pets=S.pets.filter(o=>o!==p);if(p._o)G.sc.remove(p._o);uiToast(`${PETN[p.k]} bỏ đi vì đói lâu ngày.`,'bad');ch=1;continue;}
     if(/^(chick|piglet|puppy)$/.test(p.k)&&age>3){p.k={chick:'chicken',piglet:'pig',puppy:'dog'}[p.k];if(p._o)G.sc.remove(p._o);p._o=null;ch=1;}
-    if(p.k==='chicken'){const coop=petHome(p);if(coop&&Math.random()<gh/24*0.9){S.tank[coop.id]=Math.min(8,(S.tank[coop.id]||0)+1);}}}
+    if(p.k==='chicken'){const coop=petHome(p);if(coop&&Math.random()<gh/24*0.9*(typeof nhaIs==='function'&&nhaIs(coop,'barn')?1.5:1)){/* chuồng có mái: gà đẻ nhiều hơn 50% */S.tank[coop.id]=Math.min(8,(S.tank[coop.id]||0)+1);}}}
   // sinh sản: hai con cùng loài, được ăn no, ở gần nhau
   for(const k of ['chicken','pig','dog']){const L=S.pets.filter(p=>p.k===k&&day-(p.fed||0)<1);if(L.length>=2&&S.pets.length<24&&Math.random()<gh/24*0.35){const a=L[0];const b={id:(S.pseq=(S.pseq||0)+1),k:{chicken:'chick',pig:'piglet',dog:'puppy'}[k],x:a.x+8,z:a.z+8,born:day,fed:day};S.pets.push(b);petSpawn(b);uiToast(`🐣 ${PETN[b.k]} vừa ra đời!`,'gold');ch=1;}}
   if(ch)save();}

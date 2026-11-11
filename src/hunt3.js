@@ -560,7 +560,7 @@ function h3rot(id,n){let left=n,where=0;const take=(arr)=>{if(left<=0)return;con
 function h3spoilTick(){const H=h3S(),now=TNOW(),si=seasonIdx(),mul=si===3?2.5:si===1?0.7:1;
   for(const id in H3SP){const B=H.sp[id]||(H.sp[id]=[]),tot=h3count(id);let sum=0;for(const b of B)sum+=b[1];
     if(tot>sum)B.push([+now.toFixed(3),tot-sum]);else if(tot<sum){let r=sum-tot;while(r>0&&B.length){const k=Math.min(r,B[0][1]);B[0][1]-=k;r-=k;if(!B[0][1])B.shift();}}
-    const life=H3SP[id]*mul;let rot=0;while(B.length&&now-B[0][0]>life){rot+=B[0][1];B.shift();}
+    const life=H3SP[id]*mul*(typeof nhaHas==='function'&&nhaHas('store')?1.5:1);/* có Nhà kho (đồ chứa dưới mái): đồ ăn lâu hỏng hơn 50% */let rot=0;while(B.length&&now-B[0][0]>life){rot+=B[0][1];B.shift();}
     if(rot){const n=h3rot(id,rot);if(n){uiToast(`🤢 ${n} ${ITEMS[id].n} để lâu đã ôi thiu. Nướng, hun khói hoặc phơi khô thì giữ được lâu hơn.`,'bad');uiHotbar();}}
     if(B.length&&now-B[0][0]>life*0.75){const wk=id+':'+B[0][0];if(!H.warn[wk]){H.warn[wk]=1;uiToast(`⏳ ${ITEMS[id].n} sắp ôi: nấu chín, hun khói hoặc ăn ngay.`,'');}}
     if(!B.length)delete H.sp[id];}

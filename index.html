@@ -5160,7 +5160,7 @@ function petsHourly(gh){if(!S.pets||!S.pets.length)return;const day=TNOW();let c
     if(day-(p.fed||0)>0.5){const tr=S.builds.find(b=>b.k==='trough'&&b.prog==null&&Math.hypot(b.x-p.x,b.z-p.z)<160&&(S.store[b.id]||[]).some(Boolean));if(tr){const st=S.store[tr.id];const i=st.findIndex(Boolean);if(i>=0){st[i].n--;if(st[i].n<=0)st[i]=null;p.fed=day;}}}
     if(day-(p.fed||0)>2.5){S.pets=S.pets.filter(o=>o!==p);if(p._o)G.sc.remove(p._o);uiToast(`${PETN[p.k]} bỏ đi vì đói lâu ngày.`,'bad');ch=1;continue;}
     if(/^(chick|piglet|puppy)$/.test(p.k)&&age>3){p.k={chick:'chicken',piglet:'pig',puppy:'dog'}[p.k];if(p._o)G.sc.remove(p._o);p._o=null;ch=1;}
-    if(p.k==='chicken'){const coop=petHome(p);if(coop&&Math.random()<gh/24*0.9){S.tank[coop.id]=Math.min(8,(S.tank[coop.id]||0)+1);}}}
+    if(p.k==='chicken'){const coop=petHome(p);if(coop&&Math.random()<gh/24*0.9*(typeof nhaIs==='function'&&nhaIs(coop,'barn')?1.5:1)){/* chuồng có mái: gà đẻ nhiều hơn 50% */S.tank[coop.id]=Math.min(8,(S.tank[coop.id]||0)+1);}}}
   // sinh sản: hai con cùng loài, được ăn no, ở gần nhau
   for(const k of ['chicken','pig','dog']){const L=S.pets.filter(p=>p.k===k&&day-(p.fed||0)<1);if(L.length>=2&&S.pets.length<24&&Math.random()<gh/24*0.35){const a=L[0];const b={id:(S.pseq=(S.pseq||0)+1),k:{chicken:'chick',pig:'piglet',dog:'puppy'}[k],x:a.x+8,z:a.z+8,born:day,fed:day};S.pets.push(b);petSpawn(b);uiToast(`🐣 ${PETN[b.k]} vừa ra đời!`,'gold');ch=1;}}
   if(ch)save();}
@@ -11479,7 +11479,7 @@ function h3rot(id,n){let left=n,where=0;const take=(arr)=>{if(left<=0)return;con
 function h3spoilTick(){const H=h3S(),now=TNOW(),si=seasonIdx(),mul=si===3?2.5:si===1?0.7:1;
   for(const id in H3SP){const B=H.sp[id]||(H.sp[id]=[]),tot=h3count(id);let sum=0;for(const b of B)sum+=b[1];
     if(tot>sum)B.push([+now.toFixed(3),tot-sum]);else if(tot<sum){let r=sum-tot;while(r>0&&B.length){const k=Math.min(r,B[0][1]);B[0][1]-=k;r-=k;if(!B[0][1])B.shift();}}
-    const life=H3SP[id]*mul;let rot=0;while(B.length&&now-B[0][0]>life){rot+=B[0][1];B.shift();}
+    const life=H3SP[id]*mul*(typeof nhaHas==='function'&&nhaHas('store')?1.5:1);/* có Nhà kho (đồ chứa dưới mái): đồ ăn lâu hỏng hơn 50% */let rot=0;while(B.length&&now-B[0][0]>life){rot+=B[0][1];B.shift();}
     if(rot){const n=h3rot(id,rot);if(n){uiToast(`🤢 ${n} ${ITEMS[id].n} để lâu đã ôi thiu. Nướng, hun khói hoặc phơi khô thì giữ được lâu hơn.`,'bad');uiHotbar();}}
     if(B.length&&now-B[0][0]>life*0.75){const wk=id+':'+B[0][0];if(!H.warn[wk]){H.warn[wk]=1;uiToast(`⏳ ${ITEMS[id].n} sắp ôi: nấu chín, hun khói hoặc ăn ngay.`,'');}}
     if(!B.length)delete H.sp[id];}
@@ -16261,13 +16261,13 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
      · Xưởng (bàn chế tác, trạm khắc, khung dệt, chỗ nặn gốm, phiến đá mài dưới mái): chế tạo, làm việc nhanh hơn 20%.
      · Nhà bếp (bếp lửa, lò bếp dưới mái): nấu nướng nhanh hơn 25%, đứng gần ấm và hồi thể lực nhanh hơn.
      · Lò rèn (lò luyện, lò nung dưới mái): nung, luyện, đúc nhanh hơn 20%.
-     · Nhà kho (giỏ, rương, kệ, chum, kho thóc dưới mái): đồ chứa không bị mưa (ghi nhận, chưa có tác dụng số).
+     · Nhà kho (giỏ, rương, kệ, chum, kho thóc dưới mái): thịt, cá, đồ ăn lâu hỏng hơn 50% (chỉ cần có một nhà kho).
      · Nhà ở (giường, chỗ ngủ dưới mái): cỡ nhà theo số tấm mái quanh giường: Lều (1-3) · Nhà nhỏ (4-8) · Nhà lớn (9-15) · Nhà dài (16+).
        Mỗi bậc +5 thể lực tối đa; ngủ trong nhà từ bậc Nhà nhỏ trở lên được "Khỏe khoắn" lâu gấp đôi.
-     · Chuồng trại (chuồng gà, máng ăn, chuồng trâu… dưới mái): vật nuôi quanh đó không bỏ đi khi trời mưa bão (ghi chú, chưa có tác dụng số).
+     · Chuồng trại (chuồng gà, máng ăn… dưới mái): gà ở chuồng có mái đẻ trứng nhiều hơn 50%.
    Bảng "🏠 Nhà của bạn" (trong Xây dựng → Nâng cấp) liệt kê nhà nào đang có chức năng gì; tên công trình khi lại gần cũng ghi chức năng. */
 const NHA={list:[],t:-9,home:0,tip:{}};
-const NHA_K={work:['🛠️','Xưởng','chế tạo, làm việc nhanh hơn 20%'],cook:['🍲','Nhà bếp','nấu nướng nhanh hơn 25%'],forge:['⚒️','Lò rèn','nung, luyện, đúc nhanh hơn 20%'],store:['📦','Nhà kho','đồ cất khô ráo dưới mái'],home:['🏠','Nhà ở','thêm thể lực tối đa, ngủ ngon hơn'],barn:['🐓','Chuồng trại','vật nuôi có chỗ trú']};
+const NHA_K={work:['🛠️','Xưởng','chế tạo, làm việc nhanh hơn 20%'],cook:['🍲','Nhà bếp','nấu nướng nhanh hơn 25%'],forge:['⚒️','Lò rèn','nung, luyện, đúc nhanh hơn 20%'],store:['📦','Nhà kho','thịt, cá, đồ ăn lâu hỏng hơn 50%'],home:['🏠','Nhà ở','thêm thể lực tối đa, ngủ ngon hơn'],barn:['🐓','Chuồng trại','gà trong chuồng có mái đẻ trứng nhiều hơn 50%']};
 const NHA_HOME=[[1,'Lều'],[4,'Nhà nhỏ'],[9,'Nhà lớn'],[16,'Nhà dài']];
 function nhaKind(b){const d=pieceDef(b.k);if(!d)return null;if(d.bed)return 'home';if(/^(workbench|carveBench|loom|potter|grindSlab|mortar)$/.test(b.k))return 'work';if(/^(smelter|kiln)$/.test(b.k))return 'forge';if(d.fuel||/hearth|campfire|Hearth/.test(b.k))return 'cook';
   if(d.store&&b.k!=='trough')return 'store';if(/coop|trough|pigPen|buffaloShed|duckHouse|goatShed|Roost/i.test(b.k))return 'barn';return null;}
@@ -16277,6 +16277,8 @@ function nhaScan(){NHA.t=G.t;const L=[];let home=0;const roofs=S.builds.filter(b
   if(home>NHA.home&&G.on&&NHA.t>20)uiToast(`🏠 Nhà của bạn giờ là ${NHA_HOME[home-1][1]}: thể lực tối đa +${home*5}.`,'gold');NHA.home=home;NHA.list=L;
   for(const o of L){if(o.k==='home'||NHA.tip[o.b.id])continue;NHA.tip[o.b.id]=1;if(G.on&&G.t>20&&Math.hypot(o.b.x-P.x,o.b.z-P.z)<300){const K=NHA_K[o.k];uiToast(`${K[0]} ${pieceDef(o.b.k).n} dưới mái thành ${K[1]}: ${K[2]}.`,'good');}}}
 setInterval(()=>{try{if(G.on&&S&&S.builds)nhaScan();}catch(e){}},4000);
+function nhaHas(k){return NHA.list.some(o=>o.k===k);}
+function nhaIs(b,k){return NHA.list.some(o=>o.b===b&&o.k===k);}
 function nhaNear(k,r){for(const o of NHA.list)if(o.k===k&&Math.hypot(o.b.x-P.x,o.b.z-P.z)<(r||120))return o;return null;}
 /* ---------- tác dụng ---------- */
 {const _ms=maxStam;maxStam=function(){return _ms()+NHA.home*5;};}
@@ -16648,7 +16650,7 @@ setInterval(()=>{try{if(G.on&&G.panel==='clan')u8Clan();}catch(e){}},400);
         cấp 10 🦁 Gầm thét      : thú dữ và chiến binh trong 15 m hoảng sợ bỏ chạy 6 giây (20 thể lực, hồi 40 giây)
         cấp 15 🌀 Quét vòng     : đánh mọi kẻ địch quanh mình trong 5 m       (25 thể lực, hồi 15 giây)
    3. Cụm nút tay phải có HAI TRANG: nút ⇄ (hoặc vuốt ngang trên cụm nút) đổi giữa trang Hành động (Khom, Ngồi, Ném, Chạy, Nhảy…)
-      và trang Kỹ năng (các kỹ năng đã học, có vòng hồi chiêu). Nút Hành động to, nút Đánh luôn hiện ở cả hai trang. Máy tính: phím Z X C V B N. */
+      và trang Kỹ năng (các kỹ năng đã học, có vòng hồi chiêu; kèm các nút ít dùng: Cử chỉ, Chế nhanh, Tự đi). Nút Hành động to, nút Đánh luôn hiện ở cả hai trang. Máy tính: phím Z X C V B N. */
 const KN={cd:{},pow:0,rally:0,dash:0,page:0};
 const KNS=[
  {id:'pow',lv:3,ic:'💥',n:'Đòn mạnh',d:'Đòn kế tiếp gây ×2,5 sát thương.',st:15,cd:8,key:'KeyZ'},
@@ -16693,11 +16695,13 @@ if(typeof heroHtml==='function'){const _hh=heroHtml;heroHtml=function(){let h=_h
   const i=h.indexOf('<h3>Chỉ số</h3>');const blk=`<h3>Kỹ năng chủ động</h3><p class="small muted">Tự học khi nhân vật đủ cấp. Dùng ở cụm nút tay phải: bấm ⇄ hoặc vuốt ngang để sang trang Kỹ năng.</p><div class="h2-ens">${rows}</div>`;h=i>0?h.slice(0,i)+blk+h.slice(i):h+blk;}catch(e){}return h;};}
 {const st=document.createElement('style');st.textContent=`#game .acts .kn-b{display:none;position:relative}#game .acts .kn-b span{font-size:19px;line-height:1}#game .acts .kn-b em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:50%;font-style:normal;font-weight:800;font-size:12px;color:#fff;pointer-events:none}
 #game .acts .kn-b.kn-cd em,#game .acts .kn-b.kn-lock em{background:rgba(10,6,4,.72)}#game .acts .kn-b.kn-lock em{font-size:9.5px;color:#cbb994}#game .acts .kn-b.on{border-color:#ffd27a;box-shadow:0 0 12px rgba(255,210,122,.8)}
-#game .acts.kn-p2>.rbtn:not(.kn-b):not(#knSw):not(#u7atk):not(#u7cap):not(.actbtn){display:none!important}#game .acts.kn-p2 .kn-b{display:flex;width:46px;height:46px}
+#game .acts.kn-p2>.rbtn:not(.kn-b):not(#knSw):not(#u7atk):not(#u7cap):not(.actbtn):not(#m2emoBtn):not(#m3qc):not(#m3auto){display:none!important}#game .acts:not(.kn-p2)>#m2emoBtn,#game .acts:not(.kn-p2)>#m3qc,#game .acts:not(.kn-p2)>#m3auto{display:none!important}#game .acts.kn-p2>#m2emoBtn{grid-area:4/1!important}#game .acts.kn-p2>#m3qc{grid-area:4/2!important}#game .acts.kn-p2>#m3auto{grid-area:4/3!important}/* Cử chỉ, Chế nhanh, Tự đi dời sang trang 2 cho trang Hành động gọn */#game .acts.kn-p2 .kn-b{display:flex;width:46px;height:46px}
 #game .acts.kn-p2 .kn-b[data-kn="pow"]{grid-area:1/2!important}#game .acts.kn-p2 .kn-b[data-kn="dash"]{grid-area:1/3!important}#game .acts.kn-p2 .kn-b[data-kn="rally"]{grid-area:1/4!important}#game .acts.kn-p2 .kn-b[data-kn="heal"]{grid-area:2/2!important}#game .acts.kn-p2 .kn-b[data-kn="roar"]{grid-area:3/2!important}#game .acts.kn-p2 .kn-b[data-kn="spin"]{grid-area:2/1!important}
 #game .acts #knSw{grid-area:3/1!important;border-color:rgba(242,197,90,.7)}#game .acts #knSw.kn-new{box-shadow:0 0 0 2px #ff6a3a,0 0 12px #ff6a3a}#game .acts #u7atk{grid-area:1/1!important}#game .acts:not(.kn-p2) #u7cap{grid-area:2/1!important}#game .acts.kn-p2 #u7cap{display:none!important}
 #game .acts .kn-b i{font-size:9px;white-space:nowrap}
 .h2-en.kn-off{opacity:.5}body.building #knSw,body.building .kn-b{display:none!important}@media (pointer:fine){#game .acts .kn-b{display:none!important}}`;document.head.appendChild(st);}
+// thông báo nổi không đè lên cụm nút (cụm nút giờ cao 4 hàng)
+{const st=document.createElement('style');st.textContent='@media (max-width:600px){#game .toasts{bottom:calc(var(--u-sb,10px) + 338px)!important}}';document.head.appendChild(st);}
 /* ===================== CÓ GÌ MỚI: thẻ giới thiệu tính năng, mỗi phiên bản hiện một lần cho mỗi máy ===================== */
 const NEWS_V='2026-11-b',NEWS=[
  ['⚔️','Đánh và thu phục','Nút Đánh tự tìm mục tiêu gần nhất. Mang dây thừng để trói bắt chiến binh, cho ăn để thuần thú.'],
