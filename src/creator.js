@@ -113,6 +113,15 @@ function crMesh(B,mat){const T=THREE,n=B.p.length;if(!n)return null;const pos=ne
   for(let i=0;i<n;i++){pos.set(B.p[i],i*3);nor.set(B.n[i],i*3);col.set(B.c[i],i*3);uv[i*2]=B.u[i][0];uv[i*2+1]=B.u[i][1];}
   const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(pos,3));g.setAttribute('normal',new T.BufferAttribute(nor,3));g.setAttribute('color',new T.BufferAttribute(col,3));g.setAttribute('uv',new T.BufferAttribute(uv,2));
   const m=new T.Mesh(g,mat);m.castShadow=true;m.receiveShadow=true;m.userData.crAdd=1;m.userData.part='hair';return m;}
+/* ---------- lớp tóc nền: một vỏ tóc liền, trơn, ôm da đầu từ chân tóc lên đỉnh ----------
+   Các thẻ tóc (sợi cắt alpha) nằm trên lớp này nên không còn hở da đầu, mép chân tóc thành một đường cong gọn thay vì bậc thang,
+   và nhìn từ trên xuống mái đầu tròn đều. Không dựng cho kiểu cạo trọc. */
+function crHairCap(G,R,a,keep){const H=CR_HS[a.hs]||CR_HS[0];if(H.c==='bald'||(a.hs==null))return;const head=R.head,fem=!!a.f,HC=crHex(crHairHex(a)),hl=crHL(fem,H.b===1?-0.28:H.c==='side'?0.05:0),B=crBuf(),NU=28,NR=7,OFF=0.085,P=[],Cc=[],UU=[],Nn=[];
+  if(head.children.some(m=>m.userData&&m.userData.crCap))return;
+  for(let r=0;r<=NR;r++){const row=[],cr=[],ur=[],nr=[];for(let i=0;i<=NU;i++){const u=i/NU*Math.PI*2-Math.PI,y0=hl(u)-0.03,y=y0+(5.97-y0)*Math.pow(r/NR,0.85);let p=crBase(u,y);if(r===NR)p=[p[0]*0.25,y,p[2]*0.25];
+      const d=v3nrm(v3sub(p,CRC));row.push(v3add(p,d,OFF*(0.6+0.4*Math.sin(r/NR*Math.PI))+(r===0?-0.02:0)));nr.push(d);cr.push(v3mul(HC,0.74+0.1*Math.sin(u*7+r)+0.06*(r/NR)));ur.push([i/NU,r/NR]);}P.push(row);Cc.push(cr);UU.push(ur);Nn.push(nr);}
+  crGrid(B,P,Cc,UU,Nn);const mat=CR_MAT.hairCap||(CR_MAT.hairCap=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.78,metalness:0,side:THREE.DoubleSide}));
+  const m=crMesh(B,mat);if(!m)return;m.userData.crCap=1;m.userData.part='haircap';m.userData.crAdd=1;head.add(m);if(keep)crKeep0(m);}
 /* ---------- kiểu tóc mới (dựng trên đầu trọc hoặc trên kiểu buộc gáy) ---------- */
 function crHairStyle(G,R,a,keep){const H=CR_HS[a.hs]||CR_HS[0];if(!H.c)return;const head=R.head,fem=!!a.f,HC=crHex(crHairHex(a)),rn=crRng(1000+a.hs*31+a.hc*7+(fem?3:0));
   const hairM=head.children.find(m=>m.isMesh&&m.userData.part==='hair'),mat=hairM?hairM.material:new THREE.MeshStandardMaterial({vertexColors:true,side:THREE.DoubleSide,alphaTest:0.4});
@@ -207,8 +216,8 @@ const CR_BASE={m:{es:0.22,el:0.12,nw:-0.12,jw:-0.05,ja:0.25,cn:-0.1,lu:0.1,lb:0.
   f:{es:0.45,el:0.3,ls:0.25,nw:-0.32,nl:-0.2,nt:-0.25,nb:0.1,jw:-0.5,ja:-0.35,cn:-0.5,cl:0.1,lu:0.4,lb:0.5,mw:-0.12,bt:-0.6,ba:0.4,br:-0.6,cf:0.15,ch:0.3,hw:-0.15,mc:0.15,ep:-0.15}};
 function crEff(a){const B=CR_BASE[a.f?'f':'m'],o=Object.assign({},a);for(const k in B)o[k]=Math.max(-1.7,Math.min(1.7,(o[k]||0)+B[k]));return o;}
 /* ---------- biến dạng khuôn mặt theo vùng (tọa độ đầu: gốc = cổ, mắt y≈3.4, mặt hướng +Z) ---------- */
-function crMorphFn(a,fem){const EX=fem?0.6:0.62,EY=3.4,EZ=fem?1.29:1.31,FS=CR_FACE[a.fs]||CR_FACE[0];const JW=a.jw+FS.jw,CL=a.cl+FS.cl,FW=1+0.05*a.hw+FS.fw,FL=0.06*a.hl+FS.fl;
-  const ES=1+0.17*a.es,EL=1+0.2*a.el,ET=0.15*a.et,CF=a.cf+0.45*a.fa;
+function crMorphFn(a,fem){const EX=fem?0.6:0.62,EY=3.4,EZ=fem?1.29:1.31,FS=CR_FACE[a.fs]||CR_FACE[0];const TN=CHS.toon||0,JW=a.jw+FS.jw-0.4*TN,CL=a.cl+FS.cl-0.3*TN,FW=1+0.05*a.hw+FS.fw,FL=0.06*a.hl+FS.fl-0.04*TN,JA=a.ja-0.7*TN;/* kiểu hoạt hình: hàm thon, góc hàm mềm, cằm ngắn, mặt ngắn, má bầu */
+  const ES=1+0.17*a.es,EL=1+0.2*a.el,ET=0.15*a.et,CF=a.cf+0.45*a.fa+0.4*TN;
   return (p)=>{const x=p[0],y=p[1],z=p[2],ax=Math.abs(x),s=x<0?-1:1,fr=crSS(0.35,1.15,z),fr2=crSS(-0.3,0.8,z);let dx=0,dy=0,dz=0;
     {const vx=x-s*EX,vy=y-EY,vz=z-EZ,d=Math.hypot(vx,vy,vz),w=crSS(0.64,0.3,d);if(w>0){let qx=vx*(1+(ES-1)*w),qy=vy*(1+(ES*EL-1)*w),qz=vz*(1+(ES-1)*w);const th=s*ET*w,cs=Math.cos(th),sn=Math.sin(th),rx=qx*cs-qy*sn,ry=qx*sn+qy*cs;
       dx+=rx-vx+s*0.07*a.ed*w;dy+=ry-vy+0.08*a.eh*w;dz+=qz-vz-0.07*a.ep*w;}}
@@ -220,7 +229,7 @@ function crMorphFn(a,fem){const EX=fem?0.6:0.62,EY=3.4,EZ=fem?1.29:1.31,FS=CR_FA
     {const g=crGs(ax,0.95,0.32)*crGs(y,2.45,0.32)*fr2;dx+=s*0.08*CF*g;dz+=0.06*CF*g;}
     {const m=crGs(y,2.3,0.2)*crSS(0.78,0.3,ax)*fr;dx+=x*0.17*a.mw*m;const lp=crSS(0.52,0.18,ax)*fr;dz+=0.06*a.lu*crGs(y,2.36,0.05)*lp+0.065*a.lb*crGs(y,2.22,0.06)*lp;dy+=0.015*a.lu*crGs(y,2.38,0.06)*lp-0.015*a.lb*crGs(y,2.2,0.06)*lp;
       dy+=0.05*a.mc*crGs(ax,0.42,0.1)*crGs(y,2.3,0.08)*fr;}
-    {const jm=crSS(2.95,2.2,y)*crSS(0.9,1.5,y);dx+=x*0.1*JW*jm*crSS(0.3,1.0,ax);const jg=crGs(y,1.85,0.3)*crSS(0.8,1.15,ax)*crSS(1.3,0.2,z);dx+=s*0.08*a.ja*jg;dy-=0.06*a.ja*jg;
+    {const jm=crSS(2.95,2.2,y)*crSS(0.9,1.5,y);dx+=x*0.1*JW*jm*crSS(0.3,1.0,ax);const jg=crGs(y,1.85,0.3)*crSS(0.8,1.15,ax)*crSS(1.3,0.2,z);dx+=s*0.08*JA*jg;dy-=0.06*JA*jg;
       const cm=crGs(y,1.55,0.32)*crSS(0.75,0.2,ax)*crSS(0.3,1.1,z);dy-=0.12*CL*cm;dz+=0.1*a.cp*cm;dx+=x*0.25*a.cn*cm;}
     {const ec=[s*1.63,3.15,-0.28],d=Math.hypot(x-ec[0],y-ec[1],z-ec[2]),w=crSS(1.42,1.6,ax)*crSS(0.85,0.5,d);if(w>0){const k=0.22*a.er*w;dx+=(x-ec[0])*k+s*0.6*a.ea*Math.max(0,ax-1.5)*w;dy+=(y-ec[1])*k;dz+=(z-ec[2])*k+0.12*a.ea*Math.max(0,ax-1.5)*w;}}
     if(y<1.95&&ax<1.05)dx+=x*0.13*a.nk*crSS(1.75,1.0,y);
@@ -289,7 +298,7 @@ function crPost(G,a,keep,mode){const R=G.userData.rig;if(!R||!R.head)return;cons
   else{if(U.crDone){crRestore(G,true);const rm=[];G.traverse(o=>{if(o.userData.crAdd)rm.push(o);});rm.forEach(o=>{if(o.parent)o.parent.remove(o);o.traverse(m=>{if(m.isMesh){m.geometry.dispose();if(m.material&&m.material.userData.crOwn){if(m.material.map)m.material.map.dispose();m.material.dispose();}}});});
       if(U.crTail){U.crTail.visible=true;R.hair=U.crTail;}R.head.children.forEach(m=>{if(m.isMesh&&m.userData.part==='hide')m.visible=true;});}
     else if(keep)crKeep0(G);
-    crHairStyle(G,R,a,keep);crSkinTint(R,a);crDecals(G,R,a,keep);crAddedHairTint(R,a);}
+    crHairStyle(G,R,a,keep);try{crHairCap(G,R,a,keep);}catch(e){console.warn('mũ tóc',e);}crSkinTint(R,a);crDecals(G,R,a,keep);crAddedHairTint(R,a);}
   U.crDone=1;const e=crEff(a);crHairEdit(R,e,mode!=='morph');crLashLen(R,e);
   const f=crMorphFn(e,fem);crFaceHold(G,R,e,f);crHeadMeshes(R).forEach(m=>crMorphMesh(m,f));
   if(R.hair&&R.hair!==U.crTail&&R.hair.userData.p0==null)R.hair.userData.p0=R.hair.position.toArray();if(R.hair&&R.hair.userData.p0){const q=f(R.hair.userData.p0);R.hair.position.set(q[0],q[1],q[2]);}
@@ -397,7 +406,7 @@ function crHQ(G,R,a){const T=THREE,head=R.head,fem=!!a.f,U=G.userData;const sk0=
           let k=skinAt(p,0.12);if(r===0)k=up?crMix(HC,crHex('#0c0806'),0.6):crMix(SK,crHex('#a0504a'),0.4);else if(r===1&&up)k=crMix(k,v3mul(SK,0.6),0.55);else if(r===1)k=crMix(k,v3mul(SK,0.8),0.3);else if(r===2&&up)k=crMix(k,v3mul(SK,0.8),0.45);cr.push(k);ur.push([i/NX,r/NR*0.3]);}
         P.push(row);Cc.push(cr);UU.push(ur);Nn.push(nr);}crGrid(B,P,Cc,UU,Nn);
         if(up){const ln=[],pts=[];for(let i=1;i<NX;i++){const p=P[0][i],n2=v3nrm(v3sub(p,c));pts.push(v3add(p,n2,0.01));ln.push(n2);}const cl0=v3mul(HC,0.35);
-          for(let i=0;i<pts.length-1;i++){const w=Math.sin((i+1)/pts.length*Math.PI),lk=fem?1:(1-0.55*(CHS.toon||0)),o1=v3add(pts[i],v3nrm(v3add(ln[i],[s*0.25*(i/pts.length-0.3),1.1,0.5])),(0.06+0.09*w)*lk),o2=v3add(pts[i+1],v3nrm(v3add(ln[i+1],[s*0.25*((i+1)/pts.length-0.3),1.1,0.5])),(0.06+0.09*w)*lk);
+          for(let i=0;i<pts.length-1;i++){const w=Math.sin((i+1)/pts.length*Math.PI),lk=fem?(1-0.3*(CHS.toon||0)):(1-0.55*(CHS.toon||0)),o1=v3add(pts[i],v3nrm(v3add(ln[i],[s*0.25*(i/pts.length-0.3),1.1,0.5])),(0.06+0.09*w)*lk),o2=v3add(pts[i+1],v3nrm(v3add(ln[i+1],[s*0.25*((i+1)/pts.length-0.3),1.1,0.5])),(0.06+0.09*w)*lk);
             const nq=v3nrm(v3add(ln[i],[0,0.6,0]));[pts[i],pts[i+1],o2,pts[i],o2,o1].forEach((q,qi)=>{L.p.push(q);L.c.push(cl0);L.u.push([0.3+0.02*(qi%2),qi>=2&&qi!==3?0.3:0.02]);L.n.push(nq);});}}});});
     const lm=crMesh(B,smat);if(lm){lm.userData.crAdd=0;lm.userData.part='lid';hiG.add(lm);}if(hm0){const la=crMesh(L,crHairMatHQ(hm0.material));if(la){la.userData.crAdd=0;la.userData.part='lash';hiG.add(la);}}}
   // LOD: gần = đầu chi tiết, xa = đầu gốc
