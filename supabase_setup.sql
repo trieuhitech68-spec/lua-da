@@ -233,14 +233,14 @@ create policy docs_read on public.docs for select to authenticated using (
   -- thư hệ thống sysmail/<uid>: chỉ người nhận đọc (chỉ quản trị viên ghi, qua ld_admin_mail)
   or (split_part(path, '/', 1) = 'sysmail' and split_part(path, '/', 2) = ((select auth.uid())::text)));
 
--- thêm: chỉ tài liệu của chính mình; riêng world/main ai cũng tạo được (một lần, phải có seed là số)
+-- thêm: chỉ tài liệu của chính mình; riêng world/main và world/s2…s8 (các máy chủ) ai cũng tạo được (một lần, phải có seed là số)
 -- tài khoản bị khóa không thêm / sửa được gì; bị cấm chat thì không ghi chat/<uid> (ld_write_ok)
 -- config/* chỉ quản trị viên ghi
 drop policy if exists docs_insert on public.docs;
 create policy docs_insert on public.docs for insert to authenticated with check (
   (public.ld_write_ok(path)
    and (owner = (select auth.uid())
-        or (path = 'world/main' and jsonb_typeof(data->'seed') = 'number')))
+        or (path ~ '^world/(main|s[2-8])$' and jsonb_typeof(data->'seed') = 'number')))
   or (split_part(path, '/', 1) = 'config' and (select public.ld_is_admin())));
 
 -- sửa: chỉ tài liệu của chính mình (world/main không ai sửa được); config/* chỉ quản trị viên

@@ -20,7 +20,7 @@ const MP={ok:false,started:false,db:null,room:null,user:null,uid:null,seed:null,
 const MPA=new Set(['idle','walk','run','sneak','swim','sit','sleep','chop','mine','gather','hammer','throw','whittle','lash','dig','drink','knap','carve','cook','grind']);
 const MPCOL=['#e5532c','#f2c55a','#5aa0e6','#7ac46a','#b06ad8','#e66aa8','#4ac0b8','#d8d0c0'];
 const MPEMB=['🔥','🌙','🐉','🦅','🐘','🌾','⛰️','🐟','🐃','🌊'];
-const MP_SPAWN_FREE=320,MP_NEAR=2600,MP_FAR=3400,MP_MAXSUB=24,MP_SHOW=12,MP_BCAP=2000,MP_RCAP=6000,MP_CLANMAX=70,MP_DOCMAX=190000;
+const MP_SPAWN_FREE=320,MP_NEAR=2600,MP_FAR=3400,MP_MAXSUB=24,MP_SHOW=12,MP_BCAP=2000,MP_RCAP=6000,MP_CLANMAX=70,MP_SRVCAP=150,MP_SRVMAX=8,MP_SRVDAYS=3,MP_DOCMAX=190000;
 const mpIdOk=v=>typeof v==='string'&&/^[A-Za-z0-9_\-.:@+~]{1,128}$/.test(v);
 const mpNum=(v,a,b)=>typeof v==='number'&&isFinite(v)&&v>=a&&v<=b;
 const mpTxt=(v,n)=>typeof v==='string'?v.replace(/[\u0000-\u001f\u007f-\u009f­​-‏‪-‮⁠-⁯﻿]/g,'').replace(/\s+/g,' ').trim().slice(0,n):'';
@@ -33,15 +33,48 @@ function mpName(uid){if(uid===MP.uid)return 'Bạn';const n=MP.names[uid];if(n)r
 (async function mpInit(){try{if(!window.claude||typeof window.claude.use!=='function')return;
     const [user,db]=await Promise.all([window.claude.use('user'),window.claude.use('db')]);if(!user||!db)return;
     const uid=await user.id();if(!mpIdOk(uid))return;MP.user=user;MP.db=db;MP.uid=uid;try{MP.canW=await user.can('data.write');}catch(e){}if(MP.canW===false)MP.ro=true;
-    window.claude.use('room').then(r=>{if(r){MP.room=r;if(MP.started)mpRoomInit();}}).catch(()=>{});
-    await mpWorld();if(!MP.seed)return;MP.ok=true;mpFormRefresh();if(G.on&&S&&S.mp)mpStart();}catch(e){console.warn('chơi chung',e);}})();
+    window.claude.use('room').then(r=>{if(r){MP.room0=r;MP.room=r;if(MP.started)mpRoomSet(r);}}).catch(()=>{});
+    await mpWorld();if(!MP.seed)return;MP.ok=true;mpFormRefresh();mpSrvPick();if(G.on&&S&&S.mp)mpStart();}catch(e){console.warn('chơi chung',e);}})();
 async function mpGetDoc(path){try{const s=await mpTO(MP.db.doc(path).get(),10000);return s&&s.exists?s.data():null;}catch(e){return undefined;}}
 async function mpWorld(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v;let d=await mpGetDoc('world/main');
   if(d===undefined)d=await mpGetDoc('world/main');
   if(!d||!ok(d.seed)){if(MP.ro)return;const ref=MP.db.doc('world/main');
     try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);if(L&&L.acquired){d=await mpGetDoc('world/main');if(!d||!ok(d.seed)){d={seed:((Math.random()*2e9)|0)+1,wv:3,createdAt:mpNow()};await ref.set(d);}}
       else{for(let i=0;i<6&&(!d||!ok(d.seed));i++){await mpSleep(1500);d=await mpGetDoc('world/main');}}}catch(e){console.warn('thế giới chung',e);}}
-  if(d&&ok(d.seed))MP.seed=d.seed;}
+  if(d&&ok(d.seed)){MP.seed=d.seed;MP.worlds=[{id:'main',seed:d.seed,n:null}];MP.srv='main';
+    for(let i=2;i<=MP_SRVMAX;i++){const e=await mpGetDoc('world/s'+i);if(!e||!ok(e.seed))break;MP.worlds.push({id:'s'+i,seed:e.seed,n:null});}}}
+/* ---------- NHIỀU MÁY CHỦ ----------
+   Mỗi máy chủ là một thế giới riêng: world/main (Máy chủ 1), world/s2 … world/s8, mỗi cái một hạt giống. Mọi dữ liệu chung đã mang
+   hạt giống (w) nên người ở máy chủ khác không thấy nhau, không tải dữ liệu của nhau, và mỗi máy chủ dùng một kênh thời gian thực riêng.
+   Nhân vật gắn với máy chủ lúc tạo (S.srv + S.seed), không chuyển được. Tạo nhân vật mới: tự xếp vào máy chủ đầu tiên còn dưới
+   MP_SRVCAP người hoạt động trong MP_SRVDAYS ngày; máy nào cũng đầy thì mở máy chủ mới (tối đa MP_SRVMAX). Người chơi đổi được trong bảng tạo nhân vật. */
+const mpSrvName=id=>'Máy chủ '+(id==='main'||!id?1:+String(id).slice(1));
+function mpSrvOf(seed){const w=(MP.worlds||[]).find(x=>x.seed===seed);return w?w.id:null;}
+const mpIsMain=()=>!MP.worlds||!MP.worlds.length||!S||S.seed===MP.worlds[0].seed;
+// tài liệu cũ chưa ghi máy chủ (w) thuộc Máy chủ 1
+const mpWOk=d=>!!d&&(d.w==null?mpIsMain():d.w===S.seed);
+async function mpSrvCount(){if(!MP.db||!MP.worlds)return;const since=mpNow()-MP_SRVDAYS*86400000;
+  await Promise.all(MP.worlds.map(async w=>{try{const s=await mpTO(MP.db.collection('players').where('w','==',w.seed).limit(600).get(),10000);let n=0;for(const d of s.docs){const v=d.data();if(v&&v.lastSeen>since)n++;}w.n=n;}catch(e){if(w.n==null)w.n=0;}}));MP.srvAt=mpNow();}
+async function mpSrvNew(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v,i=MP.worlds.length+1;if(i>MP_SRVMAX||MP.ro)return null;const path='world/s'+i,ref=MP.db.doc(path);
+  try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);let d=await mpGetDoc(path);if((!d||!ok(d.seed))&&L&&L.acquired){d={seed:((Math.random()*2e9)|0)+1,wv:3,createdAt:mpNow()};await ref.set(d);}
+    for(let k=0;k<4&&(!d||!ok(d.seed));k++){await mpSleep(1200);d=await mpGetDoc(path);}
+    if(d&&ok(d.seed)){const w={id:'s'+i,seed:d.seed,n:0};MP.worlds.push(w);return w;}}catch(e){console.warn('máy chủ mới',e);}return null;}
+// chọn máy chủ cho nhân vật mới (tự động, trừ khi người chơi đã bấm chọn)
+async function mpSrvPick(){if(MP.srvBusy||!MP.ok)return;MP.srvBusy=true;try{if(!MP.srvAt||mpNow()-MP.srvAt>60000)await mpSrvCount();
+    if(!MP.srvUser){let w=MP.worlds.find(x=>(x.n||0)<MP_SRVCAP);if(!w)w=await mpSrvNew();if(!w)w=MP.worlds.slice().sort((a,b)=>(a.n||0)-(b.n||0))[0];MP.srv=w.id;MP.seed=w.seed;}}catch(e){console.warn('chọn máy chủ',e);}MP.srvBusy=false;mpFormRefresh();}
+function mpSrvSet(id){const w=(MP.worlds||[]).find(x=>x.id===id);if(!w)return;MP.srvUser=1;MP.srv=w.id;MP.seed=w.seed;mpFormRefresh();}
+// danh sách máy chủ trong bảng tạo nhân vật
+function mpSrvForm(row){const f=document.querySelector('.ov-card.form');
+  // trình tạo nhân vật (creator.js): một nút nhỏ cạnh chế độ chơi, bấm để đổi sang máy chủ kế
+  const cs=document.querySelector('.ov-card.cr .crfr.mds small');if(cs&&G.nworld==='mp'&&MP.ok&&MP.worlds){if(!MP.srvAt||mpNow()-MP.srvAt>60000)mpSrvPick();const w=MP.worlds.find(x=>x.id===MP.srv)||MP.worlds[0],k=MP.srv+':'+w.n+':'+MP.worlds.length;
+    if(cs.dataset.k!==k){cs.dataset.k=k;cs.innerHTML=`<button class="tb sm" data-a="mpsrvnext" title="Bấm để đổi máy chủ">🌐 ${mpSrvName(w.id)}${w.n==null?'':' · '+w.n+'/'+MP_SRVCAP}${MP.worlds.length>1?' ⇄':''}</button>`;}}
+  if(!f)return;
+  let sv=document.querySelector('.ov-card.form .mpsrv');if(G.nworld==='mp'&&MP.ok&&MP.worlds){if(!sv){sv=document.createElement('div');sv.className='mpsrv';if(row)row.after(sv);else{const st=f.querySelector('[data-a="start"]');if(st)st.before(sv);else f.appendChild(sv);}}
+    if(!MP.srvAt||mpNow()-MP.srvAt>60000)mpSrvPick();
+    sv.innerHTML='<span class="small muted">Máy chủ (tự xếp vào máy còn chỗ; nhân vật ở cố định máy chủ đã chọn):</span><div class="mpsrv-l">'+MP.worlds.map(w=>`<button class="tb sm${w.id===MP.srv?' on':''}" data-a="mpsrv" data-v="${w.id}">${mpSrvName(w.id)}${w.n==null?'':' · '+w.n+'/'+MP_SRVCAP+((w.n||0)>=MP_SRVCAP?' (đầy)':'')}</button>`).join('')+'</div>';}
+  else if(sv)sv.remove();}
+// kênh thời gian thực riêng cho từng máy chủ (Máy chủ 1 giữ kênh cũ)
+async function mpRoomSet(r){if(!r)return;MP.room0=r;const id=S&&S.mp?(S.srv||mpSrvOf(S.seed)):null;let use=r;if(id&&id!=='main'&&typeof r.join==='function'){try{use=await r.join(id);}catch(e){use=r;}}MP.room=use;if(MP.started)mpRoomInit();}
 // ghi nối tiếp, gộp: mỗi tài liệu một lần ghi một lúc, chỉ giữ bản mới nhất đang chờ
 function mpPut(path,data){if(!MP.db||MP.ro)return;const q=MP.wq[path]||(MP.wq[path]={busy:false,has:false,next:null});q.next=data;q.has=true;if(!q.busy)mpFlush(path,q);}
 async function mpFlush(path,q){q.busy=true;while(q.has){const d=q.next;q.has=false;q.next=null;const ref=MP.db.doc(path);
@@ -49,11 +82,11 @@ async function mpFlush(path,q){q.busy=true;while(q.has){const d=q.next;q.has=fal
 function mpErr(c){if(c==='invalid_argument'&&!MP.roWarn){MP.roWarn=1;uiToast('Chưa ghi được dữ liệu chung (có thể bạn chỉ có quyền xem trang này).','bad');}
   if(c==='quota_exceeded'&&!MP.qWarn){MP.qWarn=1;uiToast('Kho dữ liệu chung đã đầy. Nhờ chủ trang dọn bớt.','bad');}}
 /* ---------- bắt đầu một ván ở thế giới chung ---------- */
-async function mpStart(){if(MP.started||!MP.ok||!S||!S.mp||!G.on)return;MP.started=true;mpMenu();
+async function mpStart(){if(MP.started||!MP.ok||!S||!S.mp||!G.on)return;MP.started=true;mpMenu();if(!S.srv)S.srv=mpSrvOf(S.seed)||'main';if(MP.room0&&S.srv!=='main'){try{await mpRoomSet(MP.room0);}catch(e){}}
   const sub=(q,fn)=>{try{const un=q.onSnapshot(fn,e=>console.warn('chơi chung: nghe',e&&e.code));MP.unsubs.push(un);}catch(e){console.warn(e);}};
-  sub(MP.db.collection('players').limit(500),s=>{const o={};for(const d of s.docs){const v=mpValPlayer(d.id,d.data());if(v)o[d.id]=v;}MP.players=o;MP.loaded.players=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;});
-  sub(MP.db.collection('clans').limit(300),s=>{const o={};for(const d of s.docs){const v=mpValClan(d.id,d.data());if(v)o[d.id]=v;}MP.clans=o;MP.loaded.clans=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;});
-  sub(MP.db.collection('claims').limit(800),s=>{const o={};for(const d of s.docs){const v=mpValClaim(d.id,d.data());if(v)o[d.id]=v;}MP.claims=o;MP.loaded.claims=1;MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;MP.tick.near=-9;});
+  sub(mpIsMain()?MP.db.collection('players').limit(500):MP.db.collection('players').where('w','==',S.seed).limit(500),s=>{const o={};for(const d of s.docs){const v=mpValPlayer(d.id,d.data());if(v)o[d.id]=v;}MP.players=o;MP.loaded.players=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;});
+  sub(MP.db.collection('clans').limit(300),s=>{const o={};for(const d of s.docs){if(!mpWOk(d.data()))continue;const v=mpValClan(d.id,d.data());if(v)o[d.id]=v;}MP.clans=o;MP.loaded.clans=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;});
+  sub(MP.db.collection('claims').limit(800),s=>{const o={};for(const d of s.docs){if(!mpWOk(d.data()))continue;const v=mpValClaim(d.id,d.data());if(v)o[d.id]=v;}MP.claims=o;MP.loaded.claims=1;MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;MP.tick.near=-9;});
   const cur=await mpGetDoc('players/'+MP.uid);const v=cur&&mpValPlayer(MP.uid,cur);
   MP.me={look:S.look|0,clan:v?v.clan:null,req:v?v.req:null,w:S.seed,lastSeen:mpNow(),h:v?v.h:null};mpPut('players/'+MP.uid,Object.assign({},MP.me));
   const bh=await mpGetDoc('builds/'+MP.uid);MP.bHad=!!(bh&&bh.n>0);
@@ -73,16 +106,16 @@ function mpSameClan(uid){const a=mpMyClan();return !!a&&a===mpClanOf(uid);}
 function mpColOf(uid){const c=MP.clans[mpClanOf(uid)];return c?c.color:null;}
 /* ---------- chọn thế giới khi tạo nhân vật ---------- */
 {const _ng=newGame;newGame=function(o){const mp=G.nworld==='mp'&&MP.ok&&MP.seed;if(mp){o=Object.assign({},o,{seed:MP.seed});}const r=_ng(o);
-  if(mp&&S){S.mp=1;S.mpGot=[];S._new=1;save();delete S._new;}return r;};}
-{const _sm=slotMeta;slotMeta=function(s){const m=_sm(s);if(s&&s.mp)m.mp=1;return m;};}
+  if(mp&&S){S.mp=1;S.srv=MP.srv||'main';S.mpGot=[];S._new=1;save();delete S._new;}return r;};}
+{const _sm=slotMeta;slotMeta=function(s){const m=_sm(s);if(s&&s.mp){m.mp=1;m.srv=s.srv||'main';}return m;};}
 {const _us=uiStart;uiStart=function(o){_us(o);try{mpStartPatch(o||{});}catch(e){console.warn(e);}};}
 function mpStartPatch(o){const f=document.querySelector('.ov-card.form');
   if(f){if(!f.querySelector('.mpw')&&(MP.db||MP.ok)){G.nworld=G.nworld||'solo';const row=document.createElement('div');row.className='mds mpw';
       row.innerHTML='<button class="md" data-a="mpw" data-v="solo"><b>🏕️ Một mình</b><small>Thế giới riêng của bạn.</small></button><button class="md" data-a="mpw" data-v="mp"><b>🌐 Thế giới chung</b><small class="mpw-s"></small></button>';
       const mds=f.querySelector('.mds');if(mds)mds.parentNode.insertBefore(row,mds);else f.querySelector('[data-a="start"]').before(row);}
     mpFormRefresh();return;}
-  const sl=slotsLocal();document.querySelectorAll('.ov-card.acc .chr').forEach(el=>{const b=el.querySelector('[data-a="chplay"]');const id=b&&b.dataset.id;const m=id&&(sl[id]||ACC.cloud[id]);if(m&&m.mp&&!el.querySelector('.mpbadge')){const s=document.createElement('span');s.className='mpbadge';s.textContent=' · 🌐 Thế giới chung';const sm=el.querySelector('small');if(sm)sm.appendChild(s);}});}
-function mpFormRefresh(){const row=document.querySelector('.ov-card.form .mpw');if(!row)return;if(G.nworld==='mp'&&!MP.ok&&!MP.db)G.nworld='solo';
+  const sl=slotsLocal();document.querySelectorAll('.ov-card.acc .chr').forEach(el=>{const b=el.querySelector('[data-a="chplay"]');const id=b&&b.dataset.id;const m=id&&(sl[id]||ACC.cloud[id]);if(m&&m.mp&&!el.querySelector('.mpbadge')){const s=document.createElement('span');s.className='mpbadge';s.textContent=' · 🌐 '+mpSrvName(m.srv);const sm=el.querySelector('small');if(sm)sm.appendChild(s);}});}
+function mpFormRefresh(){const row=document.querySelector('.ov-card.form .mpw');mpSrvForm(row);if(!row)return;if(G.nworld==='mp'&&!MP.ok&&!MP.db)G.nworld='solo';
   row.querySelectorAll('[data-a="mpw"]').forEach(b=>{b.classList.toggle('on',b.dataset.v===(G.nworld||'solo'));});
   const s=row.querySelector('.mpw-s');if(s)s.textContent=MP.ok?'Gặp người chơi khác, lập bộ tộc, cắm đất, cùng xây làng.':'Đang kết nối máy chủ…';
   const h=[...document.querySelectorAll('.ov-card.form p.small.muted')].find(p=>/thế giới/i.test(p.textContent));if(h)h.textContent=G.nworld==='mp'?'Thế giới chung: mọi người cùng một vùng đất, đồ đạc và kỹ năng vẫn là của riêng bạn.':'Mỗi nhân vật có thế giới riêng.';}
@@ -131,7 +164,7 @@ function mpLandHtml(){const c=MP.claims[MP.uid],cid=mpMyClan(),cl=cid&&MP.clans[
   return `${mine}${MP.ro?'':`<div class="row"><button class="btn sm" data-a="mpclaim"${why?' disabled':''}>${c?'Dời mốc về chỗ đứng':'Cắm mốc lãnh thổ tại đây'} (${Math.round(R/20)} m)</button>${c&&c.r<R&&Math.hypot(P.x-c.x,P.z-c.z)>=0?`<button class="btn sm ghost" data-a="mpgrow">Mở rộng tại chỗ cũ</button>`:''}${c?`<button class="btn sm ${G.mpArm==='unclaim'?'red':'ghost'}" data-a="mpunclaim">${G.mpArm==='unclaim'?'Bấm lần nữa':'Bỏ lãnh thổ'}</button>`:''}</div>`}
     ${why&&!MP.ro?`<p class="small warn">${esc(why)}</p>`:''}${zone}
     ${lead&&!MP.ro?`<div class="row"><button class="btn sm" data-a="mpzone"${zw?' disabled':''}>${cl.zone?'Dời vùng chung về đây':'Đặt vùng chung của bộ tộc tại đây'} (${Math.round(mpZoneR(cl)/20)} m)</button>${cl.zone?'<button class="btn sm ghost" data-a="mpunzone">Bỏ vùng chung</button>':''}</div>${zw?`<p class="small warn">${esc(zw)}</p>`:''}`:''}
-    <p class="hint">Mọi công trình đã xong của bạn đều hiện ra cho người chơi khác khi họ tới gần (đã chia sẻ ${MP.bInfo.n} món${MP.bInfo.at?', lần cuối '+new Date(MP.bInfo.at).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}):''}). Cắm mốc để giữ đất: người khác bộ tộc không xây được trong đất của bạn. Vùng quanh Trảng Khởi Đầu là đất chung, không ai cắm mốc được.</p>`;}
+    <p class="hint">Bạn đang ở ${mpSrvName(S.srv)}. Mọi công trình đã xong của bạn đều hiện ra cho người chơi khác khi họ tới gần (đã chia sẻ ${MP.bInfo.n} món${MP.bInfo.at?', lần cuối '+new Date(MP.bInfo.at).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}):''}). Cắm mốc để giữ đất: người khác bộ tộc không xây được trong đất của bạn. Vùng quanh Trảng Khởi Đầu là đất chung, không ai cắm mốc được.</p>`;}
 function mpZoneR(cl){const n=cl?cl.members.length:1;return Math.min(600,220+25*Math.min(10,n)+3*Math.max(0,n-10));}
 function mpChatHtml(){const cid=mpMyClan();if(!cid)return '<p class="small">Gia nhập một bộ tộc để trò chuyện cùng mọi người.</p>';
   return `<div class="mp-chat"></div><div class="mp-send"><input id="mpChat" maxlength="160" placeholder="Nhắn cả bộ tộc…"><button class="btn sm" data-a="mpsay">Gửi</button></div><p class="hint">Tin nhắn hiện cho người trong bộ tộc. Đừng gửi thông tin riêng tư.</p>`;}
@@ -163,7 +196,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.i
 /* ---------- bộ tộc ---------- */
 function mpSaveMe(p){if(!MP.me)return;Object.assign(MP.me,p);mpPut('players/'+MP.uid,Object.assign({},MP.me));MP.dirty.ui=MP.dirty.remote=true;}
 function mpClanDoc(c,patch){return Object.assign({name:c.name,leader:c.leader,members:c.members.slice(),color:c.color,emblem:c.emblem,createdAt:c.createdAt,zone:c.zone,deny:c.deny.slice()},patch||{});}
-function mpClanWrite(doc){const v=mpValClan(MP.uid,doc);if(v)MP.clans[MP.uid]=v;mpPut('clans/'+MP.uid,doc);MP.dirty.ui=MP.dirty.mem=MP.dirty.remote=true;}
+function mpClanWrite(doc){const v=mpValClan(MP.uid,doc);if(v)MP.clans[MP.uid]=v;mpPut('clans/'+MP.uid,Object.assign({},doc,{w:S.seed}));MP.dirty.ui=MP.dirty.mem=MP.dirty.remote=true;}
 function mpClanMake(){if(mpMyClan()){uiToast('Bạn đã ở trong một bộ tộc.','bad');return;}const i=$('#mpCn');const name=mpTxt(i&&i.value,24);if(name.length<2){uiToast('Đặt tên bộ tộc (ít nhất 2 chữ).','bad');return;}
   if(Object.values(MP.clans).some(c=>c.name.toLowerCase()===name.toLowerCase()&&c.id!==MP.uid)){uiToast('Đã có bộ tộc trùng tên này.','bad');return;}
   mpClanWrite({name,leader:MP.uid,members:[MP.uid],color:G.mpCol||MPCOL[0],emblem:G.mpEm||MPEMB[0],createdAt:mpNow(),zone:null,deny:[]});mpSaveMe({clan:MP.uid,req:null});
@@ -188,7 +221,7 @@ function mpClaimWhy(x,z,r,kind){if(Math.hypot(x-SPAWN[0],z-SPAWN[1])<MP_SPAWN_FR
   if(kind==='zone')for(const u in MP.claims){const c=MP.claims[u];if(u!==MP.uid&&mpClanOf(u)!==my&&Math.hypot(x-c.x,z-c.z)<r+c.r)return `Chồng lên lãnh thổ của ${mpName(u)}.`;}
   return '';}
 function mpClaim(grow){const c=MP.claims[MP.uid],R=mpClaimR();const x=grow&&c?c.x:+P.x.toFixed(1),z=grow&&c?c.z:+P.z.toFixed(1);const w=mpClaimWhy(x,z,R,'claim');if(w){uiToast(w,'bad');sfx('no');return;}
-  const d={x,z,r:R,clan:mpMyClan(),at:mpNow()};MP.claims[MP.uid]={x,z,r:R};mpPut('claims/'+MP.uid,d);MP.tick.ring=-9;MP.dirty.remote=true;uiToast(`🚩 Đã cắm mốc lãnh thổ bán kính ${Math.round(R/20)} m. Công trình xây xong trong này sẽ hiện cho mọi người.`,'gold');sfx('build');}
+  const d={x,z,r:R,clan:mpMyClan(),at:mpNow(),w:S.seed};MP.claims[MP.uid]={x,z,r:R};mpPut('claims/'+MP.uid,d);MP.tick.ring=-9;MP.dirty.remote=true;uiToast(`🚩 Đã cắm mốc lãnh thổ bán kính ${Math.round(R/20)} m. Công trình xây xong trong này sẽ hiện cho mọi người.`,'gold');sfx('build');}
 function mpZoneSet(on){const c=MP.clans[MP.uid];if(!c)return;if(!on){mpClanWrite(mpClanDoc(c,{zone:null}));return;}const r=mpZoneR(c),w=mpClaimWhy(P.x,P.z,r,'zone');if(w){uiToast(w,'bad');return;}
   mpClanWrite(mpClanDoc(c,{zone:{x:+P.x.toFixed(1),z:+P.z.toFixed(1),r}}));MP.tick.ring=-9;uiToast('🏕️ Đã đặt vùng đất chung của bộ tộc.','gold');}
 // đất của người khác (khác bộ tộc) → không xây được
@@ -356,3 +389,8 @@ function mpTick(dt){if(!mpOn())return;const t=performance.now()/1000,T=MP.tick;
 .mp-chat{max-height:46vh;overflow-y:auto;padding:4px 2px;display:flex;flex-direction:column;gap:5px}.mp-cm{padding:6px 9px;border-radius:10px;background:rgba(0,0,0,.25);font-size:14px;overflow-wrap:anywhere}.mp-cm.me{background:rgba(242,197,90,.14)}
 .mp-send{display:flex;gap:6px;align-items:center}.mp-send input{margin:0}.mpask{position:fixed;z-index:30;left:50%;bottom:calc(120px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(360px,calc(100vw - 32px));padding:12px 14px;border-radius:16px;background:#2a1d14;border:2px solid #f2c55a;box-shadow:0 10px 30px rgba(0,0,0,.5)}.mpask p{margin:0 0 8px}
 #menu .mp-dot{position:absolute;top:4px;right:6px;width:9px;height:9px;border-radius:50%;background:#e5532c}#menu [data-ui="clan"]{position:relative}`;document.head.appendChild(s);})();
+
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="mpsrv"],[data-a="mpsrvnext"]');if(!b)return;e.stopImmediatePropagation();
+  if(b.dataset.a==='mpsrv')mpSrvSet(b.dataset.v);else if(MP.worlds&&MP.worlds.length>1){const i=MP.worlds.findIndex(w=>w.id===MP.srv);mpSrvSet(MP.worlds[(i+1)%MP.worlds.length].id);}},true);
+setInterval(()=>{try{if(MP.ok&&document.querySelector('.ov-card.cr'))mpSrvForm(null);}catch(e){}},1000);
+{const st=document.createElement('style');st.textContent='.mpsrv{margin:6px 0 10px;display:flex;flex-direction:column;gap:6px;text-align:left}.mpsrv-l{display:flex;flex-wrap:wrap;gap:6px}';document.head.appendChild(st);}
