@@ -238,9 +238,9 @@ function rlPeace(sid){const s=RL.byId[sid],st=s&&S.rlm.s[sid];if(!st||!RLTRIBE[s
     if(st.own==='me'){rlCollect(s.id);return;}if(st.own&&RLTRIBE[st.own]&&!(rlTradeOk(st.own)&&!rlGuardsNear(s))){rlLoot(s.id);return;}G.rlTab='realm';G.rlFocus=s.id;uiOpen('map',{});return;}return _as(t);};}
 /* ---------- chơi chung: tranh giữ điểm giàu theo bộ tộc ---------- */
 // sites/<uid>: {w, c, L:{siteId:[công trình, phút có mặt, lúc có mặt cuối (ms), có cột vật tổ 0/1]}}
-function rlMpOn(){return !landFar()&&typeof mpOn==='function'&&typeof MP!=='undefined'&&mpOn();}
-function rlMpVal(id,d){if(!mpIdOk(id)||!d||typeof d!=='object'||d.w!==S.seed||!d.L||typeof d.L!=='object')return null;const L={};
-  for(const k in d.L){if(!RL.byId[k])continue;const a=d.L[k];if(!Array.isArray(a)||a.length<4)continue;const n=mpNum(a[0],0,1e4)?Math.min(20,a[0]|0):0,pt=mpNum(a[1],0,1e6)?Math.min(240,a[1]):0,at=mpNum(a[2],0,4e12)?Math.min(a[2],mpNow()+60000):0,tt=a[3]===1?1:0;L[k]=[n,pt,at,tt];}
+function rlMpOn(){return typeof mpOn==='function'&&typeof MP!=='undefined'&&mpOn();}
+function rlMpVal(id,d){if(!mpIdOk(id)||!d||typeof d!=='object'||d.w!==seed0()||!d.L||typeof d.L!=='object')return null;const L={},pf=landFar()?S.land+':':'';/* một tài liệu cho cả ba vùng: khoá điểm ở vùng xa có tiền tố "<mã vùng>:" */
+  for(const k0 in d.L){if(pf?k0.indexOf(pf)!==0:k0.indexOf(':')>=0)continue;const k=pf?k0.slice(pf.length):k0;if(!RL.byId[k])continue;const a=d.L[k0];if(!Array.isArray(a)||a.length<4)continue;const n=mpNum(a[0],0,1e4)?Math.min(20,a[0]|0):0,pt=mpNum(a[1],0,1e6)?Math.min(240,a[1]):0,at=mpNum(a[2],0,4e12)?Math.min(a[2],mpNow()+60000):0,tt=a[3]===1?1:0;L[k]=[n,pt,at,tt];}
   return {L};}
 function rlGrp(uid){const c=mpClanOf(uid);return c||('u:'+uid);}
 function rlGName(g){if(!g)return '';if(g.startsWith('u:'))return mpName(g.slice(2));const c=MP.clans[g];return c?c.emblem+' '+c.name:'Bộ tộc';}
@@ -257,7 +257,9 @@ function rlMpTick(){if(!rlMpOn())return;const R=rlS(),now=mpNow();
   if(now-RL.mp.calcT>5000){RL.mp.calcT=now;rlMpCalc();}
   if(MP.ro||now-RL.mp.putT<20000)return;const L={};for(const s of RL.sites){let n=0,tt=0;for(const b of S.builds){if(b.prog!=null||!RLOUT.test(b.k))continue;if(Math.hypot(b.x-s.x,b.z-s.z)<RLSR){n++;if(b.k==='totem')tt=1;}}
     const e=R.mp[s.id]||[0,0],own=R.s[s.id]&&R.s[s.id].own==='me';if(!n&&!(e[0]>0))continue;L[s.id]=[Math.min(20,n),+e[0].toFixed(2),e[1]||0,tt&&own?1:0];}
-  const doc={w:S.seed,c:mpMyClan()||null,L};{const R2=typeof pvpOut==='function'?pvpOut():null;if(R2)doc.R=R2;const W2=typeof pvpWarOut==='function'?pvpWarOut():null;if(W2)doc.W=W2;const Z2=typeof pvpFlagOut==='function'?pvpFlagOut():null;if(Z2)doc.Z=Z2;}/* R: biên bản cướp phá (pvp.js) */const key=JSON.stringify([doc.c,Object.entries(L).map(([k,v])=>[k,v[0],Math.floor(v[1]),v[3]]),doc.R||0,doc.W||0,doc.Z||0]);
+  /* gộp phần của các vùng khác (nhớ trong S.rlL) để không ghi đè nhau */
+  if(!S.rlL||typeof S.rlL!=='object')S.rlL={};{const pf=landFar()?S.land+':':'',all={};for(const k in S.rlL){const mine=pf?k.indexOf(pf)===0:k.indexOf(':')<0;if(!mine)all[k]=S.rlL[k];}for(const k in L)all[pf+k]=L[k];S.rlL=all;}
+  const LL=S.rlL;const doc={w:seed0(),c:mpMyClan()||null,L:LL};{const R2=typeof pvpOut==='function'?pvpOut():null;if(R2)doc.R=R2;const W2=typeof pvpWarOut==='function'?pvpWarOut():null;if(W2)doc.W=W2;const Z2=typeof pvpFlagOut==='function'?pvpFlagOut():null;if(Z2)doc.Z=Z2;}/* R: biên bản cướp phá (pvp.js) */const key=JSON.stringify([doc.c,Object.entries(L).map(([k,v])=>[k,v[0],Math.floor(v[1]),v[3]]),doc.R||0,doc.W||0,doc.Z||0]);
   if(key===RL.mp.last&&now-RL.mp.putT<600000)return;RL.mp.last=key;RL.mp.putT=now;mpPut('sites/'+MP.uid,doc);const v=rlMpVal(MP.uid,doc);if(v){RL.mp.docs[MP.uid]=v;rlMpCalc();}}
 /* ---------- giao diện: thẻ "Lãnh địa" trong Bản đồ, lớp Tài nguyên, dấu trên bản đồ & bản đồ nhỏ ---------- */
 const RLDIR=['B','ĐB','Đ','ĐN','N','TN','T','TB'];

@@ -21,9 +21,9 @@ const pvpOn=()=>typeof mpOn==='function'&&mpOn()&&!!MP.uid;
 const pvpNow=()=>Date.now()+(typeof WC==='object'?WC.off||0:0);
 function pvpHp(def,k){if(/palisade|watchtower|rampart|stoneWall|dryStoneWall|rammed/i.test(k))return 42;if(/Wall|wall|gate|Gate|fence|Fence/.test(k))return 22;if(def.store)return 14;if(k==='totem'||/totem/i.test(k))return 30;if(def.kind==='floor')return 18;if(def.kind==='roof')return 12;return 13;}
 // vì sao KHÔNG cướp được (null = được)
-function pvpWhy(uid){if(!pvpOn())return 'Chỉ có ở thế giới chung.';if(landFar())return 'Ở vùng đất xa chưa mở cướp phá.';if(typeof mpSameClan==='function'&&mpSameClan(uid))return 'Công trình của đồng minh.';if((typeof heroLv==='function'?heroLv():1)<PVP_MINLV)return `Cần nhân vật cấp ${PVP_MINLV} mới đi cướp phá được.`;
+function pvpWhy(uid){if(!pvpOn())return 'Chỉ có ở thế giới chung.';if(typeof mpSameClan==='function'&&mpSameClan(uid))return 'Công trình của đồng minh.';if((typeof heroLv==='function'?heroLv():1)<PVP_MINLV)return `Cần nhân vật cấp ${PVP_MINLV} mới đi cướp phá được.`;
   const p=MP.players[uid],now=pvpNow();if(p){if((p.hl||1)<PVP_MINLV)return 'Chủ nhà là người mới (dưới cấp '+PVP_MINLV+'): đang được bảo vệ.';if(p.sh>now)return `Chủ nhà đang có khiên bảo vệ, còn ${Math.max(1,Math.ceil((p.sh-now)/3600000))} giờ.`;
-    if(p.ho&&p.ho[0]>0&&now-p.ho[1]>300000&&now<p.ho[1]+p.ho[0]*3600000&&!pvpAtWar(uid))return `Chủ nhà đang nghỉ trong nhà: nhà được bảo hộ thêm ${Math.max(1,Math.ceil((p.ho[1]+p.ho[0]*3600000-now)/3600000))} giờ.`;}
+    if(!landFar()&&p.ho&&p.ho[0]>0&&now-p.ho[1]>300000&&now<p.ho[1]+p.ho[0]*3600000&&!pvpAtWar(uid))return `Chủ nhà đang nghỉ trong nhà: nhà được bảo hộ thêm ${Math.max(1,Math.ceil((p.ho[1]+p.ho[0]*3600000-now)/3600000))} giờ.`;}
   const o=pvpS().out[uid];if(o&&now-o.at<PVP_DAY&&o.ids.length>=pvpCap(uid))return 'Hôm nay bạn đã phá đủ '+pvpCap(uid)+' món của nhà này.';return null;}
 /* ---------- tìm công trình của người khác ở gần ---------- */
 function pvpNearScan(){PVP.nearT=G.t;PVP.near=null;if(!pvpOn()||!MP.bcur||!MP.bcur.size)return;let bd=REACH+12;for(const [uid,cur] of MP.bcur){for(const o of cur.values()){const b=o.b;if(Math.abs(b.x-P.x)>90||Math.abs(b.z-P.z)>90||Math.abs((b.y||0)-P.y)>60)continue;const def=pieceDef(b.k);if(!def||!BYID.has(b.id))continue;
@@ -69,9 +69,9 @@ function pvpPubTick(){if(!pvpOn()||!MP.me)return;const now=Date.now();if(now-PVP
   const df=[Math.min(6,g.length),lv,Math.min(30,fort)],sh=P0.sh>pvpNow()?Math.round(P0.sh):0,hl=typeof heroLv==='function'?heroLv():1,hh=typeof hoHours==='function'?hoHours(fort):0,k=JSON.stringify([df,sh,hl,hh,hh?Math.floor(now/120000):0]);if(k===PVP.pubK)return;PVP.pubK=k;mpSaveMe({df,sh,hl,ho:hh?[hh,Math.round(pvpNow())]:(MP.me&&MP.me.ho)||null});}
 /* ---------- nhận biên bản: áp hậu quả lên nhà mình ---------- */
 function pvpIn(docs){if(!pvpOn()||!S)return;try{pvpWarIn(docs);}catch(e){}try{pvpFlagIn(docs);}catch(e){}const P0=pvpS(),me=MP.uid,now=pvpNow();let hit=0,who=[];
-  for(const d of docs){const u=d.id;if(u===me||!mpIdOk(u))continue;const v=d.data();if(!v||v.w!==S.seed||!v.R||typeof v.R!=='object')continue;const e=v.R[me];if(!e||typeof e!=='object'||!Array.isArray(e.ids)||!mpNum(e.at,1e12,now+600000))continue;if(now-e.at>PVP_KEEP)continue;
+  for(const d of docs){const u=d.id;if(u===me||!mpIdOk(u))continue;const v=d.data();if(!v||v.w!==seed0()||!v.R||typeof v.R!=='object')continue;const e=v.R[me];if(!e||typeof e!=='object'||!Array.isArray(e.ids)||!mpNum(e.at,1e12,now+600000))continue;if(now-e.at>PVP_KEEP)continue;
     if(typeof mpSameClan==='function'&&mpSameClan(u))continue;const sn=P0.seen[u]||(P0.seen[u]={at:0,ids:[]});if(e.at<sn.at-1)continue;if(e.at-sn.at>PVP_DAY)sn.ids=[];let n=0;
-    for(const id of e.ids.slice(0,40)){if(!(typeof id==='number'&&id>=0&&Math.floor(id)===id)||sn.ids.includes(id))continue;if(sn.ids.length>=pvpCap(u))break;sn.ids.push(id);const b=S.builds.find(x=>x.id===id);if(!b||b.prog!=null||!pieceDef(b.k))continue;
+    for(const id of e.ids.slice(0,40)){if(!(typeof id==='number'&&id>=0&&Math.floor(id)===id)||sn.ids.includes(id))continue;if(sn.ids.length>=pvpCap(u))break;sn.ids.push(id);let b=S.builds.find(x=>x.id===id);/* công trình có thể nằm ở vùng đất khác vùng mình đang đứng */if(!b&&S.lands)for(const lk in S.lands){const Bs=S.lands[lk]&&S.lands[lk].builds;if(Array.isArray(Bs)){b=Bs.find(x=>x.id===id);if(b){if(b.prog==null&&pieceDef(b.k)){b.prog=0.45;if(b.cond!=null)b.cond=60;n++;}b=null;break;}}}if(!b||b.prog!=null||!pieceDef(b.k))continue;
       const def=pieceDef(b.k);if(def.store&&S.store[b.id]){const st=S.store[b.id];for(let i=0;i<st.length;i++)if(st[i]){const t=Math.ceil(st[i].n*0.3);st[i].n-=t;if(st[i].n<=0)st[i]=null;}}
       b.prog=0.45;if(typeof STG!=='undefined'&&STG[b.k])b.paid=STG[b.k].length;if(b.cond!=null)b.cond=60;try{siteShow(b);}catch(_){}n++;}
     sn.at=Math.max(sn.at,e.at);if(n){hit+=n;who.push(mpName(u));P0.log.unshift({u,n,at:e.at});}}
@@ -126,7 +126,7 @@ function pvpAtWar(uid){if(!pvpOn())return false;const a=mpMyClan(),b=mpClanOf(ui
 function pvpCap(uid){return pvpAtWar(uid)?PVP_WARCAP:PVP_MAXDAY;}
 function pvpWarScore(uid){if(!pvpAtWar(uid))return;const b=mpClanOf(uid),P0=pvpS();if(!P0.ws||typeof P0.ws!=='object')P0.ws={};P0.ws[b]=(P0.ws[b]||0)+1;}
 function pvpWarOut(){const w=S&&S.pvp&&S.pvp.ws;if(!w)return null;const o={};let n=0;for(const k in w){if(n>=8)break;if(mpIdOk(k)&&w[k]>0){o[k]=Math.min(1e6,w[k]|0);n++;}}return n?o:null;}
-function pvpWarIn(docs){const o={};for(const d of docs){const v=d.data();if(!v||v.w!==S.seed||!v.W||typeof v.W!=='object'||!mpIdOk(d.id))continue;const e={};let n=0;for(const k in v.W){if(n++>=8)break;if(mpIdOk(k)&&mpNum(v.W[k],1,1e6))e[k]=v.W[k]|0;}o[d.id]=e;}PVP.ws=o;}
+function pvpWarIn(docs){const o={};for(const d of docs){const v=d.data();if(!v||v.w!==seed0()||!v.W||typeof v.W!=='object'||!mpIdOk(d.id))continue;const e={};let n=0;for(const k in v.W){if(n++>=8)break;if(mpIdOk(k)&&mpNum(v.W[k],1,1e6))e[k]=v.W[k]|0;}o[d.id]=e;}PVP.ws=o;}
 // điểm của liên minh a đánh liên minh b
 function pvpWarPts(a,b){const A=MP.clans[a];if(!A)return 0;let s=0;for(const u of A.members){const e=u===MP.uid?(S.pvp&&S.pvp.ws)||{}:(PVP.ws&&PVP.ws[u])||{};s+=e[b]||0;}return s;}
 function pvpWarSet(oc,on){const c=MP.clans[MP.uid];if(!c||mpMyClan()!==MP.uid){uiToast('Chỉ thủ lĩnh mới tuyên chiến hay giảng hoà được.','bad');return;}if(!MP.clans[oc]||oc===MP.uid)return;let w=(c.war||[]).filter(x=>x!==oc);
@@ -171,7 +171,7 @@ function pvpFlagDone(cid){const c=MP.clans[cid];if(!c||!pvpWarWith(mpMyClan(),ci
 function pvpFlagOut(){const z=S&&S.pvp&&S.pvp.zo;if(!z)return null;const o={},now=pvpNow();let n=0;for(const k in z){if(n>=6)break;if(mpIdOk(k)&&now-z[k]<3*86400000){o[k]=z[k];n++;}}return n?o:null;}
 // thủ lĩnh bên bị hạ cờ: mất vùng đất chung, 24 giờ sau mới cắm lại
 function pvpFlagIn(docs){if(!pvpOn()||!S)return;const cid=mpMyClan();if(!cid||cid!==MP.uid)return;const c=MP.clans[cid];if(!c)return;const P0=pvpS(),now=pvpNow();
-  for(const d of docs){const u=d.id;if(u===MP.uid||!mpIdOk(u))continue;const v=d.data();if(!v||v.w!==S.seed||!v.Z||typeof v.Z!=='object')continue;const at=v.Z[cid];if(!mpNum(at,1e12,now+600000)||now-at>3*86400000||at<=(P0.zs||0))continue;
+  for(const d of docs){const u=d.id;if(u===MP.uid||!mpIdOk(u))continue;const v=d.data();if(!v||v.w!==seed0()||!v.Z||typeof v.Z!=='object')continue;const at=v.Z[cid];if(!mpNum(at,1e12,now+600000)||now-at>3*86400000||at<=(P0.zs||0))continue;
     const oc=mpClanOf(u);if(!oc||!pvpWarWith(cid,oc))continue;P0.zs=at;if(c.zone){mpClanWrite(mpClanDoc(c,{zone:null}));MP.tick.ring=-9;}P0.zcd=now+PVP_FLAGCD;
     uiToast(`🚩 ${mpName(u)} (${mpCT(MP.clans[oc].name)}) đã hạ cờ liên minh bạn! Vùng đất chung bị mất, 24 giờ nữa mới cắm lại được.`,'bad');sfx('hurt');save();break;}}
 if(typeof mpZoneSet==='function'){const _zs=mpZoneSet;mpZoneSet=function(on){if(on&&S&&S.pvp&&S.pvp.zcd>pvpNow()){uiToast(`Cờ liên minh vừa bị hạ: còn ${Math.ceil((S.pvp.zcd-pvpNow())/3600000)} giờ nữa mới cắm lại vùng đất chung được.`,'bad');sfx('no');return;}return _zs.apply(this,arguments);};}

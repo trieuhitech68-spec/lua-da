@@ -3,7 +3,7 @@
      Đi theo người: túi đồ, đồ mặc, cấp, kỹ năng, nhiệm vụ.
    - Qua cổng: cất dữ liệu vùng đang ở, nạp dữ liệu vùng kia, lưu rồi tải lại trang và vào thẳng game ở cổng bên kia (mất vài giây).
    - Thế giới chung: người chơi, liên minh, chợ, xếp hạng dùng chung cả ba vùng (theo hạt giống gốc của máy chủ); nhìn thấy nhau và công trình của nhau
-     theo từng vùng. Vùng xa là đất tranh chấp: không cắm mốc, không bảo hộ, chưa mở cướp phá và điểm tài nguyên chung (đợt sau). */
+     theo từng vùng. Vùng xa là đất tranh chấp: không cắm mốc, không bảo hộ khi vắng; cướp phá và tranh điểm tài nguyên như vùng trung tâm. */
 const LD_KEYS=['builds','res','store','crops','fuel','tank','disc','fogm','mark','flat','rlm','war','folk','pets','plants','boats','recruited','khu','ho','b3'];
 const LD_DEF={builds:()=>[],res:()=>({}),store:()=>({}),crops:()=>({}),fuel:()=>({}),tank:()=>({}),disc:()=>({}),fogm:()=>null,mark:()=>null,flat:()=>[],folk:()=>[],pets:()=>[],recruited:()=>({})};
 function landInit(){if(!S)return;if(!S.seed0){S.seed0=S.seed;S.land='c';}if(!S.lands||typeof S.lands!=='object')S.lands={};if(S.land==='c'&&S.wv0==null)S.wv0=S.wv;}
