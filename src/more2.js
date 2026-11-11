@@ -157,13 +157,13 @@ function m2PfHtml(u){const st=m2FrState(u),cid=mpClanOf(u),c=MP.clans[cid],L=M2K
 
 /* ===================== 7. CHỢ: BẢNG ĐỔI HÀNG · CHỢ PHIÊN Ở LÀNG · GIÁ TRỊ ===================== */
 const m2Pair=v=>Array.isArray(v)&&v.length===2&&typeof v[0]==='string'&&ITEMS[v[0]]&&ITEMS[v[0]].t!=='pet'&&Number.isInteger(v[1])&&v[1]>=1&&v[1]<=99?[v[0],v[1]]:null;
-function m2ValMkt(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||!Array.isArray(d.list))return null;if(S&&d.w!==S.seed)return null;const out=[];for(const l of d.list.slice(0,6)){if(!l||!m2Id(l.id))continue;const g=m2Pair(l.g),w=m2Pair(l.w);if(!g||!w||!mpNum(l.at,0,1e14))continue;out.push({id:l.id,s:uid,g,w,at:l.at});}return out;}
+function m2ValMkt(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||!Array.isArray(d.list))return null;if(S&&d.w!==seed0())return null;const out=[];for(const l of d.list.slice(0,6)){if(!l||!m2Id(l.id))continue;const g=m2Pair(l.g),w=m2Pair(l.w);if(!g||!w||!mpNum(l.at,0,1e14))continue;out.push({id:l.id,s:uid,g,w,at:l.at});}return out;}
 function m2ValDeals(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||!Array.isArray(d.list))return [];return d.list.slice(-40).filter(x=>x&&m2Id(x.lid)&&m2Id(x.s)&&mpNum(x.at,0,1e14)).map(x=>({lid:x.lid,s:x.s,at:x.at,b:uid}));}
 const m2Win=L=>L.slice().sort((a,b)=>a.at-b.at||(a.b<b.b?-1:1))[0];
 async function m2MktLoad(){if(!m2Net())return;try{const s=await mpTO(MP.db.collection('market').limit(300).get(),10000);const o={};for(const d of s.docs){const v=m2ValMkt(d.id,d.data());if(v&&v.length)o[d.id]=v;}M2K.mkt=o;M2K.mktT=Date.now();}catch(e){}}
 async function m2DealsFor(seller){try{const s=await mpTO(MP.db.collection('deals').where('sel','array-contains',seller).limit(200).get(),10000);const L=[];for(const d of s.docs)L.push(...m2ValDeals(d.id,d.data()));return L;}catch(e){return null;}}
 function m2MyMkt(){return (M2K.myMkt||[]);}
-function m2MktWrite(){mpPut('market/'+MP.uid,{w:S.seed,list:m2MyMkt().map(l=>({id:l.id,g:l.g,w:l.w,at:l.at})),at:Date.now()});}
+function m2MktWrite(){mpPut('market/'+MP.uid,{w:seed0(),list:m2MyMkt().map(l=>({id:l.id,g:l.g,w:l.w,at:l.at})),at:Date.now()});}
 function m2MktPost(){if(!m2Net())return;if(m2MyMkt().length>=6){uiToast('Mỗi người đăng tối đa 6 món đổi.','bad');return;}const si=($('#m2gs')||{}).value,gn=Math.max(1,Math.min(99,+(($('#m2gn')||{}).value)||1)),wid=($('#m2wi')||{}).value,wn=Math.max(1,Math.min(99,+(($('#m2wn')||{}).value)||1));
   const s=S.inv[+si];if(si===''||!s){uiToast('Chọn món đem đổi.','bad');return;}if(!ITEMS[wid]||wid===s.id){uiToast('Chọn món muốn nhận (khác món đem đổi).','bad');return;}const k=Math.min(gn,s.n),gid=s.id;if(!invTake(gid,k))return;equip(selTool());
   const id='l'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),l={id,s:MP.uid,g:[gid,k],w:[wid,wn],at:Date.now()};M2K.myMkt=m2MyMkt().concat(l);M2I().esc[id]={g:[gid,k]};m2MktWrite();
@@ -214,8 +214,8 @@ function m2MktHtml(){const t=G.m2mt||'board',tabs=[['board','⚖️ Đổi hàng
     ${mine.length?`<h3>Món bạn đang đăng</h3>${mine.map(l=>card(l,1)).join('')}`:''}<h3>Bảng đổi hàng (${all.length})</h3>${all.length?all.slice(0,40).map(l=>card(l,0)).join(''):'<p class="muted small">Chưa có ai đăng món đổi.</p>'}<button class="btn sm ghost" data-a="m2mr">↻ Tải lại</button>`;}
 
 /* ===================== 8. XẾP HẠNG ===================== */
-function m2MyStats(){let terr=0;try{const c=MP.claims[MP.uid];terr=c?c.r:0;}catch(e){}return {w:S.seed,d:S.day|0,h:mxgc('cnt:hunt'),b:m2Sum('build:'),a:Object.keys((S.mx&&S.mx.ach)||{}).length,r:Object.keys(S.disc||{}).length,k:Math.round((S.mx&&S.mx.dist||0)/20/100)/10,t:terr|0,cl:mpMyClan()||null};}
-function m2ValLb(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||(S&&d.w!==S.seed))return null;const n=(v,b)=>mpNum(v,0,b)?Math.floor(v*10)/10:0;return {d:n(d.d,1e6),h:n(d.h,1e7),b:n(d.b,1e7),a:n(d.a,1e4),r:n(d.r,1e3),k:n(d.k,1e6),t:n(d.t,1e4),p:n(d.p,1e7),cl:m2Id(d.cl)?d.cl:null,at:mpNum(d.at,0,1e14)?d.at:0};}
+function m2MyStats(){let terr=0;try{const c=MP.claims[MP.uid];terr=c?c.r:0;}catch(e){}return {w:seed0(),d:S.day|0,h:mxgc('cnt:hunt'),b:m2Sum('build:'),a:Object.keys((S.mx&&S.mx.ach)||{}).length,r:Object.keys(S.disc||{}).length,k:Math.round((S.mx&&S.mx.dist||0)/20/100)/10,t:terr|0,cl:mpMyClan()||null};}
+function m2ValLb(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||(S&&d.w!==seed0()))return null;const n=(v,b)=>mpNum(v,0,b)?Math.floor(v*10)/10:0;return {d:n(d.d,1e6),h:n(d.h,1e7),b:n(d.b,1e7),a:n(d.a,1e4),r:n(d.r,1e3),k:n(d.k,1e6),t:n(d.t,1e4),p:n(d.p,1e7),cl:m2Id(d.cl)?d.cl:null,at:mpNum(d.at,0,1e14)?d.at:0};}
 async function m2LbLoad(){if(!m2Net())return;try{const s=await mpTO(MP.db.collection('lb').limit(500).get(),10000);const o={};for(const d of s.docs){const v=m2ValLb(d.id,d.data());if(v)o[d.id]=v;}M2K.lb=o;M2K.lbT=Date.now();}catch(e){}}
 function m2LbPush(){if(!m2Net())return;const s=m2MyStats(),k=JSON.stringify(s);if(k===M2K.lbK)return;M2K.lbK=k;mpPut('lb/'+MP.uid,Object.assign(s,{at:Date.now()}));M2K.lb[MP.uid]=m2ValLb(MP.uid,Object.assign({},s,{at:Date.now()}));}
 const M2LB=[['d','📅 Ngày sống',''],['h','🏹 Thú săn',''],['b','🏠 Công trình',''],['a','🏆 Thành tựu',''],['r','🗺️ Vùng đất',''],['k','🚶 Đường đi',' km'],['clan','🤝 Bộ tộc','']];

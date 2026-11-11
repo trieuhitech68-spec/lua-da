@@ -21,7 +21,7 @@ const pvpOn=()=>typeof mpOn==='function'&&mpOn()&&!!MP.uid;
 const pvpNow=()=>Date.now()+(typeof WC==='object'?WC.off||0:0);
 function pvpHp(def,k){if(/palisade|watchtower|rampart|stoneWall|dryStoneWall|rammed/i.test(k))return 42;if(/Wall|wall|gate|Gate|fence|Fence/.test(k))return 22;if(def.store)return 14;if(k==='totem'||/totem/i.test(k))return 30;if(def.kind==='floor')return 18;if(def.kind==='roof')return 12;return 13;}
 // vì sao KHÔNG cướp được (null = được)
-function pvpWhy(uid){if(!pvpOn())return 'Chỉ có ở thế giới chung.';if(typeof mpSameClan==='function'&&mpSameClan(uid))return 'Công trình của đồng minh.';if((typeof heroLv==='function'?heroLv():1)<PVP_MINLV)return `Cần nhân vật cấp ${PVP_MINLV} mới đi cướp phá được.`;
+function pvpWhy(uid){if(!pvpOn())return 'Chỉ có ở thế giới chung.';if(landFar())return 'Ở vùng đất xa chưa mở cướp phá.';if(typeof mpSameClan==='function'&&mpSameClan(uid))return 'Công trình của đồng minh.';if((typeof heroLv==='function'?heroLv():1)<PVP_MINLV)return `Cần nhân vật cấp ${PVP_MINLV} mới đi cướp phá được.`;
   const p=MP.players[uid],now=pvpNow();if(p){if((p.hl||1)<PVP_MINLV)return 'Chủ nhà là người mới (dưới cấp '+PVP_MINLV+'): đang được bảo vệ.';if(p.sh>now)return `Chủ nhà đang có khiên bảo vệ, còn ${Math.max(1,Math.ceil((p.sh-now)/3600000))} giờ.`;
     if(p.ho&&p.ho[0]>0&&now-p.ho[1]>300000&&now<p.ho[1]+p.ho[0]*3600000&&!pvpAtWar(uid))return `Chủ nhà đang nghỉ trong nhà: nhà được bảo hộ thêm ${Math.max(1,Math.ceil((p.ho[1]+p.ho[0]*3600000-now)/3600000))} giờ.`;}
   const o=pvpS().out[uid];if(o&&now-o.at<PVP_DAY&&o.ids.length>=pvpCap(uid))return 'Hôm nay bạn đã phá đủ '+pvpCap(uid)+' món của nhà này.';return null;}

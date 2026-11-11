@@ -238,7 +238,7 @@ function rlPeace(sid){const s=RL.byId[sid],st=s&&S.rlm.s[sid];if(!st||!RLTRIBE[s
     if(st.own==='me'){rlCollect(s.id);return;}if(st.own&&RLTRIBE[st.own]&&!(rlTradeOk(st.own)&&!rlGuardsNear(s))){rlLoot(s.id);return;}G.rlTab='realm';G.rlFocus=s.id;uiOpen('map',{});return;}return _as(t);};}
 /* ---------- chơi chung: tranh giữ điểm giàu theo bộ tộc ---------- */
 // sites/<uid>: {w, c, L:{siteId:[công trình, phút có mặt, lúc có mặt cuối (ms), có cột vật tổ 0/1]}}
-function rlMpOn(){return typeof mpOn==='function'&&typeof MP!=='undefined'&&mpOn();}
+function rlMpOn(){return !landFar()&&typeof mpOn==='function'&&typeof MP!=='undefined'&&mpOn();}
 function rlMpVal(id,d){if(!mpIdOk(id)||!d||typeof d!=='object'||d.w!==S.seed||!d.L||typeof d.L!=='object')return null;const L={};
   for(const k in d.L){if(!RL.byId[k])continue;const a=d.L[k];if(!Array.isArray(a)||a.length<4)continue;const n=mpNum(a[0],0,1e4)?Math.min(20,a[0]|0):0,pt=mpNum(a[1],0,1e6)?Math.min(240,a[1]):0,at=mpNum(a[2],0,4e12)?Math.min(a[2],mpNow()+60000):0,tt=a[3]===1?1:0;L[k]=[n,pt,at,tt];}
   return {L};}

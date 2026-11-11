@@ -794,6 +794,10 @@ const AGES=[
 // PHONG CÁCH NHÂN VẬT (cách điệu kiểu game phiêu lưu nhìn từ trên xuống): đầu, mắt, bàn tay, bàn chân to hơn tỉ lệ thật để dễ nhìn, dễ mến ở cỡ nhỏ
 // toon: 0 = mặt tả thực như cũ, 1 = mặt hoạt hình (mũi nhỏ tròn, bỏ gờ mày, rãnh mũi-má, lỗ mũi; má bầu, ửng hồng; da mịn; tròng mắt to)
 const CHS={head:1.2,eye:1.14,hand:1.16,foot:1.12,toon:1};
+
+// hạt giống GỐC của máy chủ / ván chơi (vùng trung tâm). Mỗi vùng đất xa có hạt giống riêng suy ra từ đây (lands.js); dữ liệu chung theo máy chủ dùng hạt giống gốc.
+const seed0=()=>typeof S==='object'&&S?(S.seed0||S.seed):0;
+const landFar=()=>typeof S==='object'&&!!S&&!!S.land&&S.land!=='c';
 /* ===================== BỘ DỰNG HÌNH 3D (three.js r149) ===================== */
 /* Mọi hình dựng theo đơn vị thiết kế (du) giống bản 2D: s ≈ 80–140 là cỡ một công trình. Gốc ở chân công trình (y=0), mặt tiền nhìn về +Z. */
 const K3={ok:false};
@@ -8022,6 +8026,30 @@ const V5REG=[['deongang','Đèo Ngang','Cửa ngõ từ đất Bắc vào miền
 function v5Want(){try{return localStorage.getItem('ldtt-wv4')!=='0';}catch(e){return true;}}
 {const _ng=newGame;newGame=function(o){const r=_ng(o);if(S&&v5Want()){S.wv=4;worldCfg(4);S._new=1;save();delete S._new;}return r;};}
 try{if(/[?&]vn=1/.test(location.search))localStorage.removeItem('ldtt-wv4');else if(/[?&]vn=0/.test(location.search))localStorage.setItem('ldtt-wv4','0');}catch(e){}
+/* ===================== NHIỀU VÙNG ĐẤT NỐI BẰNG CỔNG (phần 1: địa hình) =====================
+   Mỗi máy chủ / ván chơi có 3 vùng đất, mỗi vùng là một bản đồ riêng; máy chỉ tải vùng đang đứng nên thế giới rộng gấp ba mà không nặng thêm.
+     c   Đất Trung Tâm        : bản đồ gốc (hình chữ S hoặc bản đồ tròn cũ). Nơi bắt đầu, dựng nhà chính, cắm lãnh thổ, có bảo hộ.
+     tb  Tây Bắc Núi Cao      : núi dựng cao gấp rưỡi, nhiều đá, tuyết; giàu quặng đồng, thiếc, sắt, than, gỗ thông. Vùng cấp +6. Cần cấp 8.
+     dao Biển Đảo Phương Nam  : mực nước dâng 22 đơn vị → quần đảo, đầm phá, bãi cát; giàu muối, sò ngọc, cọ, tre, chuối, vàng sa khoáng. Vùng cấp +10. Cần cấp 12.
+   Vùng xa dựng bằng bộ sinh địa hình bản đồ tròn (WV 3) với hạt giống riêng suy từ hạt giống gốc, rồi biến đổi độ cao theo vùng.
+   S.land = mã vùng đang ở; S.seed0 = hạt giống gốc; S.seed = hạt giống của vùng đang ở. Phần 2 (đi qua cổng, lưu riêng từng vùng) ở lands2.js. */
+const LANDS=[{id:'c',n:'Đất Trung Tâm',ic:'🏠',lv:0,need:1,d:'Nơi bắt đầu. Nhà chính, lãnh thổ và bảo hộ khi vắng chỉ có ở đây.'},
+  {id:'tb',n:'Tây Bắc Núi Cao',ic:'🏔️',lv:6,need:8,d:'Núi dựng cao gấp rưỡi, đèo dốc, tuyết phủ. Giàu quặng đồng, thiếc, sắt, than đá và gỗ thông cổ thụ. Gấu, sói, hổ mạnh.',hf:h=>h>0?h*1.5+Math.min(14,h):h,
+   reg:{start:'Bản Đầu Nguồn',range:'Dãy Hoàng Liên',pineplat:'Cao Nguyên Mộc Châu',karst:'Cao Nguyên Đá Đồng Văn',terrace:'Ruộng Bậc Thang Mù Cang Chải',canyon:'Hẻm Vực Tu Sản',vista:'Đèo Ô Quy Hồ',plateau:'Sơn Nguyên Tà Phình',bamboovl:'Thung Lũng Mường Thanh',hotspring:'Suối Khoáng Mường La',basalt:'Núi Lửa Ngủ Yên',forest:'Rừng Pơ Mu',village:'Bản Người Thái'}},
+  {id:'dao',n:'Biển Đảo Phương Nam',ic:'🏝️',lv:10,need:12,d:'Nước biển dâng nhấn chìm đồng bằng: còn lại quần đảo, đầm phá, bãi cát trắng. Giàu muối, sò ngọc, vàng sa khoáng, cọ, tre, chuối. Cá sấu và bò tót.',hf:h=>h>0?(h-22)*0.86:h,
+   reg:{start:'Đảo Lớn',halong:'Quần Đảo Đá',beach:'Bãi San Hô',mangrove:'Rừng Đước',lake:'Đầm Phá',delta:'Cửa Biển',cliffs:'Mũi Đá Dựng',trangan:'Vụng Thuyền',jungle:'Rừng Dừa',savanna:'Đồng Cỏ Đảo',range:'Đỉnh Đảo Mây',karst:'Hòn Đá Vôi',village:'Làng Chài'}}];
+const landCur=()=>LANDS.find(L=>L.id===(typeof S==='object'&&S&&S.land||'c'))||LANDS[0];
+function landSeed(id){const s0=seed0(),i=LANDS.findIndex(L=>L.id===id);return i<=0?s0:((s0*31+i*7919)%2000000000)+1;}
+// độ cao: biến đổi theo vùng (lớp ngoài cùng của baseH)
+{const _bh=baseH;baseH=function(x,z){const h=_bh(x,z),L=landCur();return L.hf?L.hf(h,x,z):h;};}
+// chỗ đất đặt được cổng gần một điểm cho trước
+function landSpot(tx,tz){for(let r=0;r<3200;r+=70){const n=r?Math.ceil(r/45):1;for(let i=0;i<n;i++){const a=i/n*6.283,x=tx+Math.cos(a)*r,z=tz+Math.sin(a)*r;if(!wIn(x,z,0.9))continue;const h=hAt(x,z);if(h<5||h>320||wdAt(x,z)>0||slopeAt(x,z)>0.4)continue;
+      let ok=true;for(let k=0;k<6;k++){const ax=x+Math.cos(k*1.05)*60,az=z+Math.sin(k*1.05)*60;if(wdAt(ax,az)>0||Math.abs(hAt(ax,az)-h)>26){ok=false;break;}}if(ok)return [+x.toFixed(0),+z.toFixed(0)];}}return null;}
+const LD={gates:[],objs:[]};
+function landGatesPlan(){LD.gates=[];const id=landCur().id,far=Math.hypot(SPAWN[0],SPAWN[1]);const want=id==='c'?[['tb',WV>=4?[-3600,-3300]:[-3400,-3000]],['dao',WV>=4?[3300,9000]:[3000,4200]]]:[['c',[SPAWN[0]+700,SPAWN[1]+500]],[id==='tb'?'dao':'tb',[SPAWN[0]-2600,SPAWN[1]-1800]]];
+  for(const [to,t] of want){const p=landSpot(t[0],t[1]);if(p)LD.gates.push({to,x:p[0],z:p[1]});}}
+{const _rb=regionsBuild;regionsBuild=function(){const r=_rb.apply(this,arguments);try{const L=landCur();if(L.reg)for(const g of REG)if(L.reg[g.id])g.n=L.reg[g.id];landGatesPlan();
+    for(const g of LD.gates){const T=LANDS.find(x=>x.id===g.to);REG.push({id:'gate_'+g.to,n:'Cổng sang '+T.n,d:T.d+(T.need>1?' Cần nhân vật cấp '+T.need+'.':''),ic:'⛩️',x:g.x,z:g.z,r:170});}}catch(e){console.warn('vùng đất',e);}return r;};}
 /* ===================== BẢN ĐỒ NHỎ · BỘ LẠC NÚI ĐÁ (THÙ ĐỊCH) · CƯỚP PHÁ · THÚ DỮ TẤN CÔNG NHÀ ===================== */
 /* ---------- bản đồ nhỏ góc màn hình ---------- */
 function homePos(){const b=S.builds.find(b=>pieceDef(b.k)&&pieceDef(b.k).bed&&b.prog==null)||S.builds.find(b=>b.k==='campfire');return b?{x:b.x,z:b.z}:null;}
@@ -12764,13 +12792,13 @@ function m2PfHtml(u){const st=m2FrState(u),cid=mpClanOf(u),c=MP.clans[cid],L=M2K
 
 /* ===================== 7. CHỢ: BẢNG ĐỔI HÀNG · CHỢ PHIÊN Ở LÀNG · GIÁ TRỊ ===================== */
 const m2Pair=v=>Array.isArray(v)&&v.length===2&&typeof v[0]==='string'&&ITEMS[v[0]]&&ITEMS[v[0]].t!=='pet'&&Number.isInteger(v[1])&&v[1]>=1&&v[1]<=99?[v[0],v[1]]:null;
-function m2ValMkt(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||!Array.isArray(d.list))return null;if(S&&d.w!==S.seed)return null;const out=[];for(const l of d.list.slice(0,6)){if(!l||!m2Id(l.id))continue;const g=m2Pair(l.g),w=m2Pair(l.w);if(!g||!w||!mpNum(l.at,0,1e14))continue;out.push({id:l.id,s:uid,g,w,at:l.at});}return out;}
+function m2ValMkt(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||!Array.isArray(d.list))return null;if(S&&d.w!==seed0())return null;const out=[];for(const l of d.list.slice(0,6)){if(!l||!m2Id(l.id))continue;const g=m2Pair(l.g),w=m2Pair(l.w);if(!g||!w||!mpNum(l.at,0,1e14))continue;out.push({id:l.id,s:uid,g,w,at:l.at});}return out;}
 function m2ValDeals(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||!Array.isArray(d.list))return [];return d.list.slice(-40).filter(x=>x&&m2Id(x.lid)&&m2Id(x.s)&&mpNum(x.at,0,1e14)).map(x=>({lid:x.lid,s:x.s,at:x.at,b:uid}));}
 const m2Win=L=>L.slice().sort((a,b)=>a.at-b.at||(a.b<b.b?-1:1))[0];
 async function m2MktLoad(){if(!m2Net())return;try{const s=await mpTO(MP.db.collection('market').limit(300).get(),10000);const o={};for(const d of s.docs){const v=m2ValMkt(d.id,d.data());if(v&&v.length)o[d.id]=v;}M2K.mkt=o;M2K.mktT=Date.now();}catch(e){}}
 async function m2DealsFor(seller){try{const s=await mpTO(MP.db.collection('deals').where('sel','array-contains',seller).limit(200).get(),10000);const L=[];for(const d of s.docs)L.push(...m2ValDeals(d.id,d.data()));return L;}catch(e){return null;}}
 function m2MyMkt(){return (M2K.myMkt||[]);}
-function m2MktWrite(){mpPut('market/'+MP.uid,{w:S.seed,list:m2MyMkt().map(l=>({id:l.id,g:l.g,w:l.w,at:l.at})),at:Date.now()});}
+function m2MktWrite(){mpPut('market/'+MP.uid,{w:seed0(),list:m2MyMkt().map(l=>({id:l.id,g:l.g,w:l.w,at:l.at})),at:Date.now()});}
 function m2MktPost(){if(!m2Net())return;if(m2MyMkt().length>=6){uiToast('Mỗi người đăng tối đa 6 món đổi.','bad');return;}const si=($('#m2gs')||{}).value,gn=Math.max(1,Math.min(99,+(($('#m2gn')||{}).value)||1)),wid=($('#m2wi')||{}).value,wn=Math.max(1,Math.min(99,+(($('#m2wn')||{}).value)||1));
   const s=S.inv[+si];if(si===''||!s){uiToast('Chọn món đem đổi.','bad');return;}if(!ITEMS[wid]||wid===s.id){uiToast('Chọn món muốn nhận (khác món đem đổi).','bad');return;}const k=Math.min(gn,s.n),gid=s.id;if(!invTake(gid,k))return;equip(selTool());
   const id='l'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),l={id,s:MP.uid,g:[gid,k],w:[wid,wn],at:Date.now()};M2K.myMkt=m2MyMkt().concat(l);M2I().esc[id]={g:[gid,k]};m2MktWrite();
@@ -12821,8 +12849,8 @@ function m2MktHtml(){const t=G.m2mt||'board',tabs=[['board','⚖️ Đổi hàng
     ${mine.length?`<h3>Món bạn đang đăng</h3>${mine.map(l=>card(l,1)).join('')}`:''}<h3>Bảng đổi hàng (${all.length})</h3>${all.length?all.slice(0,40).map(l=>card(l,0)).join(''):'<p class="muted small">Chưa có ai đăng món đổi.</p>'}<button class="btn sm ghost" data-a="m2mr">↻ Tải lại</button>`;}
 
 /* ===================== 8. XẾP HẠNG ===================== */
-function m2MyStats(){let terr=0;try{const c=MP.claims[MP.uid];terr=c?c.r:0;}catch(e){}return {w:S.seed,d:S.day|0,h:mxgc('cnt:hunt'),b:m2Sum('build:'),a:Object.keys((S.mx&&S.mx.ach)||{}).length,r:Object.keys(S.disc||{}).length,k:Math.round((S.mx&&S.mx.dist||0)/20/100)/10,t:terr|0,cl:mpMyClan()||null};}
-function m2ValLb(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||(S&&d.w!==S.seed))return null;const n=(v,b)=>mpNum(v,0,b)?Math.floor(v*10)/10:0;return {d:n(d.d,1e6),h:n(d.h,1e7),b:n(d.b,1e7),a:n(d.a,1e4),r:n(d.r,1e3),k:n(d.k,1e6),t:n(d.t,1e4),p:n(d.p,1e7),cl:m2Id(d.cl)?d.cl:null,at:mpNum(d.at,0,1e14)?d.at:0};}
+function m2MyStats(){let terr=0;try{const c=MP.claims[MP.uid];terr=c?c.r:0;}catch(e){}return {w:seed0(),d:S.day|0,h:mxgc('cnt:hunt'),b:m2Sum('build:'),a:Object.keys((S.mx&&S.mx.ach)||{}).length,r:Object.keys(S.disc||{}).length,k:Math.round((S.mx&&S.mx.dist||0)/20/100)/10,t:terr|0,cl:mpMyClan()||null};}
+function m2ValLb(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||(S&&d.w!==seed0()))return null;const n=(v,b)=>mpNum(v,0,b)?Math.floor(v*10)/10:0;return {d:n(d.d,1e6),h:n(d.h,1e7),b:n(d.b,1e7),a:n(d.a,1e4),r:n(d.r,1e3),k:n(d.k,1e6),t:n(d.t,1e4),p:n(d.p,1e7),cl:m2Id(d.cl)?d.cl:null,at:mpNum(d.at,0,1e14)?d.at:0};}
 async function m2LbLoad(){if(!m2Net())return;try{const s=await mpTO(MP.db.collection('lb').limit(500).get(),10000);const o={};for(const d of s.docs){const v=m2ValLb(d.id,d.data());if(v)o[d.id]=v;}M2K.lb=o;M2K.lbT=Date.now();}catch(e){}}
 function m2LbPush(){if(!m2Net())return;const s=m2MyStats(),k=JSON.stringify(s);if(k===M2K.lbK)return;M2K.lbK=k;mpPut('lb/'+MP.uid,Object.assign(s,{at:Date.now()}));M2K.lb[MP.uid]=m2ValLb(MP.uid,Object.assign({},s,{at:Date.now()}));}
 const M2LB=[['d','📅 Ngày sống',''],['h','🏹 Thú săn',''],['b','🏠 Công trình',''],['a','🏆 Thành tựu',''],['r','🗺️ Vùng đất',''],['k','🚶 Đường đi',' km'],['clan','🤝 Bộ tộc','']];
@@ -13451,7 +13479,7 @@ function rlPeace(sid){const s=RL.byId[sid],st=s&&S.rlm.s[sid];if(!st||!RLTRIBE[s
     if(st.own==='me'){rlCollect(s.id);return;}if(st.own&&RLTRIBE[st.own]&&!(rlTradeOk(st.own)&&!rlGuardsNear(s))){rlLoot(s.id);return;}G.rlTab='realm';G.rlFocus=s.id;uiOpen('map',{});return;}return _as(t);};}
 /* ---------- chơi chung: tranh giữ điểm giàu theo bộ tộc ---------- */
 // sites/<uid>: {w, c, L:{siteId:[công trình, phút có mặt, lúc có mặt cuối (ms), có cột vật tổ 0/1]}}
-function rlMpOn(){return typeof mpOn==='function'&&typeof MP!=='undefined'&&mpOn();}
+function rlMpOn(){return !landFar()&&typeof mpOn==='function'&&typeof MP!=='undefined'&&mpOn();}
 function rlMpVal(id,d){if(!mpIdOk(id)||!d||typeof d!=='object'||d.w!==S.seed||!d.L||typeof d.L!=='object')return null;const L={};
   for(const k in d.L){if(!RL.byId[k])continue;const a=d.L[k];if(!Array.isArray(a)||a.length<4)continue;const n=mpNum(a[0],0,1e4)?Math.min(20,a[0]|0):0,pt=mpNum(a[1],0,1e6)?Math.min(240,a[1]):0,at=mpNum(a[2],0,4e12)?Math.min(a[2],mpNow()+60000):0,tt=a[3]===1?1:0;L[k]=[n,pt,at,tt];}
   return {L};}
@@ -16373,7 +16401,7 @@ setInterval(()=>{try{if(G.on&&S)danMenu();}catch(e){}},1500);
    3. Tài nguyên và chế tạo bậc sau đồng thau: quặng sắt + than đá → thỏi sắt (lò luyện, Chế tác cấp 6) → rìu, giáo, dao, cuốc chim, giáp sắt;
       vàng cốm → vòng vàng; ngọc bích → bùa ngọc. Trình tự: đá → đồng thau → sắt.
    Lưu: S.khu={b:{<id điểm>:{dead:TNOW}}}. */
-const khuLv=(x,z)=>clamp(1+Math.floor(Math.hypot(x-SPAWN[0],z-SPAWN[1])/1000),1,10);
+let khuLv=(x,z)=>clamp(1+Math.floor(Math.hypot(x-SPAWN[0],z-SPAWN[1])/1000),1,10);
 function khuS(){if(!S.khu||typeof S.khu!=='object')S.khu={b:{}};if(!S.khu.b)S.khu.b={};return S.khu;}
 /* ---------- vật phẩm, tài nguyên, công thức ---------- */
 Object.assign(ITEMS,{ironOre:{n:'Quặng sắt',t:'res',ds:'Đá nặng màu nâu đỏ gỉ. Nấu với than đá trong lò luyện ra sắt.'},coal:{n:'Than đá',t:'res',ds:'Đá đen bóng, cháy nóng hơn than củi nhiều: thứ không thể thiếu để luyện sắt.'},
@@ -18051,9 +18079,11 @@ const mpSrvName=id=>'Máy chủ '+(id==='main'||!id?1:+String(id).slice(1))+(((M
 async function mpSrvOpenS(){if(MP.srvBusy||!MP.ok)return;if((MP.worlds||[]).some(w=>w.wv>=4)){uiToast('Đã có máy chủ bản đồ chữ S, chọn nó trong danh sách.','');return;}MP.srvBusy=true;uiToast('Đang mở máy chủ mới…','');let w=null;try{w=await mpSrvNew();}catch(e){}MP.srvBusy=false;
   if(w){MP.srvUser=1;MP.srv=w.id;MP.seed=w.seed;uiToast('🗺️ Đã mở '+mpSrvName(w.id)+'. Nhân vật mới sẽ vào bản đồ hình chữ S.','gold');}else uiToast('Chưa mở được máy chủ mới (kiểm tra mạng, hoặc máy chủ chưa chạy bản SQL cập nhật).','bad');mpFormRefresh();}
 function mpSrvOf(seed){const w=(MP.worlds||[]).find(x=>x.seed===seed);return w?w.id:null;}
-const mpIsMain=()=>!MP.worlds||!MP.worlds.length||!S||S.seed===MP.worlds[0].seed;
+const mpIsMain=()=>!MP.worlds||!MP.worlds.length||!S||seed0()===MP.worlds[0].seed;
 // tài liệu cũ chưa ghi máy chủ (w) thuộc Máy chủ 1
-const mpWOk=d=>!!d&&(d.w==null?mpIsMain():d.w===S.seed);
+const mpWOk=d=>!!d&&(d.w==null?mpIsMain():d.w===seed0());
+// tài liệu công trình: vùng trung tâm ở builds/<uid>, vùng xa ở builds/<uid>/L/<mã vùng> (mỗi vùng một bản, không ghi đè nhau)
+const mpBPath=u=>'builds/'+u+(landFar()?'/L/'+S.land:'');
 async function mpSrvCount(){if(!MP.db||!MP.worlds)return;const since=mpNow()-MP_SRVDAYS*86400000;
   await Promise.all(MP.worlds.map(async w=>{try{const s=await mpTO(MP.db.collection('players').where('w','==',w.seed).limit(600).get(),10000);let n=0;for(const d of s.docs){const v=d.data();if(v&&v.lastSeen>since)n++;}w.n=n;}catch(e){if(w.n==null)w.n=0;}}));MP.srvAt=mpNow();}
 async function mpSrvNew(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v,i=MP.worlds.length+1;if(i>MP_SRVMAX||MP.ro)return null;const path='world/s'+i,ref=MP.db.doc(path);
@@ -18075,7 +18105,7 @@ function mpSrvForm(row){const f=document.querySelector('.ov-card.form');
     sv.innerHTML='<span class="small muted">Máy chủ (tự xếp vào máy còn chỗ; nhân vật ở cố định máy chủ đã chọn):</span><div class="mpsrv-l">'+MP.worlds.map(w=>`<button class="tb sm${w.id===MP.srv?' on':''}" data-a="mpsrv" data-v="${w.id}">${mpSrvName(w.id)}${w.n==null?'':' · '+w.n+'/'+MP_SRVCAP+((w.n||0)>=MP_SRVCAP?' (đầy)':'')}</button>`).join('')+(MP.worlds.some(x=>x.wv>=4)||MP.worlds.length>=MP_SRVMAX?'':'<button class="tb sm" data-a="mpsrvS">＋ 🗺️ Mở máy chủ bản đồ chữ S</button>')+'</div>';}
   else if(sv)sv.remove();}
 // kênh thời gian thực riêng cho từng máy chủ (Máy chủ 1 giữ kênh cũ)
-async function mpRoomSet(r){if(!r)return;MP.room0=r;const id=S&&S.mp?(S.srv||mpSrvOf(S.seed)):null;let use=r;if(id&&id!=='main'&&typeof r.join==='function'){try{use=await r.join(id);}catch(e){use=r;}}MP.room=use;if(MP.started)mpRoomInit();}
+async function mpRoomSet(r){if(!r)return;MP.room0=r;const id=S&&S.mp?(S.srv||mpSrvOf(seed0())):null;let use=r;if(id&&id!=='main'&&typeof r.join==='function'){try{use=await r.join(id);}catch(e){use=r;}}MP.room=use;if(MP.started)mpRoomInit();}
 // ghi nối tiếp, gộp: mỗi tài liệu một lần ghi một lúc, chỉ giữ bản mới nhất đang chờ
 function mpPut(path,data){if(!MP.db||MP.ro)return;const q=MP.wq[path]||(MP.wq[path]={busy:false,has:false,next:null});q.next=data;q.has=true;if(!q.busy)mpFlush(path,q);}
 async function mpFlush(path,q){q.busy=true;while(q.has){const d=q.next;q.has=false;q.next=null;const ref=MP.db.doc(path);
@@ -18083,14 +18113,14 @@ async function mpFlush(path,q){q.busy=true;while(q.has){const d=q.next;q.has=fal
 function mpErr(c){if(c==='invalid_argument'&&!MP.roWarn){MP.roWarn=1;uiToast('Chưa ghi được dữ liệu chung (có thể bạn chỉ có quyền xem trang này).','bad');}
   if(c==='quota_exceeded'&&!MP.qWarn){MP.qWarn=1;uiToast('Kho dữ liệu chung đã đầy. Nhờ chủ trang dọn bớt.','bad');}}
 /* ---------- bắt đầu một ván ở thế giới chung ---------- */
-async function mpStart(){if(MP.started||!MP.ok||!S||!S.mp||!G.on)return;MP.started=true;mpMenu();if(!S.srv)S.srv=mpSrvOf(S.seed)||'main';if(MP.room0&&S.srv!=='main'){try{await mpRoomSet(MP.room0);}catch(e){}}
+async function mpStart(){if(MP.started||!MP.ok||!S||!S.mp||!G.on)return;MP.started=true;mpMenu();if(!S.srv)S.srv=mpSrvOf(seed0())||'main';if(MP.room0&&S.srv!=='main'){try{await mpRoomSet(MP.room0);}catch(e){}}
   const sub=(q,fn)=>{try{const un=q.onSnapshot(fn,e=>console.warn('chơi chung: nghe',e&&e.code));MP.unsubs.push(un);}catch(e){console.warn(e);}};
-  sub(mpIsMain()?MP.db.collection('players').limit(500):MP.db.collection('players').where('w','==',S.seed).limit(500),s=>{const o={};for(const d of s.docs){const v=mpValPlayer(d.id,d.data());if(v)o[d.id]=v;}MP.players=o;MP.loaded.players=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;});
+  sub(mpIsMain()?MP.db.collection('players').limit(500):MP.db.collection('players').where('w','==',seed0()).limit(500),s=>{const o={};for(const d of s.docs){const v=mpValPlayer(d.id,d.data());if(v)o[d.id]=v;}MP.players=o;MP.loaded.players=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;});
   sub(MP.db.collection('clans').limit(300),s=>{const o={};for(const d of s.docs){if(!mpWOk(d.data()))continue;const v=mpValClan(d.id,d.data());if(v)o[d.id]=v;}MP.clans=o;MP.loaded.clans=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;});
   sub(MP.db.collection('claims').limit(800),s=>{const o={};for(const d of s.docs){if(!mpWOk(d.data()))continue;const v=mpValClaim(d.id,d.data());if(v)o[d.id]=v;}MP.claims=o;MP.loaded.claims=1;MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;MP.tick.near=-9;});
   const cur=await mpGetDoc('players/'+MP.uid);const v=cur&&mpValPlayer(MP.uid,cur);
-  MP.me={look:S.look|0,clan:v?v.clan:null,req:v?v.req:null,w:S.seed,lastSeen:mpNow(),h:v?v.h:null,df:v?v.df:null,sh:v?v.sh:0,hl:v?v.hl:1,ho:v?v.ho:null};mpPut('players/'+MP.uid,Object.assign({},MP.me));
-  const bh=await mpGetDoc('builds/'+MP.uid);MP.bHad=!!(bh&&bh.n>0);
+  MP.me={look:S.look|0,clan:v?v.clan:null,req:v?v.req:null,w:seed0(),lastSeen:mpNow(),h:v?v.h:null,df:v?v.df:null,sh:v?v.sh:0,hl:v?v.hl:1,ho:v?v.ho:null};mpPut('players/'+MP.uid,Object.assign({},MP.me));
+  const bh=await mpGetDoc(mpBPath(MP.uid));MP.bHad=!!(bh&&bh.n>0);
   const g=await mpGetDoc('gifts/'+MP.uid);MP.myGifts={list:g&&Array.isArray(g.list)?g.list.filter(x=>x&&typeof x==='object').slice(-12):[]};
   if(!Array.isArray(S.mpGot))S.mpGot=[];if(MP.room)mpRoomInit();}
 function mpValPlayer(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;return {look:mpNum(d.look,0,LOOKS.length-1)?d.look|0:0,clan:mpIdOk(d.clan)?d.clan:null,req:mpIdOk(d.req)?d.req:null,w:mpNum(d.w,0,4.3e9)?d.w:0,lastSeen:mpNum(d.lastSeen,0,1e14)?d.lastSeen:0,ho:Array.isArray(d.ho)&&d.ho.length===2&&mpNum(d.ho[0],0,24)&&mpNum(d.ho[1],0,4e12)?[d.ho[0],d.ho[1]]:null,df:Array.isArray(d.df)&&d.df.length===3&&d.df.every(v=>mpNum(v,0,99))?[d.df[0]|0,d.df[1]|0,d.df[2]|0]:null,sh:mpNum(d.sh,0,4e12)?d.sh:0,hl:mpNum(d.hl,1,999)?d.hl|0:1,h:Array.isArray(d.h)&&d.h.length===3&&mpNum(d.h[0],-2e4,2e4)&&mpNum(d.h[1],-2e4,2e4)&&mpNum(d.h[2],0,4e4)?[d.h[0],d.h[1],d.h[2]]:null};}
@@ -18197,7 +18227,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.i
 /* ---------- liên minh ---------- */
 function mpSaveMe(p){if(!MP.me)return;Object.assign(MP.me,p);mpPut('players/'+MP.uid,Object.assign({},MP.me));MP.dirty.ui=MP.dirty.remote=true;}
 function mpClanDoc(c,patch){return Object.assign({name:c.name,leader:c.leader,members:c.members.slice(),color:c.color,emblem:c.emblem,createdAt:c.createdAt,zone:c.zone,deny:c.deny.slice()},patch||{});}
-function mpClanWrite(doc){const v=mpValClan(MP.uid,doc);if(v)MP.clans[MP.uid]=v;mpPut('clans/'+MP.uid,Object.assign({},doc,{w:S.seed}));MP.dirty.ui=MP.dirty.mem=MP.dirty.remote=true;}
+function mpClanWrite(doc){const v=mpValClan(MP.uid,doc);if(v)MP.clans[MP.uid]=v;mpPut('clans/'+MP.uid,Object.assign({},doc,{w:seed0()}));MP.dirty.ui=MP.dirty.mem=MP.dirty.remote=true;}
 function mpClanMake(){if(mpMyClan()){uiToast('Bạn đã ở trong một liên minh.','bad');return;}const i=$('#mpCn');const name=mpTxt(i&&i.value,24);if(name.length<2){uiToast('Đặt tên liên minh (ít nhất 2 chữ).','bad');return;}
   if(Object.values(MP.clans).some(c=>c.name.toLowerCase()===name.toLowerCase()&&c.id!==MP.uid)){uiToast('Đã có liên minh trùng tên này.','bad');return;}
   mpClanWrite({name,leader:MP.uid,members:[MP.uid],color:G.mpCol||MPCOL[0],emblem:G.mpEm||MPEMB[0],createdAt:mpNow(),zone:null,deny:[]});mpSaveMe({clan:MP.uid,req:null});
@@ -18215,50 +18245,51 @@ function mpMembership(){if(!MP.me||!MP.loaded.clans||!MP.loaded.players)return;c
   const c=MP.clans[MP.uid];if(c&&me.clan===MP.uid){const keep=c.members.filter(u=>{if(u===MP.uid)return true;const p=MP.players[u];return !p||p.clan===MP.uid||p.req===MP.uid;});const deny=c.deny.filter(u=>{const p=MP.players[u];return p&&p.req===MP.uid;});
     if(keep.length!==c.members.length||deny.length!==c.deny.length)mpClanWrite(mpClanDoc(c,{members:keep,deny}));}}
 /* ---------- lãnh thổ ---------- */
-function mpClaimWhy(x,z,r,kind){if(Math.hypot(x-SPAWN[0],z-SPAWN[1])<MP_SPAWN_FREE+r)return 'Gần Trảng Khởi Đầu quá: đó là đất chung của mọi người. Đi xa thêm một chút.';
+function mpClaimWhy(x,z,r,kind){if(landFar())return 'Vùng đất xa là đất tranh chấp: không cắm mốc được. Nhà chính và lãnh thổ đặt ở Đất Trung Tâm.';if(Math.hypot(x-SPAWN[0],z-SPAWN[1])<MP_SPAWN_FREE+r)return 'Gần Trảng Khởi Đầu quá: đó là đất chung của mọi người. Đi xa thêm một chút.';
   if(!wIn(x,z,0.95))return 'Sát mép thế giới quá.';const my=mpMyClan();
   for(const u in MP.claims){if(u===MP.uid)continue;const c=MP.claims[u];if(Math.hypot(x-c.x,z-c.z)<r+c.r&&!(my&&mpClanOf(u)===my))return `Chồng lên lãnh thổ của ${mpName(u)}. Chọn chỗ khác.`;}
   for(const id in MP.clans){const cl=MP.clans[id];if(!cl.zone||id===my)continue;if(Math.hypot(x-cl.zone.x,z-cl.zone.z)<r+cl.zone.r)return `Chồng lên vùng đất của ${mpCT(cl.name)}.`;}
   if(kind==='zone')for(const u in MP.claims){const c=MP.claims[u];if(u!==MP.uid&&mpClanOf(u)!==my&&Math.hypot(x-c.x,z-c.z)<r+c.r)return `Chồng lên lãnh thổ của ${mpName(u)}.`;}
   return '';}
 function mpClaim(grow){const c=MP.claims[MP.uid],R=mpClaimR();const x=grow&&c?c.x:+P.x.toFixed(1),z=grow&&c?c.z:+P.z.toFixed(1);const w=mpClaimWhy(x,z,R,'claim');if(w){uiToast(w,'bad');sfx('no');return;}
-  const d={x,z,r:R,clan:mpMyClan(),at:mpNow(),w:S.seed};MP.claims[MP.uid]={x,z,r:R};mpPut('claims/'+MP.uid,d);MP.tick.ring=-9;MP.dirty.remote=true;uiToast(`🚩 Đã cắm mốc lãnh thổ bán kính ${Math.round(R/20)} m. Công trình xây xong trong này sẽ hiện cho mọi người.`,'gold');sfx('build');}
+  const d={x,z,r:R,clan:mpMyClan(),at:mpNow(),w:seed0()};MP.claims[MP.uid]={x,z,r:R};mpPut('claims/'+MP.uid,d);MP.tick.ring=-9;MP.dirty.remote=true;uiToast(`🚩 Đã cắm mốc lãnh thổ bán kính ${Math.round(R/20)} m. Công trình xây xong trong này sẽ hiện cho mọi người.`,'gold');sfx('build');}
 function mpZoneSet(on){const c=MP.clans[MP.uid];if(!c)return;if(!on){mpClanWrite(mpClanDoc(c,{zone:null}));return;}const r=mpZoneR(c),w=mpClaimWhy(P.x,P.z,r,'zone');if(w){uiToast(w,'bad');return;}
   mpClanWrite(mpClanDoc(c,{zone:{x:+P.x.toFixed(1),z:+P.z.toFixed(1),r}}));MP.tick.ring=-9;uiToast('🏕️ Đã đặt vùng đất chung của liên minh.','gold');}
 // đất của người khác (khác liên minh) → không xây được
-function mpLandWhy(x,z){const my=mpMyClan();
+function mpLandWhy(x,z){if(landFar())return null;const my=mpMyClan();
   for(const u in MP.claims){if(u===MP.uid)continue;const c=MP.claims[u];if(Math.abs(x-c.x)>c.r||Math.abs(z-c.z)>c.r)continue;if(Math.hypot(x-c.x,z-c.z)<c.r&&!(my&&mpClanOf(u)===my))return `🚫 Đất của ${mpName(u)}${mpClanOf(u)?' ('+mpCT(MP.clans[mpClanOf(u)].name)+')':''}. Chỉ người cùng liên minh mới xây ở đây.`;}
   for(const id in MP.clans){const cl=MP.clans[id];if(!cl.zone||id===my)continue;if(Math.hypot(x-cl.zone.x,z-cl.zone.z)<cl.zone.r)return `🚫 Vùng đất chung của ${mpCT(cl.name)}. Xin gia nhập để cùng xây.`;}
   return '';}
 {const _bu=buildUpdate;buildUpdate=function(){_bu();const B=G.build;if(!B||!B.pos||!B.ok||B.rm||!mpOn())return;const w=mpLandWhy(B.pos.x,B.pos.z);if(!w)return;
   B.ok=false;B.why=w;if(B.mat)B.mat.color.set(0xff6a5a);if(B.uiT===G.t||G.t-(B.mpUiT||0)>0.5){B.mpUiT=G.t;uiBuildBar(true,B.def,w);}};}
 // nơi công trình của MÌNH được chia sẻ
-function mpShareAt(x,z){const c=MP.claims[MP.uid];if(c&&Math.hypot(x-c.x,z-c.z)<c.r+20)return true;const cl=MP.clans[mpMyClan()];return !!(cl&&cl.zone&&Math.hypot(x-cl.zone.x,z-cl.zone.z)<cl.zone.r+20);}
+function mpShareAt(x,z){if(landFar())return false;const c=MP.claims[MP.uid];if(c&&Math.hypot(x-c.x,z-c.z)<c.r+20)return true;const cl=MP.clans[mpMyClan()];return !!(cl&&cl.zone&&Math.hypot(x-cl.zone.x,z-cl.zone.z)<cl.zone.r+20);}
 // nơi công trình của người khác được phép hiện (chống vẽ bậy khắp bản đồ)
 // (trước đây chỉ hiện nhà nằm trong đất đã cắm mốc → hầu như không ai thấy nhà ai. Giờ nhà ở đâu cũng hiện, trừ khi nằm trong đất của người / liên minh KHÁC)
-function mpAllowAt(uid,x,z){const c=MP.claims[uid];if(c&&Math.hypot(x-c.x,z-c.z)<c.r+24)return true;const mc=mpClanOf(uid),cl=MP.clans[mc];if(cl&&cl.zone&&Math.hypot(x-cl.zone.x,z-cl.zone.z)<cl.zone.r+24)return true;
+function mpAllowAt(uid,x,z){if(landFar())return true;const c=MP.claims[uid];if(c&&Math.hypot(x-c.x,z-c.z)<c.r+24)return true;const mc=mpClanOf(uid),cl=MP.clans[mc];if(cl&&cl.zone&&Math.hypot(x-cl.zone.x,z-cl.zone.z)<cl.zone.r+24)return true;
   for(const u in MP.claims){if(u===uid)continue;const o=MP.claims[u];if(Math.hypot(x-o.x,z-o.z)<o.r-4&&!(mc&&mpClanOf(u)===mc))return false;}
   for(const id in MP.clans){if(id===mc)continue;const z2=MP.clans[id].zone;if(z2&&Math.hypot(x-z2.x,z-z2.z)<z2.r-4)return false;}return true;}
 /* ---------- chia sẻ công trình của mình (gộp ghi: 5 giây sau thay đổi cuối) ---------- */
 function mpEncodeMine(){const a=[];const R=v=>Math.round(v*10)/10;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const b of S.builds){if(b.prog!=null||b.remote||!pieceDef(b.k))continue;if(b.x<x0)x0=b.x;if(b.x>x1)x1=b.x;if(b.z<z0)z0=b.z;if(b.z>z1)z1=b.z;a.push(b.id+','+b.k+','+R(b.x)+','+R(b.y)+','+R(b.z)+','+(Math.round((b.r||0)*100)/100)+','+((b.lv|0)||0));if(a.length>=MP_BCAP)break;}return {s:a.join(';'),n:a.length,h:a.length?[Math.round((x0+x1)/2),Math.round((z0+z1)/2),Math.round(Math.hypot(x1-x0,z1-z0)/2)]:null};}
 function mpSigTick(){if(MP.ro)return;const e=mpEncodeMine(),now=mpNow();if(e.s!==MP.bSig){MP.bSig=e.s;MP.bSigT=now;return;}if(MP.bDone===e.s||MP.bBusy||now-MP.bSigT<5000)return;
   if(MP.bDone===null&&!e.n&&!MP.bHad){MP.bDone=e.s;return;}mpPushBuilds(e);}
-async function mpPushBuilds(e){MP.bBusy=true;const base='builds/'+MP.uid,ver=mpNow().toString(36)+Math.random().toString(36).slice(2,6);
+async function mpPushBuilds(e){MP.bBusy=true;const base=mpBPath(MP.uid),ver=mpNow().toString(36)+Math.random().toString(36).slice(2,6);
   try{let parts=0,d=e.s;if(d.length>MP_DOCMAX){parts=Math.ceil(d.length/MP_DOCMAX);for(let i=0;i<parts;i++)await MP.db.doc(base+'/p/'+i).set({ver,s:d.slice(i*MP_DOCMAX,(i+1)*MP_DOCMAX)});d='';}
     await MP.db.doc(base).set({v:1,w:S.seed,d,parts,ver,n:e.n,at:mpNow()});MP.bDone=e.s;MP.bInfo={n:e.n,at:mpNow()};MP.dirty.ui=true;
     // ghi "chỗ ở" (tâm + bán kính cụm công trình) vào hồ sơ để người khác biết đến gần thì tải nhà mình
-    if(MP.me&&JSON.stringify(MP.me.h||null)!==JSON.stringify(e.h||null))mpSaveMe({h:e.h});}catch(er){mpErr(er&&er.code);MP.bSigT=mpNow()+20000;}MP.bBusy=false;}
+    if(!landFar()&&MP.me&&JSON.stringify(MP.me.h||null)!==JSON.stringify(e.h||null))mpSaveMe({h:e.h});}catch(er){mpErr(er&&er.code);MP.bSigT=mpNow()+20000;}MP.bBusy=false;}
 /* ---------- công trình của người khác: tải khi ở gần, vẽ chung đường instancing, chỉ để nhìn / va chạm ---------- */
 function mpNearTick(){const now=new Map();const add=(u,d)=>{if(u===MP.uid||!mpIdOk(u))return;if(!now.has(u)||now.get(u)>d)now.set(u,d);};
-  for(const u in MP.claims){const c=MP.claims[u];add(u,Math.hypot(P.x-c.x,P.z-c.z)-c.r);}
-  for(const u in MP.players){const p=MP.players[u];if(p.h&&p.w===S.seed)add(u,Math.hypot(P.x-p.h[0],P.z-p.h[1])-p.h[2]);}
-  for(const id in MP.clans){const cl=MP.clans[id];if(!cl.zone)continue;const d=Math.hypot(P.x-cl.zone.x,P.z-cl.zone.z)-cl.zone.r;if(d<MP_FAR)for(const m of cl.members){const p=MP.players[m];if(!(p&&p.h))add(m,d+40);}}
+  if(landFar()){for(const r of MP.rp.values())if(r.uid)add(r.uid,Math.hypot(P.x-r.x,P.z-r.z)-200);/* vùng xa: thấy công trình của những người đang có mặt ở vùng đó */}
+  else for(const u in MP.claims){const c=MP.claims[u];add(u,Math.hypot(P.x-c.x,P.z-c.z)-c.r);}
+  for(const u in MP.players){const p=MP.players[u];if(!landFar()&&p.h&&p.w===seed0())add(u,Math.hypot(P.x-p.h[0],P.z-p.h[1])-p.h[2]);}
+  for(const id in MP.clans){const cl=MP.clans[id];if(!cl.zone||landFar())continue;const d=Math.hypot(P.x-cl.zone.x,P.z-cl.zone.z)-cl.zone.r;if(d<MP_FAR)for(const m of cl.members){const p=MP.players[m];if(!(p&&p.h))add(m,d+40);}}
   const want=[...now].filter(([u,d])=>d<MP_NEAR||(MP.bsub.has(u)&&d<MP_FAR)).sort((a,b)=>a[1]-b[1]).slice(0,MP_MAXSUB).map(a=>a[0]);const W=new Set(want);
   for(const [u,s] of MP.bsub)if(!W.has(u)){try{s.un();}catch(e){}MP.bsub.delete(u);MP.braw.delete(u);mpRemoteApply(u);}
-  for(const u of want)if(!MP.bsub.has(u)){const s={un:()=>{},ver:null};MP.bsub.set(u,s);try{s.un=MP.db.doc('builds/'+u).onSnapshot(sn=>mpBuildSnap(u,s,sn),()=>{});}catch(e){}}}
+  for(const u of want)if(!MP.bsub.has(u)){const s={un:()=>{},ver:null};MP.bsub.set(u,s);try{s.un=MP.db.doc(mpBPath(u)).onSnapshot(sn=>mpBuildSnap(u,s,sn),()=>{});}catch(e){}}}
 async function mpBuildSnap(u,s,sn){if(MP.bsub.get(u)!==s)return;if(!sn.exists){MP.braw.set(u,[]);mpRemoteApply(u);return;}const d=sn.data()||{};if(d.w!==S.seed){MP.braw.set(u,[]);mpRemoteApply(u);return;}
   const ver=typeof d.ver==='string'?d.ver.slice(0,40):'';if(ver&&ver===s.ver)return;let str=typeof d.d==='string'?d.d:'';const parts=mpNum(d.parts,0,40)?d.parts|0:0;
-  if(parts){str='';for(let i=0;i<parts;i++){const p=await mpGetDoc('builds/'+u+'/p/'+i);if(!p||p.ver!==ver||typeof p.s!=='string')return;str+=p.s;}if(MP.bsub.get(u)!==s)return;}
+  if(parts){str='';for(let i=0;i<parts;i++){const p=await mpGetDoc(mpBPath(u)+'/p/'+i);if(!p||p.ver!==ver||typeof p.s!=='string')return;str+=p.s;}if(MP.bsub.get(u)!==s)return;}
   s.ver=ver;MP.braw.set(u,mpDecode(str));mpRemoteApply(u);}
 function mpDecode(str){const out=[];if(!str)return out;const L=str.split(';');for(let i=0;i<L.length&&out.length<MP_BCAP;i++){const f=L[i].split(',');if(f.length!==7)continue;
     const id=+f[0],k=f[1],x=+f[2],y=+f[3],z=+f[4],r=+f[5],lv=+f[6];if(!(id>=0&&id<1e9&&Math.floor(id)===id)||!/^[A-Za-z0-9_]{1,40}$/.test(k)||!pieceDef(k))continue;
@@ -18418,7 +18449,7 @@ const pvpOn=()=>typeof mpOn==='function'&&mpOn()&&!!MP.uid;
 const pvpNow=()=>Date.now()+(typeof WC==='object'?WC.off||0:0);
 function pvpHp(def,k){if(/palisade|watchtower|rampart|stoneWall|dryStoneWall|rammed/i.test(k))return 42;if(/Wall|wall|gate|Gate|fence|Fence/.test(k))return 22;if(def.store)return 14;if(k==='totem'||/totem/i.test(k))return 30;if(def.kind==='floor')return 18;if(def.kind==='roof')return 12;return 13;}
 // vì sao KHÔNG cướp được (null = được)
-function pvpWhy(uid){if(!pvpOn())return 'Chỉ có ở thế giới chung.';if(typeof mpSameClan==='function'&&mpSameClan(uid))return 'Công trình của đồng minh.';if((typeof heroLv==='function'?heroLv():1)<PVP_MINLV)return `Cần nhân vật cấp ${PVP_MINLV} mới đi cướp phá được.`;
+function pvpWhy(uid){if(!pvpOn())return 'Chỉ có ở thế giới chung.';if(landFar())return 'Ở vùng đất xa chưa mở cướp phá.';if(typeof mpSameClan==='function'&&mpSameClan(uid))return 'Công trình của đồng minh.';if((typeof heroLv==='function'?heroLv():1)<PVP_MINLV)return `Cần nhân vật cấp ${PVP_MINLV} mới đi cướp phá được.`;
   const p=MP.players[uid],now=pvpNow();if(p){if((p.hl||1)<PVP_MINLV)return 'Chủ nhà là người mới (dưới cấp '+PVP_MINLV+'): đang được bảo vệ.';if(p.sh>now)return `Chủ nhà đang có khiên bảo vệ, còn ${Math.max(1,Math.ceil((p.sh-now)/3600000))} giờ.`;
     if(p.ho&&p.ho[0]>0&&now-p.ho[1]>300000&&now<p.ho[1]+p.ho[0]*3600000&&!pvpAtWar(uid))return `Chủ nhà đang nghỉ trong nhà: nhà được bảo hộ thêm ${Math.max(1,Math.ceil((p.ho[1]+p.ho[0]*3600000-now)/3600000))} giờ.`;}
   const o=pvpS().out[uid];if(o&&now-o.at<PVP_DAY&&o.ids.length>=pvpCap(uid))return 'Hôm nay bạn đã phá đủ '+pvpCap(uid)+' món của nhà này.';return null;}
@@ -18627,6 +18658,52 @@ if(typeof nhaHtml==='function'){const _nh=nhaHtml;nhaHtml=function(){let h=_nh.a
   const i=h.indexOf('<div class="nha-r');h=i>0?h.slice(0,i)+row+h.slice(i):h+row;}catch(e){}return h;};}
 // nhắc khi sắp thoát ở ngoài đường (thế giới chung, có nhà đủ lớn)
 {const st=document.createElement('style');st.textContent='.ho-ok{color:#8ce07a;font-weight:700}.ho-no{color:#ffb86a;font-weight:700}';document.head.appendChild(st);}
+/* ===================== NHIỀU VÙNG ĐẤT (phần 2): CỔNG · ĐI LẠI · LƯU RIÊNG TỪNG VÙNG · TÀI NGUYÊN, THÚ THEO VÙNG =====================
+   - Mỗi vùng giữ riêng: công trình, kho, ruộng, vật nuôi, người nhà, bản đồ đã khám phá, điểm tài nguyên đã chiếm, nền đã san (S.lands[mã]).
+     Đi theo người: túi đồ, đồ mặc, cấp, kỹ năng, nhiệm vụ.
+   - Qua cổng: cất dữ liệu vùng đang ở, nạp dữ liệu vùng kia, lưu rồi tải lại trang và vào thẳng game ở cổng bên kia (mất vài giây).
+   - Thế giới chung: người chơi, liên minh, chợ, xếp hạng dùng chung cả ba vùng (theo hạt giống gốc của máy chủ); nhìn thấy nhau và công trình của nhau
+     theo từng vùng. Vùng xa là đất tranh chấp: không cắm mốc, không bảo hộ, chưa mở cướp phá và điểm tài nguyên chung (đợt sau). */
+const LD_KEYS=['builds','res','store','crops','fuel','tank','disc','fogm','mark','flat','rlm','war','folk','pets','plants','boats','recruited','khu','ho','b3'];
+const LD_DEF={builds:()=>[],res:()=>({}),store:()=>({}),crops:()=>({}),fuel:()=>({}),tank:()=>({}),disc:()=>({}),fogm:()=>null,mark:()=>null,flat:()=>[],folk:()=>[],pets:()=>[],recruited:()=>({})};
+function landInit(){if(!S)return;if(!S.seed0){S.seed0=S.seed;S.land='c';}if(!S.lands||typeof S.lands!=='object')S.lands={};if(S.land==='c'&&S.wv0==null)S.wv0=S.wv;}
+function landWhy(to){const T=LANDS.find(L=>L.id===to);if(!T)return 'Cổng hỏng.';if((typeof heroLv==='function'?heroLv():1)<T.need)return `Cần nhân vật cấp ${T.need} mới qua được cổng sang ${T.n}.`;if(G.ride)return 'Xuống thuyền, xuống thú cưỡi trước đã.';if(G.work||G.build)return 'Đang làm dở việc.';return null;}
+function landGo(to){landInit();const why=landWhy(to);if(why){uiToast(why,'bad');sfx('no');return;}const from=S.land,T=LANDS.find(L=>L.id===to);
+  const keep={};for(const k of LD_KEYS){if(S[k]!==undefined)keep[k]=S[k];}S.lands[from]=keep;const nx=S.lands[to]||{};
+  for(const k of LD_KEYS){if(nx[k]!==undefined)S[k]=nx[k];else if(LD_DEF[k])S[k]=LD_DEF[k]();else delete S[k];}delete S.lands[to];
+  G.ldLeaving=1;/* trang cũ không được tự đặt người / lưu đè nữa */S.land=to;S.seed=landSeed(to);S.wv=to==='c'?(S.wv0||3):3;S.landArr=from;S.wx=null;G.walkTo=null;G.act=null;if(typeof AQ==='object'&&AQ.on)try{aqStop();}catch(e){}
+  cnt('cnt','gate');uiToast(`⛩️ Đang sang ${T.n}…`,'gold');save();try{if(typeof accPush==='function'&&typeof curSlot==='function'&&ACC.db)accPush(curSlot());}catch(e){}
+  G.ldLeaving=2;try{sessionStorage.setItem('ld-cont','1');}catch(e){}setTimeout(()=>{try{location.reload();}catch(e){}},900);}
+// tải lại xong: vào thẳng game
+{const _b=boot;boot=function(d){let c=false;try{c=sessionStorage.getItem('ld-cont')==='1';sessionStorage.removeItem('ld-cont');}catch(e){}return _b(c?Object.assign({},d||{},{cont:true}):d);};}
+// đến nơi: đứng ở cổng dẫn về vùng vừa rời
+setInterval(()=>{try{if(!G.on||!S||G.ldLeaving)return;landInit();if(S.landArr&&G.sc&&G.terrain&&P.model&&G.animals&&G.animals.length&&typeof REG!=='undefined'&&REG.length){/* chờ thế giới dựng xong (đã có địa hình, vùng, cổng) rồi mới đặt người */const g=LD.gates.find(x=>x.to===S.landArr)||LD.gates[0],L=landCur();if(g){let px=g.x+46,pz=g.z+30;for(let k=0;k<8&&(wdAt(px,pz)>0||hAt(px,pz)<3);k++){px=g.x+Math.cos(k*0.8)*50;pz=g.z+Math.sin(k*0.8)*50;}P.x=px;P.z=pz;P.y=groundY(P.x,P.z,hAt(P.x,P.z)+40);if(S.p){S.p.x=+px.toFixed(1);S.p.z=+pz.toFixed(1);}}S.landArr=null;uiToast(`${L.ic} Đã tới ${L.n}. ${L.id==='c'?'':'Vùng cấp cao hơn '+L.lv+' bậc: cẩn thận thú dữ.'}`,'gold');try{uiRegion({ic:L.ic,n:L.n,d:L.d},true);}catch(e){}save();}
+  landGateObjs();}catch(e){}},800);
+/* ---------- cổng ---------- */
+function landGateModel(T){const K=K3,a=[K.box(9,74,9,'stone',{x:-26}),K.box(9,74,9,'stone',{x:26}),K.box(74,9,12,'stone',{y:70}),K.box(88,5,15,'dwood',{y:79}),K.box(60,5,10,'dwood',{y:60}),K.cyl(40,44,3,'#6a5a48',{y:-1},16)];
+  for(let i=0;i<7;i++)a.push(K.ico(3+(i%3),'#ffd27a',{x:(i-3)*6,y:20+((i*37)%34),z:0},0,0.3,i+1));return K.group(a);}
+function landGateObjs(){if(!G.sc||!G.terrain||LD.objs.length||!LD.gates.length)return;for(const g of LD.gates){const T=LANDS.find(x=>x.id===g.to),o=landGateModel(T);o.position.set(g.x,hAt(g.x,g.z)-0.5,g.z);o.rotation.y=Math.atan2(SPAWN[0]-g.x,SPAWN[1]-g.z);o.traverse(m=>{if(m.isMesh)m.castShadow=true;});try{seasonPatchAll(o);}catch(e){}G.sc.add(o);LD.objs.push(o);
+    try{const sp=mpTagMake('⛩️ '+T.n,'#f2c55a');sp.scale.set(120,30,1);sp.position.set(g.x,hAt(g.x,g.z)+104,g.z);G.sc.add(sp);LD.objs.push(sp);}catch(e){}}}
+function landGateNear(){for(const g of LD.gates){const d=Math.hypot(g.x-P.x,g.z-P.z);if(d<64)return {type:'ldgate',g,d,b:{x:g.x,y:hAt(g.x,g.z)+30,z:g.z}};}return null;}
+{const _ft=findTarget;findTarget=function(){const r=_ft.apply(this,arguments);if(!S||G.work||G.sit)return r;if(r&&(r.type==='animal'||r.type==='foe'))return r;return landGateNear()||r;};}
+{const _ti=targetInfo;targetInfo=function(t){if(t&&t.type==='ldgate'){const T=LANDS.find(L=>L.id===t.g.to),why=landWhy(t.g.to);return {name:'Cổng sang '+T.ic+' '+T.n,verb:why||(G.ldArm===t.g.to&&G.t-(G.ldArmT||0)<6?'Bấm lần nữa để đi':'Đi qua cổng'),ok:!why,need:why,icon:'torch'};}return _ti.apply(this,arguments);};}
+{const _as=actStart;actStart=function(t){if(t&&t.type==='ldgate'&&!G.work){const to=t.g.to,why=landWhy(to);if(why){uiToast(why,'bad');sfx('no');return;}if(G.ldArm===to&&G.t-(G.ldArmT||0)<6){G.ldArm=null;landGo(to);}else{G.ldArm=to;G.ldArmT=G.t;const T=LANDS.find(L=>L.id===to);uiToast(`⛩️ ${T.n}: ${T.d} Túi đồ, cấp, kỹ năng đi theo bạn; nhà cửa ở lại vùng này. Bấm lần nữa để đi.`,'');sfx('pick');}return;}return _as.apply(this,arguments);};}
+/* ---------- cấp vùng, tài nguyên, thú theo vùng ---------- */
+{const _kl=khuLv;khuLv=function(x,z){return clamp(_kl(x,z)+landCur().lv,1,20);};}
+{const _rg=resGen;resGen=function(seed){_rg.apply(this,arguments);try{const id=landCur().id;if(id==='c')return;const hsh=i=>{let x=(i*2654435761+((seed|0)*97))>>>0;x^=x>>>15;x=Math.imul(x,2246822519)>>>0;x^=x>>>13;return (x>>>0)/4294967296;};
+    const re=(q,t)=>{if(!RT[t])return;q.t=t;q.s=(0.85+hsh(q.i+7)*0.35)*(RT[t].sc||1);q.hp=RT[t].hp;};
+    for(const q of RES){if(q.site)continue;const r=hsh(q.i),t=q.t;
+      if(id==='tb'){if(t==='rock'||t==='boulder'){if(r<0.14)re(q,'copperRock');else if(r<0.22)re(q,'tinRock');else if(r<0.32)re(q,'ironRock');else if(r<0.42)re(q,'coalRock');else if(r<0.5)re(q,'flintRock');}else if((t==='oak'||t==='birch')&&r<0.55)re(q,'pine');else if(t==='pine'&&r<0.1)re(q,'pineG');else if(t==='pebble'&&r<0.2)re(q,'jadeRock');}
+      else{if((t==='pine'||t==='oak'||t==='birch')){if(r<0.4)re(q,'palm');else if(r<0.6)re(q,'banana');else if(r<0.75)re(q,'bamboo');}else if(t==='tallgrass'||t==='reeds'){const h=hAt(q.x,q.z);if(h<14&&r<0.2)re(q,'saltPan');else if(h<14&&r<0.38)re(q,'shellBed');else if(h<10&&r<0.46)re(q,'goldPan');}else if(t==='rock'&&r<0.12)re(q,'flintRock');}}}catch(e){console.warn('tài nguyên vùng',e);}};}
+// thú chúa ở vùng xa trâu hơn
+{const _kb=khuBossTick;khuBossTick=function(){const r=_kb.apply(this,arguments);try{const add=landCur().lv;if(add)for(const a of G.animals)if(a.boss&&a.alive&&!a._ld){a._ld=1;a.lv+=add;a.hp*=1+0.25*add;if(a.hp0)a.hp0=a.hp;a.n=a.n+' '+landCur().ic;}}catch(e){}return r;};}
+// tên vùng đất trên bảng trạng thái + trong bản đồ
+{const _hud=uiHud;uiHud=function(){const r=_hud.apply(this,arguments);try{const L=landCur(),el=document.querySelector('#game .h-id span');if(el&&!el.dataset.ld){el.dataset.ld='1';el.textContent=L.ic+' '+L.n+' · '+el.textContent;}}catch(e){}return r;};}
+if(typeof mapHtml==='function'){const _mh=mapHtml;mapHtml=function(){let h=_mh.apply(this,arguments);try{const L=landCur();h=`<div class="landbox"><b>${L.ic} ${esc(L.n)}</b><span class="small muted">${esc(L.d)} Cổng sang vùng khác có dấu ⛩️ trên bản đồ: ${LD.gates.map(g=>{const T=LANDS.find(x=>x.id===g.to);return T.ic+' '+T.n+(T.need>1?' (cấp '+T.need+')':'');}).join(', ')||'chưa tìm được chỗ đặt cổng'}.</span><div class="row">${LD.gates.map(g=>`<button class="btn sm ghost" data-a="ldmark" data-x="${g.x}" data-z="${g.z}">📍 Cắm cờ tới cổng ${LANDS.find(x=>x.id===g.to).ic}</button>`).join('')}</div></div>`+h;}catch(e){}return h;};}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="ldmark"]');if(!b||!S)return;e.stopImmediatePropagation();S.mark={x:+b.dataset.x,z:+b.dataset.z};sfx('pick');uiToast('📍 Đã cắm cờ tới cổng: la bàn sẽ chỉ hướng.','');save();uiClose();},true);
+if(typeof NVQ!=='undefined')NVQ.push({id:'gate',ic:'⛩️',t:'Đi qua cổng sang vùng đất khác',d:'Tìm cổng đá ⛩️ ở rìa bản đồ (mở 🗺️ Bản đồ để cắm cờ tới cổng). Tây Bắc cần cấp 8, Biển Đảo cần cấp 12.',n:1,f:()=>nvC('cnt:gate'),rw:{bronze:2,meatCooked:4},lv:8});
+
+{const _sv=save;save=function(){if(G.ldLeaving===2)return;return _sv.apply(this,arguments);};}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.

@@ -294,3 +294,7 @@ const AGES=[
 // PHONG CÁCH NHÂN VẬT (cách điệu kiểu game phiêu lưu nhìn từ trên xuống): đầu, mắt, bàn tay, bàn chân to hơn tỉ lệ thật để dễ nhìn, dễ mến ở cỡ nhỏ
 // toon: 0 = mặt tả thực như cũ, 1 = mặt hoạt hình (mũi nhỏ tròn, bỏ gờ mày, rãnh mũi-má, lỗ mũi; má bầu, ửng hồng; da mịn; tròng mắt to)
 const CHS={head:1.2,eye:1.14,hand:1.16,foot:1.12,toon:1};
+
+// hạt giống GỐC của máy chủ / ván chơi (vùng trung tâm). Mỗi vùng đất xa có hạt giống riêng suy ra từ đây (lands.js); dữ liệu chung theo máy chủ dùng hạt giống gốc.
+const seed0=()=>typeof S==='object'&&S?(S.seed0||S.seed):0;
+const landFar=()=>typeof S==='object'&&!!S&&!!S.land&&S.land!=='c';

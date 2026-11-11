@@ -8,7 +8,7 @@
    3. Tài nguyên và chế tạo bậc sau đồng thau: quặng sắt + than đá → thỏi sắt (lò luyện, Chế tác cấp 6) → rìu, giáo, dao, cuốc chim, giáp sắt;
       vàng cốm → vòng vàng; ngọc bích → bùa ngọc. Trình tự: đá → đồng thau → sắt.
    Lưu: S.khu={b:{<id điểm>:{dead:TNOW}}}. */
-const khuLv=(x,z)=>clamp(1+Math.floor(Math.hypot(x-SPAWN[0],z-SPAWN[1])/1000),1,10);
+let khuLv=(x,z)=>clamp(1+Math.floor(Math.hypot(x-SPAWN[0],z-SPAWN[1])/1000),1,10);
 function khuS(){if(!S.khu||typeof S.khu!=='object')S.khu={b:{}};if(!S.khu.b)S.khu.b={};return S.khu;}
 /* ---------- vật phẩm, tài nguyên, công thức ---------- */
 Object.assign(ITEMS,{ironOre:{n:'Quặng sắt',t:'res',ds:'Đá nặng màu nâu đỏ gỉ. Nấu với than đá trong lò luyện ra sắt.'},coal:{n:'Than đá',t:'res',ds:'Đá đen bóng, cháy nóng hơn than củi nhiều: thứ không thể thiếu để luyện sắt.'},
