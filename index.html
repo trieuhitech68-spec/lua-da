@@ -13458,7 +13458,7 @@ function rlMpTick(){if(!rlMpOn())return;const R=rlS(),now=mpNow();
   if(now-RL.mp.calcT>5000){RL.mp.calcT=now;rlMpCalc();}
   if(MP.ro||now-RL.mp.putT<20000)return;const L={};for(const s of RL.sites){let n=0,tt=0;for(const b of S.builds){if(b.prog!=null||!RLOUT.test(b.k))continue;if(Math.hypot(b.x-s.x,b.z-s.z)<RLSR){n++;if(b.k==='totem')tt=1;}}
     const e=R.mp[s.id]||[0,0],own=R.s[s.id]&&R.s[s.id].own==='me';if(!n&&!(e[0]>0))continue;L[s.id]=[Math.min(20,n),+e[0].toFixed(2),e[1]||0,tt&&own?1:0];}
-  const doc={w:S.seed,c:mpMyClan()||null,L};{const R2=typeof pvpOut==='function'?pvpOut():null;if(R2)doc.R=R2;const W2=typeof pvpWarOut==='function'?pvpWarOut():null;if(W2)doc.W=W2;}/* R: biên bản cướp phá (pvp.js) */const key=JSON.stringify([doc.c,Object.entries(L).map(([k,v])=>[k,v[0],Math.floor(v[1]),v[3]]),doc.R||0,doc.W||0]);
+  const doc={w:S.seed,c:mpMyClan()||null,L};{const R2=typeof pvpOut==='function'?pvpOut():null;if(R2)doc.R=R2;const W2=typeof pvpWarOut==='function'?pvpWarOut():null;if(W2)doc.W=W2;const Z2=typeof pvpFlagOut==='function'?pvpFlagOut():null;if(Z2)doc.Z=Z2;}/* R: biên bản cướp phá (pvp.js) */const key=JSON.stringify([doc.c,Object.entries(L).map(([k,v])=>[k,v[0],Math.floor(v[1]),v[3]]),doc.R||0,doc.W||0,doc.Z||0]);
   if(key===RL.mp.last&&now-RL.mp.putT<600000)return;RL.mp.last=key;RL.mp.putT=now;mpPut('sites/'+MP.uid,doc);const v=rlMpVal(MP.uid,doc);if(v){RL.mp.docs[MP.uid]=v;rlMpCalc();}}
 /* ---------- giao diện: thẻ "Lãnh địa" trong Bản đồ, lớp Tài nguyên, dấu trên bản đồ & bản đồ nhỏ ---------- */
 const RLDIR=['B','ĐB','Đ','ĐN','N','TN','T','TB'];
@@ -18015,7 +18015,7 @@ function pvpPubTick(){if(!pvpOn()||!MP.me)return;const now=Date.now();if(now-PVP
   const lv=g.length?Math.round(g.reduce((s,f)=>s+(f.lv|0||1),0)/g.length):0;let fort=0;for(const b of S.builds)if(b.prog==null&&/palisade|watchtower|spikePit|rampart|SpikeFence/i.test(b.k))fort++;
   const df=[Math.min(6,g.length),lv,Math.min(30,fort)],sh=P0.sh>pvpNow()?Math.round(P0.sh):0,hl=typeof heroLv==='function'?heroLv():1,k=JSON.stringify([df,sh,hl]);if(k===PVP.pubK)return;PVP.pubK=k;mpSaveMe({df,sh,hl});}
 /* ---------- nhận biên bản: áp hậu quả lên nhà mình ---------- */
-function pvpIn(docs){if(!pvpOn()||!S)return;try{pvpWarIn(docs);}catch(e){}const P0=pvpS(),me=MP.uid,now=pvpNow();let hit=0,who=[];
+function pvpIn(docs){if(!pvpOn()||!S)return;try{pvpWarIn(docs);}catch(e){}try{pvpFlagIn(docs);}catch(e){}const P0=pvpS(),me=MP.uid,now=pvpNow();let hit=0,who=[];
   for(const d of docs){const u=d.id;if(u===me||!mpIdOk(u))continue;const v=d.data();if(!v||v.w!==S.seed||!v.R||typeof v.R!=='object')continue;const e=v.R[me];if(!e||typeof e!=='object'||!Array.isArray(e.ids)||!mpNum(e.at,1e12,now+600000))continue;if(now-e.at>PVP_KEEP)continue;
     if(typeof mpSameClan==='function'&&mpSameClan(u))continue;const sn=P0.seen[u]||(P0.seen[u]={at:0,ids:[]});if(e.at<sn.at-1)continue;if(e.at-sn.at>PVP_DAY)sn.ids=[];let n=0;
     for(const id of e.ids.slice(0,40)){if(!(typeof id==='number'&&id>=0&&Math.floor(id)===id)||sn.ids.includes(id))continue;if(sn.ids.length>=pvpCap(u))break;sn.ids.push(id);const b=S.builds.find(x=>x.id===id);if(!b||b.prog!=null||!pieceDef(b.k))continue;
@@ -18090,6 +18090,38 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 // báo khi có liên minh tuyên chiến với mình
 setInterval(()=>{try{if(!pvpOn())return;const cid=mpMyClan();if(!cid){PVP.warK=null;return;}const cur=Object.keys(MP.clans).filter(o=>o!==cid&&MP.clans[o].war&&MP.clans[o].war.includes(cid)).sort();const k=cur.join(',');if(PVP.warK!=null&&k!==PVP.warK){const old=new Set(PVP.warK.split(','));for(const o of cur)if(!old.has(o)){uiToast(`⚔️ ${mpCT(MP.clans[o].name)} đã tuyên chiến với liên minh của bạn!`,'bad');sfx('hurt');}}PVP.warK=k;}catch(e){}},4000);
 {const st=document.createElement('style');st.textContent='.pvp-sc{margin-left:auto;font-weight:800;font-size:12.5px;white-space:nowrap}.pvp-sc i{font-style:normal}.pvp-sc .ok{color:#8ce07a}.pvp-sc .bad{color:#ff9a8a}.pvp-w{flex-wrap:wrap;gap:4px 8px}.pvp-pick{margin:6px 0 10px}.pvp-pick summary{cursor:pointer;color:#f2c55a;font-weight:700;font-size:13px;padding:6px 0}';document.head.appendChild(st);}
+
+/* ---------- HẠ CỜ, CHIẾM VÙNG ĐẤT CHUNG CỦA LIÊN MINH ĐỊCH ----------
+   Mỗi vùng đất chung có một cột cờ ở tâm. Khi hai liên minh đang chiến tranh, thành viên bên này tới sát cột cờ bên kia và "Hạ cờ"
+   (45 giây, lính của thủ lĩnh bên kia xông ra, ít nhất 3 người). Hạ xong: người hạ được thưởng và +30 điểm chiến tranh, ghi sites/<uid>.Z={<liên minh bị hạ>:giờ}.
+   Máy của thủ lĩnh bên bị hạ đọc thấy thì vùng đất chung bị xoá và 24 giờ sau mới cắm lại được → bên thắng có thể cắm vùng của mình ở đó. */
+const PVP_FLAGCD=24*3600000;
+function pvpFlagSync(){if(!G.on||!G.sc)return;PVP.flags=PVP.flags||new Map();const want=new Map();if(pvpOn())for(const id in MP.clans){const z=MP.clans[id].zone;if(z)want.set(id,z.x+','+z.z);}
+  for(const [id,o] of PVP.flags)if(want.get(id)!==o.k){G.sc.remove(o.g);PVP.flags.delete(id);}
+  for(const [id,k] of want)if(!PVP.flags.has(id)){const z=MP.clans[id].zone;let g=null;try{g=model(['piece','flagPole']);}catch(e){}if(!g)continue;g.position.set(z.x,hAt(z.x,z.z)-0.5,z.z);g.scale.setScalar(1.5);try{seasonPatchAll(g);}catch(e){}G.sc.add(g);PVP.flags.set(id,{g,k});}}
+setInterval(()=>{try{pvpFlagSync();}catch(e){}},3000);
+function pvpFlagNear(){if(!pvpOn())return null;const cid=mpMyClan();if(!cid)return null;for(const id in MP.clans){if(id===cid)continue;const z=MP.clans[id].zone;if(!z||Math.hypot(z.x-P.x,z.z-P.z)>46)continue;return {type:'pvpflag',cid:id,z,d:Math.hypot(z.x-P.x,z.z-P.z)};}return null;}
+{const _ft=findTarget;findTarget=function(){const r=_ft.apply(this,arguments);if(!S||!S.mp||G.work||G.sit)return r;if(r&&(r.type==='animal'||r.type==='foe'))return r;const f=pvpFlagNear();return f||r;};}
+{const _ti=targetInfo;targetInfo=function(t){if(t&&t.type==='pvpflag'){const c=MP.clans[t.cid],war=pvpWarWith(mpMyClan(),t.cid),done=S.pvp&&S.pvp.zo&&S.pvp.zo[t.cid]&&pvpNow()-S.pvp.zo[t.cid]<PVP_FLAGCD;
+    return {name:'Cờ của '+mpCT(c?c.name:''),verb:!war?'Hai liên minh chưa có chiến tranh':done?'Đã hạ cờ này, chờ họ nhận tin':'Hạ cờ (chiếm đất chung)',ok:war&&!done,need:war?null:'thủ lĩnh tuyên chiến trước',icon:'club'};}return _ti.apply(this,arguments);};}
+{const _as=actStart;actStart=function(t){if(t&&t.type==='pvpflag'&&!G.work){pvpFlagStart(t);return;}return _as.apply(this,arguments);};}
+function pvpFlagStart(t){const c=MP.clans[t.cid];if(!c||!pvpWarWith(mpMyClan(),t.cid)){uiToast('Chỉ hạ được cờ của liên minh đang có chiến tranh với liên minh bạn.','bad');sfx('no');return;}if((typeof heroLv==='function'?heroLv():1)<PVP_MINLV){uiToast('Cần nhân vật cấp '+PVP_MINLV+'.','bad');return;}
+  {const ng=needGate(true);if(ng){uiToast(ng,'bad');sfx('no');return;}}
+  // lính giữ cờ: theo phòng thủ của thủ lĩnh, ít nhất 3
+  try{const key='flag:'+t.cid;if(!(PVP.spawned[key]&&G.t-PVP.spawned[key]<300)){PVP.spawned[key]=G.t;const p=MP.players[c.leader],df=p&&p.df,n=clamp(Math.max(3,df?df[0]|0:0),3,6),lv=clamp(Math.max(3,df?df[1]|0:0),1,10);
+      for(let i=0;i<n;i++){const a=i/n*6.283,x=t.z.x+Math.cos(a)*80,z=t.z.z+Math.sin(a)*80;if(wdAt(x,z)>0)continue;const f=foeSpawn(x,z,'guard');f.pvp=c.leader;f.noCap=1;f._lvA=1;f.lv=lv;f.n='Lính giữ cờ '+mpCT(c.name);f.hp=FOE.hp*(1+0.2*(lv-1))*1.3;f.hp0=f.hp;f.dmg=FOE.dmg*(1+0.12*(lv-1));f.home={x:t.z.x,z:t.z.z};}
+      uiToast(`🛡️ ${n} lính giữ cờ xông ra!`,'bad');sfx('hurt');}}catch(e){console.warn('lính giữ cờ',e);}
+  G.work={r:{out:{}},steps:[{n:'Chặt dây, lay cột cờ',a:'chop',t:18,fx:'thud'},{n:'Hạ cờ '+mpCT(c.name),a:'hammer',t:17,fx:'thud'},{n:'Cắm cờ liên minh mình',a:'lash',t:10,fx:'build'}],i:0,t:0,left:1,done:0,x:P.x,z:P.z,sk:'build',icon:'club',fn:()=>pvpFlagDone(t.cid)};workUi();}
+function pvpFlagDone(cid){const c=MP.clans[cid];if(!c||!pvpWarWith(mpMyClan(),cid))return;const P0=pvpS(),now=pvpNow();if(!P0.zo||typeof P0.zo!=='object')P0.zo={};P0.zo[cid]=now;if(!P0.ws||typeof P0.ws!=='object')P0.ws={};P0.ws[cid]=(P0.ws[cid]||0)+30;
+  give({bronze:2,rope:4,meatCooked:4,hide:2},[P.x,P.y+20,P.z]);addXp('hunt',40);cnt('cnt','flag');sfx('level');try{puff(P.x,P.y+40,P.z,'#ffd27a',18);}catch(e){}
+  uiToast(`🚩 Đã hạ cờ ${mpCT(c.name)}! +30 điểm chiến tranh. Khi thủ lĩnh của họ vào game, vùng đất chung của họ sẽ mất và 24 giờ sau mới cắm lại được.`,'gold');try{RL.mp.putT=0;RL.mp.last='';}catch(e){}save();}
+function pvpFlagOut(){const z=S&&S.pvp&&S.pvp.zo;if(!z)return null;const o={},now=pvpNow();let n=0;for(const k in z){if(n>=6)break;if(mpIdOk(k)&&now-z[k]<3*86400000){o[k]=z[k];n++;}}return n?o:null;}
+// thủ lĩnh bên bị hạ cờ: mất vùng đất chung, 24 giờ sau mới cắm lại
+function pvpFlagIn(docs){if(!pvpOn()||!S)return;const cid=mpMyClan();if(!cid||cid!==MP.uid)return;const c=MP.clans[cid];if(!c)return;const P0=pvpS(),now=pvpNow();
+  for(const d of docs){const u=d.id;if(u===MP.uid||!mpIdOk(u))continue;const v=d.data();if(!v||v.w!==S.seed||!v.Z||typeof v.Z!=='object')continue;const at=v.Z[cid];if(!mpNum(at,1e12,now+600000)||now-at>3*86400000||at<=(P0.zs||0))continue;
+    const oc=mpClanOf(u);if(!oc||!pvpWarWith(cid,oc))continue;P0.zs=at;if(c.zone){mpClanWrite(mpClanDoc(c,{zone:null}));MP.tick.ring=-9;}P0.zcd=now+PVP_FLAGCD;
+    uiToast(`🚩 ${mpName(u)} (${mpCT(MP.clans[oc].name)}) đã hạ cờ liên minh bạn! Vùng đất chung bị mất, 24 giờ nữa mới cắm lại được.`,'bad');sfx('hurt');save();break;}}
+if(typeof mpZoneSet==='function'){const _zs=mpZoneSet;mpZoneSet=function(on){if(on&&S&&S.pvp&&S.pvp.zcd>pvpNow()){uiToast(`Cờ liên minh vừa bị hạ: còn ${Math.ceil((S.pvp.zcd-pvpNow())/3600000)} giờ nữa mới cắm lại vùng đất chung được.`,'bad');sfx('no');return;}return _zs.apply(this,arguments);};}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
