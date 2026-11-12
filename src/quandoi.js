@@ -34,3 +34,21 @@ AUJ.assign=function(j){const L=(S.folk||[]).filter(f=>!f.kid);const hasG=L.some(
   const free=L.filter(f=>f.job!=='gate'&&f.job!=='soldier');if(!free.length){if(++j.g>3)return aqFail('Cần thêm người: mời dân làng về hoặc bắt thêm thổ dân.');aqPush({k:'capture'},j);return AQ_RUN;}
   free.sort((a,b)=>(danSp(b)==='guard')-(danSp(a)==='guard')||danLv(b)-danLv(a));const f=free[0];f.job=!hasS?'soldier':'gate';uiToast(`🤖 Giao ${f.n} ${f.job==='soldier'?'làm lính theo bạn':'giữ cổng'}.`,'good');save();return AQ_RUN;};
 {const _i=aqInit;aqInit=function(j){_i(j);if((j.k==='capture'||j.k==='feedfolk'||j.k==='assign')&&j.g==null){j.g=0;j.hl=0;j.rt=0;}};}
+/* ===================== LÍNH CANH GÁC ĐỨNG ĐÚNG CHỖ, NHÌN THẤY ĐƯỢC =====================
+   Trước: người được giao "Canh gác" chỉ đi vòng quanh cái giường của mình (thường khuất trong nhà) và ban đêm đi ngủ, nên giao việc xong không thấy ai gác.
+   Giờ: · Có chòi canh gần nhà (trong 700) → đứng TRÊN chòi, mỗi chòi một người.
+        · Hết chòi thì đứng gác ở cổng (phía trong, lệch sang bên để không chắn lối); không có cổng thì đi tuần quanh nhà theo vòng rộng.
+        · Gác cả ngày lẫn đêm (không vào giường), có dấu 🛡️ trên đầu, thấy thú dữ / kẻ cướp trong tầm 240 thì xông ra đánh rồi về chỗ. */
+function cgPosts(home){const tw=[],gt=[];for(const b of S.builds){if(b.prog!=null||b.remote)continue;const d=Math.hypot(b.x-home.x,b.z-home.z);if(d>700)continue;if(b.k==='watchtower')tw.push(b);else if(/gate/i.test(b.k))gt.push(b);}return {tw,gt};}
+function cgMark(o){if(o.userData.cgM)return;const cv=document.createElement('canvas');cv.width=cv.height=64;const c=cv.getContext('2d');c.font='44px system-ui';c.textAlign='center';c.textBaseline='middle';c.fillText('🛡️',32,36);const m=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false,transparent:true}));m.scale.set(9,9,1);m.position.y=46;m.renderOrder=20;o.add(m);o.userData.cgM=m;}
+function cgTick(L,dt){const used=new Set();L.forEach((f,idx)=>{if(!f._o)folkSpawn(f);cgMark(f._o);const home=folkHome(f),{tw,gt}=cgPosts(home);let ax,az,top=null;const t=tw.find(b=>!used.has(b.id));
+    if(t){used.add(t.id);ax=t.x;az=t.z;top=t.y+(typeof SOL_TW==='number'?SOL_TW:83);}else if(gt.length){const g=gt[idx%gt.length],th=(g.r%2)?0:1;/* cổng nằm trên cạnh: đứng lệch 26 dọc theo hàng rào, lùi 16 vào phía nhà */const sx=Math.sign(home.x-g.x)||1,sz=Math.sign(home.z-g.z)||1;if(g.r%2){ax=g.x+sx*16;az=g.z+(idx%2?-26:26);}else{ax=g.x+(idx%2?-26:26);az=g.z+sz*16;}}
+    else{const a=G.t*0.08+idx*2.1;ax=home.x+Math.sin(a)*150;az=home.z+Math.cos(a)*150;}
+    let tx=ax,tz=az,pose='idle',sp=75;f._t=(f._t||0)-dt;const e=typeof danEnemy==='function'?danEnemy(ax,az,240):null;
+    if(e){top=null;tx=e.e.x;tz=e.e.z;sp=115;if(Math.hypot(e.e.x-f.x,e.e.z-f.z)<(e.e.r||9)+16){tx=f.x;tz=f.z;pose='chop';f._ry=Math.atan2(e.e.x-f.x,e.e.z-f.z);if(f._t<=0){f._t=1.1;danStrike(f,e);}}}
+    const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(d>900){f.x=ax;f.z=az;}else if(d>5&&pose!=='chop'){f.x+=dx/d*Math.min(d,sp*dt);f.z+=dz/d*Math.min(d,sp*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*1.5;}else if(pose==='idle'){f._ry=Math.atan2(f.x-home.x,f.z-home.z)+Math.sin(G.t*0.25+idx)*0.9;/* quay mặt ra ngoài, đảo mắt quan sát */}
+    const onTop=top!=null&&Math.hypot(f.x-ax,f.z-az)<8;f._o.position.set(f.x,onTop?top:groundY(f.x,f.z,(f._o.position.y||0)+10),f.z);f._o.rotation.y=lerpAng(f._o.rotation.y,f._ry||0,Math.min(1,dt*5));f._o.visible=true;f._st='guard';
+    if(K3.char2Pose&&f._rig&&Math.hypot(P.x-f.x,P.z-f.z)<900){try{K3.char2Pose(f._rig,pose,pose==='walk'?f._g:G.t+f.seed,{});}catch(er){}}});}
+{const _ft=folkTick;folkTick=function(dt){if(!S||!S.folk||!S.folk.length)return _ft.apply(this,arguments);const all=S.folk,gd=all.filter(f=>f.job==='guard');if(!gd.length){for(const f of all)if(f._o&&f._o.userData.cgM)f._o.userData.cgM.visible=false;return _ft.apply(this,arguments);}
+    S.folk=all.filter(f=>f.job!=='guard');let r;try{r=_ft.apply(this,arguments);}finally{S.folk=all;}for(const f of all)if(f._o&&f._o.userData.cgM)f._o.userData.cgM.visible=f.job==='guard';try{cgTick(gd,dt);}catch(e){if(!G._cgE){G._cgE=1;console.warn('canh gác',e);}}return r;};}
+try{if(typeof JOBN==='object'&&JOBN.guard)JOBN.guard='Canh gác (chòi, cổng)';}catch(e){}

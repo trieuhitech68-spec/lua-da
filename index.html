@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261112155251">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261112162459">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -19397,6 +19397,11 @@ function khoRing(){const F=aq2Floors().filter(b=>b.prog==null);if(!F.length)retu
   const _gc=goalCheck;goalCheck=function(){try{if(S&&S.gv6!==1){S.gv6=1;if(S.goal>0){let i=0;while(i<GOALS.length){const [v,n]=goalProg(GOALS[i]);if(v<n)break;i++;}if(i<S.goal)S.goal=i;}}}catch(e){}return _gc.apply(this,arguments);};
   const _sp=aq2Spots;aq2Spots=function(def){try{if(def.kind==='edge'&&def.low){const R=khoRing();if(R.length){if(def.door){/* cổng: đoạn rào gần cửa nhà nhất */const dw=S.builds.find(b=>pieceDef(b.k)&&pieceDef(b.k).door&&!pieceDef(b.k).low)||S.builds.find(b=>GD_FLOOR.test(b.k));R.sort((a,b)=>Math.hypot(a.ex-dw.x,a.ez-dw.z)-Math.hypot(b.ex-dw.x,b.ez-dw.z));}
           else{const p0=R[0];R.sort((a,b)=>Math.hypot(a.ex-P.x,a.ez-P.z)-Math.hypot(b.ex-P.x,b.ez-P.z));}return R.slice(0,16);}if(aq2Floors().some(b=>b.prog==null))return [];/* vòng rào đã kín: không rào đè lên chân tường nhà */}}catch(e){}return _sp.apply(this,arguments);};}
+/* giường 2 ô (giường rơm, giường tre): Tự làm ưu tiên kê TRONG NHÀ, trên hai ô sàn trống liền nhau có mái (trước chỉ xét đồ 1 ô nên giường bị đặt ngoài sân) */
+{const _sp=aq2Spots;aq2Spots=function(def){const out=_sp.apply(this,arguments);try{const fp=def.fp||[1,1];if(def.kind==='obj'&&def.bed&&!def.shelter&&fp[0]===1&&fp[1]===2){const F=aq2Floors().filter(b=>b.prog==null),free=new Map();
+      for(const b of F){const c=cellAt(b.x,b.z);if(!c||c[slotN('obj',0)])continue;free.set(Math.floor(b.x/CELL)+','+Math.floor(b.z/CELL),c[slotN('roof',0)]?1:0);}const ins=[];
+      for(const [k,rf] of free){const [cx,cz]=k.split(',').map(Number),k2=cx+','+(cz+1);if(!free.has(k2))continue;ins.push({x:(cx+0.5)*CELL,z:(cz+1)*CELL,s:-6000-(rf+free.get(k2))*300+ins.length});}
+      if(ins.length){ins.sort((a,b)=>a.s-b.s);return ins.concat(out).slice(0,16);}}}catch(e){}return out;};}
 /* ===================== NÂNG CẤP CẢ CĂN NHÀ TẠI CHỖ =====================
    Không phải phá nhà cũ dựng nhà mới: đứng trong / cạnh nhà, mở Xây → ⬆️ Nâng cấp & sửa chữa, bấm "Nâng cả nhà".
    Mọi sàn, vách, mái của bạn trong vòng 14 m đổi sang vật liệu bậc trên ngay tại chỗ (đồ đạc bên trong giữ nguyên), tốn 60% giá cấu kiện mới.
@@ -19584,7 +19589,7 @@ setInterval(()=>{try{if(typeof S==='undefined'||!S||!G.on||!S.auOn){G._auOff=0;r
    Chạy thử: nhân vật lọt vào một hốc địa hình xa nhà, báo "Bị kẹt" 15 lần liền tại đúng một điểm, máu tụt dần. */
 const TK={c:[],s:[]};
 setInterval(()=>{try{if(!S||!G.on||!AQ.on||P.air||G.swim||G.climb||G.sleeping)return;if((P.speed||0)<30)return;const l=TK.c[TK.c.length-1];if(l&&Math.hypot(l[0]-P.x,l[1]-P.z)<120)return;TK.c.push([P.x,P.z,G.t]);if(TK.c.length>40)TK.c.shift();}catch(e){}},4000);
-{const _g=AUJ.goto;AUJ.goto=function(j){const r=_g.apply(this,arguments);try{if(r&&r.fail&&/^Bị kẹt/.test(r.fail)){TK.s=TK.s.filter(s=>G.t-s[2]<1500);const near=TK.s.filter(s=>Math.hypot(s[0]-P.x,s[1]-P.z)<90).length;TK.s.push([P.x,P.z,G.t]);
+{const _g=AUJ.goto;AUJ.goto=function(j){const r=_g.apply(this,arguments);try{if(r&&r.fail&&/^Bị kẹt/.test(r.fail)){try{let nb='',nd=1e9;for(const b of S.builds){const d=Math.hypot(b.x-P.x,b.z-P.z);if(d<nd){nd=d;nb=b.k+(b.prog!=null?'*':'');}}let nr='',rd=1e9;for(const i of near(P.x,P.z,60)){const q=RES[i];if(q.st!==0||RT[q.t].pass)continue;const d=Math.hypot(q.x-P.x,q.z-P.z);if(d<rd){rd=d;nr=q.t;}}(TK.log=TK.log||[]).push([G.t|0,P.x|0,P.z|0,(j.x|0)+','+(j.z|0),nb+'@'+(nd|0),nr+'@'+(rd|0),'wd'+wdAt(P.x,P.z).toFixed(1),'sl'+slopeAt(P.x,P.z).toFixed(2),'dy'+((P.y-hAt(P.x,P.z))|0)].join(' '));if(TK.log.length>30)TK.log.shift();}catch(e){}TK.s=TK.s.filter(s=>G.t-s[2]<1500);const near=TK.s.filter(s=>Math.hypot(s[0]-P.x,s[1]-P.z)<90).length;TK.s.push([P.x,P.z,G.t]);
       if(near>=1){let bk=null;for(let i=TK.c.length-1;i>=0;i--){const c=TK.c[i];if(Math.hypot(c[0]-P.x,c[1]-P.z)>260&&wdAt(c[0],c[1])<=0){bk=c;break;}}
         if(!bk){const hb=(typeof aqBed==='function'&&aqBed())||(typeof aqFire==='function'&&aqFire());if(hb&&near>=3)bk=[hb.x+30,hb.z+30,G.t];}
         if(bk){AQ.bad.push({x:P.x,z:P.z,t:G.t+900});P.x=bk[0];P.z=bk[1];P.y=groundY(P.x,P.z,hAt(P.x,P.z)+2);P.air=false;P.vy=0;AQ.path=null;AQ.dir=null;j.stuck=0;j.best=1e9;j.pts=null;j.pl=null;TK.c=TK.c.filter(c=>c!==bk);try{G.camInit=0;}catch(e){}
@@ -19697,6 +19702,24 @@ AUJ.assign=function(j){const L=(S.folk||[]).filter(f=>!f.kid);const hasG=L.some(
   const free=L.filter(f=>f.job!=='gate'&&f.job!=='soldier');if(!free.length){if(++j.g>3)return aqFail('Cần thêm người: mời dân làng về hoặc bắt thêm thổ dân.');aqPush({k:'capture'},j);return AQ_RUN;}
   free.sort((a,b)=>(danSp(b)==='guard')-(danSp(a)==='guard')||danLv(b)-danLv(a));const f=free[0];f.job=!hasS?'soldier':'gate';uiToast(`🤖 Giao ${f.n} ${f.job==='soldier'?'làm lính theo bạn':'giữ cổng'}.`,'good');save();return AQ_RUN;};
 {const _i=aqInit;aqInit=function(j){_i(j);if((j.k==='capture'||j.k==='feedfolk'||j.k==='assign')&&j.g==null){j.g=0;j.hl=0;j.rt=0;}};}
+/* ===================== LÍNH CANH GÁC ĐỨNG ĐÚNG CHỖ, NHÌN THẤY ĐƯỢC =====================
+   Trước: người được giao "Canh gác" chỉ đi vòng quanh cái giường của mình (thường khuất trong nhà) và ban đêm đi ngủ, nên giao việc xong không thấy ai gác.
+   Giờ: · Có chòi canh gần nhà (trong 700) → đứng TRÊN chòi, mỗi chòi một người.
+        · Hết chòi thì đứng gác ở cổng (phía trong, lệch sang bên để không chắn lối); không có cổng thì đi tuần quanh nhà theo vòng rộng.
+        · Gác cả ngày lẫn đêm (không vào giường), có dấu 🛡️ trên đầu, thấy thú dữ / kẻ cướp trong tầm 240 thì xông ra đánh rồi về chỗ. */
+function cgPosts(home){const tw=[],gt=[];for(const b of S.builds){if(b.prog!=null||b.remote)continue;const d=Math.hypot(b.x-home.x,b.z-home.z);if(d>700)continue;if(b.k==='watchtower')tw.push(b);else if(/gate/i.test(b.k))gt.push(b);}return {tw,gt};}
+function cgMark(o){if(o.userData.cgM)return;const cv=document.createElement('canvas');cv.width=cv.height=64;const c=cv.getContext('2d');c.font='44px system-ui';c.textAlign='center';c.textBaseline='middle';c.fillText('🛡️',32,36);const m=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false,transparent:true}));m.scale.set(9,9,1);m.position.y=46;m.renderOrder=20;o.add(m);o.userData.cgM=m;}
+function cgTick(L,dt){const used=new Set();L.forEach((f,idx)=>{if(!f._o)folkSpawn(f);cgMark(f._o);const home=folkHome(f),{tw,gt}=cgPosts(home);let ax,az,top=null;const t=tw.find(b=>!used.has(b.id));
+    if(t){used.add(t.id);ax=t.x;az=t.z;top=t.y+(typeof SOL_TW==='number'?SOL_TW:83);}else if(gt.length){const g=gt[idx%gt.length],th=(g.r%2)?0:1;/* cổng nằm trên cạnh: đứng lệch 26 dọc theo hàng rào, lùi 16 vào phía nhà */const sx=Math.sign(home.x-g.x)||1,sz=Math.sign(home.z-g.z)||1;if(g.r%2){ax=g.x+sx*16;az=g.z+(idx%2?-26:26);}else{ax=g.x+(idx%2?-26:26);az=g.z+sz*16;}}
+    else{const a=G.t*0.08+idx*2.1;ax=home.x+Math.sin(a)*150;az=home.z+Math.cos(a)*150;}
+    let tx=ax,tz=az,pose='idle',sp=75;f._t=(f._t||0)-dt;const e=typeof danEnemy==='function'?danEnemy(ax,az,240):null;
+    if(e){top=null;tx=e.e.x;tz=e.e.z;sp=115;if(Math.hypot(e.e.x-f.x,e.e.z-f.z)<(e.e.r||9)+16){tx=f.x;tz=f.z;pose='chop';f._ry=Math.atan2(e.e.x-f.x,e.e.z-f.z);if(f._t<=0){f._t=1.1;danStrike(f,e);}}}
+    const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(d>900){f.x=ax;f.z=az;}else if(d>5&&pose!=='chop'){f.x+=dx/d*Math.min(d,sp*dt);f.z+=dz/d*Math.min(d,sp*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*1.5;}else if(pose==='idle'){f._ry=Math.atan2(f.x-home.x,f.z-home.z)+Math.sin(G.t*0.25+idx)*0.9;/* quay mặt ra ngoài, đảo mắt quan sát */}
+    const onTop=top!=null&&Math.hypot(f.x-ax,f.z-az)<8;f._o.position.set(f.x,onTop?top:groundY(f.x,f.z,(f._o.position.y||0)+10),f.z);f._o.rotation.y=lerpAng(f._o.rotation.y,f._ry||0,Math.min(1,dt*5));f._o.visible=true;f._st='guard';
+    if(K3.char2Pose&&f._rig&&Math.hypot(P.x-f.x,P.z-f.z)<900){try{K3.char2Pose(f._rig,pose,pose==='walk'?f._g:G.t+f.seed,{});}catch(er){}}});}
+{const _ft=folkTick;folkTick=function(dt){if(!S||!S.folk||!S.folk.length)return _ft.apply(this,arguments);const all=S.folk,gd=all.filter(f=>f.job==='guard');if(!gd.length){for(const f of all)if(f._o&&f._o.userData.cgM)f._o.userData.cgM.visible=false;return _ft.apply(this,arguments);}
+    S.folk=all.filter(f=>f.job!=='guard');let r;try{r=_ft.apply(this,arguments);}finally{S.folk=all;}for(const f of all)if(f._o&&f._o.userData.cgM)f._o.userData.cgM.visible=f.job==='guard';try{cgTick(gd,dt);}catch(e){if(!G._cgE){G._cgE=1;console.warn('canh gác',e);}}return r;};}
+try{if(typeof JOBN==='object'&&JOBN.guard)JOBN.guard='Canh gác (chòi, cổng)';}catch(e){}
 /* ===================== THỔ DÂN ĐI LẺ =====================
    Ngoài các trại và toán canh mỏ (đông, hung dữ), rải quanh vùng có ~14 thổ dân đi một mình: thợ săn lạc, người hái lượm, thợ đá lang thang, tiều phu.
    - Họ KHÔNG tấn công trước. Bị đánh thì thợ săn, thợ đá, tiều phu đánh trả; người hái lượm bỏ chạy.
