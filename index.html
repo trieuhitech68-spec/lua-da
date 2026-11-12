@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261112140136">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261112142126">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -835,7 +835,7 @@ function K3init(){if(K3.ok)return;
     thatch:['#c9a25a',1,0,'thatch'],stone:['#a39d92',.92,0,'stone'],dstone:['#77716a',.92,0,'stone'],rock:['#8a8076',.95,0,'rock'],brick:['#a4523a',.9,0,'brick'],tile:['#a84a2e',.75,0,'tile'],btile:['#3e5c8e',.75,0,'tile'],gtile:['#4e7a4a',.75,0,'tile'],
     plaster:['#e8dcc4',.9,0,'plaster'],cream:['#efe2c2',.9,0,'plaster'],timber:['#efe4cc',.9,0,'timber'],concrete:['#bdb9b0',.85,0,'concrete'],glass:['#5a92bc',.12,.35,null],dglass:['#2e4f6e',.12,.35,null],steel:['#8f989f',.38,.7,null],corr:['#9aa2a8',.5,.6,'corr'],
     white:['#e9eff3',.45,.12,null],alloy:['#5c6c8c',.32,.6,null],crystal:['#8a62d8',.18,.1,null,'#4a1a98'],gcrystal:['#e8c060',.22,.3,null,'#8a5a10'],bronze:['#b48c3c',.35,.75,null],copper:['#b87333',.35,.75,null],patina:['#5f9a82',.5,.4,null],red:['#b0352a',.8,0,null],gold:['#e2b24a',.28,.85,null],clay:['#b8693a',.9,0,null],soil:['#7a5634',1,0,null],
-    leaf:['#4e8a3e',.9,0,null],dleaf:['#2f6034',.9,0,null],palm:['#5aa04a',.85,0,null],snow:['#f2f6f8',.8,0,null],water:['#3a7aa0',.08,.25,null],lava:['#ff6a20',.6,0,null,'#ff3a00'],ink:['#2a1a10',1,0,null],bone:['#efe6d4',.8,0,null],fur:['#7a5a3a',1,0,null],
+    leaf:['#4e8a3e',.9,0,null],dleaf:['#2f6034',.9,0,null],palm:['#8f9650',.9,0,null],snow:['#f2f6f8',.8,0,null],water:['#3a7aa0',.08,.25,null],lava:['#ff6a20',.6,0,null,'#ff3a00'],ink:['#2a1a10',1,0,null],bone:['#efe6d4',.8,0,null],fur:['#7a5a3a',1,0,null],
     cloth:['#c0392b',.9,0,null],blue:['#2f5aa0',.8,0,null],yellow:['#f2c230',.7,0,null],green:['#3e9a4e',.8,0,null],purple:['#7a3ab0',.8,0,null],black:['#222428',.7,.2,null],light:['#fff1c0',.5,0,null,'#ffc860'],cyan:['#5fe1ff',.3,0,null,'#20b8ff'],magenta:['#ff6ad5',.3,0,null,'#e03ab0'],fire:['#ffb347',.5,0,null,'#ff7a10']};
   K3.MP=MP;const TEXC3={},MATC={};
   function tex3(kind,col){const key=kind+col;if(TEXC3[key])return TEXC3[key];const N=128,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d');c.fillStyle=col;c.fillRect(0,0,N,N);
@@ -1530,7 +1530,7 @@ function SBmodelsInit(){const K3G=(typeof K3!=='undefined')?K3:window.K3;if(!K3G
     for(let i=0;i<6;i++){const a=i/6*TAU+0.3;G.add(limb([Math.cos(a)*2,h-8,-Math.sin(a)*2],[Math.cos(a)*7,h+15,-Math.sin(a)*7],0.9,0.7,'sbLogB',4));}
     const S=new Soup();S.t([-8,0.3,zf(0.3)+0.3],[8,0.3,zf(0.3)+0.3],[0,30,zf(30)+0.3]);G.add(S.mesh('sbInk',{mo:{side:DS}}));
     const Fl=new Soup();Fl.t([0,30,zf(30)+0.45],[8,0.3,zf(0.3)+0.45],[13.5,3,zf(3)+2.6]);G.add(Fl.mesh('sbFur2',{mo:{side:DS}}));
-    G.add(K.mesh(new T.CylinderGeometry(r*(1-41/h)*1.012,r*(1-36/h)*1.012,5,10,1,true),'red',{y:38.5,ry:rot}),K.mesh(new T.CylinderGeometry(r*(1-44.5/h)*1.014,r*(1-43/h)*1.014,1.5,10,1,true),'#e0b04a',{y:43.75,ry:rot}));
+    /* dây buộc ngang thân lều bằng dây mây (trước là dải đỏ viền vàng kiểu lều thổ dân Bắc Mỹ) */G.add(K.mesh(new T.CylinderGeometry(r*(1-40/h)*1.012,r*(1-38.6/h)*1.012,1.4,10,1,true),'#5a4630',{y:39.3,ry:rot}),K.mesh(new T.CylinderGeometry(r*(1-14/h)*1.012,r*(1-12.6/h)*1.012,1.4,10,1,true),'#5a4630',{y:13.3,ry:rot}));
     const A=V(0,h,0),B1=V(r*Math.sin(1.257),0,r*Math.cos(1.257)),B2=V(r*Math.sin(1.885),0,r*Math.cos(1.885)),n=B1.clone().sub(A).cross(B2.clone().sub(A)).normalize();if(n.x<0)n.negate();
     const cpt=A.clone().lerp(B1.clone().add(B2).multiplyScalar(0.5),0.58).addScaledVector(n,0.35),sun=K.mesh(new T.CircleGeometry(5,8),'#e0b04a',{});sun.position.copy(cpt);sun.quaternion.setFromUnitVectors(V(0,0,1),n);G.add(sun);
     for(let i=0;i<8;i++){const a=i/8*TAU+0.2;G.add(K.ico(2.6,i%2?'sbStoneA':'sbStoneB',{x:Math.cos(a)*35,y:1,z:-Math.sin(a)*35},0,0.35,i+4));}return G;}
@@ -20293,6 +20293,21 @@ function dtHorse(o){try{const R=o&&o.userData&&o.userData.rig;if(!R||!R.body||o.
     o.traverse(m=>{if(m.isMesh&&m.material===dk)m.castShadow=false;});}catch(e){}return o;}
 {const _mm=mtModel;mtModel=function(){return dtHorse(_mm.apply(this,arguments));};}
 {const _an=animalNew;animalNew=function(kind){const a=_an.apply(this,arguments);try{if(kind==='horse'&&a&&a.o)dtHorse(a.o);}catch(e){}return a;};}
+
+/* ===================== GẬY ĐÀO có hình riêng: cây gậy dài vót nhọn, đầu hơ lửa cho cứng, có hòn đá đục lỗ lồng vào làm nặng (trước dùng hình cái búa) ===================== */
+{const _m=model;model=function(spec){try{if(spec&&spec[0]==='tool'&&spec[1]==='digStick'){const T=THREE,g=new T.Group(),mk=(geo,c,y)=>{const m=new T.Mesh(geo,new T.MeshStandardMaterial({color:c,roughness:0.9,flatShading:true}));m.position.y=y;g.add(m);return m;};
+      mk(new T.CylinderGeometry(0.75,0.95,34,6),'#9a7446',9);mk(new T.ConeGeometry(0.78,7,6),'#2e2118',29.5);mk(new T.CylinderGeometry(0.8,0.8,2.2,6),'#4a3626',25.2);
+      const st=mk(new T.TorusGeometry(2.1,1.25,6,9),'#8d8a82',19.5);st.rotation.x=Math.PI/2;st.scale.set(1,1,0.9);return g;}}catch(e){}return _m.apply(this,arguments);};}
+/* TƯỢNG THẦN RỪNG: tượng gỗ đẽo hình người ngồi bó gối kiểu tượng nhà mồ Tây Nguyên (trước là một trụ tròn gắn khối cầu) */
+{const _m=model;model=function(spec){try{if(spec&&spec[0]==='piece'&&spec[1]==='statue'){const T=THREE,g=new T.Group(),W='#7a5632',D='#4e3620',mk=(geo,c,x,y,z)=>{const m=new T.Mesh(geo,new T.MeshStandardMaterial({color:c,roughness:0.95,flatShading:true}));m.position.set(x||0,y||0,z||0);g.add(m);return m;};
+      mk(new T.BoxGeometry(17,3.5,17),'#8a8780',0,1.75,0);mk(new T.CylinderGeometry(5.6,6.6,15,7),W,0,11,0);/* thân */
+      mk(new T.BoxGeometry(4.2,9,7),W,-3.4,9.5,4.6).rotation.x=-0.35;mk(new T.BoxGeometry(4.2,9,7),W,3.4,9.5,4.6).rotation.x=-0.35;/* hai gối co */
+      mk(new T.BoxGeometry(2.6,10,3),D,-5.6,15,3.2).rotation.x=-0.75;mk(new T.BoxGeometry(2.6,10,3),D,5.6,15,3.2).rotation.x=-0.75;/* tay chống cằm */
+      mk(new T.CylinderGeometry(2.6,3.2,3,6),W,0,20,0);const hd=mk(new T.BoxGeometry(9,11,8.5),W,0,27,0.4);hd.rotation.y=0;
+      mk(new T.BoxGeometry(10.4,2.2,9.6),D,0,33,0.4);mk(new T.ConeGeometry(4.6,6,5),D,0,36.8,0.4);/* búi tóc / mũ */
+      mk(new T.BoxGeometry(1.8,1.2,0.8),'#1c140e',-2.2,28.6,4.7);mk(new T.BoxGeometry(1.8,1.2,0.8),'#1c140e',2.2,28.6,4.7);mk(new T.BoxGeometry(1.6,4,1.6),D,0,26.4,5);mk(new T.BoxGeometry(3.6,0.9,0.8),'#1c140e',0,23.4,4.7);
+      mk(new T.BoxGeometry(1.2,5,3),D,-5.1,27,0.4);mk(new T.BoxGeometry(1.2,5,3),D,5.1,27,0.4);/* tai dài */
+      [13,16].forEach(y=>{const r=mk(new T.TorusGeometry(6.3,0.35,4,10),'#b8321e',0,y,0);r.rotation.x=Math.PI/2;});return g;}}catch(e){}return _m.apply(this,arguments);};}
 /* ===================== GHIM: đánh dấu một món cần làm / công trình cần dựng → vật liệu còn thiếu hiện ở góc màn hình =====================
    · Chế tạo: mỗi món có nút 📌. Xây: giữ lâu (hoặc bấm chuột phải) vào một công trình, hoặc bấm "📌 Ghim" trong bảng báo thiếu vật liệu.
    · Thẻ ghim nằm dưới bản đồ nhỏ: tên món + từng vật liệu "đang có / cần" (đỏ = còn thiếu, xanh = đủ). Chạm tên để mở lại đúng bảng,

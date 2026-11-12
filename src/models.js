@@ -368,7 +368,7 @@ function SBmodelsInit(){const K3G=(typeof K3!=='undefined')?K3:window.K3;if(!K3G
     for(let i=0;i<6;i++){const a=i/6*TAU+0.3;G.add(limb([Math.cos(a)*2,h-8,-Math.sin(a)*2],[Math.cos(a)*7,h+15,-Math.sin(a)*7],0.9,0.7,'sbLogB',4));}
     const S=new Soup();S.t([-8,0.3,zf(0.3)+0.3],[8,0.3,zf(0.3)+0.3],[0,30,zf(30)+0.3]);G.add(S.mesh('sbInk',{mo:{side:DS}}));
     const Fl=new Soup();Fl.t([0,30,zf(30)+0.45],[8,0.3,zf(0.3)+0.45],[13.5,3,zf(3)+2.6]);G.add(Fl.mesh('sbFur2',{mo:{side:DS}}));
-    G.add(K.mesh(new T.CylinderGeometry(r*(1-41/h)*1.012,r*(1-36/h)*1.012,5,10,1,true),'red',{y:38.5,ry:rot}),K.mesh(new T.CylinderGeometry(r*(1-44.5/h)*1.014,r*(1-43/h)*1.014,1.5,10,1,true),'#e0b04a',{y:43.75,ry:rot}));
+    /* dây buộc ngang thân lều bằng dây mây (trước là dải đỏ viền vàng kiểu lều thổ dân Bắc Mỹ) */G.add(K.mesh(new T.CylinderGeometry(r*(1-40/h)*1.012,r*(1-38.6/h)*1.012,1.4,10,1,true),'#5a4630',{y:39.3,ry:rot}),K.mesh(new T.CylinderGeometry(r*(1-14/h)*1.012,r*(1-12.6/h)*1.012,1.4,10,1,true),'#5a4630',{y:13.3,ry:rot}));
     const A=V(0,h,0),B1=V(r*Math.sin(1.257),0,r*Math.cos(1.257)),B2=V(r*Math.sin(1.885),0,r*Math.cos(1.885)),n=B1.clone().sub(A).cross(B2.clone().sub(A)).normalize();if(n.x<0)n.negate();
     const cpt=A.clone().lerp(B1.clone().add(B2).multiplyScalar(0.5),0.58).addScaledVector(n,0.35),sun=K.mesh(new T.CircleGeometry(5,8),'#e0b04a',{});sun.position.copy(cpt);sun.quaternion.setFromUnitVectors(V(0,0,1),n);G.add(sun);
     for(let i=0;i<8;i++){const a=i/8*TAU+0.2;G.add(K.ico(2.6,i%2?'sbStoneA':'sbStoneB',{x:Math.cos(a)*35,y:1,z:-Math.sin(a)*35},0,0.35,i+4));}return G;}

@@ -106,3 +106,18 @@ function dtHorse(o){try{const R=o&&o.userData&&o.userData.rig;if(!R||!R.body||o.
     o.traverse(m=>{if(m.isMesh&&m.material===dk)m.castShadow=false;});}catch(e){}return o;}
 {const _mm=mtModel;mtModel=function(){return dtHorse(_mm.apply(this,arguments));};}
 {const _an=animalNew;animalNew=function(kind){const a=_an.apply(this,arguments);try{if(kind==='horse'&&a&&a.o)dtHorse(a.o);}catch(e){}return a;};}
+
+/* ===================== GẬY ĐÀO có hình riêng: cây gậy dài vót nhọn, đầu hơ lửa cho cứng, có hòn đá đục lỗ lồng vào làm nặng (trước dùng hình cái búa) ===================== */
+{const _m=model;model=function(spec){try{if(spec&&spec[0]==='tool'&&spec[1]==='digStick'){const T=THREE,g=new T.Group(),mk=(geo,c,y)=>{const m=new T.Mesh(geo,new T.MeshStandardMaterial({color:c,roughness:0.9,flatShading:true}));m.position.y=y;g.add(m);return m;};
+      mk(new T.CylinderGeometry(0.75,0.95,34,6),'#9a7446',9);mk(new T.ConeGeometry(0.78,7,6),'#2e2118',29.5);mk(new T.CylinderGeometry(0.8,0.8,2.2,6),'#4a3626',25.2);
+      const st=mk(new T.TorusGeometry(2.1,1.25,6,9),'#8d8a82',19.5);st.rotation.x=Math.PI/2;st.scale.set(1,1,0.9);return g;}}catch(e){}return _m.apply(this,arguments);};}
+/* TƯỢNG THẦN RỪNG: tượng gỗ đẽo hình người ngồi bó gối kiểu tượng nhà mồ Tây Nguyên (trước là một trụ tròn gắn khối cầu) */
+{const _m=model;model=function(spec){try{if(spec&&spec[0]==='piece'&&spec[1]==='statue'){const T=THREE,g=new T.Group(),W='#7a5632',D='#4e3620',mk=(geo,c,x,y,z)=>{const m=new T.Mesh(geo,new T.MeshStandardMaterial({color:c,roughness:0.95,flatShading:true}));m.position.set(x||0,y||0,z||0);g.add(m);return m;};
+      mk(new T.BoxGeometry(17,3.5,17),'#8a8780',0,1.75,0);mk(new T.CylinderGeometry(5.6,6.6,15,7),W,0,11,0);/* thân */
+      mk(new T.BoxGeometry(4.2,9,7),W,-3.4,9.5,4.6).rotation.x=-0.35;mk(new T.BoxGeometry(4.2,9,7),W,3.4,9.5,4.6).rotation.x=-0.35;/* hai gối co */
+      mk(new T.BoxGeometry(2.6,10,3),D,-5.6,15,3.2).rotation.x=-0.75;mk(new T.BoxGeometry(2.6,10,3),D,5.6,15,3.2).rotation.x=-0.75;/* tay chống cằm */
+      mk(new T.CylinderGeometry(2.6,3.2,3,6),W,0,20,0);const hd=mk(new T.BoxGeometry(9,11,8.5),W,0,27,0.4);hd.rotation.y=0;
+      mk(new T.BoxGeometry(10.4,2.2,9.6),D,0,33,0.4);mk(new T.ConeGeometry(4.6,6,5),D,0,36.8,0.4);/* búi tóc / mũ */
+      mk(new T.BoxGeometry(1.8,1.2,0.8),'#1c140e',-2.2,28.6,4.7);mk(new T.BoxGeometry(1.8,1.2,0.8),'#1c140e',2.2,28.6,4.7);mk(new T.BoxGeometry(1.6,4,1.6),D,0,26.4,5);mk(new T.BoxGeometry(3.6,0.9,0.8),'#1c140e',0,23.4,4.7);
+      mk(new T.BoxGeometry(1.2,5,3),D,-5.1,27,0.4);mk(new T.BoxGeometry(1.2,5,3),D,5.1,27,0.4);/* tai dài */
+      [13,16].forEach(y=>{const r=mk(new T.TorusGeometry(6.3,0.35,4,10),'#b8321e',0,y,0);r.rotation.x=Math.PI/2;});return g;}}catch(e){}return _m.apply(this,arguments);};}
