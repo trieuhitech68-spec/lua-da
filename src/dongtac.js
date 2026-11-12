@@ -74,3 +74,15 @@ H3PO.blow=(R,k,o)=>{const K=h3ik(),t=(o&&o.t)||k*4,b=Math.sin(t*2.6);K.kneel(R,7
   return _hp.apply(this,arguments);};}
 /* cầm rìu, cuốc, gậy đào lúc đứng/đi: đầu dụng cụ chúc xuống cạnh chân */
 {const _ct=h3carryTool;h3carryTool=function(R,tl,sw){const I=ITEMS[tl],k=I&&I.tool;if(k==='axe'||k==='pick'||k==='dig'||k==='club'||k==='hammer'){R.armR.rotation.set(0.1+(sw||0)*0.12,0,0.09);R.foreR.rotation.set(-0.42,0,0);R.handR.rotation.set(0.95,0,0);return;}return _ct.apply(this,arguments);};}
+/* ===================== DÁNG NGƯỜI ĐẦY ĐẶN HƠN (kiểu nhân vật game hiện nay) =====================
+   Trước: thân dẹt như tấm ván, tay chân như que, đầu và bàn tay nhỏ. Giờ làm dày từng khối thịt quanh trục xương của nó
+   (chỉ phóng các khối hình, KHÔNG đổi khung xương → động tác, tầm với, chỗ cầm nắm giữ nguyên). */
+const DT_CH={torso:[1.08,1,1.36],hips:[1.1,1,1.34],legL:[1.26,1,1.26],legR:[1.26,1,1.26],shinL:[1.36,1,1.36],shinR:[1.36,1,1.36],footL:[1.3,1.15,1.1],footR:[1.3,1.15,1.1],
+  armL:[1.3,1,1.3],armR:[1.3,1,1.3],foreL:[1.36,1,1.36],foreR:[1.36,1,1.36],handL:[1.38,1.25,1.38],handR:[1.38,1.25,1.38]};
+function dtChunk(g){try{const R=g&&g.userData&&g.userData.rig;if(!R||g.userData.dtCh)return g;g.userData.dtCh=1;for(const k in DT_CH){const b=R[k],s=DT_CH[k];if(!b)continue;for(const m of b.children)if(m.isMesh&&!m.userData.noCh)m.scale.set(m.scale.x*s[0],m.scale.y*s[1],m.scale.z*s[2]);}
+    /* khớp háng: thêm khối tròn cùng chất vải quần để lúc cúi, ngồi xổm không hở một khoảng trống giữa hông và đùi */
+    for(const k of ['legL','legR']){const b=R[k];if(!b)continue;const hm=b.children.find(m=>m.isMesh&&m.material&&/Hide|Cloth|Bark|Fibre/i.test(m.material.name||m.material.userData.key||''))||b.children.find(m=>m.isMesh);if(!hm)continue;
+      const sp=new THREE.Mesh(DT_CH._g||(DT_CH._g=new THREE.SphereGeometry(2.25,9,7)),hm.material);sp.userData.noCh=1;sp.position.set(0,-0.5,0.1);sp.scale.set(1.05,1.15,1.2);sp.castShadow=true;sp.layers.mask=hm.layers.mask;b.add(sp);}
+    if(R.head&&!R.head.userData.dtCh){R.head.userData.dtCh=1;R.head.scale.multiplyScalar(1.12);}}catch(e){}return g;}
+{const iv=setInterval(()=>{try{if(typeof K3==='undefined'||!K3.char2)return;if(K3.char2._dt){return;}if(!K3.char2._cr&&(DT_CH._w=(DT_CH._w||0)+1)<40)return;/* chờ bộ tạo hình bọc xong (tối đa ~8 giây) */
+    const base=K3.char2,w=function(o){return dtChunk(base.apply(this,arguments));};for(const k in base)w[k]=base[k];w._dt=1;K3.char2=w;}catch(e){}},200);}
