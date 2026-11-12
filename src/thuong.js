@@ -19,7 +19,7 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
    2. Đã có lệnh "lánh về trại" thì không chồng thêm lệnh nữa.
    3. Bị bám riết (đang lánh về trại mà thú vẫn sát bên), có vũ khí và còn khoẻ: quay lại đánh. */
 {const _sf=aqSafety;aqSafety=function(){try{if(AQ.on&&AQ.jobs.length&&!G.sleeping&&S&&S.p){const p=S.p;
-      if(G.t-(AQ.emT||-9)>1.6){if(p.food<15){const f=aqFood(true);if(f){AQ.emT=G.t;eat(f);}}if(p.water<15){const b=['water','tea','mintwater'].find(k=>invCount(k)>0&&ITEMS[k]&&ITEMS[k].t==='drink');if(b){AQ.emT=G.t;eat(b);}}}
+      if(G.t-(AQ.emT||-9)>1.6){if(p.food<15){const f=aqFood(true);if(f){AQ.emT=G.t;eat(f);}}if(p.water<15){const b=['water','tea','mintwater'].find(k=>invCount(k)>0&&ITEMS[k]&&ITEMS[k].t==='drink');if(b){AQ.emT=G.t;eat(b);}else{/* không có nước mang theo: ăn quả mọng nước cho đỡ khát */const f=['gourd','banana','berry'].find(k=>invCount(k)>0);if(f&&S.p.food<99){AQ.emT=G.t;eat(f);}}}}
       const camp=AQ.jobs.some(j=>j.k==='camp');if(camp){AQ.flees=[];
         if(!aqHasUrgent('fight')&&p.hp>55&&(hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'))){let dg=null,dd=1e9;for(const a of aqPred()){const d=Math.hypot(a.x-P.x,a.z-P.z);if(d<dd){dd=d;dg=a.a;}}
           if(dg&&dd<150&&dg.alive!==false&&((ANIMALS[dg.kind]||{}).hp||9)<=7&&(AQ.hound=(AQ.hound||0)+1)>40){AQ.hound=0;const top=AQ.jobs[AQ.jobs.length-1];if(G.work)workStop('');G.act=null;aqPush({k:'fight',a:dg,t0:G.t,urgent:1},top);aqSay('🤖 Bị '+((dg.n||'thú dữ').toLowerCase())+' bám riết: quay lại đánh.','bad');}}}else AQ.hound=0;}}catch(e){}
@@ -40,3 +40,5 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
       let near=null,nd=1e9,cnt=0;for(const f of G.foes){if(!f||!f.alive||(f.lone&&!f.prov))continue;const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<340)cnt++;if(d<nd){nd=d;near=f;}}
       if(near&&cnt===1&&nd<210&&(hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'))){const top=AQ.jobs[AQ.jobs.length-1];if(top.k==='flee'){AQ.jobs.pop();}const t2=AQ.jobs[AQ.jobs.length-1];if(t2){if(G.work)workStop('');G.act=null;aqPush({k:'fight',a:near,t0:G.t,urgent:1},t2);aqSay('🤖 Một '+((near.n||'chiến binh').toLowerCase())+' xông tới: đánh trả.','bad');}}}}catch(e){}
   return _sf.apply(this,arguments);};}
+/* quả mọng nước cũng đỡ khát một chút (người đi rừng vẫn ăn quả, nhai thân chuối khi hết nước) */
+try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITEMS.banana.drink)ITEMS.banana.drink=4;if(ITEMS.gourd&&ITEMS.gourd.t==='food'&&!ITEMS.gourd.drink)ITEMS.gourd.drink=8;}catch(e){}
