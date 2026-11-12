@@ -3,19 +3,26 @@
    Hậu kỳ tự viết (không cần thư viện ngoài): vẽ cảnh vào bộ đệm HDR có khử răng cưa 4x → lọc vùng sáng → làm mờ 2 tầng (lóa sáng)
    → ghép: tông màu ACES, độ bão hòa/tương phản, tối góc, chống sọc màu. Thiếu WebGL2 hoặc máy yếu thì vẽ thẳng với tông màu ACES. */
 function K3fxInit(){if(!K3.ok||K3.fx)return;const T=K3.T;
-  const FX={on:true,cfg:{exp:0.78,envK:0.65,hemiK:0.06,sunK:1.22,sat:1.16,con:1.09,bloom:1},envs:new WeakMap(),posts:new WeakMap()};K3.fx=FX;
+  const FX={on:true,cfg:{exp:0.86,envK:0.7,hemiK:0.06,sunK:1.22,sat:1.16,con:1.05,bloom:1},envs:new WeakMap(),posts:new WeakMap()};K3.fx=FX;
   const C=h=>new T.Color(h);
   // bảng màu trời theo kỷ nguyên (giá trị tuyến tính)
   FX.pal=e=>{if(typeof e==='object')return {top:C(e.top),hor:C(e.hor),gnd:C(e.gnd),sun:C(e.sun),night:e.night||0};const L=K3.EL[Math.min(e,8)]||K3.EL[0],n=L.night||0;
     const top=C(L.sky).lerp(C(n?'#03050c':'#2f64b0'),n?0.55:0.5),hor=C(L.fog).lerp(C('#ffffff'),n?0:0.12),gnd=C(L.gnd).multiplyScalar(n?0.5:0.85);
     return {top,hor,gnd,sun:C(L.sun),night:n};};
-  const SKY_FS=`uniform vec3 cT,cH,cG,sC,sD;uniform float sI,hz;varying vec3 vD;
+  // MÂY VẼ: nhiễu fbm 4 tầng chiếu lên vòm trời, mép mềm, mặt đón nắng trắng ấm, mặt khuất ngả lam; mây trôi chậm theo gió (tm), độ phủ theo thời tiết (cv; cv>1.5 = tắt mây cho máy yếu)
+  const SKY_FS=`uniform vec3 cT,cH,cG,sC,sD;uniform float sI,hz,tm,cv;varying vec3 vD;
+float hsh(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float nz(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hsh(i),hsh(i+vec2(1.0,0.0)),f.x),mix(hsh(i+vec2(0.0,1.0)),hsh(i+vec2(1.0,1.0)),f.x),f.y);}
+float fbm(vec2 p){float a=0.5,s=0.0;for(int i=0;i<4;i++){s+=a*nz(p);p=p*2.03+vec2(11.3,7.1);a*=0.5;}return s;}
 void main(){vec3 d=normalize(vD);float h=d.y;vec3 c=h>0.0?mix(cH,cT,pow(clamp(h*hz,0.0,1.0),0.6)):mix(cH,cG,pow(clamp(-h*4.0,0.0,1.0),0.7));
+  if(h>0.0&&cv<1.5){vec2 uv=d.xz/(h+0.24)*1.1+vec2(tm*0.006,tm*0.0022);float dn=fbm(uv)*0.8+fbm(uv*2.9+3.7)*0.2;float cl=smoothstep(cv,cv+0.17,dn)*smoothstep(0.012,0.15,h);
+    if(cl>0.001){float sh=fbm(uv+normalize(sD.xz+vec2(0.001))*0.085);float lit=clamp(0.52+(dn-sh)*2.8,0.0,1.0);float dl=clamp(sI*1.25+0.06,0.0,1.0);
+      vec3 cw=mix(cH,vec3(1.0),0.9)*mix(0.22,1.12,dl)+sC*0.08*dl;vec3 cs=mix(cH,cT,0.5)*mix(0.28,0.86,dl);c=mix(c,mix(cs,cw,lit),cl*0.96);}}
   float s=max(dot(d,normalize(sD)),0.0);c+=sC*(pow(s,900.0)*14.0+pow(s,40.0)*0.28+pow(s,6.0)*0.08)*sI;gl_FragColor=vec4(c,1.0);
 #include <tonemapping_fragment>
 #include <encodings_fragment>
 }`;
-  const skyMat=(P,o)=>new T.ShaderMaterial({uniforms:{cT:{value:P.top.clone()},cH:{value:P.hor.clone()},cG:{value:P.gnd.clone()},sC:{value:P.sun.clone()},sD:{value:(o.sunDir||new T.Vector3(-0.52,0.62,0.4)).clone()},sI:{value:P.night?0.18:(o.sunI??1)},hz:{value:o.hz||1.6}},
+  const skyMat=(P,o)=>new T.ShaderMaterial({uniforms:{cT:{value:P.top.clone()},cH:{value:P.hor.clone()},cG:{value:P.gnd.clone()},sC:{value:P.sun.clone()},sD:{value:(o.sunDir||new T.Vector3(-0.52,0.62,0.4)).clone()},sI:{value:P.night?0.18:(o.sunI??1)},hz:{value:o.hz||1.6},tm:{value:0},cv:{value:o.cv??0.52}},
     vertexShader:'varying vec3 vD;void main(){vD=position;vec4 p=projectionMatrix*vec4(mat3(viewMatrix)*position,1.0);gl_Position=p.xyww;}',fragmentShader:SKY_FS,side:T.BackSide,depthTest:false,depthWrite:false,fog:false});
   // vòm trời cho cảnh (camera phối cảnh). Trả về mesh; màu chân trời trùng màu sương mù để không lộ đường nối
   FX.sky=(scene,e,o)=>{o=o||{};const P=FX.pal(e),m=new T.Mesh(new T.SphereGeometry(10,32,16),skyMat(P,o));m.frustumCulled=false;m.renderOrder=-1e9;m.userData.sky=1;m.material.userData.own=1;
@@ -50,7 +57,7 @@ void main(){vec3 d=normalize(vD);float h=d.y;vec3 c=h>0.0?mix(cH,cT,pow(clamp(h*
   // ---------------- bụi cỏ 3D ----------------
   // pts: [{x,z,s,c}] (c: màu THREE.Color hoặc '#hex'). Một InstancedMesh, lá cỏ đung đưa theo gió (dùng K3.GU.time)
   FX.tufts=(pts,o)=>{o=o||{};if(!pts.length)return null;const pos=[],nrm=[],hh=[];let sd=3;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
-    const blades=o.blades||7;for(let b=0;b<blades;b++){const a=b/blades*Math.PI*2+rnd()*0.6,r=0.8+rnd()*2.4,x=Math.cos(a)*r,z=Math.sin(a)*r,h=(o.h||9)*(0.5+rnd()*0.55),w=1.1+rnd()*0.8,lean=0.12+rnd()*0.3,px=-Math.sin(a)*w,pz=Math.cos(a)*w;
+    const blades=o.blades||7;for(let b=0;b<blades;b++){const a=b/blades*Math.PI*2+rnd()*0.6,r=0.8+rnd()*2.4,x=Math.cos(a)*r,z=Math.sin(a)*r,h=(o.h||9)*(0.55+rnd()*0.6),w=(o.w||1)*(0.7+rnd()*0.6),lean=0.14+rnd()*0.34,px=-Math.sin(a)*w,pz=Math.cos(a)*w;
       pos.push(x-px,0,z-pz, x+px,0,z+pz, x+Math.cos(a)*h*lean,h,z+Math.sin(a)*h*lean);for(let k=0;k<3;k++)nrm.push(0,1,0);hh.push(0,0,1);}
     const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('normal',new T.Float32BufferAttribute(nrm,3));g.setAttribute('th',new T.Float32BufferAttribute(hh,1));
     const m=new T.MeshStandardMaterial({color:'#ffffff',roughness:0.95,metalness:0,side:T.DoubleSide});m.userData.own=1;
@@ -62,9 +69,10 @@ void main(){vec3 d=normalize(vD);float h=d.y;vec3 c=h>0.0?mix(cH,cT,pow(clamp(h*
   #else
   vec2 ip=vec2(0.0);
   #endif
-  float wv=sin(time*1.7+ip.x*0.021+ip.y*0.017)*0.6+sin(time*3.1+ip.x*0.05)*0.25;transformed.x+=wv*th*2.2;transformed.z+=wv*th*0.9;`);
-      sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying float vTh;').replace('#include <color_fragment>','#include <color_fragment>\n  diffuseColor.rgb*=0.78+0.34*vTh;');};
-    m.customProgramCacheKey=()=>'k3tuft';
+  /* gió: sóng lớn lướt qua đồng cỏ + rung nhỏ từng bụi */float gs=sin(time*0.85+(ip.x+ip.y*0.6)*0.0075);float wv=gs*0.9+sin(time*1.7+ip.x*0.021+ip.y*0.017)*0.5+sin(time*3.1+ip.x*0.05)*0.2;transformed.x+=wv*th*2.6;transformed.z+=wv*th*1.2;`);
+      sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying float vTh;').replace('#include <color_fragment>','#include <color_fragment>\n  /* gốc đậm, ngọn sáng ngả vàng */diffuseColor.rgb=mix(diffuseColor.rgb*0.62,diffuseColor.rgb*1.0+vec3(0.0,0.02,0.0),vTh);')
+        .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\n  /* lá mỏng ánh sáng xuyên qua: ngọn tự sáng nhẹ, không bị đen khi khuất nắng */totalEmissiveRadiance+=diffuseColor.rgb*0.04*vTh;');};
+    m.customProgramCacheKey=()=>'k3tuft5';
     const M=new T.InstancedMesh(g,m,pts.length),d=new T.Object3D(),col=new T.Color();pts.forEach((p,i)=>{d.position.set(p.x,0,p.z);d.rotation.set(0,p.ry??(i*2.399),0);d.scale.set(p.s,p.s*(p.sy||1),p.s);d.updateMatrix();M.setMatrixAt(i,d.matrix);col.set(p.c||'#5a8a3a');M.setColorAt(i,col);});
     M.instanceMatrix.needsUpdate=true;if(M.instanceColor)M.instanceColor.needsUpdate=true;M.receiveShadow=true;M.castShadow=false;M.frustumCulled=false;M.userData.tufts=1;return M;};
   // viền sáng quanh nhân vật (giống đèn hắt sau lưng trong phim): nhân vật tách khỏi nền đất

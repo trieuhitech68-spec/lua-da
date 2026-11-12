@@ -16,9 +16,9 @@ function biomeGridBuild(){BG=new Uint8Array(HN*HN);for(let j=0;j<HN;j++)for(let 
 function bgAt(x,z){if(!BG)return 2;const i=Math.round((x+WSIZE/2)/HSTEP),j=Math.round((z+WOZ)/HSTEP);if(i<0||j<0||i>=HN||j>=HN)return 0;return BG[j*HN+i];}
 /* ---------- cỏ dày quanh người chơi: luôn đi theo, xa thì nhỏ dần ---------- */
 function grassInit(){const T=THREE;if(G.grass){G.sc.remove(G.grass);G.grass.geometry.dispose();G.grass=null;}
-  const q=G.q|0,N=[1800,3600,6000][q],R=[190,250,320][q];G.gR=R;const R2=rng(4242),pts=[];
+  const q=G.q|0,N=[2400,5200,8600][q],R=[190,250,320][q];G.gR=R;const R2=rng(4242),pts=[];
   for(let i=0;i<N;i++)pts.push({x:R2()*2*R,z:R2()*2*R,s:0.5+R2()*0.6,c:'#7aac48'});G.gOff=pts.map(p=>[p.x,p.z,p.s,R2()*6.283,R2()]);
-  const tf=K3.fx&&K3.fx.tufts(pts,{h:9,blades:7});if(!tf)return;tf.frustumCulled=false;tf.receiveShadow=q>0;G.sc.add(tf);G.grass=tf;G.gLast=null;try{seasonPatchAll(tf);}catch(e){}}
+  const tf=K3.fx&&K3.fx.tufts(pts,{h:9.5,blades:q>0?10:8,w:0.95});if(!tf)return;tf.frustumCulled=false;tf.receiveShadow=q>0;G.sc.add(tf);G.grass=tf;G.gLast=null;try{seasonPatchAll(tf);}catch(e){}}
 // màu cỏ: tối & đậm hơn cho khớp mặt đất mới (lá cỏ đón nắng thẳng đứng nên dễ cháy sáng thành trắng bạc)
 const GCOL={2:['#557a2c','#628532'],3:['#46702a','#517a2e'],4:['#33561f','#3c6024'],5:['#486f2b','#537a30']};
 function grassTick(){const g=G.grass;if(!g)return;const px=P.x,pz=P.z;if(G.gLast&&Math.hypot(px-G.gLast[0],pz-G.gLast[1])<9)return;G.gLast=[px,pz];
@@ -29,7 +29,8 @@ function grassTick(){const g=G.grass;if(!g)return;const px=P.x,pz=P.z;if(G.gLast
     // không mọc cỏ trong lòng suối/sông nông (trước đây ngọn cỏ chọc lên khỏi mặt nước)
     if(s>0&&wdAt(x,z)>0)s=0;
     Q.setFromAxisAngle(UP,o[3]);V.set(x,y-0.6,z);SC.set(s,s*(b===2?1.15:1),s);M.compose(V,Q,SC);g.setMatrixAt(i,M);
-    if(s>0){const cc=GCOL[b]||GCOL[3];C.set(cc[o[4]<0.5?0:1]).multiplyScalar(0.86+o[4]*0.28);g.setColorAt(i,C);}}
+    if(s>0){/* màu cỏ lấy đúng màu mặt đất ngay dưới chân nó (thảm cỏ liền với đất, không còn các bụi đen nổi lên) */let ok=false;try{if(typeof TCOL!=='undefined'&&TCOL){const ti=clamp(Math.round((x+WSIZE/2)/HSTEP),0,HN-1),tj=clamp(Math.round((z+WOZ)/HSTEP),0,HN-1),n=(tj*HN+ti)*3;const r0=TCOL[n],g0=TCOL[n+1],b0=TCOL[n+2];if(r0+g0+b0>0.05){const k=0.9+o[4]*0.22;C.setRGB(Math.min(1,r0*k*0.5),Math.min(1,g0*k*0.8),Math.min(1,b0*k*0.5));ok=true;}}}catch(e){}
+      if(!ok){const cc=GCOL[b]||GCOL[3];C.set(cc[o[4]<0.5?0:1]).multiplyScalar(0.86+o[4]*0.28);}g.setColorAt(i,C);}}
   g.instanceMatrix.needsUpdate=true;if(g.instanceColor)g.instanceColor.needsUpdate=true;}
 /* ---------- tắt các khối tài nguyên ở xa (cộng với cắt theo khung nhìn của three.js) ---------- */
 function cullTick(){if(G.t-(G.cullT||0)<0.25)return;G.cullT=G.t;const cx=G.cam.position.x,cz=G.cam.position.z,F=G.fogF||2000;

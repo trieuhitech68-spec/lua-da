@@ -18,6 +18,6 @@
     const hemi=new T.HemisphereLight(L.sky,L.gnd,L.hi*(env?G.hemiK:1));scene.add(hemi);const amb=new T.AmbientLight(0xffffff,env?0:L.amb);scene.add(amb);
     const sun=new T.DirectionalLight(L.sun,L.si*(env?G.sunK:1));sun.position.set(-520,900,420);sun.castShadow=true;const S=o.size||700;
     if(o.sky&&K3.fx)K3.fx.sky(scene,Math.min(e,8),{sunDir:new T.Vector3(-0.44,0.76,0.35).normalize()});
-    Object.assign(sun.shadow.camera,{left:-S,right:S,top:S,bottom:-S,near:10,far:3000});sun.shadow.mapSize.set(o.shadowMap||2048,o.shadowMap||2048);sun.shadow.bias=-0.0006;sun.shadow.normalBias=0.6;sun.shadow.radius=3;
+    Object.assign(sun.shadow.camera,{left:-S,right:S,top:S,bottom:-S,near:10,far:3000});sun.shadow.mapSize.set(o.shadowMap||2048,o.shadowMap||2048);sun.shadow.bias=-0.0006;sun.shadow.normalBias=0.6;sun.shadow.radius=4.5;
     scene.add(sun);scene.add(sun.target);return {hemi,amb,sun};};
 })();
