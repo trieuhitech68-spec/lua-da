@@ -30,6 +30,40 @@
  #game .compass{bottom:calc(max(4px,env(safe-area-inset-bottom)) + var(--gd-nav) + 58px)!important}
  #game .work{bottom:calc(max(4px,env(safe-area-inset-bottom)) + var(--gd-nav) + 86px)!important}
  #game .cbx.cbbig{bottom:calc(max(4px,env(safe-area-inset-bottom)) + var(--gd-nav) + 150px)!important}
+ /* ===== GỌN LẠI: nhường màn hình cho nhân vật ===== */
+ :root{--ui5-mini:76px}
+ #game .mini{width:76px!important;height:76px!important}
+ /* thẻ thông tin: bỏ dòng tên, 6 thanh chỉ số một hàng, chữ nhỏ */
+ #game .hud{padding:4px 8px 5px!important;border-radius:11px!important}
+ #game .hud .h-top{display:none!important}
+ #game .hud .h-time{font-size:10.5px!important;margin:0 0 3px!important;line-height:1.2}
+ #game .hud .bars{grid-template-columns:repeat(6,1fr)!important;gap:0 5px!important}
+ #game .hud .bar{gap:2px}#game .hud .bar span{width:13px!important;font-size:10px!important}#game .hud .bar i{height:4px!important}
+ #game .hud .schs{margin-top:3px!important;gap:3px!important;flex-wrap:nowrap;overflow:hidden}#game .hud .sch{font-size:9.5px!important;padding:0 6px!important;white-space:nowrap}
+ /* thẻ mục tiêu: một dòng tên + thanh tiến độ + hai nút nhỏ */
+ #game .goal{padding:4px 8px 5px!important;border-radius:10px!important;max-width:min(210px,56vw)!important}
+ #game .goal .g-k{font-size:9px!important;line-height:1.1}
+ #game .goal b{font-size:11.5px!important;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #game .goal .tr-rw{display:none!important}
+ #game .goal .g-p{margin-top:2px!important;font-size:10px}
+ #game .goal .au-gw{margin-top:3px!important}
+ #game .goal .au-gb{min-height:24px!important;padding:2px 8px!important;font-size:11px!important;margin:0!important}
+ #game .goal .nv-open{min-height:24px!important;padding:2px 8px!important;font-size:11px!important;margin:3px 0 0 5px!important}
+ #game .cbx.cbmini button{padding:3px 9px!important;font-size:11px!important}
+ /* đáy: thanh chức năng thấp, không phình theo mép cong của máy */
+ #game{--gd-nav:46px;--gd-sb:min(env(safe-area-inset-bottom,0px),16px);--u-sb:calc(var(--gd-sb) + var(--gd-nav) + 6px)}
+ #game .menu{height:calc(var(--gd-nav) + var(--gd-sb))!important;min-height:0!important;box-sizing:border-box!important;padding:2px 6px var(--gd-sb)!important;overflow:visible}
+ #game .menu>button{height:42px!important}
+ #game .menu>button span{font-size:19px!important}
+ #game .menu>button i{font-size:10px!important}
+ #game .menu>button+button::before{top:9px;bottom:9px}
+ #game .hot{bottom:calc(var(--gd-sb) + var(--gd-nav) + 4px)!important;padding:3px!important;gap:3px!important}
+ #game .hs{height:38px!important;border-radius:9px!important}
+ #game .compass{display:none!important}
+ #game .acts{bottom:calc(var(--gd-sb) + var(--gd-nav) + 52px)!important;transform:scale(calc(var(--sp-btn,1) * .86))!important;transform-origin:100% 100%!important}
+ body.sp-lh #game .acts{transform-origin:0 100%!important}
+ #game .work{bottom:calc(var(--gd-sb) + var(--gd-nav) + 54px)!important}
+ #game .cbx.cbbig{bottom:calc(var(--gd-sb) + var(--gd-nav) + 130px)!important}
 }`;document.head.appendChild(st);})();
 /* nút trên thanh chức năng nào chưa có chữ thì thêm chữ */
 const GD_LB={bag:'Túi',craft:'Chế tạo',build:'Xây',l4:'Nhân vật',map:'Bản đồ',journal:'Nhật ký',settings:'Cài đặt'};
