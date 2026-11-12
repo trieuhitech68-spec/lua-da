@@ -136,7 +136,7 @@ float t3h=0.5,t3wet=0.0,t3rk=0.0,t3far=0.0;
  cg.rgb=mix(cg.rgb,vec3(0.80,0.67,0.40)*lg*1.9,smoothstep(0.15,0.85,dry)*0.85);
  // đất -> đất đỏ đá ong
  vec4 cd=texture2D(tD,uv*(1.0/53.0));float lat=clamp(tq.z*smoothstep(0.2,0.55,m2.r+tq.z*0.35),0.0,1.0);float ld=dot(cd.rgb,vec3(0.3,0.59,0.11));
- cd.rgb=mix(cd.rgb,vec3(0.64,0.27,0.13)*ld*2.4,lat*0.85);
+ cd.rgb=mix(cd.rgb,vec3(0.60,0.36,0.20)*ld*2.1,lat*0.8);
  // cát / sỏi bãi sông
  vec4 cs=texture2D(tS,uv*(1.0/37.0));float dh=wp.y-tq.x;float gv=step(1.2,tq.x)*(1.0-smoothstep(5.0,18.0,dh));
  vec3 pebc=mix(vec3(0.22,0.21,0.19),vec3(0.58,0.55,0.50),cs.a)*mix(vec3(1.06,1.0,0.9),vec3(0.94,0.98,1.04),m2.b);float pm=smoothstep(0.05,0.2,cs.a)*gv*(1.0-smoothstep(120.0,520.0,dist)*0.75);
@@ -160,14 +160,14 @@ float t3h=0.5,t3wet=0.0,t3rk=0.0,t3far=0.0;
  vec3 tc=cg.rgb*w.x+cd.rgb*w.y+cr.rgb*w.z+cs.rgb*w.w;t3h=dot(hb,w);t3rk=w.z;
  // màu vùng (màu đỉnh) nhuộm nhẹ khi gần, chiếm ưu thế khi xa cho rõ nét, không bệt
  vec3 vc=vColor.rgb;float lv=dot(vc,vec3(0.3,0.59,0.11));float lt=dot(tc,vec3(0.3,0.59,0.11));
- vec3 nearC=tc*mix(vec3(1.0),vc/max(lv,0.04),0.5)*mix(1.0,clamp(lv/max(lt,0.04),0.6,1.5),0.4);nearC=mix(vec3(dot(nearC,vec3(0.3,0.59,0.11))),nearC,1.18);
+ vec3 nearC=tc*mix(vec3(1.0),vc/max(lv,0.04),0.5)*mix(1.0,clamp(lv/max(lt,0.04),0.6,1.5),0.4);nearC=mix(vec3(dot(nearC,vec3(0.3,0.59,0.11))),nearC,1.08);
  vec3 farC=mix(vc*(0.82+0.5*(lt-0.3)),tc*1.05,w.z*0.6+w.w*0.4);
  vec3 col=max(mix(nearC,farC,farK*0.75),0.0);
  // grade: deeper, more saturated ground (was too bright -> pushed into the ACES shoulder -> pale, milky). q0 has no post grading, so a bit stronger there
  #if T3Q>0
- {float l=dot(col,vec3(0.3,0.59,0.11));col=max(mix(vec3(l),col,1.35),0.0)*0.56;}
+ {float l=dot(col,vec3(0.3,0.59,0.11));col=max(mix(vec3(l),col,1.14),0.0)*0.56;}
  #else
- {float l=dot(col,vec3(0.3,0.59,0.11));col=max(mix(vec3(l),col,1.55),0.0)*0.5;}
+ {float l=dot(col,vec3(0.3,0.59,0.11));col=max(mix(vec3(l),col,1.3),0.0)*0.5;}
  #endif
  col*=0.84+0.32*mac;col*=mix(vec3(1.0),vec3(1.04,1.0,0.92),smoothstep(0.4,0.8,m2.r)*0.6);
  // vệt ướt sát mép nước, đáy dưới nước tối & xanh, tụ quang
@@ -193,7 +193,7 @@ terrainSplatMat=function(m){const tx=t3Tex(),U=t3U();m.userData.noSea=1;T3.terr=
       .replace('#include <color_fragment>','#include <color_fragment>\n'+T3_TERR_FS)
       .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\n  roughnessFactor=clamp(roughnessFactor-t3rk*0.1-t3wet*0.55,0.32,1.0);')
       .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n'+T3_TERR_BUMP);};
-  m.customProgramCacheKey=()=>'t3terr'+(G.q|0);m.needsUpdate=true;};
+  m.customProgramCacheKey=()=>'t3terr2'+(G.q|0);m.needsUpdate=true;};
 /* ---------- shader nước: sông/suối (RIVER), biển/hồ (mặc định), thác (FALL) ---------- */
 const T3_WATER_VS=`
 #ifdef RIVER

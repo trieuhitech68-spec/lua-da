@@ -210,7 +210,7 @@ function SBmodels6vInit(){const M=window.SBM;if(!M||M.v6v)return;M.v6v=1;
   // wk: 0 bark (bend), 1 leaf (bend + flutter + translucency + alpha-mip fix), 2 impostor (bend + alpha-mip fix)
   function windify(m,wk,ever){if(wk)m.extensions={derivatives:true};
     m.onBeforeCompile=(sh)=>{sh.uniforms.time=TIME;
-      sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float time;').replace('#include <begin_vertex>',`#include <begin_vertex>
+      sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float time;').replace('#include <beginnormal_vertex>',wk===1?'#include <beginnormal_vertex>\n  /* tán lá bắt sáng như một khối tròn (không lốm đốm từng tấm lá): pháp tuyến toả ra từ thân và ngửa lên */objectNormal=normalize(mix(objectNormal,normalize(vec3(position.x,0.7*length(position.xz)+3.0,position.z)),0.82));':'#include <beginnormal_vertex>').replace('#include <begin_vertex>',`#include <begin_vertex>
   {vec4 v6o=vec4(0.0,0.0,0.0,1.0);
   #ifdef USE_INSTANCING
   v6o=instanceMatrix*v6o;
@@ -238,7 +238,7 @@ function SBmodels6vInit(){const M=window.SBM;if(!M||M.v6v)return;M.v6v=1;
   #if NUM_DIR_LIGHTS > 0
   {float v6s=pow(max(dot(-geometry.viewDir,directionalLights[0].direction),0.0),3.0);reflectedLight.indirectDiffuse+=diffuseColor.rgb*directionalLights[0].color*(0.05+0.32*v6s);}
   #endif`);}};
-    m.customProgramCacheKey=()=>'v6w'+wk+(ever?'e':'');return m;}
+    m.customProgramCacheKey=()=>'v6wd'+wk+(ever?'e':'');return m;}
   const mkMat=(name,p,wk,ever)=>{const m=new T.MeshStandardMaterial(Object.assign({vertexColors:true,metalness:0},p));m.name=name;m.userData.key=name;return windify(m,wk,ever);};
   const MT={v6Bark:mkMat('v6Bark',{map:TX.bark.map,normalMap:TX.bark.nmap,normalScale:new T.Vector2(1.3,1.3),roughness:0.95},0),
     v6Birch:mkMat('v6Birch',{map:TX.birch.map,normalMap:TX.birch.nmap,normalScale:new T.Vector2(0.8,0.8),roughness:0.85},0),
