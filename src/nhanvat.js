@@ -57,3 +57,12 @@ if(typeof HD_L!=='undefined')HD_L.push({id:'viecnho',ic:'💬',t:'Người làng
 {const s=document.createElement('style');s.textContent=`#game .panel .nq-bio{font-size:12.5px;color:#cdbb98;font-style:italic;margin:0 0 8px}
 #game .panel .nq-b{padding:10px 11px;border-radius:13px;background:rgba(242,197,90,.1);border:1px solid rgba(242,197,90,.45);margin-bottom:12px;display:flex;flex-direction:column;gap:6px}#game .panel .nq-b.done{border-color:rgba(120,200,100,.4);background:rgba(120,200,100,.08)}
 #game .panel .nq-b>b{font-size:13px;color:#ffd27a}#game .panel .nq-b .npc-say{margin:0}#game .panel .nq-r{display:flex;align-items:center;gap:8px}#game .panel .nq-r>.small{flex:none;width:34px}`;document.head.appendChild(s);}
+/* ---------- TỰ LÀM việc nhờ: tự đi kiếm đủ món rồi mang tới trao ---------- */
+AUJ.nq=function(j){const q=nqCur(j.name);if(!q||(nqS()[j.name]|0)>(j.s0==null?(j.s0=nqS()[j.name]|0):j.s0))return AQ_DONE;if(j.cf){const m=j.cf;j.cf=null;if(++j.miss>3)return aqFail(m);}
+  if(q.cond&&!nqOk(q))return aqFail('Việc này phải tự làm: '+(q.condTxt||'')+'.');
+  if(q.need){const lack={};for(const k in q.need)if(ITEMS[k]&&invCount(k)<q.need[k])lack[k]=q.need[k];if(Object.keys(lack).length){if(++j.g>4)return aqFail('Không kiếm đủ món '+j.name+' nhờ.');j.lab='Kiếm đồ cho '+j.name;aqPush({k:'getAll',cost:lack,lab:'Kiếm đồ cho '+j.name,lab0:'Kiếm đồ cho '+j.name},j);return AQ_RUN;}}
+  const n=(G.npcs||[]).find(x=>x.def&&x.def.n===j.name);if(!n)return aqFail(j.name+' không ở vùng này.');if(aqD(n.x,n.z)>REACH+14)return aqGoto(j,n.x,n.z,REACH,'Tới gặp '+j.name,{far:1});
+  nqGive(j.name,[n.x,30,n.z]);return AQ_DONE;};
+function nqAuto(name){if(G.panel)uiClose();aqStart(-1,{job:{k:'nq',name,miss:0,g:0,lab:'Giúp '+name,lab0:'Giúp '+name}});uiToast('🤖 Tự đi kiếm đồ rồi mang tới cho '+name+'. Bấm ✋ để dừng.','');}
+{const _h=nqHtml;nqHtml=function(name){let h=_h.apply(this,arguments);try{const q=nqCur(name);if(q&&!q.cond&&!nqOk(q))h=h.replace('</button></div>','</button><button class="btn sm aq-need" data-a="nqauto" data-n="'+esc(name)+'">🤖 Tự đi kiếm rồi trao</button></div>');}catch(e){}return h;};}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="nqauto"]');if(!b||!S||!G.on)return;e.stopImmediatePropagation();nqAuto(b.dataset.n);},true);

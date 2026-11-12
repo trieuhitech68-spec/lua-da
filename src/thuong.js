@@ -34,3 +34,9 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
         if(a&&!weakA){try{AQ.bad.push({x:a.x,z:a.z,t:G.t+600});}catch(e){}aqSay('🤖 '+(a.n||'Thú dữ')+' giữ vùng này: vòng đường khác, không dây vào.','bad');}
         else if(weap&&S.p.hp>38&&a&&a.alive!==false&&t2){aqPush({k:'fight',a,t0:G.t,urgent:1},t2);aqSay('🤖 Né mãi không thoát '+((a.n||'thú dữ').toLowerCase())+': quay lại đánh.','bad');}
         else aqSay('🤖 Né mãi không thoát: mặc kệ nó, lo ăn uống và về trại trước.','bad');}}}catch(e){}return r;};}
+/* 5. Chiến binh bộ lạc thù địch: trước Tự làm KHÔNG BAO GIỜ đánh trả người (mã cũ so sánh nhầm "dg===G.foes"), chỉ né, nên bị một tên đuổi đánh tới gục.
+      Giờ: chỉ có MỘT tên ở gần, mình có vũ khí và còn trên 45 máu thì đánh trả; từ hai tên trở lên thì vẫn lánh về trại. */
+{const _sf=aqSafety;aqSafety=function(){try{if(AQ.on&&AQ.jobs.length&&!G.sleeping&&S&&S.p&&G.foes&&G.foes.length&&!aqHasUrgent('fight')&&S.p.hp>45&&aqCfg().fight&&!AQ.jobs.some(j=>j.k==='capture')){
+      let near=null,nd=1e9,cnt=0;for(const f of G.foes){if(!f||!f.alive||(f.lone&&!f.prov))continue;const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<340)cnt++;if(d<nd){nd=d;near=f;}}
+      if(near&&cnt===1&&nd<210&&(hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'))){const top=AQ.jobs[AQ.jobs.length-1];if(top.k==='flee'){AQ.jobs.pop();}const t2=AQ.jobs[AQ.jobs.length-1];if(t2){if(G.work)workStop('');G.act=null;aqPush({k:'fight',a:near,t0:G.t,urgent:1},t2);aqSay('🤖 Một '+((near.n||'chiến binh').toLowerCase())+' xông tới: đánh trả.','bad');}}}}catch(e){}
+  return _sf.apply(this,arguments);};}
