@@ -31,3 +31,38 @@ AUJ.heal=function(j){const p=S.p;if(j.T0==null)j.T0=G.t;if(p.hp>=45||G.t-j.T0>40
   if(S.st.bleed&&invCount('bandage')>0&&!j.tr){j.tr=1;aqPush({k:'treat',urgent:1},j);return AQ_RUN;}const hb=aqBed()||aqFire();if(hb&&j.w==null&&aqD(hb.x,hb.z)>70&&aqD(hb.x,hb.z)<4000)return aqGoto(j,hb.x,hb.z,50,'Về trại nghỉ cho lại sức',{far:1});
   if(j.w==null)j.w=G.t;j.lab='Nghỉ cho hồi máu ('+Math.round(p.hp)+'/45)';if(!G.sit&&!G.work)try{sitToggle(true);}catch(e){}j.dr=p.water<25?0:j.dr;j.et=p.food<25?0:j.et;return AQ_RUN;};
 {const _sp=aqStop;aqStop=function(msg,kind){try{if(msg&&/Máu thấp quá/.test(msg)&&AQ.on&&AQ.jobs.length&&!AQ.jobs.some(j=>j.k==='heal')){aqPush({k:'heal',urgent:1},AQ.jobs[AQ.jobs.length-1]);aqSay('🤖 Máu thấp: ăn uống, nghỉ cho hồi rồi làm tiếp.','bad');return;}if(msg&&/Máu thấp quá/.test(msg)&&AQ.jobs.some(j=>j.k==='heal'))return;}catch(e){}return _sp.apply(this,arguments);};}
+/* ===================== TỰ LÀM RUỘNG LÚA · TỰ LUYỆN TAY NGHỀ =====================
+   - Tìm lúa hoang ven đầm lấy thóc giống (quét các ô quanh mình tới ~3 km), dẫn / tát nước vào ruộng, gieo mạ, nhổ mạ cấy, làm cỏ, gặt.
+     Lúc chờ mạ / lúa lớn thì đi làm mục khác, vài phút sau quay lại xem ruộng.
+   - Món nào cần tay nghề cao hơn hiện có (Chế tác, Xây dựng): tự luyện cho đủ cấp (bện dây thừng để lên Chế tác, lát thêm sàn để lên Xây dựng) rồi mới làm. */
+AQ.skipW={};
+{const _na=aqNextAuto;aqNextAuto=function(){const keep=[];for(const k in AQ.skipW){if(AQ.skipW[k]>G.t&&!AQ.skip.has(+k)){AQ.skip.add(+k);keep.push(+k);}}try{return _na.apply(this,arguments);}finally{for(const k of keep)AQ.skip.delete(k);}};}
+function aqNodeFind(kind,maxC){const ci=Math.floor(P.x/H3CELL),cj=Math.floor(P.z/H3CELL);let best=null,bd=1e9;for(let r=0;r<=maxC;r++){for(let i=-r;i<=r;i++)for(let j=-r;j<=r;j++){if(Math.max(Math.abs(i),Math.abs(j))!==r)continue;let L;try{L=h3cellNodes(ci+i,cj+j);}catch(e){continue;}
+      for(const n of L){if(n.kind!==kind||!h3nodeLive(n)||(AQ.nbl&&AQ.nbl[n.id]>G.t))continue;const d=aqD(n.x,n.z);if(d<bd){bd=d;best=n;}}}if(best&&bd<(r+0.5)*H3CELL)break;}return best;}
+AUJ.node=function(j){if(j.until&&j.until())return AQ_DONE;if(j.cf){j.cf=null;if(j.n){(AQ.nbl||(AQ.nbl={}))[j.n.id]=G.t+300;j.n=null;}if(++j.miss>5)return aqFail('Không tới được chỗ có '+(H3NODE[j.kind]||{n:'thứ đó'}).n.toLowerCase()+'.');}
+  if(j.st==='wait'){if(G.work)return AQ_RUN;j.st=null;if(j.n){(AQ.nbl||(AQ.nbl={}))[j.n.id]=G.t+200;j.n=null;}return AQ_RUN;}
+  if(!j.n){j.n=aqNodeFind(j.kind,10);if(!j.n)return aqFail('Không thấy '+(H3NODE[j.kind]||{n:'thứ đó'}).n.toLowerCase()+' trong vòng 3 km.');}
+  const n=j.n;j.lab='Tới '+H3NODE[j.kind].n.toLowerCase();if(aqD(n.x,n.z)>REACH+6)return aqGoto(j,n.x,n.z,REACH,j.lab,{far:1});const ng=needGate(false);if(ng)return AQ_RUN;aqFace(n.x,n.z);h3nodeStart(n);if(!G.work){(AQ.nbl||(AQ.nbl={}))[n.id]=G.t+200;j.n=null;if(++j.miss>5)return aqFail('Không hái được.');return AQ_RUN;}j.st='wait';return AQ_RUN;};
+AUJ.rice=function(j){if(j.until&&j.until())return AQ_DONE;if(j.cf){const m=j.cf;j.cf=null;if(++j.miss>3)return aqFail(m);}if(j.st==='wait'){if(G.work)return AQ_RUN;j.st=null;}
+  let b=null,bd=1e9;for(const x of S.builds)if(x.k==='paddy'&&x.prog==null){const d=aqD(x.x,x.z);if(d<bd){bd=d;b=x;}}if(!b)return aqFail('Chưa có ruộng lúa nước.');
+  const F=l4Pad(b),src=l4PadSrc(b);j.lab='Làm ruộng lúa';
+  if((F.st===0||F.st===3)&&F.w<0.3&&!src&&invCount('waterDirty')+invCount('water')<1){if(++j.g>6)return aqFail('Không lấy được nước tát ruộng.');aqPush({k:'get',id:'waterDirty',n:1,tries:0},j);return AQ_RUN;}
+  if(F.st===0&&F.w>=0.3&&invCount('seedRice')<2){if(++j.g>6)return aqFail('Không kiếm được thóc giống.');aqPush({k:'node',kind:'wildrice',until:()=>invCount('seedRice')>=2},j);return AQ_RUN;}
+  const growing=F.st===1||(F.st===3&&F.w>=0.3&&F.weed<=0.45);
+  if(growing){const gi=AQ.gi;if(gi>=0){AQ.skipW[gi]=G.t+150;const ni=aqNextAuto();if(ni>=0&&ni!==gi){aqJump(ni,(F.st===1?'Mạ':'Lúa')+' đang lớn, lát quay lại.');return AQ_RUN;}}return {wait:(F.st===1?'Chờ mạ lên':'Chờ lúa chín')+' ('+Math.round(F.p*100)+'%)'};}
+  if(aqD(b.x,b.z)>REACH+34)return aqGoto(j,b.x,b.z,REACH+22,'Ra ruộng lúa',{far:1});aqFace(b.x,b.z);l4PadUse(b);if(!G.work){if(++j.fl>4)return aqFail('Không làm được việc ở ruộng lúa.');return AQ_RUN;}j.st='wait';return AQ_RUN;};
+{const _i=aqInit;aqInit=function(j){_i(j);if((j.k==='rice'||j.k==='node'||j.k==='train')&&j.g==null)j.g=0;};}
+{const paddyOk=()=>S.builds.some(b=>b.k==='paddy'&&b.prog==null);
+  AUG['Gieo mạ rồi cấy lúa']=()=>paddyOk()?{k:'rice',until:()=>gC('cnt:sowRice')>0&&gC('cnt:transplant')>0}:{guide:'@farm'};
+  AUG['Gặt mùa lúa đầu tiên']=()=>paddyOk()?{k:'rice',until:()=>gC('cnt:riceHarvest')>0}:{guide:'@farm'};
+  const _h=AUG['Thu hoạch 6 lần'];AUG['Thu hoạch 6 lần']=function(){const r=_h();if(r&&r.guide&&paddyOk()){const c=gC('cnt:harvest');return {k:'rice',until:()=>gC('cnt:harvest')>c};}return r;};
+  delete AQ_GUIDEONLY['Gieo mạ rồi cấy lúa'];delete AQ_GUIDEONLY['Gặt mùa lúa đầu tiên'];
+  const _p=AUG['Đắp ruộng lúa nước'];AUG['Đắp ruộng lúa nước']=function(){if(!S.known['b:paddy']&&!S.builds.some(b=>b.k==='paddy')){try{unlockCheck();}catch(e){}if(!S.known['b:paddy'])return {k:'node',kind:'wildrice',until:()=>{try{unlockCheck();}catch(e){}return !!S.known['b:paddy'];}};}return _p();};}
+// ----- luyện tay nghề -----
+AUJ.train=function(j){if(skLv(j.sk)>=j.lv)return AQ_DONE;if(j.cf){const m=j.cf;j.cf=null;if(++j.miss>3)return aqFail(m);}if(++j.g>90)return aqFail('Luyện mãi chưa đủ '+lvText({[j.sk]:j.lv})+'.');j.lab='Luyện tay nghề: '+SKILL[j.sk]+' cấp '+skLv(j.sk)+' → '+j.lv;
+  if(j.sk==='craft'){const r=RECIPES.find(x=>x.id==='rope');const c0=gC('craft:rope');aqPush({k:'craft',r,until:()=>gC('craft:rope')>c0,lab:j.lab},j);return AQ_RUN;}
+  if(j.sk==='build'){const s=S.builds.find(b=>b.prog!=null);aqPush(s?{k:'site',b:s}:{k:'place',piece:'floor'},j);return AQ_RUN;}
+  return aqFail('Cần '+lvText({[j.sk]:j.lv})+'.');};
+function aqTrainFor(lv,j){if(!lv)return false;for(const k in lv){if(skLv(k)<lv[k]){if(k!=='craft'&&k!=='build')return false;if((j._tr=(j._tr||0)+1)>3)return false;aqSay('🤖 Chưa đủ '+lvText({[k]:lv[k]})+': luyện tay nghề trước.','');aqPush({k:'train',sk:k,lv:lv[k]},j);return true;}}return false;}
+{const _p=AUJ.place;AUJ.place=function(j){try{const d=pieceDef(j.piece);if(d&&d.lv&&!lvOk(d.lv)&&!j.cf&&aqTrainFor(d.lv,j))return AQ_RUN;}catch(e){}return _p.apply(this,arguments);};
+  const _c=AUJ.craft;AUJ.craft=function(j){try{const r=j.r;if(r&&r.lv&&!lvOk(r.lv)&&!j.cf&&j.st!=='wait'&&aqTrainFor(r.lv,j))return AQ_RUN;}catch(e){}return _c.apply(this,arguments);};}

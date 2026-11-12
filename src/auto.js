@@ -102,7 +102,7 @@ function aqSel(kind){try{if(kind)selectTool(kind);}catch(e){}}
 function aqFace(x,z){if(!isFP())P.ry=Math.atan2(x-P.x,z-P.z);}
 
 /* ===================== 3. VIỆC (mỗi việc là một bước máy trạng thái; việc con xếp chồng) ===================== */
-function aqPush(j,parent){j.depth=(parent&&parent.depth||0)+1;if(j.depth>9){if(parent)parent.cf='Chuỗi việc quá sâu.';return;}AQ.jobs.push(j);}
+function aqPush(j,parent){j.depth=(parent&&parent.depth||0)+1;if(j.depth>16){if(parent)parent.cf='Chuỗi việc quá sâu.';return;}AQ.jobs.push(j);}
 function aqGoto(parent,x,z,r,lab,o){aqPush(Object.assign({k:'goto',x,z,r,lab:lab||parent.lab},o||{}),parent);return AQ_RUN;}
 function aqInit(j){if(j.miss==null)j.miss=0;if(j.tries==null)j.tries=0;if(j.n_==null)j.n_=0;if(j.fl==null)j.fl=0;}
 const AUJ={
