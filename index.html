@@ -19810,7 +19810,7 @@ function mtOff(q){const m=G.mnt;if(!m)return;m.x=+P.x.toFixed(1);m.z=+P.z.toFixe
 {const _at=animTick;animTick=function(dt){if(!G.mnt)return _at.apply(this,arguments);const r=_at.apply(this,arguments);
     try{const o=MT.o.get(G.mnt.id);if(o&&P.model){const gy=groundY(P.x,P.z),mv=P.speed>8;MT.ph=(MT.ph||0)+dt*(mv?(G.running?13:8):0);const bob=mv?Math.abs(Math.sin(MT.ph))*(G.running?1.6:0.7):0;
         o.position.set(P.x,gy+bob,P.z);o.rotation.y=P.ry||0;P.model.position.set(P.x,gy+bob+17*MT.sc-6,P.z);P.model.rotation.y=P.ry||0;
-        /* tư thế cưỡi: hai chân kẹp hai bên sườn ngựa, người hơi ngả trước, tay đưa ra nắm bờm */const R=P.rig;if(R&&R.legL&&R.legR){R.legL.rotation.set(-0.55,0,0.6);R.legR.rotation.set(-0.55,0,-0.6);if(R.torso)R.torso.rotation.x=0.12+(mv?Math.sin(MT.ph*2)*0.04:0);if(R.armL)R.armL.rotation.set(-0.85,0,0.18);if(R.armR)R.armR.rotation.set(-0.85,0,-0.18);}
+        /* tư thế cưỡi: hai chân kẹp hai bên sườn ngựa, người hơi ngả trước, tay đưa ra nắm bờm */const R=P.rig;if(R&&R.legL&&R.legR){R.legL.rotation.set(0,0,1.28);R.legR.rotation.set(0,0,-1.28);/* gối gập, cẳng chân buông xuôi hai bên sườn (trước duỗi thẳng, bàn chân thò ra trước ngực ngựa) */if(R.shinL)R.shinL.rotation.set(0.25,0,-0.7);if(R.shinR)R.shinR.rotation.set(0.25,0,0.7);if(R.torso)R.torso.rotation.x=0.12+(mv?Math.sin(MT.ph*2)*0.04:0);if(R.armL)R.armL.rotation.set(-0.85,0,0.18);if(R.armR)R.armR.rotation.set(-0.85,0,-0.18);}
         const rg=o.userData.rig||{},a=mv?(G.running?0.7:0.45):0;if(rg.legFL){rg.legFL.rotation.x=Math.sin(MT.ph)*a;rg.legFR.rotation.x=Math.sin(MT.ph+Math.PI)*a;rg.legBL.rotation.x=Math.sin(MT.ph+Math.PI+0.5)*a;rg.legBR.rotation.x=Math.sin(MT.ph+0.5)*a;}if(rg.head)rg.head.rotation.x=mv?Math.sin(MT.ph*2)*0.06:Math.sin(G.t*0.8)*0.04;if(rg.tail)rg.tail.rotation.z=Math.sin(G.t*2.2)*0.25;}}catch(e){}return r;};}
 // ngồi / ngủ / bơi / chết: xuống ngựa
 {const _st=sitToggle;sitToggle=function(v){if(G.mnt&&(v==null||v)){mtOff();return;}return _st.apply(this,arguments);};}
@@ -20092,6 +20092,14 @@ H3PO.drill=(R,k,o)=>{const K=h3ik(),t=(o&&o.t)||k*4,sl=h3fr(t*0.55),y=10.8-4.2*s
 /* thổi lửa: quỳ, chống hai tay, cúi sát thổi */
 H3PO.blow=(R,k,o)=>{const K=h3ik(),t=(o&&o.t)||k*4,b=Math.sin(t*2.6);K.kneel(R,7.2,0.3);R.hips.rotation.x=0.2;R.torso.rotation.set(0.95+0.04*b,0,0);R.head.rotation.set(-0.35+0.06*b,0,0);
   K.armTo(R,1,2.6,1.6,8.5,1,-0.2,-0.6);K.armTo(R,-1,-2.6,1.6,8.5,-1,-0.2,-0.6);K.cloak(R);};
+/* ---------- ĐẠO CỤ trong tay khi làm: vồ gỗ lúc đóng (nếu tay đang không cầm gì), que khoan + thanh gỗ nền lúc khoan lửa ---------- */
+const DTP={m:null,d:null};
+function dtProps(R,fn,W){try{const T=THREE,mat=(c)=>new T.MeshStandardMaterial({color:c,roughness:0.9,flatShading:true});
+    const needM=fn===H3PO.hammer2&&!P.toolId&&R.handR,needD=fn===H3PO.drill&&R.root;
+    if(needM&&!DTP.m){const g=new T.Group(),h=new T.Mesh(new T.CylinderGeometry(0.42,0.5,9,6),mat('#8a6238'));h.rotation.x=Math.PI/2;h.position.set(0,-1.75,3.4);const hd=new T.Mesh(new T.CylinderGeometry(1.7,1.7,4.6,8),mat('#6e4a2a'));hd.position.set(0,-1.75,7.6);g.add(h,hd);g.traverse(o=>{if(o.isMesh)o.castShadow=true;});DTP.m=g;}
+    if(DTP.m){if(needM){if(DTP.m.parent!==R.handR)R.handR.add(DTP.m);DTP.m.visible=true;DTP.m.traverse(o=>{o.layers.mask=R.handR.layers.mask;});}else DTP.m.visible=false;}
+    if(needD&&!DTP.d){const g=new T.Group(),sp=new T.Mesh(new T.CylinderGeometry(0.3,0.36,13,6),mat('#b08a56'));sp.position.y=6.9;const bd=new T.Mesh(new T.BoxGeometry(7,0.9,2.6),mat('#7a5632'));bd.position.y=0.5;const em=new T.Mesh(new T.SphereGeometry(0.55,6,5),new T.MeshStandardMaterial({color:'#2a1a10',emissive:'#ff5a1a',emissiveIntensity:0.0}));em.position.set(0,1.0,0);g.add(sp,bd,em);g.userData.sp=sp;g.userData.em=em;DTP.d=g;}
+    if(DTP.d){if(needD){const h=R.dims?R.dims.h:1;if(DTP.d.parent!==R.root)R.root.add(DTP.d);DTP.d.visible=true;DTP.d.position.set(0,0,8.2*h);DTP.d.userData.sp.rotation.y=(W?W.t:G.t)*30;const pr=W&&W.steps[W.i]?clamp(W.t/Math.max(0.1,W.steps[W.i].t),0,1):0;DTP.d.userData.em.material.emissiveIntensity=pr*1.6;DTP.d.traverse(o=>{o.layers.mask=R.root.layers.mask||1;});}else DTP.d.visible=false;}}catch(e){}}
 /* nối vào bộ chọn dáng: nhát chém vào cây/đá, đóng búa ở công trình, hái nhặt, đào, và các bước làm việc tương ứng */
 {const _hp=h3pose;h3pose=function(R,mode,t){try{const A=G.act,W=G.work,tk=P.toolId&&ITEMS[P.toolId]&&ITEMS[P.toolId].tool;let fn=null,k=0,o=null;
     if(!G.ride&&!G.sit&&!G.sleeping&&!G.climb&&!G.swim){
@@ -20107,6 +20115,7 @@ H3PO.blow=(R,k,o)=>{const K=h3ik(),t=(o&&o.t)||k*4,b=Math.sin(t*2.6);K.kneel(R,7
         else if(ty==='site'){fn=H3PO.hammer2;k=kk;}
         else if(ty==='uproot'||(ty==='res'&&P.anim==='dig'&&tk==='dig')){fn=H3PO.dig2;k=h3remap(kk,0.42,0.3);}
         else if(ty==='res'&&P.anim==='gather'){fn=H3PO.gather2;k=h3remap(kk,0.42,0.45);}}}
+    dtProps(R,fn,W);
     if(fn){K3.char2Neutral(R);fn(R,k,o||{});return true;}}catch(e){if(!H3.dtErr){H3.dtErr=1;console.warn('động tác',e);}}
   return _hp.apply(this,arguments);};}
 /* cầm rìu, cuốc, gậy đào lúc đứng/đi: đầu dụng cụ chúc xuống cạnh chân */
@@ -20123,6 +20132,17 @@ function dtChunk(g){try{const R=g&&g.userData&&g.userData.rig;if(!R||g.userData.
     if(R.head&&!R.head.userData.dtCh){R.head.userData.dtCh=1;R.head.scale.multiplyScalar(1.12);}}catch(e){}return g;}
 {const iv=setInterval(()=>{try{if(typeof K3==='undefined'||!K3.char2)return;if(K3.char2._dt){return;}if(!K3.char2._cr&&(DT_CH._w=(DT_CH._w||0)+1)<40)return;/* chờ bộ tạo hình bọc xong (tối đa ~8 giây) */
     const base=K3.char2,w=function(o){return dtChunk(base.apply(this,arguments));};for(const k in base)w[k]=base[k];w._dt=1;K3.char2=w;}catch(e){}},200);}
+/* ===================== NGỰA RA DÁNG NGỰA: bờm, đuôi dài, mõm dài, thân và chân to (trước: hình hươu nhuộm màu) ===================== */
+function dtHorse(o){try{const R=o&&o.userData&&o.userData.rig;if(!R||!R.body||o.userData.dtH)return o;o.userData.dtH=1;const T=THREE,dk=DT_CH._hm||(DT_CH._hm=new T.MeshStandardMaterial({color:'#1c1410',roughness:0.95,flatShading:true}));
+    const sc=(b,x,y,z)=>{if(b)for(const m of b.children)if(m.isMesh)m.scale.set(m.scale.x*x,m.scale.y*y,m.scale.z*z);};
+    sc(R.body,1.2,1.1,1.04);for(const k of ['legFL','legFR','legBL','legBR'])sc(R[k],1.28,1,1.22);
+    if(R.head){sc(R.head,0.9,1.12,1.5);/* mõm dài */const fl=new T.Mesh(new T.BoxGeometry(1.2,1.6,1.8),dk);fl.position.set(0,5.2,0.2);fl.rotation.x=-0.3;R.head.add(fl);}
+    /* bờm: dải lông dọc gáy từ đỉnh đầu xuống vai */
+    for(let i=0;i<7;i++){const k=i/6,m=new T.Mesh(new T.BoxGeometry(1.0,1.9,1.9),dk);m.position.set(0,13.2-k*6.4,12.6-k*4.6);m.rotation.x=-0.6;R.body.add(m);}
+    if(R.tail){const tl=new T.Mesh(new T.ConeGeometry(1.9,17,6),dk);tl.rotation.x=Math.PI+0.28;tl.position.set(0,-8.2,-2.6);R.tail.add(tl);const rt=new T.Mesh(new T.SphereGeometry(1.5,6,5),dk);rt.position.set(0,-0.4,-0.6);R.tail.add(rt);}
+    o.traverse(m=>{if(m.isMesh&&m.material===dk)m.castShadow=false;});}catch(e){}return o;}
+{const _mm=mtModel;mtModel=function(){return dtHorse(_mm.apply(this,arguments));};}
+{const _an=animalNew;animalNew=function(kind){const a=_an.apply(this,arguments);try{if(kind==='horse'&&a&&a.o)dtHorse(a.o);}catch(e){}return a;};}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
