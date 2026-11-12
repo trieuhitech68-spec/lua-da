@@ -5,8 +5,8 @@ function sneakToggle(v){G.sneak=v==null?!G.sneak:!!v;if(G.sneak)G.sit=false;cons
 function sitToggle(v){const on=v==null?!G.sit:!!v;if(on&&(G.swim||P.air))return;G.sit=on;if(on){G.sneak=false;G.act=null;G.walkTo=null;}const b=$('#sitBtn');if(b)b.classList.toggle('on',on);
   if(on)uiToast(fireHeat(P.x,P.z)>0?'🔥 Ngồi sưởi bên lửa: hồi sức nhanh, ấm người.':'🪵 Ngồi nghỉ: hồi thể lực nhanh gấp ba.','');}
 /* ---------- ném đá / phóng giáo ---------- */
-function throwable(){const s=S.inv[S.sel];if(P.toolId==='bow')return invCount('arrow')>0?'arrow':null;if(P.toolId==='spear')return 'spear';if(s&&s.id==='stone')return 'stone';return null;}
-function throwIt(){if(P.toolId==='bow'){shootArrow();return;}const id=throwable();if(!id){uiToast('Chọn đá hoặc cầm giáo trên thanh công cụ để ném.','');return;}if(S.p.stam<5){uiToast('Mệt quá, không ném nổi.','');return;}
+function throwable(){const s=S.inv[S.sel];if((ITEMS[P.toolId]&&ITEMS[P.toolId].tool==='bow'))return invCount('arrow')>0?'arrow':null;if(P.toolId==='spear')return 'spear';if(s&&s.id==='stone')return 'stone';return null;}
+function throwIt(){if((ITEMS[P.toolId]&&ITEMS[P.toolId].tool==='bow')){shootArrow();return;}const id=throwable();if(!id){uiToast('Chọn đá hoặc cầm giáo trên thanh công cụ để ném.','');return;}if(S.p.stam<5){uiToast('Mệt quá, không ném nổi.','');return;}
   if(!invTake(id,1))return;if(id==='spear'&&invCount('spear')<1)equip(selTool());S.p.stam-=id==='spear'?6:3;G.throwT=0.45;P.anim='throw';G.throwAnim=0.45;sfx('jump');
   const yaw=isFP()?P.ry:P.ry,pit=isFP()?(G.fpitch||0)+0.08:0.32,v=id==='spear'?540:430,o=model(id==='spear'?['tool','spear']:['item','stone']);o.traverse(m=>{if(m.isMesh)m.castShadow=true;});G.sc.add(o);
   const ex=P.x+Math.sin(yaw)*8,ez=P.z+Math.cos(yaw)*8,ey=P.y+(isFP()?(G.eyeH||EYE)-4:28);o.position.set(ex,ey,ez);

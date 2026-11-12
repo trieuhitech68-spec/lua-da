@@ -282,7 +282,7 @@ function h3pose(R,mode,t){const dt=Math.min(0.05,G.dt||0.016),K=h3ik(),A=G.act,o
   if(H3.joy>0&&H3.joyG&&!W&&!A&&!G.swim){const kk=1-H3.joy/1.2,w=h3ss(kk/0.2)*(1-h3ss((kk-0.75)/0.25));if(H3.joyG==='pump'){R.armR.rotation.set(h3lerp(R.armR.rotation.x,-2.5+0.35*Math.sin(G.t*14),w),0,0.25*w);R.foreR.rotation.x=h3lerp(R.foreR.rotation.x,-1.7,w);}else R.head.rotation.x+=0.22*Math.sin(kk*Math.PI*4)*w;}
   if(H3.joy>0)H3.joy=Math.max(0,H3.joy-dt);
   // cung luôn cầm tay trái
-  if(P.tool&&P.toolId==='bow'&&R.handL&&P.tool.parent!==R.handL){R.handL.add(P.tool);}
+  if(P.tool&&(ITEMS[P.toolId]&&ITEMS[P.toolId].tool==='bow')&&R.handL&&P.tool.parent!==R.handL){R.handL.add(P.tool);}
   h3hair(R,orig||key);h3blend(R,key,dt);h3faceTick(R,dt,key,P,true);return true;}
 /* ===================== 5. NÉT MẶT: MI MẮT, TRÒNG MẮT, LÔNG MÀY, MIỆNG (lưới nhỏ gắn vào đầu, dựng lúc chạy) ===================== */
 // dò hình đầu để biết mắt/miệng/lông mày nằm đâu (hợp với cả người mới models6c lẫn người cũ); thiếu gì thì bỏ qua
@@ -448,14 +448,14 @@ function h3aimSol(A){const C=H3PROJ[A.id]||H3PROJ.stone,k=0.5+0.5*h3ss(A.k),v=C.
   if(!fp&&G.animals){let bs=1e9;const rng=Math.min(900,v*v/C.g*0.95);for(const a of G.animals){if(!a.alive||!a.o||!a.o.visible)continue;const dx=a.x-P.x,dz=a.z-P.z,d=Math.hypot(dx,dz);if(d>rng||d<10)continue;const da=Math.abs(h3angD(Math.atan2(dx,dz),P.ry));if(da>0.5)continue;const sc=d*(1+da*3);if(sc<bs){bs=sc;tg=a;}}
     if(tg){yaw=Math.atan2(tg.x-P.x,tg.z-P.z);const d=Math.hypot(tg.x-ex,tg.z-ez),h=(tg.y+(tg._hgt||tg.r*1.3)*0.55)-ey,g=C.g,v2=v*v,disc=v2*v2-g*(g*d*d+2*h*v2);if(disc>=0)pit=Math.atan((v2-Math.sqrt(disc))/(g*d));}}
   A.yaw=yaw;A.pit=pit;A.v=v;A.g=C.g;A.ex=P.x+Math.sin(yaw)*8;A.ez=P.z+Math.cos(yaw)*8;A.ey=ey;A.tg=tg;return A;}
-function h3aimStart(){const bow=P.toolId==='bow',id=bow?(typeof bowReady==='function'&&bowReady()?'arrow':null):throwable();if(!id)return false;if(S.p.stam<(bow?3:5))return false;
+function h3aimStart(){const bow=(ITEMS[P.toolId]&&ITEMS[P.toolId].tool==='bow'),id=bow?(typeof bowReady==='function'&&bowReady()?'arrow':null):throwable();if(!id)return false;if(S.p.stam<(bow?3:5))return false;
   G.h3aim={id,bow,t0:G.t,k:0,key:!!(G.keys&&G.keys.KeyG),tool:P.toolId};G.act=null;sfx(bow?'pick':'step');return true;}
 function h3aimTick(dt){const A=G.h3aim;if(!A)return;if(G.work||G.swim||G.sit||G.ride||P.toolId!==A.tool||G.paused){G.h3aim=null;h3prevHide();return;}
-  const C=H3PROJ[A.id]||H3PROJ.stone;A.k=clamp((G.t-A.t0)/C.draw,0,1);if(A.bow&&A.k>=1)S.p.stam=Math.max(0,S.p.stam-dt*1.5);h3aimSol(A);
+  const C=H3PROJ[A.id]||H3PROJ.stone;A.k=clamp((G.t-A.t0)/C.draw,0,1);if(A.bow&&A.tool!=='crossbow'&&A.k>=1)S.p.stam=Math.max(0,S.p.stam-dt*1.5);/* nỏ có lẫy giữ dây: căng sẵn không mỏi tay */h3aimSol(A);
   if(!isFP()&&A.tg)P.ry=lerpAng(P.ry,A.yaw,Math.min(1,dt*10));if(G.t-A.t0>C.draw+3.5)h3release();else h3prevDraw(A);}
 function h3release(){const A=G.h3aim;if(!A)return;G.h3aim=null;h3prevHide();h3aimSol(A);const n0=G.proj?G.proj.length:0;P.ry=A.yaw;
   H3._throwIt0();const p=G.proj&&G.proj.length>n0?G.proj[G.proj.length-1]:null;
-  if(p){const c=Math.cos(A.pit);p.vx=Math.sin(A.yaw)*c*A.v;p.vy=Math.sin(A.pit)*A.v;p.vz=Math.cos(A.yaw)*c*A.v;p.x=A.ex;p.z=A.ez;p.y=A.ey;p.o.position.set(p.x,p.y,p.z);p.pow=A.k;p.px=p.x;p.py=p.y;p.pz=p.z;}
+  if(p){const c=Math.cos(A.pit);p.vx=Math.sin(A.yaw)*c*A.v;p.vy=Math.sin(A.pit)*A.v;p.vz=Math.cos(A.yaw)*c*A.v;p.x=A.ex;p.z=A.ez;p.y=A.ey;p.o.position.set(p.x,p.y,p.z);p.pow=A.k*(A.bow&&ITEMS[A.tool]&&ITEMS[A.tool].pow?ITEMS[A.tool].pow:1);/* cung sừng, nỏ bắn mạnh hơn cung tre */p.px=p.x;p.py=p.y;p.pz=p.z;}
   if(A.bow){H3.bowRel=0.45;G.throwAnim=0;}else if(G.throwAnim>0)G.throwAnim=0.26;}
 // đường bay dự kiến (đường chấm + vòng chỗ rơi)
 function h3prevDraw(A){const T=THREE;if(!H3.prev){const N=40,g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(new Float32Array(N*3),3));

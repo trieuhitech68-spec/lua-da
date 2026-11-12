@@ -3077,8 +3077,8 @@ function sneakToggle(v){G.sneak=v==null?!G.sneak:!!v;if(G.sneak)G.sit=false;cons
 function sitToggle(v){const on=v==null?!G.sit:!!v;if(on&&(G.swim||P.air))return;G.sit=on;if(on){G.sneak=false;G.act=null;G.walkTo=null;}const b=$('#sitBtn');if(b)b.classList.toggle('on',on);
   if(on)uiToast(fireHeat(P.x,P.z)>0?'🔥 Ngồi sưởi bên lửa: hồi sức nhanh, ấm người.':'🪵 Ngồi nghỉ: hồi thể lực nhanh gấp ba.','');}
 /* ---------- ném đá / phóng giáo ---------- */
-function throwable(){const s=S.inv[S.sel];if(P.toolId==='bow')return invCount('arrow')>0?'arrow':null;if(P.toolId==='spear')return 'spear';if(s&&s.id==='stone')return 'stone';return null;}
-function throwIt(){if(P.toolId==='bow'){shootArrow();return;}const id=throwable();if(!id){uiToast('Chọn đá hoặc cầm giáo trên thanh công cụ để ném.','');return;}if(S.p.stam<5){uiToast('Mệt quá, không ném nổi.','');return;}
+function throwable(){const s=S.inv[S.sel];if((ITEMS[P.toolId]&&ITEMS[P.toolId].tool==='bow'))return invCount('arrow')>0?'arrow':null;if(P.toolId==='spear')return 'spear';if(s&&s.id==='stone')return 'stone';return null;}
+function throwIt(){if((ITEMS[P.toolId]&&ITEMS[P.toolId].tool==='bow')){shootArrow();return;}const id=throwable();if(!id){uiToast('Chọn đá hoặc cầm giáo trên thanh công cụ để ném.','');return;}if(S.p.stam<5){uiToast('Mệt quá, không ném nổi.','');return;}
   if(!invTake(id,1))return;if(id==='spear'&&invCount('spear')<1)equip(selTool());S.p.stam-=id==='spear'?6:3;G.throwT=0.45;P.anim='throw';G.throwAnim=0.45;sfx('jump');
   const yaw=isFP()?P.ry:P.ry,pit=isFP()?(G.fpitch||0)+0.08:0.32,v=id==='spear'?540:430,o=model(id==='spear'?['tool','spear']:['item','stone']);o.traverse(m=>{if(m.isMesh)m.castShadow=true;});G.sc.add(o);
   const ex=P.x+Math.sin(yaw)*8,ez=P.z+Math.cos(yaw)*8,ey=P.y+(isFP()?(G.eyeH||EYE)-4:28);o.position.set(ex,ey,ez);
@@ -6914,8 +6914,8 @@ function SBmodels5Init(){const M=window.SBM;if(!M||M.v5)return;M.v5=1;
     npcProps:{headdress:'rig.head',necklace:'rig.torso',basketBack:'rig.back',quiverBack:'rig.back',bracelet:'rig.foreL|foreR'},childScale:0.65};}
 /* ===================== CUNG TÊN · THUYỀN BÈ · LUYỆN ĐỒNG · KHOAN LỬA · BẦU TRỜI ĐÊM ===================== */
 /* ---------- bắn cung: tên bay xa, nhanh; tên có thể nhặt lại ---------- */
-function bowReady(){return P.toolId==='bow'&&invCount('arrow')>0;}
-function shootArrow(){if(!bowReady()){uiToast(P.toolId==='bow'?'Hết tên! Làm thêm tên (cành, đá lửa, lông chim).':'Cầm cung lên tay trước đã.','');return;}if(S.p.stam<3){uiToast('Mỏi tay quá.','');return;}
+function bowReady(){return (ITEMS[P.toolId]&&ITEMS[P.toolId].tool==='bow')&&invCount('arrow')>0;}
+function shootArrow(){if(!bowReady()){uiToast((ITEMS[P.toolId]&&ITEMS[P.toolId].tool==='bow')?'Hết tên! Làm thêm tên (cành, đá lửa, lông chim).':'Cầm cung lên tay trước đã.','');return;}if(S.p.stam<3){uiToast('Mỏi tay quá.','');return;}
   invTake('arrow',1);S.p.stam-=2;G.throwT=0.35;G.throwAnim=0.35;sfx('bow');const yaw=P.ry,pit=isFP()?(G.fpitch||0)+0.03:0.03,v=760;
   const o=model(['item','arrow']);o.traverse(m=>{if(m.isMesh)m.castShadow=true;});o.rotation.order='YXZ';G.sc.add(o);const ex=P.x+Math.sin(yaw)*8,ez=P.z+Math.cos(yaw)*8,ey=P.y+(isFP()?(G.eyeH||EYE)-3:30);o.position.set(ex,ey,ez);
   G.proj=G.proj||[];G.proj.push({id:'arrow',o,x:ex,y:ey,z:ez,vx:Math.sin(yaw)*Math.cos(pit)*v,vy:Math.sin(pit)*v,vz:Math.cos(yaw)*Math.cos(pit)*v,t:0,grav:240});uiHotbar();}
@@ -11242,7 +11242,7 @@ function h3pose(R,mode,t){const dt=Math.min(0.05,G.dt||0.016),K=h3ik(),A=G.act,o
   if(H3.joy>0&&H3.joyG&&!W&&!A&&!G.swim){const kk=1-H3.joy/1.2,w=h3ss(kk/0.2)*(1-h3ss((kk-0.75)/0.25));if(H3.joyG==='pump'){R.armR.rotation.set(h3lerp(R.armR.rotation.x,-2.5+0.35*Math.sin(G.t*14),w),0,0.25*w);R.foreR.rotation.x=h3lerp(R.foreR.rotation.x,-1.7,w);}else R.head.rotation.x+=0.22*Math.sin(kk*Math.PI*4)*w;}
   if(H3.joy>0)H3.joy=Math.max(0,H3.joy-dt);
   // cung luôn cầm tay trái
-  if(P.tool&&P.toolId==='bow'&&R.handL&&P.tool.parent!==R.handL){R.handL.add(P.tool);}
+  if(P.tool&&(ITEMS[P.toolId]&&ITEMS[P.toolId].tool==='bow')&&R.handL&&P.tool.parent!==R.handL){R.handL.add(P.tool);}
   h3hair(R,orig||key);h3blend(R,key,dt);h3faceTick(R,dt,key,P,true);return true;}
 /* ===================== 5. NÉT MẶT: MI MẮT, TRÒNG MẮT, LÔNG MÀY, MIỆNG (lưới nhỏ gắn vào đầu, dựng lúc chạy) ===================== */
 // dò hình đầu để biết mắt/miệng/lông mày nằm đâu (hợp với cả người mới models6c lẫn người cũ); thiếu gì thì bỏ qua
@@ -11408,14 +11408,14 @@ function h3aimSol(A){const C=H3PROJ[A.id]||H3PROJ.stone,k=0.5+0.5*h3ss(A.k),v=C.
   if(!fp&&G.animals){let bs=1e9;const rng=Math.min(900,v*v/C.g*0.95);for(const a of G.animals){if(!a.alive||!a.o||!a.o.visible)continue;const dx=a.x-P.x,dz=a.z-P.z,d=Math.hypot(dx,dz);if(d>rng||d<10)continue;const da=Math.abs(h3angD(Math.atan2(dx,dz),P.ry));if(da>0.5)continue;const sc=d*(1+da*3);if(sc<bs){bs=sc;tg=a;}}
     if(tg){yaw=Math.atan2(tg.x-P.x,tg.z-P.z);const d=Math.hypot(tg.x-ex,tg.z-ez),h=(tg.y+(tg._hgt||tg.r*1.3)*0.55)-ey,g=C.g,v2=v*v,disc=v2*v2-g*(g*d*d+2*h*v2);if(disc>=0)pit=Math.atan((v2-Math.sqrt(disc))/(g*d));}}
   A.yaw=yaw;A.pit=pit;A.v=v;A.g=C.g;A.ex=P.x+Math.sin(yaw)*8;A.ez=P.z+Math.cos(yaw)*8;A.ey=ey;A.tg=tg;return A;}
-function h3aimStart(){const bow=P.toolId==='bow',id=bow?(typeof bowReady==='function'&&bowReady()?'arrow':null):throwable();if(!id)return false;if(S.p.stam<(bow?3:5))return false;
+function h3aimStart(){const bow=(ITEMS[P.toolId]&&ITEMS[P.toolId].tool==='bow'),id=bow?(typeof bowReady==='function'&&bowReady()?'arrow':null):throwable();if(!id)return false;if(S.p.stam<(bow?3:5))return false;
   G.h3aim={id,bow,t0:G.t,k:0,key:!!(G.keys&&G.keys.KeyG),tool:P.toolId};G.act=null;sfx(bow?'pick':'step');return true;}
 function h3aimTick(dt){const A=G.h3aim;if(!A)return;if(G.work||G.swim||G.sit||G.ride||P.toolId!==A.tool||G.paused){G.h3aim=null;h3prevHide();return;}
-  const C=H3PROJ[A.id]||H3PROJ.stone;A.k=clamp((G.t-A.t0)/C.draw,0,1);if(A.bow&&A.k>=1)S.p.stam=Math.max(0,S.p.stam-dt*1.5);h3aimSol(A);
+  const C=H3PROJ[A.id]||H3PROJ.stone;A.k=clamp((G.t-A.t0)/C.draw,0,1);if(A.bow&&A.tool!=='crossbow'&&A.k>=1)S.p.stam=Math.max(0,S.p.stam-dt*1.5);/* nỏ có lẫy giữ dây: căng sẵn không mỏi tay */h3aimSol(A);
   if(!isFP()&&A.tg)P.ry=lerpAng(P.ry,A.yaw,Math.min(1,dt*10));if(G.t-A.t0>C.draw+3.5)h3release();else h3prevDraw(A);}
 function h3release(){const A=G.h3aim;if(!A)return;G.h3aim=null;h3prevHide();h3aimSol(A);const n0=G.proj?G.proj.length:0;P.ry=A.yaw;
   H3._throwIt0();const p=G.proj&&G.proj.length>n0?G.proj[G.proj.length-1]:null;
-  if(p){const c=Math.cos(A.pit);p.vx=Math.sin(A.yaw)*c*A.v;p.vy=Math.sin(A.pit)*A.v;p.vz=Math.cos(A.yaw)*c*A.v;p.x=A.ex;p.z=A.ez;p.y=A.ey;p.o.position.set(p.x,p.y,p.z);p.pow=A.k;p.px=p.x;p.py=p.y;p.pz=p.z;}
+  if(p){const c=Math.cos(A.pit);p.vx=Math.sin(A.yaw)*c*A.v;p.vy=Math.sin(A.pit)*A.v;p.vz=Math.cos(A.yaw)*c*A.v;p.x=A.ex;p.z=A.ez;p.y=A.ey;p.o.position.set(p.x,p.y,p.z);p.pow=A.k*(A.bow&&ITEMS[A.tool]&&ITEMS[A.tool].pow?ITEMS[A.tool].pow:1);/* cung sừng, nỏ bắn mạnh hơn cung tre */p.px=p.x;p.py=p.y;p.pz=p.z;}
   if(A.bow){H3.bowRel=0.45;G.throwAnim=0;}else if(G.throwAnim>0)G.throwAnim=0.26;}
 // đường bay dự kiến (đường chấm + vòng chỗ rơi)
 function h3prevDraw(A){const T=THREE;if(!H3.prev){const N=40,g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(new Float32Array(N*3),3));
@@ -20431,6 +20431,9 @@ const TB_HEAD={clothTurban:['turban','#8a2e1a',0],rattanHelmet:['helm','#b89a5a'
         if(h[0]==='turban')m=K.group(K.torus(rx*1.04,rx*0.26,h[1],{x:cx,y:top-rx*0.62,z:cz-rx*0.05,rx:Math.PI/2,sy:1.1},16),K.torus(rx*0.92,rx*0.24,'#a8402a',{x:cx,y:top-rx*0.36,z:cz-rx*0.05,rx:Math.PI/2,sy:1.1},16),K.sphere(rx*0.3,h[1],{x:cx+rx*0.7,y:top-rx*0.3,z:cz-rx*0.6},6,5));
         else{m=K.group(K.dome(rx*1.17,h[1],{x:cx,y:top-rx*1.0,z:cz-rx*0.05,sz:1.12},12),K.torus(rx*1.17,rx*0.1,h[2]?'#8a5a26':'#8a6a3a',{x:cx,y:top-rx*0.98,z:cz-rx*0.05,rx:Math.PI/2,sy:1.12},16),K.cone(rx*0.2,rx*0.5,h[1],{x:cx,y:top+rx*0.12,z:cz-rx*0.05},6));if(h[2])wearMetal(m,h[2],0.42);}
         m.traverse(o=>{o.userData.wearAdd=1;if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.layers.mask=R.head.layers.mask;}});R.head.add(m);}}}catch(e){}return r;};}
+/* sức đánh: mã cũ chỉ nhận vũ khí theo tên bắt đầu bằng spear/club/knife/axe/bow nên kiếm đồng, qua đồng, dao găm, kiếm sắt, nỏ bị tính như tay không */
+{const _fp=fistPow;fistPow=function(){try{const id=selTool(),I=id&&ITEMS[id];if(I&&I.t==='tool'&&I.pow&&['spear','club','knife','axe','bow'].includes(I.tool))return I.pow;}catch(e){}return _fp.apply(this,arguments);};}
+for(const k of ['bowHorn','crossbow','bronzeDagger','bronzeSword','bronzeGe','ironSword'])if(ITEMS[k])ITEMS[k].c5c='vk';
 /* ===================== HƯỚNG DẪN CHỈ TẬN TAY + CÔNG DỤNG TỪNG MÓN =====================
    1. CHỈ TẬN TAY: thay vì chỉ hiện chữ rồi người chơi bấm qua, mỗi hướng dẫn giờ có chuỗi bước: khoanh sáng ĐÚNG NÚT cần bấm, bàn tay 👆 chỉ vào,
       một dòng nói phải làm gì; bấm đúng nút đó (hoặc làm xong việc) mới sang bước sau. Có "Làm giúp tôi" (bấm hộ) và "Bỏ qua".

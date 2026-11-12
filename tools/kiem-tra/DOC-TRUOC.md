@@ -13,6 +13,7 @@ bash tools/kiem-tra/chay-het.sh
 | 7 | `giao-dien.js` | Màn điện thoại 393×852: mở 7 bảng không lỗi chạy, không tràn ngang; các khối trên màn hình chơi (thẻ thông tin, mục tiêu, bản đồ nhỏ, thẻ ghim, thanh đáy, ô đồ nhanh, nút hành động) không đè nhau. |
 | 8 | `mang/*.js` | Chơi mạng với máy chủ giả (`mang/mock.js`): cướp phá có lính gác, chiến tranh liên minh, hạ cờ chiếm đất, cửa nhà người khác đóng. |
 | 9 | `dap-do.js` | Đập đồ: mở từ thẻ Cường hoá, đập thành công, hỏng có cộng may mắn, +11 hỏng tụt cấp, Đá hộ mệnh giữ cấp, lên +15 và phát sáng, nâng sao thú, cho ngựa ăn. |
+| 10 | `trang-bi.js` | Quét **mọi** vũ khí (sức đánh khi cầm đúng bằng chỉ số), mọi món loại cung (giương và bắn ra tên, lực theo chỉ số), mọi món mặc (dựng lại hình người không lỗi), mọi công thức (không dùng món không tồn tại). Món mới thêm tự được quét. |
 | – | `dong-tac.js <tên> "<dáng:công cụ,...>"` | Chụp bảng từng pha của các động tác để soát bằng mắt (ví dụ `h3chop2:axe,h3gather2`). |
 
 Quy ước khi thêm thứ mới:

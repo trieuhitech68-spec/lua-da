@@ -60,3 +60,6 @@ const TB_HEAD={clothTurban:['turban','#8a2e1a',0],rattanHelmet:['helm','#b89a5a'
         if(h[0]==='turban')m=K.group(K.torus(rx*1.04,rx*0.26,h[1],{x:cx,y:top-rx*0.62,z:cz-rx*0.05,rx:Math.PI/2,sy:1.1},16),K.torus(rx*0.92,rx*0.24,'#a8402a',{x:cx,y:top-rx*0.36,z:cz-rx*0.05,rx:Math.PI/2,sy:1.1},16),K.sphere(rx*0.3,h[1],{x:cx+rx*0.7,y:top-rx*0.3,z:cz-rx*0.6},6,5));
         else{m=K.group(K.dome(rx*1.17,h[1],{x:cx,y:top-rx*1.0,z:cz-rx*0.05,sz:1.12},12),K.torus(rx*1.17,rx*0.1,h[2]?'#8a5a26':'#8a6a3a',{x:cx,y:top-rx*0.98,z:cz-rx*0.05,rx:Math.PI/2,sy:1.12},16),K.cone(rx*0.2,rx*0.5,h[1],{x:cx,y:top+rx*0.12,z:cz-rx*0.05},6));if(h[2])wearMetal(m,h[2],0.42);}
         m.traverse(o=>{o.userData.wearAdd=1;if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.layers.mask=R.head.layers.mask;}});R.head.add(m);}}}catch(e){}return r;};}
+/* sức đánh: mã cũ chỉ nhận vũ khí theo tên bắt đầu bằng spear/club/knife/axe/bow nên kiếm đồng, qua đồng, dao găm, kiếm sắt, nỏ bị tính như tay không */
+{const _fp=fistPow;fistPow=function(){try{const id=selTool(),I=id&&ITEMS[id];if(I&&I.t==='tool'&&I.pow&&['spear','club','knife','axe','bow'].includes(I.tool))return I.pow;}catch(e){}return _fp.apply(this,arguments);};}
+for(const k of ['bowHorn','crossbow','bronzeDagger','bronzeSword','bronzeGe','ironSword'])if(ITEMS[k])ITEMS[k].c5c='vk';

@@ -1,7 +1,7 @@
 /* ===================== CUNG TÊN · THUYỀN BÈ · LUYỆN ĐỒNG · KHOAN LỬA · BẦU TRỜI ĐÊM ===================== */
 /* ---------- bắn cung: tên bay xa, nhanh; tên có thể nhặt lại ---------- */
-function bowReady(){return P.toolId==='bow'&&invCount('arrow')>0;}
-function shootArrow(){if(!bowReady()){uiToast(P.toolId==='bow'?'Hết tên! Làm thêm tên (cành, đá lửa, lông chim).':'Cầm cung lên tay trước đã.','');return;}if(S.p.stam<3){uiToast('Mỏi tay quá.','');return;}
+function bowReady(){return (ITEMS[P.toolId]&&ITEMS[P.toolId].tool==='bow')&&invCount('arrow')>0;}
+function shootArrow(){if(!bowReady()){uiToast((ITEMS[P.toolId]&&ITEMS[P.toolId].tool==='bow')?'Hết tên! Làm thêm tên (cành, đá lửa, lông chim).':'Cầm cung lên tay trước đã.','');return;}if(S.p.stam<3){uiToast('Mỏi tay quá.','');return;}
   invTake('arrow',1);S.p.stam-=2;G.throwT=0.35;G.throwAnim=0.35;sfx('bow');const yaw=P.ry,pit=isFP()?(G.fpitch||0)+0.03:0.03,v=760;
   const o=model(['item','arrow']);o.traverse(m=>{if(m.isMesh)m.castShadow=true;});o.rotation.order='YXZ';G.sc.add(o);const ex=P.x+Math.sin(yaw)*8,ez=P.z+Math.cos(yaw)*8,ey=P.y+(isFP()?(G.eyeH||EYE)-3:30);o.position.set(ex,ey,ez);
   G.proj=G.proj||[];G.proj.push({id:'arrow',o,x:ex,y:ey,z:ez,vx:Math.sin(yaw)*Math.cos(pit)*v,vy:Math.sin(pit)*v,vz:Math.cos(yaw)*Math.cos(pit)*v,t:0,grav:240});uiHotbar();}
