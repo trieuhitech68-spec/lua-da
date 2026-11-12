@@ -11,7 +11,7 @@ GOALS.push(
   G_(4,'Bắt sống một thổ dân','Mang Dây thừng, để sẵn một giường trống ở nhà, rồi hạ gục một chiến binh bộ lạc khác: sẽ trói bắt thay vì giết.',1,()=>gC('cnt:capture')),
   G_(4,'Thu phục một tù binh','Để thức ăn trong giỏ, rương: mỗi ngày ăn đủ thì trung thành tăng. Đủ 100 là quy phục hẳn.',1,()=>gC('cnt:submit')),
   G_(4,'Cắt người giữ cổng và lính','Mở 👥 Dân làng, giao một người "Giữ cổng" và một người "Lính theo bạn".',2,()=>Math.min(1,(S.folk||[]).filter(f=>f.job==='gate').length)+Math.min(1,(S.folk||[]).filter(f=>f.job==='soldier').length)),
-  G_(4,'Nhân vật đạt cấp 10','Làm việc gì cũng cho kinh nghiệm. Mở 🧍 Cơ thể → Nhân vật để cộng điểm thuộc tính mỗi khi lên cấp.',10,()=>typeof heroLv==='function'?heroLv():0),
+  G_(4,'Nhân vật đạt cấp 10','Làm việc gì cũng cho kinh nghiệm. Mở 🧍 Nhân vật để cộng điểm thuộc tính mỗi khi lên cấp.',10,()=>typeof heroLv==='function'?heroLv():0),
   G_(4,'Chiếm một điểm tài nguyên','Tìm điểm giàu trên bản đồ, hạ hết người canh rồi dựng Cột vật tổ trong vòng đất của điểm đó.',1,()=>gC('cnt:rlcap')),
   G_(4,'Hạ một thú chúa','Mỏ sắt, vỉa than, bãi vàng, mỏ ngọc bích, bãi săn bò tót đều có thú chúa canh. Mang lính theo và giáp tốt.',1,()=>gC('cnt:boss')),
   G_(4,'Luyện thỏi sắt','3 quặng sắt + 2 than đá trong nồi nấu ở lò luyện (Chế tác cấp 6). Sắt cứng và bền hơn đồng thau.',1,()=>gC('craft:iron')),

@@ -75,7 +75,7 @@ const GD_GOALS=[
   G_(3,'Gieo mạ rồi cấy lúa','Ruộng ngập nước → gieo 2 thóc giống làm mạ → mạ đủ tuổi thì nhổ đem cấy. Giữ nước, nhổ cỏ dại.',2,()=>Math.min(1,gC('cnt:sowRice'))+Math.min(1,gC('cnt:transplant'))),
   G_(3,'Gặt mùa lúa đầu tiên','Lúa chín vàng thì gặt (có liềm được nhiều hơn), đập lấy thóc, giã ở cối thành gạo.',1,()=>gC('cnt:riceHarvest')),
   G_(3,'Dựng kho thóc trên cột','Thóc dưới đất bị chuột khoét. Thử Hạt kê + Gỗ ở 📒 Ghi chép để nghĩ ra kho có đĩa chắn chuột.',1,()=>gDone('granary')),
-  G_(3,'Thu hoạch 6 lần','Ruộng lúa, luống kê, luống bầu đều tính. Mưa, giếng, mương giúp cây lớn nhanh; mùa đông cây ngừng lớn.',6,()=>gC('cnt:harvest')),
+  G_(3,'Thu hoạch 6 lần','Ruộng lúa, luống kê, luống bầu đều tính. Mưa, giếng, mương giúp cây lớn nhanh; mùa đông cây lớn chậm hơn.',6,()=>gC('cnt:harvest')),
   G_(3,'Dựng cột vật tổ','Cột vật tổ (10 gỗ, 2 đất sét, 4 hoa) đánh dấu nơi bộ lạc định cư: làng Phùng Nguyên ra đời.',1,()=>gDone('totem')+gC('build:totem')),
   G_(3,'Mở hội làng','Đánh Trống da vào Hội xuân (ngày đầu xuân), Hội mùa (đầu thu); hoặc dựng Đài trống hội, mở hội lúc nào cũng được.',1,()=>gC('cnt:festival')+gC('cnt:hoi')),
   G_(3,'Mời một người về ở cùng','Tình thân với làng 40 trở lên và có một giường trống: mời dân làng về ở, giao việc hái lượm, đốn gỗ.',1,()=>gC('cnt:folk')),
@@ -113,7 +113,7 @@ const gdLitNear=r=>(G.flames||[]).some(f=>!f.off&&gdNear(f.x,f.z,r||150));
 const GD_HINTS=[
   ['welcome',200,()=>G.t>3&&S.goal===0&&S.day===1,'👋','Từ hai bàn tay trắng','Làm theo Mục tiêu ở góc màn hình. Bí thì mở 📜 Nhật ký → "Hôm nay làm gì?". Lại gần đồ vật rồi bấm Hành động để nhặt.'],
   ['predator',100,()=>!!gdPred(),'🐯','Thú dữ ở gần!','Đừng lại gần, đừng quay lưng chạy. Lùi về phía lửa, cầm giáo hoặc đuốc. Ban đêm sói săn theo đàn; gấu, cá sấu giữ lãnh thổ.'],
-  ['wound',95,()=>!!(S.st.wound||S.st.bleed),'🩸','Bị thương','Mở 🧍 Cơ thể: rửa vết thương bằng nước (đun sôi càng tốt) rồi đắp băng lá rau má, kẻo nhiễm trùng sưng mủ.'],
+  ['wound',95,()=>!!(S.st.wound||S.st.bleed),'🩸','Bị thương','Mở 🧍 Nhân vật → thẻ Thể trạng: rửa vết thương bằng nước (đun sôi càng tốt) rồi đắp băng lá rau má, kẻo nhiễm trùng sưng mủ.'],
   ['sick',90,()=>['fever','poison','gut','cold','infect'].some(k=>S.st[k]),'🤒','Đau ốm','Chạm vào nhãn bệnh trên đầu màn hình để xem cách chữa: nước bạc hà giải độc, trà gừng chữa cảm, thuốc ngải chữa sốt. Nằm nghỉ cho mau khỏe.'],
   ['night',85,()=>S.hour>=17.5&&S.hour<21,'🌙','Trời sắp tối','Đêm tối, lạnh và thú săn mồi đi kiếm ăn. Về lều nghiêng, giữ lửa cháy (thêm củi), sau 19 giờ bấm Hành động ở lều để ngủ.'],
   ['rain',80,()=>typeof isRaining==='function'&&isRaining(),'🌧️','Trời mưa','Ướt người thì rét dần, dễ cảm. Củi ướt không nhóm được lửa ngoài trời: nhóm sát lều nghiêng, dưới mái hoặc trong hang. Áo tơi, nón lá đỡ ướt.'],
@@ -126,7 +126,7 @@ const GD_HINTS=[
   ['spoil',60,()=>invCount('meatRot')>0,'🤢','Thịt đã ôi','Ăn vào là ngộ độc. Thịt cá tươi chỉ để được chừng 2 ngày: nướng ăn ngay, hun khói trên bếp hoặc phơi khô trên giàn để dành.'],
   ['tired',55,()=>(S.p.rest??100)<30,'😪','Buồn ngủ','Thức lâu làm chậm, hay sai tay. Ngủ trong lều/giường, hoặc ngồi nghỉ bên lửa để tỉnh táo lại.'],
   ['village',50,()=>!!(G.vfire&&gdNear(G.vfire.x,G.vfire.z,560)),'🏘️','Làng người Việt cổ','Chạm vào dân làng để trò chuyện, đổi đồ, nhờ dạy nghề. Tặng quà, đổi đồ thường xuyên để thêm tình thân.'],
-  ['winter',45,()=>seasonIdx()===2&&seasonDay()>=3,'❄️','Mùa đông sắp tới','Còn ít ngày nữa là rét dưới 0 °C, cây ngừng lớn. Dành củi, hun khói thịt, may áo ấm, lợp lại mái dột.'],
+  ['winter',45,()=>seasonIdx()===2&&seasonDay()>=3,'❄️','Mùa đông sắp tới','Còn ít ngày nữa là rét dưới 0 °C, cây lớn chậm. Dành củi, hun khói thịt, may áo ấm, lợp lại mái dột.'],
   ['dark',40,()=>isNight()&&!gdLitNear(150)&&P.toolId!=='torch','🔦','Tối quá','Làm việc trong bóng tối chậm và dễ đứt tay. Cầm đuốc (2 cành + 2 sợi) hoặc làm việc gần bếp lửa.']
 ];
 function gdCardEl(){let el=document.getElementById('gdcard');if(!el){const g=$('#game');if(!g)return null;g.insertAdjacentHTML('beforeend','<div id="gdcard" class="gdcard" role="status" hidden></div>');el=document.getElementById('gdcard');}return el;}
@@ -149,7 +149,7 @@ function gdRaw(){return ['birdRaw','meat','fish','yam','snail','taro'].find(k=>i
 function gdFood(){let best=null,bv=0;for(const s of S.inv){if(!s)continue;const I=ITEMS[s.id];if(!I||I.t!=='food'||I.poison||s.id==='meatRot')continue;const v=(I.food||0)*(I.raw?0.3:1);if(v>bv){bv=v;best=s.id;}}return best;}
 function gdSuggest(){const out=[],add=(p,ic,t,w)=>out.push({p,ic,t,w}),p=S.p,night=isNight(),evening=S.hour>=15.5||night,fire=gdFireBuilt(),lit=gdLitNear(260);
   // thân thể
-  if(S.st.bleed||S.st.wound){const w=(S.l4&&S.l4.wn)||{};add(100,'🩹',w.c>=1?'Băng vết thương':'Rửa và băng vết thương',invCount('bandage')?'Mở 🧍 Cơ thể → Rửa, rồi Băng lá.':'Làm Băng lá rau má (3 sợi + 2 rau má) rồi băng lại.');}
+  if(S.st.bleed||S.st.wound){const w=(S.l4&&S.l4.wn)||{};add(100,'🩹',w.c>=1?'Băng vết thương':'Rửa và băng vết thương',invCount('bandage')?'Mở 🧍 Nhân vật → Thể trạng → Rửa, rồi Băng lá.':'Làm Băng lá rau má (3 sợi + 2 rau má) rồi băng lại.');}
   if(S.st.fracture&&!(S.l4&&S.l4.fr&&S.l4.fr.spl))add(98,'🦯','Bó nẹp chân gãy','Nẹp tre (tre + sợi, hoặc 4 cành + sợi), rồi nghỉ ngơi.');
   const ill=['infect','fever','poison','gut','cold','heat'].find(k=>S.st[k]);if(ill){const cu={infect:'đắp cao nghệ nha đam, nằm nghỉ',fever:'uống thuốc ngải cứu, nằm nghỉ bên lửa',poison:'uống nước bạc hà',gut:'uống nước than củi hoặc cháo gừng',cold:'uống trà gừng, sưởi lửa',heat:'vào bóng râm, uống nước'}[ill];add(95,'🤒','Chữa '+STATUS[ill].n.toLowerCase(),cu[0].toUpperCase()+cu.slice(1)+'.');}
   if(p.water<35){const w=['water','waterDirty','gourd'].find(k=>invCount(k)>0);add(92-p.water/5,'💧',w?'Uống '+ITEMS[w].n.toLowerCase():'Ra suối uống nước',w?'Khát quá thì không làm nổi việc.':'Có bầu thì múc đầy mang theo.');}

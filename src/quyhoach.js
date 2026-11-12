@@ -41,8 +41,8 @@ function qhHtml(){let h='',g0='';for(const q of QH){const parts=qhParts(q),cost=
     h+=`<div class="qh-c${have?' has':''}"><span class="qh-ic">${q.ic}</span><div class="qh-m"><b>${esc(q.n)}${have?` <em>đã có ${have}</em>`:''}</b><span class="qh-fx">${esc(q.fx)}</span><span class="small muted">${esc(q.d)}</span>
       <div class="chips">${Object.entries(cost).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([k,v])=>`<span class="chip${haveCount(k)<v?' lack':''}">${icon(k)}${Math.min(haveCount(k),v)}/${v}</span>`).join('')}</div>
       ${ok?'':`<span class="small warn">Chưa biết làm: ${esc(miss.slice(0,4).map(k=>pieceDef(k)?pieceDef(k).n:k).join(', '))}</span>`}
-      <div class="row"><button class="btn sm${ok?'':' ghost'}" data-a="qhgo" data-k="${q.id}">📐 Cắm mốc cả căn</button>${ok&&!pay?`<button class="btn sm aq-need" data-a="qhget" data-k="${q.id}">🤖 Tự gom vật liệu</button>`:''}</div></div></div>`;}
-  return `<details class="qh-box"${G.qhOpen===0?'':' open'}><summary><b>🏘️ Quy hoạch làng: các loại nhà trọn bộ</b><span class="small muted">Chọn loại nhà → cắm mốc cả căn → làm dần từng phần. Vật liệu trả theo từng công đoạn.</span></summary><div class="qh-list">${h}</div></details>
+      <div class="row"><button class="btn sm${ok?'':' ghost'}" data-a="qhgo" data-k="${q.id}">📐 Cắm mốc cả căn</button>${ok?`<button class="btn sm aq-need" data-a="qhauto" data-k="${q.id}">🤖 Tự dựng luôn</button>`:''}${ok&&!pay?`<button class="btn sm aq-need" data-a="qhget" data-k="${q.id}">🤖 Tự gom vật liệu</button>`:''}</div></div></div>`;}
+  return `<details class="qh-box"${G.qhOpen===1?' open':''}><summary><b>🏘️ Quy hoạch làng: các loại nhà trọn bộ</b><span class="small muted">Chọn loại nhà → cắm mốc cả căn → làm dần từng phần. Vật liệu trả theo từng công đoạn.</span></summary><div class="qh-list">${h}</div></details>
    <div class="qh-sub">🧩 Bộ phận rời và công trình phụ trợ <span class="small muted">(sàn, vách, mái, đồ dùng, nông trại, phòng thủ: tự thiết kế hoặc nới thêm)</span></div>`;}
 {const _bh=buildHtml;buildHtml=function(){let h=_bh.apply(this,arguments);try{h=qhHtml()+h;}catch(e){console.warn('quy hoạch',e);}return h;};}
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="qhgo"],[data-a="qhget"]');if(!b||!S)return;e.stopImmediatePropagation();if(b.dataset.a==='qhgo')qhBegin(b.dataset.k);else qhGather(b.dataset.k);},true);
@@ -57,3 +57,28 @@ document.addEventListener('toggle',e=>{const t=e.target;if(t&&t.classList&&t.cla
 .qh-sub{grid-column:1/-1;margin:2px 0 8px;font-size:13.5px;font-weight:800;color:#ffe2a8}`;document.head.appendChild(st);}
 // bảng hướng dẫn bắt buộc cho tính năng mới
 if(typeof HD_L!=='undefined')HD_L.push({id:'quyhoach',ic:'🏘️',t:'Quy hoạch làng',w:()=>G.panel==='build'&&!!(S.hd&&S.hd.xay),p:['Đầu bảng Xây có khung <b>Quy hoạch làng</b>: mỗi loại nhà là một lựa chọn trọn bộ. Bấm <b>Cắm mốc cả căn</b>, chọn chỗ, rồi làm dần từng phần.','<b>Nhà chính</b> để ở. <b>Trại lính</b> cho lính đánh mạnh hơn, <b>Vọng gác</b> chặn lối vào. <b>Xưởng, Nhà kho, Nhà bếp, Chuồng trại</b> để sản xuất. <b>Nhà nghiên cứu</b> giúp tay nghề lên nhanh.','Các bộ phận rời (sàn, vách, mái, đồ dùng…) vẫn ở bên dưới để tự thiết kế hoặc nới thêm nhà đã có. Thiếu vật liệu thì bấm <b>🤖 Tự gom vật liệu</b>.']});
+/* ===================== TỰ LÀM DỰNG NHÀ QUY HOẠCH: tự chọn chỗ phẳng gần nhà → cắm mốc → làm lần lượt từng công trường (móng → tường → mái) ===================== */
+function qhSpot(parts){const hb=(typeof aqBed==='function'&&aqBed())||(typeof aqFire==='function'&&aqFire())||{x:P.x,z:P.z},cx=Math.round(hb.x/CELL)*CELL,cz=Math.round(hb.z/CELL)*CELL;
+  for(let r=160;r<=720;r+=80)for(let a=0;a<16;a++){const tx=Math.round((cx+Math.cos(a/16*6.283+r)*r)/CELL)*CELL,tz=Math.round((cz+Math.sin(a/16*6.283+r)*r)/CELL)*CELL;if(wdAt(tx,tz)>0||slopeAt(tx,tz)>0.22)continue;
+      for(let q=0;q<4;q++){const pl=b4BpPlan(parts,tx,tz,q);if(!pl.why||/^Xa quá/.test(pl.why))return {x:tx,z:tz,q};}}return null;}
+AUJ.qh=function(j){const q=QH.find(x=>x.id===j.id);if(!q)return aqFail('Không có bản vẽ này.');{const nOpen=S.builds.filter(b=>b.ht===j.id&&b.prog!=null).length;if(j._no!==nOpen){j._no=nOpen;j.miss=0;}}if(j.cf){const m=j.cf;j.cf=null;if(++j.miss>6)return aqFail(m);}
+  const open=S.builds.filter(b=>b.ht===j.id&&b.prog!=null&&(j.g==null||b.hg===j.g));
+  if(!j.placed&&!open.length){const parts=qhParts(q),miss=b4BpMissing(parts);if(miss.length)return aqFail('Chưa biết làm: '+miss.slice(0,3).map(k=>pieceDef(k)?pieceDef(k).n:k).join(', ')+'. Làm tiếp nhiệm vụ để mở.');
+    if(!j.sp){j.sp=qhSpot(parts);if(!j.sp)return aqFail('Không tìm được bãi đất phẳng đủ rộng gần nhà để dựng '+q.n+'. Thử San nền hoặc dọn cây quanh nhà.');}
+    if(aqD(j.sp.x,j.sp.z)>150)return aqGoto(j,j.sp.x,j.sp.z,110,'Tới bãi đất dựng '+q.n,{far:1});
+    const n0=S.builds.length;try{qhBegin(j.id);if(G.build&&G.build.bp){G.build.r=j.sp.q;AQ2.aim={x:j.sp.x,z:j.sp.z};try{b4BpPlace();}finally{AQ2.aim=null;}}}catch(e){}try{if(G.build)buildEnd();}catch(e){}
+    if(S.builds.length===n0){j.sp=null;if(++j.tries>3)return aqFail('Không cắm mốc được '+q.n+' ở quanh nhà.');return AQ_RUN;}
+    j.placed=1;const nb=S.builds[S.builds.length-1];j.g=nb.hg;aqSay('🤖 Đã cắm mốc '+q.n+'. Dựng lần lượt từng phần…','good');return AQ_RUN;}
+  if(!open.length){return AQ_DONE;}
+  let best=null,bp=1e9,bd=1e9;for(const b of open){if(b4Blocker(b))continue;const ph=b4Phase(b),d=aqD(b.x,b.z);if(ph<bp||(ph===bp&&d<bd)){bp=ph;bd=d;best=b;}}if(!best)best=open[0];
+  {let need=null;try{const dd=pieceDef(best.k);if(best.bpPay&&dd)need=dd.cost;}catch(e){}if(need){const r=qhFetch(j,need);if(r)return r;}}
+  const d=pieceDef(best.k);if(best.bpPay&&d&&!canPay(d.cost)){aqPush({k:'getAll',cost:Object.assign({},d.cost),lab:'Gom vật liệu: '+d.n,lab0:'Gom vật liệu: '+d.n},j);return AQ_RUN;}
+  j.lab='Dựng '+q.n+' ('+open.length+' phần còn lại)';aqPush({k:'site',b:best},j);return AQ_RUN;};
+function qhAuto(id){const q=QH.find(x=>x.id===id);if(!q)return;if(G.panel)uiClose();aqStart(-1,{job:{k:'qh',id,miss:0,tries:0,lab:'Dựng '+q.n,lab0:'Dựng '+q.n}});uiToast('🤖 Tự chọn chỗ, cắm mốc và dựng '+q.n+'. Bấm ✋ để dừng.','');}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="qhauto"]');if(!b||!S)return;e.stopImmediatePropagation();qhAuto(b.dataset.k);},true);
+/* công trường xa kho: vật liệu trong giỏ/rương ở nhà không với tới → về kho lấy ra túi rồi mang tới (áp dụng cho mọi công trường khi Tự làm) */
+function qhFetch(j,need){for(const k in need){const lack=need[k]-haveCount(k);if(lack<=0)continue;let sb=null,sn=0;for(const id in S.store){const arr=S.store[id];if(!Array.isArray(arr))continue;let n=0;for(const sl of arr)if(sl&&sl.id===k)n+=sl.n;if(n>sn){const b=BYID.get(+id);if(b&&!b.remote&&Math.hypot(b.x-P.x,b.z-P.z)>320){sn=n;sb=b;}}}
+    if(!sb)continue;if(aqD(sb.x,sb.z)>60)return aqGoto(j,sb.x,sb.z,40,'Về kho lấy '+(ITEMS[k]?ITEMS[k].n.toLowerCase():k),{far:1});}return null;}
+{const _s=AUJ.site;AUJ.site=function(j){try{const b=j.b;if(b&&b.prog!=null&&j._p!==b.prog){/* công trường có tiến triển: tính lại số lần được đi kiếm đồ */j._p=b.prog;j.gg=0;j.fl=0;}if(b&&BYID.has(b.id)&&b.prog!=null&&!j.cf&&j.st!=='wait'){let need=null;const dd=pieceDef(b.k);if(b.bpPay&&dd)need=dd.cost;else if(typeof STG!=='undefined'&&STG[b.k]){const sg=b3stg(b);if(sg&&sg.s&&sg.paid<=sg.i)need=sg.s.c;}
+      if(need){/* đang đứng cạnh kho (đồ trong kho được tính là "có") mà công trường ở xa: rút ra túi trước khi đi */const far=Math.hypot(b.x-P.x,b.z-P.z)>200;if(far)for(const k in need){let lack=need[k]-invCount(k);if(lack<=0)continue;for(const st of nearStores()){for(let i=0;i<st.length&&lack>0;i++){const sl=st[i];if(!sl||sl.id!==k)continue;const t=Math.min(lack,sl.n);sl.n-=t;lack-=t;if(sl.n<=0)st[i]=null;const o={};o[k]=t;give(o);}}}
+        const r=qhFetch(j,need);if(r)return r;}}}catch(e){}return _s.apply(this,arguments);};}

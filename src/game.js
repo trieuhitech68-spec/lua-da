@@ -282,10 +282,10 @@ function buildUse(t){const d=t.def,b=t.b;if(b.k==='well'){drinkWater(true);retur
   if(b.k==='beeBox'){const h=Math.floor(S.tank[b.id]||0);if(h<1){uiToast(seasonIdx()===3?'Mùa đông ong nghỉ, không làm mật.':'Ong đang làm mật, quay lại sau nhé.','');return;}
     if(P.toolId!=='torch'&&Math.random()<0.6){addStatus('sting');sfx('hurt');uiToast('Bị ong đốt! Lần sau cầm đuốc hun khói trước.','bad');}if(!invFits('honey',h)){uiToast('Túi đầy!','bad');return;}
     S.tank[b.id]-=h;give({honey:h},[b.x,b.y+24,b.z]);addXp('gather',2*h);cnt('cnt','honey',h);sfx('pick');save();return;}if(d.fuel&&!fireLit(b)){fireStart(b);return;}if(d.st){uiOpen('craft',{st:d.st});return;}if(d.store){uiOpen('store',{b});return;}if(d.bed){sleep(b);return;}
-  if(d.farm){const c=S.crops[b.id];if(!c){const sid=seedId();if(!sid){uiToast('Cần hạt giống: hái Kê dại, Cỏ lanh hoặc Dây bầu dại.','bad');return;}if(seasonIdx()===3){uiToast('Mùa đông đất đóng băng, chưa gieo được.','bad');return;}
+  if(d.farm){const c=S.crops[b.id];if(!c){const sid=seedId();if(!sid){uiToast('Cần hạt giống: hái Kê dại, Cỏ lanh hoặc Dây bầu dại.','bad');return;}
       invTake(sid,1);S.crops[b.id]={k:ITEMS[sid].crop,p:0};cnt('cnt','plant');addXp('farm',3);sfx('pick');cropShow(b);uiHotbar();save();return;}
     if(cropStage(c)>=3){const bonus=Math.random()<skLv('farm')*0.08?1:0;const out=c.k==='grain'?{grain:3+bonus+Math.floor(Math.random()*3),seedGrain:1+Math.floor(Math.random()*2)}:c.k==='gourd'?{gourd:2+bonus,seedGourd:1+Math.floor(Math.random()*2)}:{fiber:5+bonus,seedFlax:1};
-      give(out,[b.x,b.y+10,b.z]);delete S.crops[b.id];cnt('cnt','harvest');addXp('farm',6);sfx('pick');cropShow(b);save();}else uiToast(`Cây mới được ${Math.round(c.p*100)}%. ${seasonIdx()===3?'Mùa đông cây ngừng lớn.':'Mưa và giếng nước giúp cây lớn nhanh.'}`,'');}}
+      give(out,[b.x,b.y+10,b.z]);delete S.crops[b.id];cnt('cnt','harvest');addXp('farm',6);sfx('pick');cropShow(b);save();}else uiToast(`Cây mới được ${Math.round(c.p*100)}%. ${seasonIdx()===3?'Mùa đông cây lớn chậm.':'Mưa và giếng nước giúp cây lớn nhanh.'}`,'');}}
 const CROP_DAYS={grain:1.2,gourd:1.7,flax:1};
 function cropStage(c){return Math.min(3,Math.floor((c.p||0)*3.001));}
 const CROPO=new Map();

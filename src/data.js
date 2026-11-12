@@ -166,7 +166,7 @@ const BUILD=[
   {id:'bed',n:'Giường rơm',cat:'do',kind:'obj',fp:[1,2],cost:{wood:6,fiber:12,hide:2},bed:1,req:['hide'],d:'Ngủ qua đêm, hồi đầy máu và thể lực.'},
   {id:'dryRack',n:'Giàn phơi',cat:'co',kind:'obj',fp:[1,1],cost:{stick:8,rope:2},st:'dryRack',req:['rope','meat'],d:'Phơi thảo dược, thịt cá để dành.'},
   {id:'tanRack',n:'Khung thuộc da',cat:'co',kind:'obj',fp:[1,1],cost:{wood:4,rope:2},st:'tanRack',req:['hide','rope'],d:'Thuộc da thú thành da thuộc.'},
-  {id:'farm',n:'Luống đất',cat:'nong',kind:'obj',fp:[1,1],cost:{stick:2,stone:2},farm:1,req:['seedGrain'],d:'Gieo hạt. Mưa và giếng nước giúp cây lớn nhanh; mùa đông cây ngừng lớn.'},
+  {id:'farm',n:'Luống đất',cat:'nong',kind:'obj',fp:[1,1],cost:{stick:2,stone:2},farm:1,req:['seedGrain'],d:'Gieo hạt. Mưa và giếng nước giúp cây lớn nhanh; mùa đông cây lớn chậm hơn.'},
   {id:'chest',n:'Rương gỗ',cat:'do',kind:'obj',fp:[1,1],small:1,cost:{plank:6,rope:2},store:30,req:['plank'],need:'workbench',d:'Cất 30 ô đồ.'},
   {id:'hearth',n:'Lò bếp đá',cat:'co',kind:'obj',fp:[1,1],cost:{stone:14,clay:6},st:'hearth',light:1,warm:1,fuel:1,req:['clay'],d:'Nấu canh, nướng bánh, sưởi ấm trong nhà.'},
   {id:'kiln',n:'Lò nung',cat:'co',kind:'obj',fp:[1,1],cost:{clay:12,stone:8},st:'kiln',light:1,warm:1,fuel:1,req:['clay'],lv:{build:2},d:'Nung gạch và nồi gốm.'},
@@ -226,7 +226,7 @@ const BCAT=[['co','Cơ bản'],['nha','Nhà cửa'],['do','Đồ dùng'],['nong'
 const SKILL={chop:'Đốn gỗ',mine:'Đào đá',gather:'Hái lượm',herb:'Thảo dược',craft:'Chế tác',build:'Xây dựng',cook:'Nấu nướng',farm:'Trồng trọt',hunt:'Săn bắt',run:'Thể lực'};
 // bốn mùa: mỗi mùa 4 ngày. temp: nhiệt độ ngày/đêm (°C); rain: khả năng mưa mỗi ngày; grow: tốc độ lớn của cây trồng
 const SEASON_DAYS=4;
-const SEASONS=[{n:'Xuân',temp:[22,13],rain:0.45,grow:1.25,ic:'🌸'},{n:'Hạ',temp:[33,24],rain:0.25,grow:1,ic:'☀️'},{n:'Thu',temp:[21,11],rain:0.35,grow:0.8,ic:'🍂'},{n:'Đông',temp:[5,-6],rain:0.4,grow:0,ic:'❄️'}];
+const SEASONS=[{n:'Xuân',temp:[22,13],rain:0.45,grow:1.25,ic:'🌸'},{n:'Hạ',temp:[33,24],rain:0.25,grow:1,ic:'☀️'},{n:'Thu',temp:[21,11],rain:0.35,grow:0.8,ic:'🍂'},{n:'Đông',temp:[5,-6],rain:0.4,grow:0.55,ic:'❄️'}/* mùa theo lịch thật kéo dài hàng tháng: mùa đông cây vẫn lớn, chỉ chậm hơn (trước =0 nên ruộng chết cứng cả mùa) */];
 // thú vật. aggro: never | defend (bị đánh mới húc) | night (đêm hoặc đông mới tấn công) | territory (lại gần là tấn công)
 const ANIMALS={
   rabbit:{n:'Thỏ rừng',hp:1,spd:150,r:6,flee:90,drop:{meat:1,hide:1},bio:['meadow','edge'],n0:22,aggro:'never'},

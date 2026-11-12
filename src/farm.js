@@ -16,7 +16,7 @@ function uprootTick(A,dt){const q=A.t.q;if(q.st!==0||Math.hypot(q.x-P.x,q.z-P.z)
 function plantSpot(){const p=isFP()?groundPick(innerWidth/2,innerHeight/2):null;let x,z;if(p&&Math.hypot(p.x-P.x,p.z-P.z)<120){x=p.x;z=p.z;}else{x=P.x+Math.sin(P.ry)*26;z=P.z+Math.cos(P.ry)*26;}return [x,z];}
 function plantWhy(k,x,z){if(wdAt(x,z)>0.2)return 'Không trồng dưới nước';if(slopeAt(x,z)>0.8)return 'Đất dốc quá';const c=cellAt(x,z);if(c&&(c.floor||c.obj))return 'Chỗ này đã có công trình';
   const big=/pine|oak|birch|savanna|palm|bamboo/.test(k),rr=big?26:10;for(const i of near(x,z,rr+20)){const q=RES[i];if(q.st===0&&!RT[q.t].pass&&Math.hypot(q.x-x,q.z-z)<rr)return 'Sát cây khác quá';}
-  for(const p of S.plants||[])if(Math.hypot(p.x-x,p.z-z)<(big?24:9))return 'Sát cây đã trồng';if(seasonIdx()===3)return 'Mùa đông đất cứng, cây khó sống: chờ xuân';return '';}
+  for(const p of S.plants||[])if(Math.hypot(p.x-x,p.z-z)<(big?24:9))return 'Sát cây đã trồng';return '';}
 function plantUse(id){const k=ITEMS[id].plant;const [x,z]=plantSpot(),why=plantWhy(k,x,z);if(why){uiToast(why,'bad');sfx('no');return;}uiClose();
   G.work={r:{out:{},in:{}},steps:[{n:'Đào hố',a:'dig',t:1.4,fx:'step'},{n:'Đặt cây, vun rễ',a:'gather',t:1.0,fx:'pick'},{n:'Lấp đất, nén chặt',a:'dig',t:1.0,fx:'step'}],i:0,t:0,left:1,done:0,x:P.x,z:P.z,sk:'farm',plant:{id,k,x,z}};workUi();}
 function plantDone(pl){if(!invTake(pl.id,1))return;S.plants=S.plants||[];S.plants.push({k:pl.k,x:+pl.x.toFixed(1),z:+pl.z.toFixed(1),g:0,ry:+(Math.random()*6.28).toFixed(2)});plantShowAll();addXp('farm',4);cnt('cnt','plant');sfx('craft');uiToast(`🌱 Đã trồng ${SAP[pl.k].n}. Mưa nhiều, gần nước thì lớn nhanh.`,'gold');uiHotbar();save();}

@@ -179,12 +179,12 @@ const l4AgeOk=x=>(S.age||0)>=(x.age||0);
 {const _rk=recipeKnown;recipeKnown=function(r){return _rk(r)&&l4AgeOk(r);};}
 {const _bk=buildKnown;buildKnown=function(b){return _bk(b)&&l4AgeOk(b);};}
 {const _lh=lockHint;lockHint=function(b){if(!l4AgeOk(b))return 'Cần bước sang '+AGES[b.age].n;return _lh(b);};}
-{const _ua=uiAge;uiAge=function(i){_ua(i);const A=L4AGE[i];if(A)setTimeout(()=>uiToast('🏺 Kỹ thuật mới của '+AGES[i].n+': '+A.tech.slice(0,3).join('; ')+'… (xem 🧍 Cơ thể → Thời đại)','idea'),1600);};}
+{const _ua=uiAge;uiAge=function(i){_ua(i);const A=L4AGE[i];if(A)setTimeout(()=>uiToast('🏺 Kỹ thuật mới của '+AGES[i].n+': '+A.tech.slice(0,3).join('; ')+'… (xem 🧍 Nhân vật → Thời đại)','idea'),1600);};}
 /* ===================== 6. LƯU / TẢI ===================== */
 {const _fs=fixSave;fixSave=function(o){o=_fs(o);if(o&&o.p){if(o.p.rest==null)o.p.rest=100;}return o;};}
 /* ===================== 7. THÂN THỂ: VẾT THƯƠNG, GÃY XƯƠNG, BỆNH ===================== */
 {const _as=addStatus;addStatus=function(k,h){const had=!!S.st[k];_as(k,h);if(!STATUS[k])return;const L=l4S();
-  if(k==='bleed'||k==='wound'){if(!S.st.wound||!L.wn){if(k==='bleed')_as('wound');L.wn={c:0,b:0,h:0};}else{L.wn.c=0;L.wn.b=0;}if(!had&&G.on&&!G.l4wTip){G.l4wTip=1;setTimeout(()=>uiToast('🩹 Mở 🧍 Cơ thể để rửa và băng vết thương.',''),900);}}
+  if(k==='bleed'||k==='wound'){if(!S.st.wound||!L.wn){if(k==='bleed')_as('wound');L.wn={c:0,b:0,h:0};}else{L.wn.c=0;L.wn.b=0;}if(!had&&G.on&&!G.l4wTip){G.l4wTip=1;setTimeout(()=>uiToast('🩹 Bị thương! Mở 🧍 Nhân vật → thẻ Thể trạng để rửa và băng vết thương.',''),900);}}
   if(k==='fracture'&&!had)L.fr={spl:0};if(k==='infect'&&!S.st.fever)_as('fever',12);};}
 function l4Resting(){return !!(G.sit||G.sleeping)&&!G.work&&!G.act;}
 function l4Sick(){return ['fever','infect','gut','cold','poison','fracture','heat','bleed'].some(k=>S.st[k]);}
@@ -231,7 +231,7 @@ function l4BodySlow(gh,dt){const L=l4S(),p=S.p,cozy=l4Cozy(),si=seasonIdx(),T=G.
 // thể lực tối đa, tốc độ làm việc, việc nặng
 {const _ms=maxStam;maxStam=function(){let m=_ms();const r=S.p.rest??100;if(r<30)m-=15;if(r<12)m-=15;if(S.st.infect)m-=20;if(S.st.gut)m-=15;if(S.st.heat)m-=20;if(S.st.fracture)m-=15;return Math.max(30,m);};}
 {const _ns=needSlow;needSlow=function(){let k=_ns();const r=S.p.rest??100,L=S.l4;if(r<30)k*=1.2;if(r<12)k*=1.25;if(!L4.lit)k*=1.3;if(L){if(L.sp>=72)k*=0.9;else if(L.sp<25)k*=1.2;}if(S.st.infect)k*=1.25;if(S.st.heat)k*=1.3;return k;};}
-{const _ng=needGate;needGate=function(heavy){const r=_ng(heavy);if(r)return r;if(heavy&&S.st.fracture&&!(S.l4&&S.l4.fr&&S.l4.fr.spl)&&!l4Cozy())return '🦴 Chân đang gãy, chưa bó nẹp: không làm việc nặng được. Bó nẹp tre (🧍 Cơ thể) rồi nghỉ ngơi.';return null;};}
+{const _ng=needGate;needGate=function(heavy){const r=_ng(heavy);if(r)return r;if(heavy&&S.st.fracture&&!(S.l4&&S.l4.fr&&S.l4.fr.spl)&&!l4Cozy())return '🦴 Chân đang gãy, chưa bó nẹp: không làm việc nặng được. Bó nẹp tre (🧍 Nhân vật) rồi nghỉ ngơi.';return null;};}
 {const _mv=move;move=function(dx,dz,m,dt,run){if(S.st.fracture){m*=S.l4&&S.l4.fr&&S.l4.fr.spl?0.72:0.5;run=false;}if(S.st.heat)m*=0.85;return _mv(dx,dz,m,dt,run);};}
 // ngã cao: có thể gãy xương
 {const _mt=moveTick;moveTick=function(dt){if(G.jumpReq&&S.st.fracture){G.jumpReq=0;if(G.t-(L4.jT||0)>3){L4.jT=G.t;uiToast('🦴 Chân đau, không nhảy được.','');}}const a0=P.air,v0=P.vy;_mt(dt);
@@ -359,7 +359,7 @@ function l4Scan(){let best=null,bd=1e9;for(const b of S.builds){if(b.prog!=null|
   return _ti(t);};}
 {const _as=actStart;actStart=function(t){if(!G.work&&t){if(t.type==='l4b'){const b=t.b;if(b.k==='paddy')return l4PadUse(b);if(b.k==='altar')return l4Offer(b);if(b.k==='tomb')return l4TombVisit(b);}
     if(t.type==='build'&&t.def&&t.def.farm&&t.b.prog==null){const b=t.b,c=S.crops[b.id];
-      if(!c){const tb=l4Tuber();if(tb){if(seasonIdx()===3){uiToast('Mùa đông đất lạnh cứng: chờ xuân hãy trồng.','bad');return;}return l4Work([['Cuốc hốc, vun luống','h3kdig',1.2,'step'],['Đặt củ giống, mầm hướng lên','h3kpick',0.8,'pick'],['Lấp đất, phủ rơm giữ ẩm','h3kdig',0.8,'step']],{sk:'farm',icon:tb},()=>{if(S.crops[b.id]||!invTake(tb,1))return;S.crops[b.id]={k:tb,p:0};cnt('cnt','plant');addXp('farm',3);cropShow(b);uiToast(`🌱 Đã trồng ${L4CROP[tb].n}. Đất ẩm, gần nước thì củ to.`,'good');uiHotbar();save();});}}
+      if(!c){const tb=l4Tuber();if(tb){return l4Work([['Cuốc hốc, vun luống','h3kdig',1.2,'step'],['Đặt củ giống, mầm hướng lên','h3kpick',0.8,'pick'],['Lấp đất, phủ rơm giữ ẩm','h3kdig',0.8,'step']],{sk:'farm',icon:tb},()=>{if(S.crops[b.id]||!invTake(tb,1))return;S.crops[b.id]={k:tb,p:0};cnt('cnt','plant');addXp('farm',3);cropShow(b);uiToast(`🌱 Đã trồng ${L4CROP[tb].n}. Đất ẩm, gần nước thì củ to.`,'good');uiHotbar();save();});}}
       else if(L4CROP[c.k]&&cropStage(c)>=3){return l4Work([['Cắt bớt tàu lá','h3pluck',0.8,'pick'],['Đào quanh gốc','h3kdig',1.4,'step'],['Moi củ, rũ đất','h3pluck',0.9,'pick']],{sk:'farm',icon:c.k},()=>{if(!S.crops[b.id])return;give(L4CROP[c.k].out(),[b.x,b.y+10,b.z]);delete S.crops[b.id];cnt('cnt','harvest');addXp('farm',6);cropShow(b);save();});}
       else if(L4CROP[c.k]){uiToast(`${L4CROP[c.k].n} mới được ${Math.round(c.p*100)}%.`,'');return;}}}
   return _as(t);};}
@@ -434,7 +434,7 @@ unwear=function(slot){const id=S.wear[slot];if(!id)return;if(!invFits(id,1)){uiT
 function l4WearTick(gh){const L=l4S(),rain=l4Rain()&&!underRoof(P.x,P.z),busy=!!(G.work||G.act);
   for(const slot in S.wear){const id=S.wear[slot],I=ITEMS[id];if(!I||!I.dur)continue;if(L.wr[slot]==null)L.wr[slot]=I.dur;const was=L.wr[slot];
     let k=1+(busy?0.4:0)+(rain?(I.rain?0.3:0.8):0)+(G.swim?1.5:0);if(I.mat==='bark'&&(rain||G.swim))k+=1.2;if(l4Cozy())k*=0.6;L.wr[slot]=Math.max(0,was-gh*k);
-    if(was>I.dur*0.2&&L.wr[slot]<=I.dur*0.2)uiToast(`🧵 ${I.n} đã sờn rách: vá lại kẻo hỏng (🧍 Cơ thể → Y phục).`,'');
+    if(was>I.dur*0.2&&L.wr[slot]<=I.dur*0.2)uiToast(`🧵 ${I.n} đã sờn rách: vá lại kẻo hỏng (🧍 Nhân vật → ô trang phục).`,'');
     if(L.wr[slot]<=0){delete S.wear[slot];delete L.wr[slot];invAdd('fiber',1);uiToast(`💔 ${I.n} rách bươm, không mặc được nữa.`,'bad');playerInit();save();}}}
 const L4FIX={bark:{barkCloth:1,fiber:1},cloth:{cloth:1,fiber:1},fur:{hide:1,rope:1},hide:{hide:1,fiber:1},leaf:{fiber:3}};
 function l4FixCost(id){return L4FIX[(ITEMS[id]||{}).mat]||{fiber:2};}
@@ -485,7 +485,7 @@ function l4BagPost(){const p=$('#panel');if(!p)return;p.querySelectorAll('.sl[da
     if(L4DUR[s.id]){const d=s.d??100;h+=`<p class="small">Độ bền: <b>${Math.round(d)}%</b> ${d<=0?'· <span class="warn">gãy cán</span>':d<=30?'· <span class="warn">lưỡi cùn</span>':''}</p>`;if(row)row.insertAdjacentHTML('beforeend',`${d>0&&d<100?`<button class="btn sm ghost" data-a="l4tfix" data-i="${sel}" data-k="sharp">Mài lưỡi</button>`:''}${d<60?`<button class="btn sm ghost" data-a="l4tfix" data-i="${sel}" data-k="haft">Gắn cán mới</button>`:''}`);}
     if(I.t==='wear'&&I.dur&&s.w!=null)h+=`<p class="small">Còn ${Math.round(s.w*100)}% độ bền.</p>`;if(h){if(row)row.insertAdjacentHTML('beforebegin',h);else det.insertAdjacentHTML('beforeend',h);}}
   const ws=p.querySelector('.wears');if(ws){ws.innerHTML=L4SLOT.map(([s,n,ic])=>l4WearRow(s,n,ic)).join('');ws.classList.add('l4ws');const h3=ws.previousElementSibling;if(h3&&h3.tagName==='H3')h3.textContent=`Đang mặc · ấm +${Math.round(wearWarm())} · che mưa ${Math.round(l4RainProt()*100)}%`;}}
-{const _jh=journalHtml;journalHtml=function(){return `<div class="row l4jl"><button class="btn sm" data-a="l4go" data-t="guide">📖 Hướng dẫn sinh tồn</button><button class="btn sm ghost" data-a="l4go" data-t="age">🏺 Các thời đại</button><button class="btn sm ghost" data-a="l4go" data-t="body">🧍 Cơ thể</button></div>`+_jh();};}
+{const _jh=journalHtml;journalHtml=function(){return `<div class="row l4jl"><button class="btn sm" data-a="l4go" data-t="guide">📖 Hướng dẫn sinh tồn</button><button class="btn sm ghost" data-a="l4go" data-t="age">🏺 Các thời đại</button><button class="btn sm ghost" data-a="l4go" data-t="body">🧍 Nhân vật</button></div>`+_jh();};}
 // hình người: đánh dấu chỗ đau
 function l4Svg(){const st=S.st,L=S.l4||{},red='#e0533a',m=[];const dot=(x,y,c,t)=>m.push(`<circle cx="${x}" cy="${y}" r="7" fill="${c}" fill-opacity=".85" stroke="#fff" stroke-width="1.5"><title>${t}</title></circle>`);
   if(st.fever||st.infect||st.heat)m.push(`<circle cx="50" cy="20" r="17" fill="${st.heat?'#ffc23a':'#ff7a4a'}" fill-opacity=".35"/>`);if(st.cold)m.push(`<circle cx="50" cy="70" r="40" fill="#7fd0ff" fill-opacity=".18"/>`);
@@ -524,7 +524,7 @@ function l4AgeHtml(){const cur=S.age||0;return `<p class="small muted">Tổ tiê
     return `<div class="l4age ${st}"><div class="spread"><b>${i<cur?'✔':i===cur?'➤':'○'} ${esc(A.n)}</b><span class="small muted">${i<cur?'đã qua':i===cur?'hiện tại':'sắp tới'}</span></div><p class="small">${esc(A.d)}</p>
       ${X.need.length?`<div class="small l4need">Điều kiện: ${X.need.map(([t,f])=>{let ok=false;try{ok=i<=cur||f();}catch(e){}return `<span class="${ok?'l4ok':'l4no'}">${ok?'✓':'○'} ${esc(t)}</span>`;}).join(' ')}</div>`:''}<ul class="tips">${X.tech.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`;}).join('');}
 const L4GUIDE=[
-  ['🧍 Cơ thể','Theo dõi máu, no, nước, thể lực, thân nhiệt, tỉnh táo, sạch sẽ và tinh thần ở bảng 🧍 Cơ thể. Thanh nào xuống thấp sẽ nhấp nháy. Ăn chín, uống sôi, ngủ đủ, mặc ấm là gốc của sức khỏe.'],
+  ['🧍 Nhân vật','Theo dõi máu, no, nước, thể lực, thân nhiệt, tỉnh táo, sạch sẽ và tinh thần ở 🧍 Nhân vật → Thể trạng. Thanh nào xuống thấp sẽ nhấp nháy. Ăn chín, uống sôi, ngủ đủ, mặc ấm là gốc của sức khỏe.'],
   ['🩹 Vết thương','Bị thú cào, ngã, đứt tay sẽ có vết thương hở. Rửa bằng nước đã đun sôi để nguội, rồi băng lá rau má. Để bẩn quá 3 giờ dễ nhiễm trùng: sưng mủ, sốt, mất máu. Chữa nhiễm trùng bằng cao nghệ nha đam và nằm nghỉ.'],
   ['🦴 Gãy xương','Ngã từ chỗ cao (vách đá, sàn nhà, cây) có thể gãy chân: đi khập khiễng, không chạy nhảy, không làm việc nặng. Làm Nẹp tre (tre + sợi, hoặc 4 cành + sợi), bó nẹp rồi nghỉ ngơi: ngồi, ngủ thì xương liền nhanh.'],
   ['🤒 Bệnh tật','Sốt (muỗi đốt, nhiễm trùng): uống thuốc ngải, phải nghỉ, cố làm thì lâu khỏi. Cảm lạnh (rét lâu): trà gừng, cháo gừng. Tiêu chảy (nước suối chưa đun): nước than củi, cháo gừng. Ngộ độc (đồ ôi, nấm độc, thịt sống): nước bạc hà. Say nắng (trưa hè không nón): vào bóng râm, uống nước. Thầy lang Bà Mo ở làng chữa được mọi bệnh.'],
