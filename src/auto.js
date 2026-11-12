@@ -40,8 +40,12 @@ function aqCtx(x0,z0,x1,z1,swim){const col=[];for(const s of (typeof SCOL!=='und
 function aqWall(ctx,ax,az,bx,bz){if(!ctx||!ctx.bk||!ctx.bk.size||typeof solCross!=='function')return false;const L=Math.hypot(bx-ax,bz-az),n=Math.max(1,Math.ceil(L/40));
   for(let i=0;i<n;i++){const x0=ax+(bx-ax)*i/n,z0=az+(bz-az)*i/n,x1=ax+(bx-ax)*(i+1)/n,z1=az+(bz-az)*(i+1)/n;if(!ctx.bk.has(Math.floor(x0/80)+','+Math.floor(z0/80))&&!ctx.bk.has(Math.floor(x1/80)+','+Math.floor(z1/80)))continue;
     const py=hAt(x0,z0)+2;let rc=solRects((x0+x1)/2,(z0+z1)/2,py);/* nới chữ nhật ra 8 đơn vị: thân người */rc=rc.map(r=>[r[0]-8,r[1]-8,r[2]+8,r[3]+8]);if(solCross(x0,z0,x1,z1,py,solSegs(x0,z0,x1,z1,py),rc))return true;}return false;}
-function aqPlanStart(sx,sz,gx,gz,r,swim){const D=Math.hypot(gx-sx,gz-sz),C=Math.max(20,Math.min(60,D/110)),M=Math.max(320,D*0.3);
-  const x0=Math.min(sx,gx)-M,z0=Math.min(sz,gz)-M,W=Math.ceil((Math.abs(gx-sx)+2*M)/C)+1,H=Math.ceil((Math.abs(gz-sz)+2*M)/C)+1,N=W*H;
+// chỉ xét TƯỜNG/VÁCH/RÀO (không xét khối đặc như lều, bàn: đích thường nằm ngay trong khối đó)
+function aqSegCut(ctx,ax,az,bx,bz){try{if(!ctx||!ctx.bk||!ctx.bk.size||typeof solSegs!=='function'||Math.hypot(bx-ax,bz-az)<6)return false;const py=hAt(ax,az)+2;for(const s of solSegs(ax,az,bx,bz,py))if(solX(ax,az,bx,bz,s[0],s[1],s[2],s[3]))return true;}catch(e){}return false;}
+function aqPlanStart(sx,sz,gx,gz,r,swim){const D=Math.hypot(gx-sx,gz-sz),M=Math.max(320,D*0.3);let C=Math.max(20,Math.min(60,D/110)),x0=Math.min(sx,gx)-M,z0=Math.min(sz,gz)-M;
+  /* có công trình: lưới tìm đường phải khớp ô xây (40) để luồn được qua cửa, cổng rào (lối hẹp 26). Lưới thưa 60 lệch ô là không bao giờ thấy lối cửa → đâm vào tường rồi kẹt. */
+  try{if(typeof BYID!=='undefined'&&BYID.size){C=C<=24?20:40;x0=Math.floor(x0/40)*40+20;z0=Math.floor(z0/40)*40+20;}}catch(e){}
+  const W=Math.ceil((Math.abs(gx-sx)+2*M)/C)+1,H=Math.ceil((Math.abs(gz-sz)+2*M)/C)+1,N=W*H;
   const pl={sx,sz,gx,gz,r,C,x0,z0,W,H,g:new Float32Array(N).fill(Infinity),par:new Int32Array(N).fill(-1),cl:new Uint8Array(N),cost:new Float32Array(N).fill(-1),hh:new Float32Array(N),
     hi:[],hf:[],exp:0,ok:false,fail:false,pts:null,ctx:aqCtx(x0,z0,x0+W*C,z0+H*C,swim)};
   const si=clamp(Math.round((sx-x0)/C),0,W-1),sj=clamp(Math.round((sz-z0)/C),0,H-1),s=sj*W+si;pl.s=s;pl.g[s]=0;pl.cost[s]=1;pl.hh[s]=hAt(sx,sz);aqHPush(pl,s,0);return pl;}
@@ -51,7 +55,7 @@ const AQ_NB=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
 function aqPlanStep(pl,budget){if(pl.ok||pl.fail)return;const {W,H,C,x0,z0,gx,gz}=pl,lim=(pl.r||0)+C*0.8;
   while(budget-->0){if(!pl.hi.length){pl.fail=true;return;}const i=aqHPop(pl);if(pl.cl[i])continue;pl.cl[i]=1;pl.exp++;if(pl.exp>60000){pl.fail=true;return;}
     const ci=i%W,cj=(i/W)|0,x=x0+ci*C,z=z0+cj*C;
-    if(Math.hypot(gx-x,gz-z)<=lim){pl.ok=true;const pts=[];let k=i;while(k>=0){pts.push([x0+(k%W)*C,z0+((k/W)|0)*C]);k=pl.par[k];}pts.reverse();pts[0]=[pl.sx,pl.sz];pl.pts=pts;return;}
+    if(Math.hypot(gx-x,gz-z)<=lim&&!aqSegCut(pl.ctx,x,z,gx,gz)){pl.ok=true;const pts=[];let k=i;while(k>=0){pts.push([x0+(k%W)*C,z0+((k/W)|0)*C]);k=pl.par[k];}pts.reverse();pts[0]=[pl.sx,pl.sz];pl.pts=pts;return;}
     for(const [di,dj] of AQ_NB){const ni=ci+di,nj=cj+dj;if(ni<0||nj<0||ni>=W||nj>=H)continue;const n=nj*W+ni;if(pl.cl[n])continue;const nx=x0+ni*C,nz=z0+nj*C;
       let c=pl.cost[n];if(c<0){c=aqCost(nx,nz,pl.ctx);pl.cost[n]=c;pl.hh[n]=hAt(nx,nz);}if(!isFinite(c))continue;
       const L=(di&&dj)?C*1.4142:C;if(Math.abs(pl.hh[n]-pl.hh[i])/L>0.95&&pl.exp>10)continue;// vách dốc / mép vực
@@ -155,7 +159,7 @@ const AUJ={
     j.c0=haveCount(out);j.fl=j.fl||0;craft(r,1);if(!G.work){if(haveCount(out)>j.c0)return j.until?AQ_RUN:AQ_DONE;return aqFail('Không làm được '+nm+'.');}j.st='wait';return AQ_RUN;},
   goto(j){const d=aqD(j.x,j.z);if(d<=j.r){AQ.path=null;return AQ_DONE;}
     if(!j.far&&d>aqCfg().max*2.4)return aqFail('Xa quá (vượt tầm xa đã đặt).');
-    if(M3&&(M3.st==='climb'||M3.st==='hang')){if(P.y-hAt(P.x,P.z)<24&&typeof m3drop==='function')m3drop();else{AQ.bad.push({x:P.x,z:P.z,t:G.t+90});return aqFail('Đang bám vách: bạn tự leo xuống nhé.');}}
+    if(M3&&(M3.st==='climb'||M3.st==='hang')){/* tự làm mà lỡ bám vào vách/mép đá: tự buông hoặc đu lên rồi đi tiếp, không bỏ nhiệm vụ */AQ.bad.push({x:P.x,z:P.z,t:G.t+90});try{if(P.y-hAt(P.x,P.z)>=80&&M3.st==='hang'&&typeof m3hangUp==='function')m3hangUp();if((M3.st==='climb'||M3.st==='hang')&&typeof m3drop==='function')m3drop();}catch(e){}if(M3.st==='climb'||M3.st==='hang')return aqFail('Đang bám vách: bạn tự leo xuống nhé.');}
     if(!j.pts){if(!j.pl){j.pl=aqPlanStart(P.x,P.z,j.x,j.z,j.r,j.swim);}aqPlanStep(j.pl,650);
       if(j.pl.fail){j.pl=null;if(!j.swim){j.swim=1;return AQ_RUN;}return aqFail('Không tìm được đường tới đó (nước sâu, vách đá).');}
       if(!j.pl.ok)return AQ_RUN;j.pts=aqSmooth(j.pl.pts,j.pl.ctx);j.ctx=j.pl.ctx;j.pl=null;j.wi=1;j.lp=[P.x,P.z];j.lt=G.t;j.best=d;AQ.path=j.pts.concat([[j.x,j.z]]);}
