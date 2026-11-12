@@ -18287,11 +18287,11 @@ function mpAllowAt(uid,x,z){if(landFar())return true;const c=MP.claims[uid];if(c
   for(const id in MP.clans){if(id===mc)continue;const z2=MP.clans[id].zone;if(z2&&Math.hypot(x-z2.x,z-z2.z)<z2.r-4)return false;}return true;}
 /* ---------- chia sẻ công trình của mình (gộp ghi: 5 giây sau thay đổi cuối) ---------- */
 function mpEncodeMine(){const a=[];const R=v=>Math.round(v*10)/10;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const b of S.builds){if(b.prog!=null||b.remote||!pieceDef(b.k))continue;if(b.x<x0)x0=b.x;if(b.x>x1)x1=b.x;if(b.z<z0)z0=b.z;if(b.z>z1)z1=b.z;a.push(b.id+','+b.k+','+R(b.x)+','+R(b.y)+','+R(b.z)+','+(Math.round((b.r||0)*100)/100)+','+((b.lv|0)||0));if(a.length>=MP_BCAP)break;}return {s:a.join(';'),n:a.length,h:a.length?[Math.round((x0+x1)/2),Math.round((z0+z1)/2),Math.round(Math.hypot(x1-x0,z1-z0)/2)]:null};}
-function mpSigTick(){if(MP.ro)return;const e=mpEncodeMine(),now=mpNow();if(e.s!==MP.bSig){MP.bSig=e.s;MP.bSigT=now;return;}if(MP.bDone===e.s||MP.bBusy||now-MP.bSigT<5000)return;
+function mpSigTick(){if(MP.ro)return;const e=mpEncodeMine(),now=mpNow();if(typeof mpFlatStr==='function')e.s+='#'+mpFlatStr();/* san nền mới cũng phải đẩy lên */if(e.s!==MP.bSig){MP.bSig=e.s;MP.bSigT=now;return;}if(MP.bDone===e.s||MP.bBusy||now-MP.bSigT<5000)return;
   if(MP.bDone===null&&!e.n&&!MP.bHad){MP.bDone=e.s;return;}mpPushBuilds(e);}
 async function mpPushBuilds(e){MP.bBusy=true;const base=mpBPath(MP.uid),ver=mpNow().toString(36)+Math.random().toString(36).slice(2,6);
-  try{let parts=0,d=e.s;if(d.length>MP_DOCMAX){parts=Math.ceil(d.length/MP_DOCMAX);for(let i=0;i<parts;i++)await MP.db.doc(base+'/p/'+i).set({ver,s:d.slice(i*MP_DOCMAX,(i+1)*MP_DOCMAX)});d='';}
-    await MP.db.doc(base).set({v:1,w:S.seed,d,parts,ver,n:e.n,at:mpNow()});MP.bDone=e.s;MP.bInfo={n:e.n,at:mpNow()};MP.dirty.ui=true;
+  try{let parts=0,d=e.s.split('#')[0];if(d.length>MP_DOCMAX){parts=Math.ceil(d.length/MP_DOCMAX);for(let i=0;i<parts;i++)await MP.db.doc(base+'/p/'+i).set({ver,s:d.slice(i*MP_DOCMAX,(i+1)*MP_DOCMAX)});d='';}
+    await MP.db.doc(base).set({v:1,w:S.seed,d,parts,ver,n:e.n,at:mpNow(),fl:typeof mpFlatStr==='function'?mpFlatStr():''});MP.bDone=e.s;MP.bInfo={n:e.n,at:mpNow()};MP.dirty.ui=true;
     // ghi "chỗ ở" (tâm + bán kính cụm công trình) vào hồ sơ để người khác biết đến gần thì tải nhà mình
     if(!landFar()&&MP.me&&JSON.stringify(MP.me.h||null)!==JSON.stringify(e.h||null))mpSaveMe({h:e.h});
     /* vùng xa: ghi chỗ có công trình theo từng vùng để người khác tới gần thì tải (kể cả khi mình vắng) */
@@ -18308,7 +18308,7 @@ function mpNearTick(){const now=new Map();const add=(u,d)=>{if(u===MP.uid||!mpId
 async function mpBuildSnap(u,s,sn){if(MP.bsub.get(u)!==s)return;if(!sn.exists){MP.braw.set(u,[]);mpRemoteApply(u);return;}const d=sn.data()||{};if(d.w!==S.seed){MP.braw.set(u,[]);mpRemoteApply(u);return;}
   const ver=typeof d.ver==='string'?d.ver.slice(0,40):'';if(ver&&ver===s.ver)return;let str=typeof d.d==='string'?d.d:'';const parts=mpNum(d.parts,0,40)?d.parts|0:0;
   if(parts){str='';for(let i=0;i<parts;i++){const p=await mpGetDoc(mpBPath(u)+'/p/'+i);if(!p||p.ver!==ver||typeof p.s!=='string')return;str+=p.s;}if(MP.bsub.get(u)!==s)return;}
-  s.ver=ver;MP.braw.set(u,mpDecode(str));mpRemoteApply(u);}
+  s.ver=ver;MP.braw.set(u,mpDecode(str));try{if(typeof dbFlats==='function')dbFlats(u,d.fl,MP.braw.get(u));}catch(e){console.warn('đồng bộ nền',e);}mpRemoteApply(u);}
 function mpDecode(str){const out=[];if(!str)return out;const L=str.split(';');for(let i=0;i<L.length&&out.length<MP_BCAP;i++){const f=L[i].split(',');if(f.length!==7)continue;
     const id=+f[0],k=f[1],x=+f[2],y=+f[3],z=+f[4],r=+f[5],lv=+f[6];if(!(id>=0&&id<1e9&&Math.floor(id)===id)||!/^[A-Za-z0-9_]{1,40}$/.test(k)||!pieceDef(k))continue;
     if(!mpNum(x,-WSIZE,WSIZE)||!mpNum(z,-WSIZE,WSIZE)||!mpNum(y,-800,4000)||!mpNum(r,0,4)||!mpNum(lv,0,LVMAX)||Math.floor(lv)!==lv)continue;out.push({lid:id,k,x,y,z,r,lv});}return out;}
@@ -19425,6 +19425,31 @@ AUG['Mời một người về ở cùng']=()=>({k:'folk'});delete AQ_GUIDEONLY[
           if(best){j.bw.push(best);j.cf=null;aqPush({k:'goto',x:best[0],z:best[1],r:150,far:1,lab:'Tìm chỗ uống nước khác'},j);return AQ_RUN;}}}}catch(e){}return r;};}
 // không tìm được chỗ đặt công trình / bãi san nền: coi như một lần hỏng (thử lại, rồi gác làm mục khác) thay vì lặng lẽ dừng và hiện thẻ chỉ dẫn
 for(const k of ['place','flat']){const _f=AUJ[k];AUJ[k]=function(j){const r=_f.apply(this,arguments);if(r&&r.guide&&r.fail&&AQ.gi>=0)return aqFail(r.fail);return r;};}
+/* ===================== ĐỒNG BỘ NỀN NHÀ VÀ CÂY CỎ GIỮA NGƯỜI CHƠI =====================
+   Trước: công trình được chia sẻ, nhưng việc SAN NỀN và DỌN CÂY CỎ chỉ lưu ở máy người xây. Sang xem nhà người khác thấy cỏ, bụi, cây mọc xuyên sàn.
+   Giờ:
+   - Mỗi người gửi kèm danh sách khu đã san (tâm, bán kính, độ cao) cùng tài liệu công trình. Máy người xem áp y hệt: mặt đất phẳng, đất nện, không cỏ.
+   - Người chưa san nền (hoặc bản cũ chưa gửi): tự suy ra một khoảng "đất nện" quanh cụm sàn nhà của họ để cỏ không mọc trong nhà.
+   - Cây, bụi, đá nhỏ nằm trong chân sàn, chân tường, dưới đồ đạc của người khác được ẩn ở máy người xem (không cho hái, không va chạm).
+   Chỉ là hiển thị ở máy người xem: không đổi bản lưu của ai. */
+const DB={flats:[],by:new Map(),hid:new Set()};
+function mpFlatStr(){try{return (S.flat||[]).slice(-12).map(f=>[Math.round(f.x),Math.round(f.z),Math.round(f.r),Math.round(f.h*10)/10].join(',')).join(';');}catch(e){return '';}}
+function dbHide(x,z,r){let ch=0;try{for(const i of near(x,z,r+24)){const q=RES[i];if(!q||q.st!==0||q.lock)continue;const D=RT[q.t];if(Math.hypot(q.x-x,q.z-z)>r+(D.pass?0:(D.r||4)*0.5))continue;q.st=1;q.rmt=1;DB.hid.add(q.i);try{resShow(q);}catch(e){}ch=1;}}catch(e){}return ch;}
+function dbFlats(u,str,raw){const L=[];if(typeof str==='string'&&str)for(const p of str.split(';').slice(0,12)){const f=p.split(',').map(Number);if(f.length!==4||!f.every(isFinite))continue;if(Math.abs(f[0])>WSIZE||Math.abs(f[1])>WSIZE||f[2]<20||f[2]>200||f[3]<-50||f[3]>2000)continue;L.push({x:f[0],z:f[1],r:f[2],h:f[3],u});}
+  // chưa có khu san nào phủ cụm sàn: suy ra khoảng đất nện quanh sàn (không đổi độ cao)
+  try{const F=(raw||[]).filter(e=>{const d=pieceDef(e.k);return d&&d.kind==='floor'&&!(e.lv>0);});if(F.length){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const e of F){x0=Math.min(x0,e.x);x1=Math.max(x1,e.x);z0=Math.min(z0,e.z);z1=Math.max(z1,e.z);}const cx=(x0+x1)/2,cz=(z0+z1)/2,r=Math.min(200,Math.hypot(x1-x0,z1-z0)/2+46);
+      if(!L.some(f=>Math.hypot(f.x-cx,f.z-cz)<f.r*0.7))L.push({x:Math.round(cx),z:Math.round(cz),r:Math.round(r),h:null,u});}}catch(e){}
+  const key=L.map(f=>[f.x,f.z,f.r,f.h].join(',')).join(';');if(DB.by.get(u)===key)return;DB.by.set(u,key);DB.flats=DB.flats.filter(f=>f.u!==u).concat(L);
+  let ch=0;for(const f of L){if(f.h!=null&&typeof HG!=='undefined'&&!(S.flat||[]).some(m=>Math.hypot(m.x-f.x,m.z-f.z)<m.r+f.r)){try{flatApply(f);}catch(e){}}ch|=dbHide(f.x,f.z,f.r);
+    try{for(const i of near(f.x,f.z,f.r*1.3+30)){const q=RES[i];if(!q||q.wy!=null||q.st!==0)continue;const ny=hAt(q.x,q.z)-1.2;if(Math.abs(ny-q.y)>0.3){q.y=ny;resShow(q);ch=1;}}}catch(e){}try{landRebuild(f);}catch(e){}}
+  if(ch)try{RI.forEach(v=>v.api.flush());}catch(e){}}
+// màu đất nện + không cỏ: tính cả khu của người khác
+{const _tc=terrainColors;terrainColors=function(){if(!DB.flats.length)return _tc.apply(this,arguments);const mine=S.flat;S.flat=(mine||[]).concat(DB.flats);try{return _tc.apply(this,arguments);}finally{S.flat=mine;}};}
+// cây cỏ dưới chân công trình của người khác
+{const _sa=structAdd;structAdd=function(b,quiet){const r=_sa.apply(this,arguments);try{if(b&&b.remote){const d=pieceDef(b.k);if(d){const fp=d.fp||[1,1],rad=d.kind==='edge'?16:d.kind==='corner'?8:d.kind==='roof'?0:Math.max(fp[0],fp[1])*CELL*0.62;if(rad&&dbHide(b.x,b.z,rad))DB.fl=1;}}}catch(e){}return r;};}
+setInterval(()=>{try{if(DB.fl){DB.fl=0;RI.forEach(v=>v.api.flush());}}catch(e){}},1500);
+// cây đã ẩn vì nhà người khác: không lưu, không cho mọc lại trong phiên
+{const _sv=save;save=function(){return _sv.apply(this,arguments);};}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.

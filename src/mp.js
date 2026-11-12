@@ -245,11 +245,11 @@ function mpAllowAt(uid,x,z){if(landFar())return true;const c=MP.claims[uid];if(c
   for(const id in MP.clans){if(id===mc)continue;const z2=MP.clans[id].zone;if(z2&&Math.hypot(x-z2.x,z-z2.z)<z2.r-4)return false;}return true;}
 /* ---------- chia sẻ công trình của mình (gộp ghi: 5 giây sau thay đổi cuối) ---------- */
 function mpEncodeMine(){const a=[];const R=v=>Math.round(v*10)/10;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const b of S.builds){if(b.prog!=null||b.remote||!pieceDef(b.k))continue;if(b.x<x0)x0=b.x;if(b.x>x1)x1=b.x;if(b.z<z0)z0=b.z;if(b.z>z1)z1=b.z;a.push(b.id+','+b.k+','+R(b.x)+','+R(b.y)+','+R(b.z)+','+(Math.round((b.r||0)*100)/100)+','+((b.lv|0)||0));if(a.length>=MP_BCAP)break;}return {s:a.join(';'),n:a.length,h:a.length?[Math.round((x0+x1)/2),Math.round((z0+z1)/2),Math.round(Math.hypot(x1-x0,z1-z0)/2)]:null};}
-function mpSigTick(){if(MP.ro)return;const e=mpEncodeMine(),now=mpNow();if(e.s!==MP.bSig){MP.bSig=e.s;MP.bSigT=now;return;}if(MP.bDone===e.s||MP.bBusy||now-MP.bSigT<5000)return;
+function mpSigTick(){if(MP.ro)return;const e=mpEncodeMine(),now=mpNow();if(typeof mpFlatStr==='function')e.s+='#'+mpFlatStr();/* san nền mới cũng phải đẩy lên */if(e.s!==MP.bSig){MP.bSig=e.s;MP.bSigT=now;return;}if(MP.bDone===e.s||MP.bBusy||now-MP.bSigT<5000)return;
   if(MP.bDone===null&&!e.n&&!MP.bHad){MP.bDone=e.s;return;}mpPushBuilds(e);}
 async function mpPushBuilds(e){MP.bBusy=true;const base=mpBPath(MP.uid),ver=mpNow().toString(36)+Math.random().toString(36).slice(2,6);
-  try{let parts=0,d=e.s;if(d.length>MP_DOCMAX){parts=Math.ceil(d.length/MP_DOCMAX);for(let i=0;i<parts;i++)await MP.db.doc(base+'/p/'+i).set({ver,s:d.slice(i*MP_DOCMAX,(i+1)*MP_DOCMAX)});d='';}
-    await MP.db.doc(base).set({v:1,w:S.seed,d,parts,ver,n:e.n,at:mpNow()});MP.bDone=e.s;MP.bInfo={n:e.n,at:mpNow()};MP.dirty.ui=true;
+  try{let parts=0,d=e.s.split('#')[0];if(d.length>MP_DOCMAX){parts=Math.ceil(d.length/MP_DOCMAX);for(let i=0;i<parts;i++)await MP.db.doc(base+'/p/'+i).set({ver,s:d.slice(i*MP_DOCMAX,(i+1)*MP_DOCMAX)});d='';}
+    await MP.db.doc(base).set({v:1,w:S.seed,d,parts,ver,n:e.n,at:mpNow(),fl:typeof mpFlatStr==='function'?mpFlatStr():''});MP.bDone=e.s;MP.bInfo={n:e.n,at:mpNow()};MP.dirty.ui=true;
     // ghi "chỗ ở" (tâm + bán kính cụm công trình) vào hồ sơ để người khác biết đến gần thì tải nhà mình
     if(!landFar()&&MP.me&&JSON.stringify(MP.me.h||null)!==JSON.stringify(e.h||null))mpSaveMe({h:e.h});
     /* vùng xa: ghi chỗ có công trình theo từng vùng để người khác tới gần thì tải (kể cả khi mình vắng) */
@@ -266,7 +266,7 @@ function mpNearTick(){const now=new Map();const add=(u,d)=>{if(u===MP.uid||!mpId
 async function mpBuildSnap(u,s,sn){if(MP.bsub.get(u)!==s)return;if(!sn.exists){MP.braw.set(u,[]);mpRemoteApply(u);return;}const d=sn.data()||{};if(d.w!==S.seed){MP.braw.set(u,[]);mpRemoteApply(u);return;}
   const ver=typeof d.ver==='string'?d.ver.slice(0,40):'';if(ver&&ver===s.ver)return;let str=typeof d.d==='string'?d.d:'';const parts=mpNum(d.parts,0,40)?d.parts|0:0;
   if(parts){str='';for(let i=0;i<parts;i++){const p=await mpGetDoc(mpBPath(u)+'/p/'+i);if(!p||p.ver!==ver||typeof p.s!=='string')return;str+=p.s;}if(MP.bsub.get(u)!==s)return;}
-  s.ver=ver;MP.braw.set(u,mpDecode(str));mpRemoteApply(u);}
+  s.ver=ver;MP.braw.set(u,mpDecode(str));try{if(typeof dbFlats==='function')dbFlats(u,d.fl,MP.braw.get(u));}catch(e){console.warn('đồng bộ nền',e);}mpRemoteApply(u);}
 function mpDecode(str){const out=[];if(!str)return out;const L=str.split(';');for(let i=0;i<L.length&&out.length<MP_BCAP;i++){const f=L[i].split(',');if(f.length!==7)continue;
     const id=+f[0],k=f[1],x=+f[2],y=+f[3],z=+f[4],r=+f[5],lv=+f[6];if(!(id>=0&&id<1e9&&Math.floor(id)===id)||!/^[A-Za-z0-9_]{1,40}$/.test(k)||!pieceDef(k))continue;
     if(!mpNum(x,-WSIZE,WSIZE)||!mpNum(z,-WSIZE,WSIZE)||!mpNum(y,-800,4000)||!mpNum(r,0,4)||!mpNum(lv,0,LVMAX)||Math.floor(lv)!==lv)continue;out.push({lid:id,k,x,y,z,r,lv});}return out;}
