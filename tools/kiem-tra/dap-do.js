@@ -1,0 +1,35 @@
+const {chromium}=require('playwright');const tag=process.argv[2]||'a';
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});
+const c=await b.newContext({viewport:{width:393,height:852},deviceScaleFactor:2,isMobile:true,hasTouch:true,userAgent:'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36'});
+await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-b');localStorage.setItem('ldtt-nohd','1')}catch(e){}});const p=await c.newPage();const logs=[];p.on('pageerror',e=>logs.push('ERR '+e.message));
+await p.goto('file://'+require('path').resolve(__dirname,'../../index.html'));await p.waitForTimeout(5000);
+const click=async t=>{await p.evaluate(t=>{const b=[...document.querySelectorAll('button')].filter(b=>b.offsetParent).find(b=>b.innerText.includes(t));b&&b.click()},t);await p.waitForTimeout(1500)};
+await click('Tạo nhân vật mới');await click('Bắt đầu');await p.waitForFunction(()=>typeof G==='object'&&G.on&&G.animals&&G.animals.length&&P.model,null,{timeout:240000});await p.waitForTimeout(9000);
+const run=async(f)=>{const r=await p.evaluate(f);await p.waitForTimeout(1700);return r;};
+const o={};
+o.a=await run(()=>{try{const y0=hAt(P.x+40,P.z);const b={id:9700,k:'workbench',x:P.x+40,y:y0,z:P.z,r:0,lv:0};S.builds.push(b);structAdd(b,true);give({stone:60,flint:30,hide:20,fiber:40,bone:10});give({bronze:20,iron:10,charcoal:12});S.wear=Object.assign({},S.wear,{head:'leafHat',body:'barkTunic'});equip('axe');
+   h4Open&&h4Open();return 'opened'}catch(e){return String(e)}});
+o.b=await run(()=>{const t=document.querySelector('[data-h4="tab"][data-t="en"]');if(t)t.click();const e=document.getElementById('dpw');return {tab:!!t,open:!!(e&&!e.hidden),n:document.querySelectorAll('#dpw .dp-i').length,why:DP.map(d=>d[0]+':'+dpWhy(d[0])).join(' | ')};});
+window_r=Math.random;
+o.c=await run(()=>{window.__r=Math.random;Math.random=()=>0;dpTry('wp');return 1});
+o.c2=await run(()=>({lv:dpLv('wp'),res:DPU.res&&DPU.res.txt}));
+for(let i=0;i<10;i++){await run(()=>{dpTry('wp');return 1});}
+o.d=await run(()=>({lv:dpLv('wp'),en:JSON.stringify(heroS().en),en2:JSON.stringify(heroS().en2),glow:P.tool&&P.tool.userData.dpG,rate:dpRate('wp',dpLv('wp')+1),cost:JSON.stringify(dpCost('wp',dpLv('wp')+1)),why:dpWhy('wp')}));
+o.e=await run(()=>{give({stone:60,flint:30,iron:10,charcoal:10,bronze:10});Math.random=()=>0.999;dpTry('wp');return 1});
+o.e2=await run(()=>({lv:dpLv('wp'),luck:heroS().luck.wp,res:DPU.res&&DPU.res.txt}));
+o.f=await run(()=>{give({dpStone:1,stone:40,flint:20,iron:6,charcoal:6,bronze:6});dpTry('wp');return 1});
+o.f2=await run(()=>({lv:dpLv('wp'),luck:heroS().luck.wp,stone:invCount('dpStone'),res:DPU.res&&DPU.res.txt,rate:dpRate('wp',dpLv('wp')+1)}));
+o.g=await run(()=>{Math.random=()=>0;dpTry('hd');dpTry('bd');return {def:heroDef().toFixed(3),warm:wearWarm(),stam:maxStam()}});
+o.g2=await run(()=>{dpTry('bd');return 1});o.g3=await run(()=>({hd:dpLv('hd'),bd:dpLv('bd'),def:heroDef().toFixed(3),warm:wearWarm(),stam:maxStam(),ft:dpWhy('ft')}));
+const o2={};
+o2.a=await run(()=>{dpSet('wp',11);heroS().luck.wp=0;give({stone:80,flint:40,iron:12,charcoal:12,bronze:12});invTake('dpStone',invCount('dpStone'));Math.random=()=>0.999;dpTry('wp');return dpCost('wp',12)});
+o2.b=await run(()=>({lv:dpLv('wp'),res:DPU.res&&DPU.res.txt,glow:P.tool.userData.dpG}));
+o2.c=await run(()=>{dpSet('wp',11);give({dpStone:2});dpTry('wp');return 1});
+o2.d=await run(()=>({lv:dpLv('wp'),stone:invCount('dpStone'),res:DPU.res&&DPU.res.txt}));
+o2.e=await run(()=>{dpSet('wp',14);Math.random=()=>0;give({stone:80,flint:40,iron:12,charcoal:12,bronze:12});dpTry('wp');return 1});
+o2.f=await run(()=>({lv:dpLv('wp'),en:JSON.stringify(heroS().en),en2:JSON.stringify(heroS().en2),glow:P.tool.userData.dpG,why:dpWhy('wp'),res:DPU.res&&DPU.res.txt}));
+const o3=await run(()=>{try{const L=ltS();L.list.push({id:++L.seq,k:'monkey',n:'Khỉ con',lv:1,st:0,xp:0});S.mounts=[{id:1,k:'horse',n:'Ngựa thử',lv:1}];give({meatCooked:5,bone:3,hide:2,berry:4,grain:2,banana:1});dpDraw();const b1=document.querySelector('#dpw [data-dp=ltstar]'),b2=document.querySelector('#dpw [data-dp=mtfeed]');if(b1)b1.click();const b3=document.querySelector('#dpw [data-dp=mtfeed]');if(b3)b3.click();return {st:L.list[L.list.length-1].st,mlv:S.mounts[0].lv,btn:!!b1&&!!b2,pw:heroPower()>0};}catch(e){return {err:String(e)}}});
+const okAll=o.b&&o.b.open&&o.b.n===9&&o.c2.lv===1&&o.e2.luck===1&&o.g3.hd===1&&o.g3.bd===1&&o2.b.lv===10&&o2.d.lv===11&&o2.d.stone===1&&o2.f.lv===15&&o2.f.glow===15&&o3.st===1&&o3.mlv===2&&o3.btn;
+console.log(okAll?'DP-DAT':'DP-HONG '+JSON.stringify({o,o2,o3}).slice(0,900));
+
+console.log(logs.slice(0,5).join('\n'));await b.close();})();
