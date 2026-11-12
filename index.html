@@ -18936,6 +18936,13 @@ function solDrTop(b,x,z){const [lx,lz]=solDrLoc(b,x,z);if(Math.abs(lx)<35&&Math.
 {const _c=collide;collide=function(nx,nz){let r=_c.apply(this,arguments);try{if(S&&G.on&&S.builds&&S.builds.length){const ox=P.x,oz=P.z,py=P.y;for(const b of solDrums()){if(Math.abs(r[0]-b.x)>70||Math.abs(r[1]-b.z)>70)continue;const [lx,lz]=solDrLoc(b,r[0],r[1]),top=b.y+25,th=(b.r||0)*Math.PI/2;
         if(py>=top-9){/* đang ở trên sàn: không đi xuyên cái trống */const d=Math.hypot(lx,lz);if(d<17&&d>0.01){const k=17/d,ax=lx*k,az=lz*k,c=Math.cos(-th),s=Math.sin(-th);r=[b.x+ax*c-az*s,b.z+ax*s+az*c];}}
         else if(Math.abs(lx)<37&&Math.abs(lz)<37){/* đứng dưới đất: sàn đài chặn ngang ngực, chỉ lên được từ bậc thang */const [l0x,l0z]=solDrLoc(b,ox,oz),onStair=Math.abs(l0x)<9&&l0z>=33;if(!(onStair&&py>=b.y+14)){if(Math.abs(l0x)<37&&Math.abs(l0z)<37){/* lỡ kẹt bên trong: cho đi ra */}else r=[ox,oz];}}}}}catch(e){}return r;};}
+
+/* ---------- ĐỒ ĐẶT 1 Ô: vùng chặn theo đúng bề ngang của mô hình ----------
+   Trước: mọi món 1 ô đều chặn bằng một vòng tròn bán kính 15 (món nhỏ 7), nên món to ngang (chuồng gà, đống rơm, bếp ba ông đầu rau, giá cồng chiêng, cột vật tổ chim Lạc…)
+   bị người lẹm vào mép 5–10 đơn vị. Giờ đo bề ngang mô hình một lần cho mỗi loại rồi chặn theo đó. Áp dụng cho cả món sẽ thêm sau này. */
+const SOL_R={};
+function solObjR(k){let r=SOL_R[k];if(r!=null)return r;r=0;try{const d=pieceDef(k);if(d&&d.kind==='obj'&&!d.bed&&!d.farm&&!d.shelter&&!SOL_WALK.test(k)&&(!d.fp||d.fp[0]*d.fp[1]===1)){const m=model(['piece',k]),bb=new THREE.Box3().setFromObject(m),w=Math.max(bb.max.x-bb.min.x,bb.max.z-bb.min.z),h=bb.max.y-bb.min.y;if(h>9&&w>30)r=Math.min(20,w*0.5*0.86);}}catch(e){}SOL_R[k]=r;return r;}
+{const _c=collide;collide=function(nx,nz){let r=_c.apply(this,arguments);try{if(S&&G.on&&typeof OCC!=='undefined'&&OCC.cell.size){const pr=7,py=P.y,ci=Math.floor(r[0]/CELL),cj=Math.floor(r[1]/CELL);for(let i=ci-1;i<=ci+1;i++)for(let j=cj-1;j<=cj+1;j++){const c=OCC.cell.get(i+','+j);if(!c)continue;for(let L=0;L<=LVMAX;L++){const id=c[slotN('obj',L)];if(!id)continue;const b=BYID.get(id);if(!b||Math.abs(b.y-py)>40)continue;const R=solObjR(b.k);if(!R)continue;const dx=r[0]-b.x,dz=r[1]-b.z,d=Math.hypot(dx,dz),rr=R+pr;if(d<rr&&d>0.01)r=[b.x+dx/d*rr,b.z+dz/d*rr];}}}}catch(e){}return r;};}
 /* ===================== NHÂN VẬT (bản 3): MÀN HÌNH "TƯỚNG" =====================
    Bố cục kiểu màn tướng của game chiến thuật: nhân vật lớn đứng giữa sân, ô trang bị bao hai bên (có huy hiệu +cường hoá),
    bảng tên + sao danh hiệu + LỰC CHIẾN, đường thăng danh hiệu 8 bậc, rồi 4 thẻ: Tổng quan · Thuộc tính · Cường hoá · Kỹ năng.
@@ -19729,6 +19736,14 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
         if(!aqHasUrgent('fight')&&p.hp>55&&(hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'))){let dg=null,dd=1e9;for(const a of aqPred()){const d=Math.hypot(a.x-P.x,a.z-P.z);if(d<dd){dd=d;dg=a.a;}}
           if(dg&&dd<150&&dg.alive!==false&&(AQ.hound=(AQ.hound||0)+1)>40){AQ.hound=0;const top=AQ.jobs[AQ.jobs.length-1];if(G.work)workStop('');G.act=null;aqPush({k:'fight',a:dg,t0:G.t,urgent:1},top);aqSay('🤖 Bị '+((dg.n||'thú dữ').toLowerCase())+' bám riết: quay lại đánh.','bad');}}}else AQ.hound=0;}}catch(e){}
   return _sf.apply(this,arguments);};}
+/* 4. Né mãi không thoát (thú nhanh hơn người): quá 6 lần né trong 2 phút thì thôi né 90 giây — còn khoẻ, có vũ khí thì đánh; yếu thì kệ nó, lo uống nước, ăn, về trại trước
+      (chạy thử: bị sói bám 25 phút, không tới nổi suối, khát cạn). */
+{const _sf=aqSafety;aqSafety=function(){const r=_sf.apply(this,arguments);try{if(!AQ.on||!AQ.jobs.length)return r;const top=AQ.jobs[AQ.jobs.length-1];
+    if(top.k==='flee'){if(top.t0!==AQ._ft){AQ._ft=top.t0;AQ.fl3=(AQ.fl3||[]).filter(t=>G.t-t<120);AQ.fl3.push(G.t);}
+      if((AQ.noFleeT||0)>G.t){AQ.jobs.pop();AQ.path=null;AQ.dir=null;}
+      else if((AQ.fl3||[]).length>=6){AQ.fl3=[];AQ.noFleeT=G.t+90;const a=top.a;AQ.jobs.pop();AQ.path=null;AQ.dir=null;const weap=hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'),t2=AQ.jobs[AQ.jobs.length-1];
+        if(weap&&S.p.hp>38&&a&&a.alive!==false&&t2){aqPush({k:'fight',a,t0:G.t,urgent:1},t2);aqSay('🤖 Né mãi không thoát '+((a.n||'thú dữ').toLowerCase())+': quay lại đánh.','bad');}
+        else aqSay('🤖 Né mãi không thoát: mặc kệ nó, lo ăn uống và về trại trước.','bad');}}}catch(e){}return r;};}
 /* ===================== GIỮ MÀN HÌNH SÁNG KHI TỰ LÀM · TỰ LÀM TIẾP SAU KHI TRANG TẢI LẠI =====================
    Trên điện thoại, bật Tự làm rồi để yên thì: (1) không ai chạm nên máy tự tắt màn hình, game ngừng; (2) quay lại, trình duyệt / ứng dụng thường tải lại trang,
    mà chế độ Tự làm trước đây không được ghi nhớ nên phải bấm lại. Giờ:
