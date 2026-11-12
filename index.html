@@ -19094,11 +19094,11 @@ function h5SlotCard(k){const W=(typeof L4SLOT!=='undefined'?L4SLOT:[]);let h='';
 h4Draw=function(force){const el=h4El();if(!H4.on)return;const lv=heroLv(),xp=heroXp(),x0=30*(lv-1)*(lv-1),x1=30*lv*lv,pts=heroPts(),ri=heroRankI(),RK=HERO_RANK[ri],NR=HERO_RANK[ri+1];
   const W=(typeof L4SLOT!=='undefined'?L4SLOT:[]),tool=selTool(),enOk=HERO_EN.some(([q])=>heroEn(q)<HERO_ENMAX&&canPay(heroEnCost(q,heroEn(q)+1))),bad=h5Bad(),L=l4S();
   const vk=H4.tab==='bd'?h5Vit().map(x=>Math.round(x.v)).join(','):'';
-  const key=[lv,Math.floor(xp),pts,ri,tool,JSON.stringify(S.wear||{}),JSON.stringify(heroS().en||{}),JSON.stringify(heroS().a),H4.tab,H4.slot,enOk,heroPower(),bad,vk,Object.keys(S.st||{}).join(),S.inv.filter(s=>s&&ITEMS[s.id]&&ITEMS[s.id].t==='wear').length].join('|');if(!force&&key===H4.key)return;H4.key=key;
+  const key=[lv,Math.floor(xp),pts,ri,tool,JSON.stringify(S.wear||{}),JSON.stringify(heroS().en||{}),JSON.stringify(heroS().a),H4.tab,H4.slot,enOk,heroPower(),bad,vk,JSON.stringify(heroS().tp||{}),Object.keys(S.st||{}).join(),S.inv.filter(s=>s&&ITEMS[s.id]&&ITEMS[s.id].t==='wear').length].join('|');if(!force&&key===H4.key)return;H4.key=key;
   const slot=(k,lb,ic,id,en)=>{let dv=null;try{const I=id&&ITEMS[id];if(I&&I.dur&&k!=='wp')dv=(L.wr[k]??I.dur)/I.dur;}catch(e){}return `<button class="h5-s${id?' has':''}${H4.slot===k?' on':''}${dv!=null&&dv<0.2?' brk':''}" data-h4="slot" data-k="${k}" aria-label="${esc(lb)}"><span>${id?icon(id,'big'):`<i>${ic}</i>`}</span>${en?`<em>+${en}</em>`:''}<small>${esc(lb)}</small></button>`;};
   const all=[slot('wp','Vũ khí','⚔️',tool,heroEn('wp'))].concat(W.map(s=>slot(s[0],s[1],s[2],S.wear&&S.wear[s[0]],s[0]==='body'?heroEn('ar'):0))).concat([slot('tl','Dụng cụ','🪓',null,heroEn('tl'))]),half=Math.ceil(all.length/2);
   const sc=el.querySelector('.h4-body'),st=sc?sc.scrollTop:0;
-  const body=H4.tab==='bd'?h5Body():H4.tab?h4Body(H4.tab):'';
+  const body=H4.tab==='bd'?h5Body():H4.tab==='tp'&&typeof tpHtml==='function'?tpHtml():H4.tab?h4Body(H4.tab):'';
   el.innerHTML=`<div class="h4-top"><button class="h4-back" data-h4="x" aria-label="Đóng">←</button><div><b>${esc(RK[1])} · ${esc(S.name||'')}</b><span class="h4-tier">${RK[2]} BẬC ${['I','II','III','IV','V','VI','VII','VIII'][ri]}</span></div>
      <div class="h5-tr"><button data-h4="go" data-t="bag" aria-label="Túi đồ">🎒</button><button data-h4="demo" aria-label="Múa thử">▶</button></div></div>
    ${H4.tab?'':`<div class="h5-col l">${all.slice(0,half).join('')}</div><div class="h5-col r">${all.slice(half).join('')}</div>`}
@@ -19107,7 +19107,7 @@ h4Draw=function(force){const el=h4El();if(!H4.on)return;const lv=heroLv(),xp=her
     <div class="h4-sheet"><div class="h4-rk">${HERO_RANK.map((r,i)=>`<i class="${i<=ri?'on':''}${i===ri?' cur':''}" title="${esc(r[1])} · cấp ${r[0]}">${r[2]}</i>`).join('')}<button class="h4-up${pts>0||enOk?' h4go':''}" data-h4="up" aria-label="Nâng cấp">⬆</button></div>
      <div class="h4-strip"><div><b>${pts}</b><small>Điểm chưa cộng</small></div><div class="mid"><b>${lv}</b><small>Cấp độ</small></div><div><b>${Math.round(S.p.hp)}</b><small>Máu</small></div><button data-h4="tab" data-t="ov" aria-label="Tổng quan">☰</button></div>
      <div class="h4-xp"><div class="h2-bar big"><i style="width:${clamp((xp-x0)/(x1-x0)*100,0,100)}%"></i></div><span>${NR?`Còn ${Math.max(0,Math.ceil(x1-xp))} kinh nghiệm lên cấp ${lv+1} · cấp ${NR[0]} thành ${NR[1]}`:'Đã đạt danh hiệu cao nhất'}</span></div>
-     <div class="h4-tabs h5-tabs">${[['at','Thuộc tính',pts>0],['bd','Thể trạng',bad],['sk','Kỹ năng',0],['en','Cường hoá',enOk]].map(([k,n,d])=>`<button class="${H4.tab===k?'on':''}" data-h4="tab" data-t="${k}">${n}${d?'<i></i>':''}</button>`).join('')}</div>
+     <div class="h4-tabs h5-tabs">${[['at','Thuộc tính',pts>0],['tp','Thiên phú',typeof tpPts==='function'&&tpPts()>0],['bd','Thể trạng',bad],['sk','Kỹ năng',0],['en','Cường hoá',enOk]].map(([k,n,d])=>`<button class="${H4.tab===k?'on':''}" data-h4="tab" data-t="${k}">${n}${d?'<i></i>':''}</button>`).join('')}</div>
      ${H4.tab?`<div class="h4-body">${body}</div>`:''}</div></div>`;
   const s2=el.querySelector('.h4-body');if(s2)s2.scrollTop=st;};
 // bấm ô trang bị; việc chữa trị / mài công cụ cần game chạy thì đóng màn
@@ -19131,7 +19131,7 @@ document.addEventListener('click',e=>{if(!H4.on)return;const b=e.target&&e.targe
 .h5-st{display:flex;flex-wrap:wrap;gap:5px}.h5-st i{font-style:normal;font-size:12px;font-weight:700;padding:3px 9px;border-radius:9px;background:rgba(120,220,90,.14);border:1px solid rgba(120,220,90,.4);color:#c8f2a0}
 .h5-du{display:flex;align-items:center;gap:8px;font-size:12px;color:#cbb994}.h5-du .h2-bar{flex:1}.h5-du em{font-style:normal;color:#ffd27a;font-weight:700}
 .h5-cr{display:flex;flex-wrap:wrap;gap:6px}.h5-cr .btn{min-height:40px}.h5-card p{margin:0}
-.h5-tabs{grid-template-columns:repeat(4,1fr)!important}.h5-tabs button{font-size:13px!important}
+.h5-tabs{grid-template-columns:repeat(5,1fr)!important}.h5-tabs button{font-size:11.5px!important;padding:0 1px}
 .h5-vs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}.h5-v{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 2px 6px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}.h5-v.low{border-color:#ff5a3a;background:rgba(255,80,50,.12)}
 .h5-v>i{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(var(--c) calc(var(--v)*1%),rgba(255,255,255,.1) 0)}.h5-v>i b{width:42px;height:42px;border-radius:50%;background:#17120e;display:flex;align-items:center;justify-content:center;font-size:20px;font-style:normal}
 .h5-v em{font-style:normal;font-family:Bungee,sans-serif;font-size:16px;color:#fff;line-height:1.2}.h5-v small{font-size:10.5px;color:#c8c8cc}
@@ -19312,7 +19312,7 @@ function nnPlan(){const near=S.builds.filter(b=>b.prog==null&&!b.remote&&Math.hy
     return {t,name:NN_MAP[t].n,L,cost,lvNeed};}return null;}
 function nnDo(){const pl=nnPlan();if(!pl)return;if(pl.lvNeed){uiToast('Cần '+lvText(pl.lvNeed.lv)+' mới dựng được '+pl.lvNeed.n+'.','bad');sfx('no');return;}if(!canPay(pl.cost)){uiToast('Thiếu vật liệu để nâng cả nhà.','bad');sfx('no');return;}pay(pl.cost);const M=NN_MAP[pl.t].m;
   for(const b of pl.L){try{structRemove(b);/* structRemove gỡ luôn khỏi S.builds: thêm lại */b.k=M[b.k];if(b.cond!=null)b.cond=100;S.builds.push(b);structAdd(b,true);cnt('build',b.k);}catch(e){console.warn('nâng nhà',e);}}
-  try{decoRebuild();}catch(e){}try{unlockCheck();}catch(e){}addXp('build',6+pl.L.length*2);cnt('cnt','upgrade');sfx('level');try{puff(P.x,P.y+30,P.z,'#ffd27a',16);}catch(e){}uiToast(`🏠 Đã nâng ${pl.L.length} cấu kiện: nhà của bạn giờ là ${pl.name}.`,'gold');save();if(G.panel)uiOpenRefresh();}
+  try{decoRebuild();}catch(e){}try{unlockCheck();}catch(e){}addXp('build',6+pl.L.length*2);cnt('cnt','upgrade');cnt('cnt','nnup');sfx('level');try{puff(P.x,P.y+30,P.z,'#ffd27a',16);}catch(e){}uiToast(`🏠 Đã nâng ${pl.L.length} cấu kiện: nhà của bạn giờ là ${pl.name}.`,'gold');save();if(G.panel)uiOpenRefresh();}
 function nnGather(){const pl=nnPlan();if(!pl)return;if(G.panel)uiClose();aqStart(-1,{job:{k:'getAll',cost:Object.assign({},pl.cost),lab0:'Gom vật liệu nâng nhà',lab:'Gom vật liệu nâng nhà'}});uiToast('🤖 Đi gom vật liệu nâng nhà. Gom xong quay lại Xây → Nâng cấp bấm "Nâng cả nhà".','');}
 {const _uh=upHtml;upHtml=function(){let h=_uh.apply(this,arguments);try{const pl=nnPlan();if(pl){const ok=canPay(pl.cost)&&!pl.lvNeed;
       h=`<div class="nn-box"><b>🏠 Nâng cả nhà lên ${esc(pl.name)}</b><span class="small muted">${pl.L.length} sàn, vách, mái quanh đây đổi vật liệu ngay tại chỗ, đồ đạc giữ nguyên. Tốn: ${upCostTxt(pl.cost)}${pl.lvNeed?` · <span class="up-miss">cần ${esc(lvText(pl.lvNeed.lv))}</span>`:''}</span>
@@ -19450,6 +19450,53 @@ function dbFlats(u,str,raw){const L=[];if(typeof str==='string'&&str)for(const p
 setInterval(()=>{try{if(DB.fl){DB.fl=0;RI.forEach(v=>v.api.flush());}}catch(e){}},1500);
 // cây đã ẩn vì nhà người khác: không lưu, không cho mọc lại trong phiên
 {const _sv=save;save=function(){return _sv.apply(this,arguments);};}
+/* ===================== THIÊN PHÚ: NHÁNH NÂNG CẤP THỨ BA CỦA NHÂN VẬT =====================
+   Cứ 3 cấp nhân vật được 1 điểm thiên phú. Sáu thiên phú, mỗi cái 3 bậc, chọn hướng chơi riêng (thợ săn, thợ rừng, trâu bò, dai sức, thuần thú, ăn ít no lâu).
+   Lưu: S.hero.tp={<mã>:bậc}. Thẻ "Thiên phú" trong màn Nhân vật. Chia lại miễn phí. */
+const TP=[['san','🏹','Thợ săn','+8% sát thương lên thú và kẻ địch mỗi bậc'],['rung','🪓','Tiều phu','Chặt cây, đập đá nhanh hơn 8% mỗi bậc'],['da','🛡️','Mình đồng da sắt','Giảm 4% sát thương nhận vào mỗi bậc'],
+  ['ben','⚡','Dai sức','+10 thể lực tối đa mỗi bậc'],['thu','🐾','Thuần thú','Cho ăn thuần thú nhanh hơn 30% mỗi bậc'],['no','🍖','Ăn ít no lâu','Đói và khát chậm hơn 8% mỗi bậc']];
+const TP_MAX=3;
+function tpS(){const h=heroS();if(!h.tp||typeof h.tp!=='object')h.tp={};return h.tp;}
+const tpLv=k=>{try{return clamp(tpS()[k]|0,0,TP_MAX);}catch(e){return 0;}};
+function tpPts(){let used=0;for(const [k] of TP)used+=tpLv(k);return Math.max(0,Math.floor(heroLv()/3)-used);}
+function tpUp(k){if(tpPts()<1||tpLv(k)>=TP_MAX)return;tpS()[k]=tpLv(k)+1;sfx('level');const T=TP.find(t=>t[0]===k);uiToast(`✨ ${T[2]} lên bậc ${tpLv(k)}.`,'gold');try{HR2.shotT=-99;}catch(e){}save();}
+function tpHtml(){const pts=tpPts(),nx=3-(heroLv()%3);return `<div class="h3-pts${pts>0?' on':''}"><b>${pts}</b><span>điểm thiên phú · cứ 3 cấp nhân vật +1 điểm${pts?'':' (còn '+nx+' cấp nữa)'}</span><button class="btn sm ghost" data-a="tpreset">↺ Chia lại</button></div>
+  <div class="h2-ats">${TP.map(([k,ic,n,d])=>{const l=tpLv(k),ok=pts>0&&l<TP_MAX;return `<div class="h2-at"><div class="h2-at-h"><span>${ic}</span><b>${n}</b><em>${l}<small>/${TP_MAX}</small></em></div><div class="h2-pips">${[1,2,3].map(i=>`<i class="${i<=l?'on':''}"></i>`).join('')}</div><div class="h2-at-f"><span class="small muted">${d}</span><button class="btn sm${ok?'':' ghost'}" data-a="tpup" data-k="${k}" ${ok?'':'disabled'} aria-label="Nâng ${n}">＋</button></div></div>`;}).join('')}</div>`;}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="tpup"],[data-a="tpreset"]');if(!b||!S)return;e.stopImmediatePropagation();if(b.dataset.a==='tpup')tpUp(b.dataset.k);else{heroS().tp={};sfx('pick');uiToast('Đã chia lại điểm thiên phú.','');save();}if(typeof H4==='object'&&H4.on)h4Draw(true);else if(G.panel)uiOpenRefresh();},true);
+// tác dụng
+{const k=()=>1+0.08*tpLv('san');const _ad=animalDamage;animalDamage=function(a,dmg){return _ad(a,dmg*k());};const _fd=foeDamage;foeDamage=function(f,dmg){return _fd(f,dmg*k());};}
+{const _sp=swingPer;swingPer=function(t){return _sp(t)/(1+0.08*tpLv('rung'));};}
+{const _hd=heroDef;heroDef=function(){return Math.min(0.7,_hd()+0.04*tpLv('da'));};}
+{const _ms=maxStam;maxStam=function(){return _ms.apply(this,arguments)+10*tpLv('ben');};}
+{const _tf=tameFeed;tameFeed=function(a){const t0=a.tame||0;const r=_tf.apply(this,arguments);try{const n=tpLv('thu');if(n&&a.alive&&(a.tame||0)>t0&&a.tame<0.99)a.tame=Math.min(0.98,a.tame+(a.tame-t0)*0.3*n);}catch(e){}return r;};}
+{const _bt=bodyTick;bodyTick=function(dt){const p=S&&S.p,f0=p?p.food:0,w0=p?p.water:0;const r=_bt.apply(this,arguments);try{const n=tpLv('no');if(n&&p){if(p.food<f0)p.food+=(f0-p.food)*0.08*n;if(p.water<w0)p.water+=(w0-p.water)*0.08*n;}}catch(e){}return r;};}
+/* ===================== NHIỆM VỤ CHÍNH NỐI DÀI: RƯƠNG · THUẦN THÚ · CHUỒNG · NÂNG NHÀ · GIẾNG · CHÒI CANH =====================
+   Thêm 6 mục vào chuỗi chính, đều có "Tự làm":
+     sau rào quanh nhà:      Đóng rương gỗ cất đồ
+     sau nung nồi gốm:       Thuần một con thú · Dựng chuồng gà · Nâng nhà lên bậc trên
+     sau trống đồng:         Đào giếng nước · Dựng chòi canh */
+{const ins=(after,g)=>{if(GOALS.some(x=>x.t===g.t))return;const i=GOALS.findIndex(x=>x.t===after);if(i>=0)GOALS.splice(i+1,0,g);else GOALS.push(g);};
+  const P_=(k)=>()=>{const b=S.builds.find(b=>b.prog!=null&&b.k===k);return b?{k:'site',b}:{k:'place',piece:k};};
+  ins('Rào quanh nhà, dựng cổng',G_(1,'Đóng rương gỗ cất đồ','Chế tạo Ván gỗ ở Bàn chế tác rồi Xây → Rương gỗ (6 ván, 2 dây thừng): chứa 30 ô, gấp đôi giỏ. Đặt trong nhà.',1,()=>gDone('chest')));AUG['Đóng rương gỗ cất đồ']=P_('chest');
+  ins('Nung nồi gốm đầu tiên',G_(2,'Nâng nhà lên bậc trên','Đứng trong nhà, mở Xây → Nâng cấp & sửa chữa → "Nâng cả nhà": sàn, vách, mái đổi sang tre, đất trát, mái tranh ngay tại chỗ.',1,()=>gC('cnt:nnup')));AUG['Nâng nhà lên bậc trên']=()=>({k:'nnup'});
+  ins('Nung nồi gốm đầu tiên',G_(2,'Dựng chuồng gà','Xây → Chuồng gà (4 tre, 6 sợi cỏ, 4 cành) cạnh nhà: gà nhà về ở quanh chuồng và đẻ trứng.',1,()=>gDone(/^(coop|chickenCoop2)$/)));AUG['Dựng chuồng gà']=P_('coop');
+  ins('Nung nồi gốm đầu tiên',G_(2,'Thuần một con thú','Cầm quả mọng hoặc hạt kê, lom khom lại gần gà rừng (hoặc cho lợn rừng ăn quả, cho sói ăn thịt) và cho ăn vài lần tới khi nó quen người.',1,()=>gC('cnt:tame')));AUG['Thuần một con thú']=()=>({k:'tame'});
+  ins('Đúc trống đồng Đông Sơn',G_(4,'Dựng chòi canh','Xây → Chòi canh (10 gỗ, 4 dây thừng, 8 sợi cỏ): trèo lên nhìn xa, lính gác trên chòi bắn xa hơn.',1,()=>gDone('watchtower')));AUG['Dựng chòi canh']=P_('watchtower');
+  ins('Đúc trống đồng Đông Sơn',G_(4,'Đào giếng nước','Xây → Giếng nước (20 đá, 6 gỗ, 2 dây thừng, Xây dựng cấp 3): nước sạch ngay cạnh nhà, ruộng gần giếng lớn nhanh gấp đôi.',1,()=>gDone(/^(well|wellStone)$/)));AUG['Đào giếng nước']=P_('well');
+  const _gc=goalCheck;goalCheck=function(){try{if(S&&S.gv7!==1){S.gv7=1;if(S.goal>0){let i=0;while(i<GOALS.length){const [v,n]=goalProg(GOALS[i]);if(v<n)break;i++;}if(i<S.goal)S.goal=i;}}}catch(e){}return _gc.apply(this,arguments);};}
+// thuần thú: tìm con thuần được gần nhất, lo thức ăn, lom khom lại gần, cho ăn tới khi quen
+AUJ.tame=function(j){const c=gC('cnt:tame');if(j.c0==null)j.c0=c;if(c>j.c0){G.sneak=false;return AQ_DONE;}if(j.cf){j.cf=null;if(j.a){j.sk.add(j.a);j.a=null;}if(++j.miss>6){G.sneak=false;return aqFail('Không lại gần được con thú nào để thuần.');}}
+  j.sk=j.sk||new Set();const ok=a=>a.alive&&TAME[a.kind]&&!a.boss&&!a.angry&&!j.sk.has(a);
+  if(!j.a||!ok(j.a)||G.t-j.aT>120){if(j.a)j.sk.add(j.a);let best=null,bs=1e9;for(const a of G.animals||[]){if(!ok(a))continue;const d=aqD(a.x,a.z)+(a.kind==='junglefowl'?0:a.kind==='boar'?900:2500);if(d<bs){bs=d;best=a;}}if(!best){G.sneak=false;return aqFail('Không thấy gà rừng, lợn rừng nào quanh đây để thuần.');}j.a=best;j.aT=G.t;}
+  const a=j.a,T=TAME[a.kind];if(!T.food.some(f=>invCount(f)>0)){if(++j.g>5){G.sneak=false;return aqFail('Không kiếm được thức ăn để thuần '+T.n+'.');}G.sneak=false;const f=T.food.find(x=>aqSrc(x).length)||T.food[0];aqPush({k:'get',id:f,n:4,tries:0},j);return AQ_RUN;}
+  const d=aqD(a.x,a.z);j.lab='Thuần '+a.n.toLowerCase()+(a.tame?' ('+Math.round(a.tame*100)+'%)':'');if(d>REACH+10){G.sneak=d<260;AQ.dir=aqSafeDir(a.x-P.x,a.z-P.z)||[a.x-P.x,a.z-P.z];if(d>700)return aqGoto(j,a.x,a.z,260,j.lab,{far:1});return AQ_RUN;}
+  if(G.t-(j.ft||0)<1.4)return AQ_RUN;j.ft=G.t;aqFace(a.x,a.z);G.sneak=true;tameFeed(a);return AQ_RUN;};
+// nâng cả nhà: về nhà, gom vật liệu, nâng
+AUJ.nnup=function(j){const c=gC('cnt:nnup');if(j.c0==null)j.c0=c;if(c>j.c0)return AQ_DONE;if(j.cf){const m=j.cf;j.cf=null;if(++j.miss>3)return aqFail(m);}
+  const f=aq2Floors().find(b=>b.prog==null);if(!f)return aqFail('Chưa có nhà để nâng.');if(aqD(f.x,f.z)>120)return aqGoto(j,f.x,f.z,70,'Về nhà để nâng cấp',{far:1});
+  const pl=nnPlan();if(!pl)return aqFail('Nhà đã ở bậc cao nhất hiện có.');j.lab='Nâng cả nhà lên '+pl.name;if(pl.lvNeed){if(aqTrainFor(pl.lvNeed.lv,j))return AQ_RUN;return aqFail('Cần '+lvText(pl.lvNeed.lv)+'.');}
+  if(!canPay(pl.cost)){if(++j.g>5)return aqFail('Không gom đủ vật liệu nâng nhà.');aqPush({k:'getAll',cost:Object.assign({},pl.cost),lab:'Gom vật liệu nâng nhà'},j);return AQ_RUN;}nnDo();if(gC('cnt:nnup')>j.c0)return AQ_DONE;if(++j.fl>2)return aqFail('Không nâng được nhà.');return AQ_RUN;};
+{const _i=aqInit;aqInit=function(j){_i(j);if((j.k==='tame'||j.k==='nnup')&&j.g==null)j.g=0;};}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.

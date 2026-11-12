@@ -29,11 +29,11 @@ function h5SlotCard(k){const W=(typeof L4SLOT!=='undefined'?L4SLOT:[]);let h='';
 h4Draw=function(force){const el=h4El();if(!H4.on)return;const lv=heroLv(),xp=heroXp(),x0=30*(lv-1)*(lv-1),x1=30*lv*lv,pts=heroPts(),ri=heroRankI(),RK=HERO_RANK[ri],NR=HERO_RANK[ri+1];
   const W=(typeof L4SLOT!=='undefined'?L4SLOT:[]),tool=selTool(),enOk=HERO_EN.some(([q])=>heroEn(q)<HERO_ENMAX&&canPay(heroEnCost(q,heroEn(q)+1))),bad=h5Bad(),L=l4S();
   const vk=H4.tab==='bd'?h5Vit().map(x=>Math.round(x.v)).join(','):'';
-  const key=[lv,Math.floor(xp),pts,ri,tool,JSON.stringify(S.wear||{}),JSON.stringify(heroS().en||{}),JSON.stringify(heroS().a),H4.tab,H4.slot,enOk,heroPower(),bad,vk,Object.keys(S.st||{}).join(),S.inv.filter(s=>s&&ITEMS[s.id]&&ITEMS[s.id].t==='wear').length].join('|');if(!force&&key===H4.key)return;H4.key=key;
+  const key=[lv,Math.floor(xp),pts,ri,tool,JSON.stringify(S.wear||{}),JSON.stringify(heroS().en||{}),JSON.stringify(heroS().a),H4.tab,H4.slot,enOk,heroPower(),bad,vk,JSON.stringify(heroS().tp||{}),Object.keys(S.st||{}).join(),S.inv.filter(s=>s&&ITEMS[s.id]&&ITEMS[s.id].t==='wear').length].join('|');if(!force&&key===H4.key)return;H4.key=key;
   const slot=(k,lb,ic,id,en)=>{let dv=null;try{const I=id&&ITEMS[id];if(I&&I.dur&&k!=='wp')dv=(L.wr[k]??I.dur)/I.dur;}catch(e){}return `<button class="h5-s${id?' has':''}${H4.slot===k?' on':''}${dv!=null&&dv<0.2?' brk':''}" data-h4="slot" data-k="${k}" aria-label="${esc(lb)}"><span>${id?icon(id,'big'):`<i>${ic}</i>`}</span>${en?`<em>+${en}</em>`:''}<small>${esc(lb)}</small></button>`;};
   const all=[slot('wp','Vũ khí','⚔️',tool,heroEn('wp'))].concat(W.map(s=>slot(s[0],s[1],s[2],S.wear&&S.wear[s[0]],s[0]==='body'?heroEn('ar'):0))).concat([slot('tl','Dụng cụ','🪓',null,heroEn('tl'))]),half=Math.ceil(all.length/2);
   const sc=el.querySelector('.h4-body'),st=sc?sc.scrollTop:0;
-  const body=H4.tab==='bd'?h5Body():H4.tab?h4Body(H4.tab):'';
+  const body=H4.tab==='bd'?h5Body():H4.tab==='tp'&&typeof tpHtml==='function'?tpHtml():H4.tab?h4Body(H4.tab):'';
   el.innerHTML=`<div class="h4-top"><button class="h4-back" data-h4="x" aria-label="Đóng">←</button><div><b>${esc(RK[1])} · ${esc(S.name||'')}</b><span class="h4-tier">${RK[2]} BẬC ${['I','II','III','IV','V','VI','VII','VIII'][ri]}</span></div>
      <div class="h5-tr"><button data-h4="go" data-t="bag" aria-label="Túi đồ">🎒</button><button data-h4="demo" aria-label="Múa thử">▶</button></div></div>
    ${H4.tab?'':`<div class="h5-col l">${all.slice(0,half).join('')}</div><div class="h5-col r">${all.slice(half).join('')}</div>`}
@@ -42,7 +42,7 @@ h4Draw=function(force){const el=h4El();if(!H4.on)return;const lv=heroLv(),xp=her
     <div class="h4-sheet"><div class="h4-rk">${HERO_RANK.map((r,i)=>`<i class="${i<=ri?'on':''}${i===ri?' cur':''}" title="${esc(r[1])} · cấp ${r[0]}">${r[2]}</i>`).join('')}<button class="h4-up${pts>0||enOk?' h4go':''}" data-h4="up" aria-label="Nâng cấp">⬆</button></div>
      <div class="h4-strip"><div><b>${pts}</b><small>Điểm chưa cộng</small></div><div class="mid"><b>${lv}</b><small>Cấp độ</small></div><div><b>${Math.round(S.p.hp)}</b><small>Máu</small></div><button data-h4="tab" data-t="ov" aria-label="Tổng quan">☰</button></div>
      <div class="h4-xp"><div class="h2-bar big"><i style="width:${clamp((xp-x0)/(x1-x0)*100,0,100)}%"></i></div><span>${NR?`Còn ${Math.max(0,Math.ceil(x1-xp))} kinh nghiệm lên cấp ${lv+1} · cấp ${NR[0]} thành ${NR[1]}`:'Đã đạt danh hiệu cao nhất'}</span></div>
-     <div class="h4-tabs h5-tabs">${[['at','Thuộc tính',pts>0],['bd','Thể trạng',bad],['sk','Kỹ năng',0],['en','Cường hoá',enOk]].map(([k,n,d])=>`<button class="${H4.tab===k?'on':''}" data-h4="tab" data-t="${k}">${n}${d?'<i></i>':''}</button>`).join('')}</div>
+     <div class="h4-tabs h5-tabs">${[['at','Thuộc tính',pts>0],['tp','Thiên phú',typeof tpPts==='function'&&tpPts()>0],['bd','Thể trạng',bad],['sk','Kỹ năng',0],['en','Cường hoá',enOk]].map(([k,n,d])=>`<button class="${H4.tab===k?'on':''}" data-h4="tab" data-t="${k}">${n}${d?'<i></i>':''}</button>`).join('')}</div>
      ${H4.tab?`<div class="h4-body">${body}</div>`:''}</div></div>`;
   const s2=el.querySelector('.h4-body');if(s2)s2.scrollTop=st;};
 // bấm ô trang bị; việc chữa trị / mài công cụ cần game chạy thì đóng màn
@@ -66,7 +66,7 @@ document.addEventListener('click',e=>{if(!H4.on)return;const b=e.target&&e.targe
 .h5-st{display:flex;flex-wrap:wrap;gap:5px}.h5-st i{font-style:normal;font-size:12px;font-weight:700;padding:3px 9px;border-radius:9px;background:rgba(120,220,90,.14);border:1px solid rgba(120,220,90,.4);color:#c8f2a0}
 .h5-du{display:flex;align-items:center;gap:8px;font-size:12px;color:#cbb994}.h5-du .h2-bar{flex:1}.h5-du em{font-style:normal;color:#ffd27a;font-weight:700}
 .h5-cr{display:flex;flex-wrap:wrap;gap:6px}.h5-cr .btn{min-height:40px}.h5-card p{margin:0}
-.h5-tabs{grid-template-columns:repeat(4,1fr)!important}.h5-tabs button{font-size:13px!important}
+.h5-tabs{grid-template-columns:repeat(5,1fr)!important}.h5-tabs button{font-size:11.5px!important;padding:0 1px}
 .h5-vs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}.h5-v{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 2px 6px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}.h5-v.low{border-color:#ff5a3a;background:rgba(255,80,50,.12)}
 .h5-v>i{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(var(--c) calc(var(--v)*1%),rgba(255,255,255,.1) 0)}.h5-v>i b{width:42px;height:42px;border-radius:50%;background:#17120e;display:flex;align-items:center;justify-content:center;font-size:20px;font-style:normal}
 .h5-v em{font-style:normal;font-family:Bungee,sans-serif;font-size:16px;color:#fff;line-height:1.2}.h5-v small{font-size:10.5px;color:#c8c8cc}
