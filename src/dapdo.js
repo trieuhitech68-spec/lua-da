@@ -29,7 +29,10 @@ function dpBench(){return S.builds.some(b=>b.k==='workbench'&&b.prog==null&&!b.r
 function dpWhy(k){const l=dpLv(k);if(l>=DP_MAX)return 'Đã tối đa';if(!DP_BASE[k]&&!dpItem(k))return 'Chưa mặc gì ở ô này';if(!dpBench())return 'Cần dựng Bàn chế tác trước';if(!canPay(dpCost(k,l+1)))return 'Thiếu vật liệu';return '';}
 function dpTry(k){if(DPU.busy)return;const why=dpWhy(k);if(why){dpMsg(why,'bad');try{sfx('no');}catch(e){}return;}const l=dpLv(k),n=l+1,c=dpCost(k,n),rate=dpRate(k,n);pay(c);DPU.busy=k;DPU.res=null;dpDraw();
   let i=0;const hit=()=>{try{sfx('thud');}catch(e){}const el=document.querySelector('#dpw .dp-i[data-k="'+k+'"]');if(el){el.classList.remove('hit');void el.offsetWidth;el.classList.add('hit');}if(++i<3){setTimeout(hit,300);return;}
-    setTimeout(()=>{const ok=Math.random()*100<rate,h=dpS(),D=DP.find(d=>d[0]===k);let txt;
+    setTimeout(async()=>{const h=dpS(),D=DP.find(d=>d[0]===k);let txt;const sv=await dpServer(k,l,invCount('dpStone')>0);
+      if(sv){/* máy chủ quyết định: chỉ áp kết quả */const ok=!!sv.ok;dpSet(k,sv.lv|0);h.luck[k]=sv.luck|0;if(sv.stone)invTake('dpStone',1);if(ok){txt='✨ THÀNH CÔNG! '+D[2]+' lên +'+(sv.lv|0);try{sfx('level');addXp('craft',4+n*2);cnt('cnt','enhance');puff(P.x,P.y+30,P.z,n>=10?'#ffb020':'#ffd27a',12);}catch(e){}}else{txt=sv.stone?'💥 Hỏng. Đá hộ mệnh giữ nguyên +'+(sv.lv|0)+' (may mắn +'+(sv.luck|0)*5+'%)':(sv.lv|0)<l?'💥 Hỏng! '+D[2]+' tụt xuống +'+(sv.lv|0)+' (may mắn +'+(sv.luck|0)*5+'%)':'💥 Hỏng, mất vật liệu. Lần sau may mắn +'+(sv.luck|0)*5+'%';try{sfx('no');}catch(e){}}
+        DPU.busy=null;DPU.res={k,ok,txt};try{HR2.shotT=-99;save();uiHotbar();dpGlow();if(typeof H4==='object'&&H4.on)h4Draw(true);}catch(e){}dpDraw();return;}
+      const ok=Math.random()*100<rate;
       if(ok){dpSet(k,n);h.luck[k]=0;txt='✨ THÀNH CÔNG! '+D[2]+' lên +'+n;try{sfx('level');addXp('craft',4+n*2);cnt('cnt','enhance');puff(P.x,P.y+30,P.z,n>=10?'#ffb020':'#ffd27a',12);}catch(e){}}
       else{h.luck[k]=Math.min(6,(h.luck[k]|0)+1);if(n>=11){if(invCount('dpStone')>0){invTake('dpStone',1);txt='💥 Hỏng. Đá hộ mệnh giữ nguyên +'+l+' (may mắn +'+h.luck[k]*5+'%)';}else{dpSet(k,l-1);txt='💥 Hỏng! '+D[2]+' tụt xuống +'+(l-1)+' (may mắn +'+h.luck[k]*5+'%)';}}else txt='💥 Hỏng, mất vật liệu. Lần sau may mắn +'+h.luck[k]*5+'%';try{sfx('no');}catch(e){}}
       DPU.busy=null;DPU.res={k,ok,txt};try{HR2.shotT=-99;save();uiHotbar();dpGlow();if(typeof H4==='object'&&H4.on)h4Draw(true);}catch(e){}dpDraw();},350);};hit();}
@@ -90,3 +93,10 @@ if(typeof HD_L!=='undefined')HD_L.push({id:'dapdo',ic:'⚒️',t:'Đập đồ (
 
 /* lực chiến tính thêm phần cường hoá mới (+11…+15 của 3 ô cũ và 6 ô mới) */
 if(typeof heroPower==='function'){const _hp=heroPower;heroPower=function(){let x=0;try{const e=dpS().en2;for(const k in e)x+=clamp(e[k]|0,0,15);}catch(er){}return _hp.apply(this,arguments)+x*12;};}
+
+/* ---------- máy chủ gieo tỉ lệ (nếu chủ máy chủ đã chạy docs/chong-gian-lan-dap-do.sql và người chơi đã đăng nhập); không có thì tính tại máy như cũ ---------- */
+const DPSV={on:null};
+function dpSb(){try{return typeof LDB!=='undefined'&&LDB.sb&&typeof ACC!=='undefined'&&ACC.uid?LDB.sb:null;}catch(e){return null;}}
+async function dpServer(k,cur,stone){const sb=dpSb();if(!sb||DPSV.on===false)return null;try{const r=await Promise.race([sb.rpc('ld_dp_roll',{p_slot:k,p_cur:cur|0,p_stone:!!stone}),new Promise(res=>setTimeout(()=>res({error:{message:'timeout'}}),6000))]);
+    if(r&&r.error){const m=String(r.error.message||'')+(r.error.code||'');if(/PGRST202|could not find the function|schema cache/i.test(m))DPSV.on=false;return null;}if(r&&r.data&&typeof r.data.lv==='number'){DPSV.on=true;return r.data;}}catch(e){}return null;}
+setTimeout(async function sync(){try{const sb=dpSb();if(!sb||typeof S==='undefined'||!S||!G.on){setTimeout(sync,8000);return;}const r=await sb.rpc('ld_dp_mine');if(r&&r.error){DPSV.on=false;return;}const d=r&&r.data;if(d&&typeof d==='object'){DPSV.on=true;let ch=false;for(const k in d){if(!DP.some(x=>x[0]===k)||!Array.isArray(d[k]))continue;if(dpLv(k)!==(d[k][0]|0)){dpSet(k,d[k][0]|0);ch=true;}dpS().luck[k]=d[k][1]|0;}if(ch){try{save();dpGlow();}catch(e){}}}}catch(e){}},9000);
