@@ -42,3 +42,7 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
   return _sf.apply(this,arguments);};}
 /* quả mọng nước cũng đỡ khát một chút (người đi rừng vẫn ăn quả, nhai thân chuối khi hết nước) */
 try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITEMS.banana.drink)ITEMS.banana.drink=4;if(ITEMS.gourd&&ITEMS.gourd.t==='food'&&!ITEMS.gourd.drink)ITEMS.gourd.drink=8;}catch(e){}
+/* 6. Đánh trả thú: trước khi đánh phải CẦM VŨ KHÍ lên (trước cứ cầm gì đánh nấy: đang cầm gậy đào, bầu nước thì thành đấm tay không, đánh sói mãi không chết
+      rồi hết 20 giây lại bỏ, sói lại vồ). Ưu tiên giáo > chùy/kiếm > rìu > dao. Cho đánh tới 35 giây. */
+{const _f=AUJ.fight;AUJ.fight=function(j){try{if(!j.wp){j.wp=1;let best=-1,bp=0;for(let i=0;i<S.inv.length;i++){const s=S.inv[i],I=s&&ITEMS[s.id];if(!I||I.t!=='tool'||!['spear','club','axe','knife'].includes(I.tool))continue;if(typeof l4D==='function'&&l4D(s)!=null&&l4D(s)<=0)continue;const p=(I.pow||1)+(I.tool==='spear'?0.5:0);if(p>bp){bp=p;best=i;}}
+      if(best>=0){if(best>=HOTN){const t=S.inv[0];S.inv[0]=S.inv[best];S.inv[best]=t;best=0;}S.sel=best;equip(selTool());try{uiHotbar();}catch(e){}}j.t0=G.t+15;}}catch(e){}return _f.apply(this,arguments);};}

@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261112144226">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261112145934">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -19806,6 +19806,10 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
   return _sf.apply(this,arguments);};}
 /* quả mọng nước cũng đỡ khát một chút (người đi rừng vẫn ăn quả, nhai thân chuối khi hết nước) */
 try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITEMS.banana.drink)ITEMS.banana.drink=4;if(ITEMS.gourd&&ITEMS.gourd.t==='food'&&!ITEMS.gourd.drink)ITEMS.gourd.drink=8;}catch(e){}
+/* 6. Đánh trả thú: trước khi đánh phải CẦM VŨ KHÍ lên (trước cứ cầm gì đánh nấy: đang cầm gậy đào, bầu nước thì thành đấm tay không, đánh sói mãi không chết
+      rồi hết 20 giây lại bỏ, sói lại vồ). Ưu tiên giáo > chùy/kiếm > rìu > dao. Cho đánh tới 35 giây. */
+{const _f=AUJ.fight;AUJ.fight=function(j){try{if(!j.wp){j.wp=1;let best=-1,bp=0;for(let i=0;i<S.inv.length;i++){const s=S.inv[i],I=s&&ITEMS[s.id];if(!I||I.t!=='tool'||!['spear','club','axe','knife'].includes(I.tool))continue;if(typeof l4D==='function'&&l4D(s)!=null&&l4D(s)<=0)continue;const p=(I.pow||1)+(I.tool==='spear'?0.5:0);if(p>bp){bp=p;best=i;}}
+      if(best>=0){if(best>=HOTN){const t=S.inv[0];S.inv[0]=S.inv[best];S.inv[best]=t;best=0;}S.sel=best;equip(selTool());try{uiHotbar();}catch(e){}}j.t0=G.t+15;}}catch(e){}return _f.apply(this,arguments);};}
 /* ===================== GIỮ MÀN HÌNH SÁNG KHI TỰ LÀM · TỰ LÀM TIẾP SAU KHI TRANG TẢI LẠI =====================
    Trên điện thoại, bật Tự làm rồi để yên thì: (1) không ai chạm nên máy tự tắt màn hình, game ngừng; (2) quay lại, trình duyệt / ứng dụng thường tải lại trang,
    mà chế độ Tự làm trước đây không được ghi nhớ nên phải bấm lại. Giờ:
