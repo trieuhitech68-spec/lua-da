@@ -35,4 +35,10 @@ node -e "
 const l=require('fs').readFileSync('$TMP/ld-tu-lam.log','utf8').split('\n').find(x=>x.startsWith('{\"goal\"'));if(!l){console.log('   không có trạng thái cuối');process.exit(1)}const s=JSON.parse(l.slice(0,l.indexOf(',\"st\"'))+'}');console.log('   mục tiêu '+s.goal+', máu '+s.hp+', no '+s.food+', nước '+s.water);process.exit(s.hp<20||s.goal<12?1:0)" && ok "nhân vật còn khoẻ, làm được từ 12 mục trở lên" || bad "nhân vật kiệt sức hoặc tiến quá chậm"
 echo "7. Giao diện điện thoại: mở từng bảng, các khối không đè nhau, không lỗi chạy"
 OUT=$(timeout 600 node giao-dien.js 2>&1); echo "$OUT" | grep -q "^GD-DAT" && ok "giao diện" || bad "giao diện: $(echo "$OUT" | tail -6 | tr '\n' ';' | cut -c1-400)"
+echo "8. Chơi mạng giả lập: cướp phá, chiến tranh liên minh, hạ cờ chiếm đất, cửa nhà người khác"
+m(){ OUT=$(timeout 400 node "mang/$1.js" 2>&1); echo "$OUT" | grep -q "$2" && ok "$3" || bad "$3: $(echo "$OUT" | tail -2 | cut -c1-240)"; }
+m cuop-pha 'Lính gác của' "cướp phá: lính gác của chủ nhà hiện ra, cấp dưới 5 bị chặn"
+m chien-tranh '"atWar":true' "chiến tranh liên minh: tuyên chiến, tính điểm"
+m ha-co 'Hạ cờ' "hạ cờ chiếm đất chung"
+m cua-dong '"open0":false' "cửa nhà người khác đóng, đồng minh qua được"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

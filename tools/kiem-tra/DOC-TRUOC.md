@@ -10,6 +10,8 @@ bash tools/kiem-tra/chay-het.sh
 | 4 | `nha-nhay.js` | Nhà 2×2 có tường, cửa, mái: vừa chạy vừa nhảy 16 hướng từ trong ra và từ ngoài vào; không được lọt tường, không được lên mái. |
 | 5 | `dai-trong.js` | Đài trống hội: lên được bằng bậc thang, sàn chặn khi đứng dưới đất, trống chặn khi đứng trên. |
 | 6 | `tu-lam.js N` | Bật "Tự làm" tua nhanh N phút: không lỗi chạy, nhân vật không kiệt sức, làm được nhiều mục tiêu. |
+| 7 | `giao-dien.js` | Màn điện thoại 393×852: mở 7 bảng không lỗi chạy, không tràn ngang; các khối trên màn hình chơi (thẻ thông tin, mục tiêu, bản đồ nhỏ, thẻ ghim, thanh đáy, ô đồ nhanh, nút hành động) không đè nhau. |
+| 8 | `mang/*.js` | Chơi mạng với máy chủ giả (`mang/mock.js`): cướp phá có lính gác, chiến tranh liên minh, hạ cờ chiếm đất, cửa nhà người khác đóng. |
 | – | `dong-tac.js <tên> "<dáng:công cụ,...>"` | Chụp bảng từng pha của các động tác để soát bằng mắt (ví dụ `h3chop2:axe,h3gather2`). |
 
 Quy ước khi thêm thứ mới:

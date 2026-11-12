@@ -19743,7 +19743,7 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
       if(G.t-(AQ.emT||-9)>1.6){if(p.food<15){const f=aqFood(true);if(f){AQ.emT=G.t;eat(f);}}if(p.water<15){const b=['water','tea','mintwater'].find(k=>invCount(k)>0&&ITEMS[k]&&ITEMS[k].t==='drink');if(b){AQ.emT=G.t;eat(b);}}}
       const camp=AQ.jobs.some(j=>j.k==='camp');if(camp){AQ.flees=[];
         if(!aqHasUrgent('fight')&&p.hp>55&&(hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'))){let dg=null,dd=1e9;for(const a of aqPred()){const d=Math.hypot(a.x-P.x,a.z-P.z);if(d<dd){dd=d;dg=a.a;}}
-          if(dg&&dd<150&&dg.alive!==false&&(AQ.hound=(AQ.hound||0)+1)>40){AQ.hound=0;const top=AQ.jobs[AQ.jobs.length-1];if(G.work)workStop('');G.act=null;aqPush({k:'fight',a:dg,t0:G.t,urgent:1},top);aqSay('🤖 Bị '+((dg.n||'thú dữ').toLowerCase())+' bám riết: quay lại đánh.','bad');}}}else AQ.hound=0;}}catch(e){}
+          if(dg&&dd<150&&dg.alive!==false&&((ANIMALS[dg.kind]||{}).hp||9)<=7&&(AQ.hound=(AQ.hound||0)+1)>40){AQ.hound=0;const top=AQ.jobs[AQ.jobs.length-1];if(G.work)workStop('');G.act=null;aqPush({k:'fight',a:dg,t0:G.t,urgent:1},top);aqSay('🤖 Bị '+((dg.n||'thú dữ').toLowerCase())+' bám riết: quay lại đánh.','bad');}}}else AQ.hound=0;}}catch(e){}
   return _sf.apply(this,arguments);};}
 /* 4. Né mãi không thoát (thú nhanh hơn người): quá 6 lần né trong 2 phút thì thôi né 90 giây — còn khoẻ, có vũ khí thì đánh; yếu thì kệ nó, lo uống nước, ăn, về trại trước
       (chạy thử: bị sói bám 25 phút, không tới nổi suối, khát cạn). */
@@ -19751,7 +19751,9 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
     if(top.k==='flee'){if(top.t0!==AQ._ft){AQ._ft=top.t0;AQ.fl3=(AQ.fl3||[]).filter(t=>G.t-t<120);AQ.fl3.push(G.t);}
       if((AQ.noFleeT||0)>G.t){AQ.jobs.pop();AQ.path=null;AQ.dir=null;}
       else if((AQ.fl3||[]).length>=6){AQ.fl3=[];AQ.noFleeT=G.t+90;const a=top.a;AQ.jobs.pop();AQ.path=null;AQ.dir=null;const weap=hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'),t2=AQ.jobs[AQ.jobs.length-1];
-        if(weap&&S.p.hp>38&&a&&a.alive!==false&&t2){aqPush({k:'fight',a,t0:G.t,urgent:1},t2);aqSay('🤖 Né mãi không thoát '+((a.n||'thú dữ').toLowerCase())+': quay lại đánh.','bad');}
+        const D=(a&&ANIMALS[a.kind])||{},weakA=(D.hp||9)<=7;/* chỉ đánh lại thú vừa sức (sói, lợn rừng); gấu, hổ, cá sấu thì KHÔNG đánh: đánh dấu vùng của nó để vòng tránh (chạy thử: quay lại đánh cá sấu, mất gần hết máu) */
+        if(a&&!weakA){try{AQ.bad.push({x:a.x,z:a.z,t:G.t+600});}catch(e){}aqSay('🤖 '+(a.n||'Thú dữ')+' giữ vùng này: vòng đường khác, không dây vào.','bad');}
+        else if(weap&&S.p.hp>38&&a&&a.alive!==false&&t2){aqPush({k:'fight',a,t0:G.t,urgent:1},t2);aqSay('🤖 Né mãi không thoát '+((a.n||'thú dữ').toLowerCase())+': quay lại đánh.','bad');}
         else aqSay('🤖 Né mãi không thoát: mặc kệ nó, lo ăn uống và về trại trước.','bad');}}}catch(e){}return r;};}
 /* ===================== GIỮ MÀN HÌNH SÁNG KHI TỰ LÀM · TỰ LÀM TIẾP SAU KHI TRANG TẢI LẠI =====================
    Trên điện thoại, bật Tự làm rồi để yên thì: (1) không ai chạm nên máy tự tắt màn hình, game ngừng; (2) quay lại, trình duyệt / ứng dụng thường tải lại trang,
@@ -19969,11 +19971,11 @@ const WCAM={on:false,sv:null};
 /* chỉ đổi lớp hiển thị thân người (không đụng khoá chuột, tâm ngắm) */
 function wcVis(){try{const fp=isFP();if(P.model)P.model.traverse(o=>o.layers.set(fp?1:0));if(G.fpRig)G.fpRig.visible=fp;if(P.blob&&!fp)P.blob.visible=true;if(!fp&&G.cam.near!==4){G.cam.near=4;resize();}const xh=document.getElementById('xh');if(xh)xh.hidden=!fp;}catch(e){}}
 {const _f=isFP;isFP=function(){return WCAM.on?false:_f.apply(this,arguments);};}
-setInterval(()=>{try{if(!S||!G.on)return;const W=G.work,ok=W&&!G.build&&!(typeof H4==='object'&&H4.on)&&!(S.au&&S.au.wcam===0)&&!G.mnt;
-    if(ok&&!WCAM.on){let tot=0;for(const s of W.steps||[])tot+=s.t||0;if(tot<2.4)return;WCAM.sv={zoom:G.zoom,pitch:G.pitch,yaw:G.yaw};WCAM.on=true;WCAM.fp=S.view!=='tp';G.zoom=WCAM.fp?74:64;G.pitch=WCAM.fp?0.46:0.36;G.yaw=(P.ry||0)+0.55;G.camInit=0;/* góc nhìn thứ nhất giấu thân người bằng lớp hiển thị: phải bật lại thân thì mới thấy thao tác */wcVis();}
+setInterval(()=>{try{if(!S||!G.on)return;const W=G.work,wc=S.au&&S.au.wcam,ok=W&&!G.build&&!(typeof H4==='object'&&H4.on)&&!G.mnt&&(S.view==='tp'?wc===1:wc!==0);/* nhìn từ trên/sau lưng: KHÔNG tự dí máy quay lại gần nữa (bật lại ở ⚙️ nếu muốn). Chỉ góc nhìn thứ nhất mới lùi máy ra, vì ở đó không thấy được tay mình làm gì. */
+    if(ok&&!WCAM.on){let tot=0;for(const s of W.steps||[])tot+=s.t||0;if(tot<2.4)return;WCAM.sv={zoom:G.zoom,pitch:G.pitch,yaw:G.yaw};WCAM.on=true;WCAM.fp=S.view!=='tp';G.zoom=WCAM.fp?130:64;G.pitch=WCAM.fp?0.55:0.36;G.yaw=(P.ry||0)+0.55;G.camInit=0;/* góc nhìn thứ nhất giấu thân người bằng lớp hiển thị: phải bật lại thân thì mới thấy thao tác */wcVis();}
     else if(ok&&WCAM.on&&WCAM.fp&&P.model&&P.rig&&P.rig.head&&P.rig.head.layers.mask!==1){wcVis();}
     else if(!ok&&WCAM.on){WCAM.on=false;if(WCAM.sv){G.zoom=WCAM.sv.zoom;G.pitch=WCAM.sv.pitch;G.yaw=WCAM.sv.yaw;}WCAM.sv=null;G.camInit=0;wcVis();}}catch(e){}},120);
-{const _ui=aqUi;aqUi=function(){const r=_ui.apply(this,arguments);try{const m=document.querySelector('#auchip .au-m');if(m&&!m.querySelector('[data-k="wcam"]')){const c=aqCfg();m.insertAdjacentHTML('beforeend',`<label><input type="checkbox" data-au="cfg" data-k="wcam" ${c.wcam===0?'':'checked'}> Cận cảnh khi thao tác</label>`);}}catch(e){}return r;};}
+{const _ui=aqUi;aqUi=function(){const r=_ui.apply(this,arguments);try{const m=document.querySelector('#auchip .au-m');if(m&&!m.querySelector('[data-k="wcam"]')){const c=aqCfg();m.insertAdjacentHTML('beforeend',`<label><input type="checkbox" data-au="cfg" data-k="wcam" ${c.wcam===1?'checked':''}> Cận cảnh khi thao tác</label>`);}}catch(e){}return r;};}
 /* ---------- HÀO QUANG DANH HIỆU ----------
    Từ danh hiệu thứ hai trở lên, dưới chân nhân vật có vòng hào quang; bậc càng cao vòng càng lớn, màu đổi dần (xanh lá → lam → tím → cam → vàng → đỏ rực), xoay chậm. */
 const AURA={o:null,ri:-1,col:[0,0x6fd36a,0x5ab4ff,0xb07aff,0xff9a3a,0xffd24a,0xff5a3a,0xffffff]};

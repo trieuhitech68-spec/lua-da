@@ -22,7 +22,7 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
       if(G.t-(AQ.emT||-9)>1.6){if(p.food<15){const f=aqFood(true);if(f){AQ.emT=G.t;eat(f);}}if(p.water<15){const b=['water','tea','mintwater'].find(k=>invCount(k)>0&&ITEMS[k]&&ITEMS[k].t==='drink');if(b){AQ.emT=G.t;eat(b);}}}
       const camp=AQ.jobs.some(j=>j.k==='camp');if(camp){AQ.flees=[];
         if(!aqHasUrgent('fight')&&p.hp>55&&(hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'))){let dg=null,dd=1e9;for(const a of aqPred()){const d=Math.hypot(a.x-P.x,a.z-P.z);if(d<dd){dd=d;dg=a.a;}}
-          if(dg&&dd<150&&dg.alive!==false&&(AQ.hound=(AQ.hound||0)+1)>40){AQ.hound=0;const top=AQ.jobs[AQ.jobs.length-1];if(G.work)workStop('');G.act=null;aqPush({k:'fight',a:dg,t0:G.t,urgent:1},top);aqSay('🤖 Bị '+((dg.n||'thú dữ').toLowerCase())+' bám riết: quay lại đánh.','bad');}}}else AQ.hound=0;}}catch(e){}
+          if(dg&&dd<150&&dg.alive!==false&&((ANIMALS[dg.kind]||{}).hp||9)<=7&&(AQ.hound=(AQ.hound||0)+1)>40){AQ.hound=0;const top=AQ.jobs[AQ.jobs.length-1];if(G.work)workStop('');G.act=null;aqPush({k:'fight',a:dg,t0:G.t,urgent:1},top);aqSay('🤖 Bị '+((dg.n||'thú dữ').toLowerCase())+' bám riết: quay lại đánh.','bad');}}}else AQ.hound=0;}}catch(e){}
   return _sf.apply(this,arguments);};}
 /* 4. Né mãi không thoát (thú nhanh hơn người): quá 6 lần né trong 2 phút thì thôi né 90 giây — còn khoẻ, có vũ khí thì đánh; yếu thì kệ nó, lo uống nước, ăn, về trại trước
       (chạy thử: bị sói bám 25 phút, không tới nổi suối, khát cạn). */
@@ -30,5 +30,7 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
     if(top.k==='flee'){if(top.t0!==AQ._ft){AQ._ft=top.t0;AQ.fl3=(AQ.fl3||[]).filter(t=>G.t-t<120);AQ.fl3.push(G.t);}
       if((AQ.noFleeT||0)>G.t){AQ.jobs.pop();AQ.path=null;AQ.dir=null;}
       else if((AQ.fl3||[]).length>=6){AQ.fl3=[];AQ.noFleeT=G.t+90;const a=top.a;AQ.jobs.pop();AQ.path=null;AQ.dir=null;const weap=hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'),t2=AQ.jobs[AQ.jobs.length-1];
-        if(weap&&S.p.hp>38&&a&&a.alive!==false&&t2){aqPush({k:'fight',a,t0:G.t,urgent:1},t2);aqSay('🤖 Né mãi không thoát '+((a.n||'thú dữ').toLowerCase())+': quay lại đánh.','bad');}
+        const D=(a&&ANIMALS[a.kind])||{},weakA=(D.hp||9)<=7;/* chỉ đánh lại thú vừa sức (sói, lợn rừng); gấu, hổ, cá sấu thì KHÔNG đánh: đánh dấu vùng của nó để vòng tránh (chạy thử: quay lại đánh cá sấu, mất gần hết máu) */
+        if(a&&!weakA){try{AQ.bad.push({x:a.x,z:a.z,t:G.t+600});}catch(e){}aqSay('🤖 '+(a.n||'Thú dữ')+' giữ vùng này: vòng đường khác, không dây vào.','bad');}
+        else if(weap&&S.p.hp>38&&a&&a.alive!==false&&t2){aqPush({k:'fight',a,t0:G.t,urgent:1},t2);aqSay('🤖 Né mãi không thoát '+((a.n||'thú dữ').toLowerCase())+': quay lại đánh.','bad');}
         else aqSay('🤖 Né mãi không thoát: mặc kệ nó, lo ăn uống và về trại trước.','bad');}}}catch(e){}return r;};}

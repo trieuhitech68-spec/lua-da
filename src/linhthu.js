@@ -52,11 +52,11 @@ const WCAM={on:false,sv:null};
 /* chỉ đổi lớp hiển thị thân người (không đụng khoá chuột, tâm ngắm) */
 function wcVis(){try{const fp=isFP();if(P.model)P.model.traverse(o=>o.layers.set(fp?1:0));if(G.fpRig)G.fpRig.visible=fp;if(P.blob&&!fp)P.blob.visible=true;if(!fp&&G.cam.near!==4){G.cam.near=4;resize();}const xh=document.getElementById('xh');if(xh)xh.hidden=!fp;}catch(e){}}
 {const _f=isFP;isFP=function(){return WCAM.on?false:_f.apply(this,arguments);};}
-setInterval(()=>{try{if(!S||!G.on)return;const W=G.work,ok=W&&!G.build&&!(typeof H4==='object'&&H4.on)&&!(S.au&&S.au.wcam===0)&&!G.mnt;
-    if(ok&&!WCAM.on){let tot=0;for(const s of W.steps||[])tot+=s.t||0;if(tot<2.4)return;WCAM.sv={zoom:G.zoom,pitch:G.pitch,yaw:G.yaw};WCAM.on=true;WCAM.fp=S.view!=='tp';G.zoom=WCAM.fp?74:64;G.pitch=WCAM.fp?0.46:0.36;G.yaw=(P.ry||0)+0.55;G.camInit=0;/* góc nhìn thứ nhất giấu thân người bằng lớp hiển thị: phải bật lại thân thì mới thấy thao tác */wcVis();}
+setInterval(()=>{try{if(!S||!G.on)return;const W=G.work,wc=S.au&&S.au.wcam,ok=W&&!G.build&&!(typeof H4==='object'&&H4.on)&&!G.mnt&&(S.view==='tp'?wc===1:wc!==0);/* nhìn từ trên/sau lưng: KHÔNG tự dí máy quay lại gần nữa (bật lại ở ⚙️ nếu muốn). Chỉ góc nhìn thứ nhất mới lùi máy ra, vì ở đó không thấy được tay mình làm gì. */
+    if(ok&&!WCAM.on){let tot=0;for(const s of W.steps||[])tot+=s.t||0;if(tot<2.4)return;WCAM.sv={zoom:G.zoom,pitch:G.pitch,yaw:G.yaw};WCAM.on=true;WCAM.fp=S.view!=='tp';G.zoom=WCAM.fp?130:64;G.pitch=WCAM.fp?0.55:0.36;G.yaw=(P.ry||0)+0.55;G.camInit=0;/* góc nhìn thứ nhất giấu thân người bằng lớp hiển thị: phải bật lại thân thì mới thấy thao tác */wcVis();}
     else if(ok&&WCAM.on&&WCAM.fp&&P.model&&P.rig&&P.rig.head&&P.rig.head.layers.mask!==1){wcVis();}
     else if(!ok&&WCAM.on){WCAM.on=false;if(WCAM.sv){G.zoom=WCAM.sv.zoom;G.pitch=WCAM.sv.pitch;G.yaw=WCAM.sv.yaw;}WCAM.sv=null;G.camInit=0;wcVis();}}catch(e){}},120);
-{const _ui=aqUi;aqUi=function(){const r=_ui.apply(this,arguments);try{const m=document.querySelector('#auchip .au-m');if(m&&!m.querySelector('[data-k="wcam"]')){const c=aqCfg();m.insertAdjacentHTML('beforeend',`<label><input type="checkbox" data-au="cfg" data-k="wcam" ${c.wcam===0?'':'checked'}> Cận cảnh khi thao tác</label>`);}}catch(e){}return r;};}
+{const _ui=aqUi;aqUi=function(){const r=_ui.apply(this,arguments);try{const m=document.querySelector('#auchip .au-m');if(m&&!m.querySelector('[data-k="wcam"]')){const c=aqCfg();m.insertAdjacentHTML('beforeend',`<label><input type="checkbox" data-au="cfg" data-k="wcam" ${c.wcam===1?'checked':''}> Cận cảnh khi thao tác</label>`);}}catch(e){}return r;};}
 /* ---------- HÀO QUANG DANH HIỆU ----------
    Từ danh hiệu thứ hai trở lên, dưới chân nhân vật có vòng hào quang; bậc càng cao vòng càng lớn, màu đổi dần (xanh lá → lam → tím → cam → vàng → đỏ rực), xoay chậm. */
 const AURA={o:null,ri:-1,col:[0,0x6fd36a,0x5ab4ff,0xb07aff,0xff9a3a,0xffd24a,0xff5a3a,0xffffff]};
