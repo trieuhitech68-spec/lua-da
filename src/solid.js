@@ -56,3 +56,13 @@ function solTopAt(x,z){try{const c=cellAt(x,z);if(!c)return null;let top=null;fo
 function solDoorOpen(b){try{if(!b||!b.remote)return true;return typeof mpSameClan==='function'&&mpSameClan(b.remote);}catch(e){return true;}}
 {const _c=collide;collide=function(nx,nz){const r=_c.apply(this,arguments);try{if(S&&S.mp&&G.on&&Math.hypot(r[0]-nx,r[1]-nz)>0.6&&G.t-(G._doorT||0)>6){const ci=Math.floor(nx/CELL),cj=Math.floor(nz/CELL);
       for(let i=ci-1;i<=ci+2;i++)for(let j=cj-1;j<=cj+2;j++)for(const k0 of ['h:'+i+','+j,'v:'+i+','+j]){const id=OCC.edge.get(k0);if(!id)continue;const b=BYID.get(id),d=b&&pieceDef(b.k);if(d&&d.door&&b.remote&&!solDoorOpen(b)&&Math.hypot(b.x-nx,b.z-nz)<22){G._doorT=G.t;uiToast('🚪 Cửa nhà người khác đang cài then. Chỉ đồng minh vào được; muốn vào phải cướp phá cánh cửa (nhà đang được bảo hộ thì không phá được).','');return r;}}}}catch(e){}return r;};}
+/* ---------- CHÒI CANH: TRÈO LÊN LÀ ĐỨNG TRÊN SÀN CHÒI ----------
+   Trước: bấm "Trèo lên nhìn xa" chỉ diễn động tác dưới đất rồi mở bản đồ. Giờ: xong động tác là nhân vật đứng trên sàn chòi (cao ~4 m), nhìn quanh được;
+   bước ra khỏi mép sàn là tụt xuống đất (không mất máu). Nhảy vào chân chòi cũng bám thang trèo lên được. */
+const SOL_TW=83;
+function solTower(x,z){try{const c=cellAt(x,z);const id=c&&c[slotN('obj',0)];const b=id&&BYID.get(id);if(b&&b.k==='watchtower'&&b.prog==null&&Math.abs(x-b.x)<17&&Math.abs(z-b.z)<17)return b;}catch(e){}return null;}
+{const _gy=groundY;groundY=function(x,z,yRef){const g=_gy(x,z,yRef);try{const b=solTower(x,z);if(b){const t=b.y+SOL_TW,ref=yRef==null?P.y:yRef;if(ref>=t-12)return Math.max(g,t);}}catch(e){}return g;};}
+function solTowerUp(b){P.x=b.x;P.z=b.z;P.y=b.y+SOL_TW+1;P.vy=0;P.air=false;G.walkTo=null;try{G.camInit=0;}catch(e){}uiToast('🗼 Bạn đang đứng trên chòi canh. Bước ra khỏi mép sàn để xuống.','');}
+if(typeof mxTowerUse==='function'){const _tu=mxTowerUse;mxTowerUse=function(b){const c0=(S.cnt&&S.cnt['cnt:tower'])||0;const r=_tu.apply(this,arguments);let n=0;const iv=setInterval(()=>{if(++n>120||!S){clearInterval(iv);return;}if(!G.work){clearInterval(iv);if(((S.cnt&&S.cnt['cnt:tower'])||0)>c0&&BYID.has(b.id))solTowerUp(b);}},200);return r;};}
+// nhảy vào chân chòi: trèo lên (dùng chung cơ chế leo mái)
+{const _st=solTopAt;solTopAt=function(x,z){const t=_st.apply(this,arguments);try{const b=solTower(x,z);if(b){const tt=b.y+SOL_TW;if(t==null||tt>t)return tt;}}catch(e){}return t;};}
