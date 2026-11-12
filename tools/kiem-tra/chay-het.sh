@@ -33,4 +33,6 @@ grep -q "LOOPERR\|^ERR " "$TMP/ld-tu-lam.log" && bad "có lỗi khi chạy: $(gr
 K=$(grep -c "Bị kẹt" "$TMP/ld-tu-lam.log"); [ "$K" -le 3 ] && ok "kẹt đường $K lần (cho phép tối đa 3)" || bad "kẹt đường $K lần: $(grep -m2 'Bị kẹt' "$TMP/ld-tu-lam.log" | cut -c1-160)"
 node -e "
 const l=require('fs').readFileSync('$TMP/ld-tu-lam.log','utf8').split('\n').find(x=>x.startsWith('{\"goal\"'));if(!l){console.log('   không có trạng thái cuối');process.exit(1)}const s=JSON.parse(l.slice(0,l.indexOf(',\"st\"'))+'}');console.log('   mục tiêu '+s.goal+', máu '+s.hp+', no '+s.food+', nước '+s.water);process.exit(s.hp<20||s.goal<12?1:0)" && ok "nhân vật còn khoẻ, làm được từ 12 mục trở lên" || bad "nhân vật kiệt sức hoặc tiến quá chậm"
+echo "7. Giao diện điện thoại: mở từng bảng, các khối không đè nhau, không lỗi chạy"
+OUT=$(timeout 600 node giao-dien.js 2>&1); echo "$OUT" | grep -q "^GD-DAT" && ok "giao diện" || bad "giao diện: $(echo "$OUT" | tail -6 | tr '\n' ';' | cut -c1-400)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
