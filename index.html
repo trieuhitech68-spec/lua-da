@@ -19402,6 +19402,29 @@ AUJ.train=function(j){if(skLv(j.sk)>=j.lv)return AQ_DONE;if(j.cf){const m=j.cf;j
 function aqTrainFor(lv,j){if(!lv)return false;for(const k in lv){if(skLv(k)<lv[k]){if(k!=='craft'&&k!=='build')return false;if((j._tr=(j._tr||0)+1)>3)return false;aqSay('🤖 Chưa đủ '+lvText({[k]:lv[k]})+': luyện tay nghề trước.','');aqPush({k:'train',sk:k,lv:lv[k]},j);return true;}}return false;}
 {const _p=AUJ.place;AUJ.place=function(j){try{const d=pieceDef(j.piece);if(d&&d.lv&&!lvOk(d.lv)&&!j.cf&&aqTrainFor(d.lv,j))return AQ_RUN;}catch(e){}return _p.apply(this,arguments);};
   const _c=AUJ.craft;AUJ.craft=function(j){try{const r=j.r;if(r&&r.lv&&!lvOk(r.lv)&&!j.cf&&j.st!=='wait'&&aqTrainFor(r.lv,j))return AQ_RUN;}catch(e){}return _c.apply(this,arguments);};}
+/* ===================== TỰ MỞ HỘI LÀNG · TỰ MỜI NGƯỜI VỀ Ở ===================== */
+// Hội làng: dựng Đài trống hội (tự luyện Xây dựng nếu thiếu cấp) rồi đánh trống mở hội.
+AUJ.fest=function(j){const c=gC('cnt:festival')+gC('cnt:hoi');if(j.c0==null)j.c0=c;if(c>j.c0)return AQ_DONE;if(j.cf)return aqFail(j.cf);const b=j.b;if(!BYID.has(b.id))return aqFail('Đài trống không còn.');j.lab='Đánh trống mở hội';
+  if(aqD(b.x,b.z)>70)return aqGoto(j,b.x,b.z,56,j.lab);if(++j.fl>3)return aqFail('Hôm nay đã mở hội rồi: mai đánh trống tiếp.');try{b3Festival(b);}catch(e){return aqFail('Không mở hội được.');}return AQ_RUN;};
+AUG['Mở hội làng']=()=>{const b=S.builds.find(b=>b.k==='drumStage'&&b.prog==null);if(b)return {k:'fest',b};const s=S.builds.find(b=>b.k==='drumStage'&&b.prog!=null);return s?{k:'site',b:s}:{k:'place',piece:'drumStage'};};delete AQ_GUIDEONLY['Mở hội làng'];
+// Mời người: lo một chỗ ngủ trống, tặng quà / đổi đồ cho đủ thân (40), rồi mời.
+AUJ.folk=function(j){const c=gC('cnt:folk');if(j.c0==null)j.c0=c;if(c>j.c0)return AQ_DONE;if(j.cf){const m=j.cf;j.cf=null;if(++j.miss>4)return aqFail(m);}
+  if(!freeBed()){if(++j.g>4)return aqFail('Không lo được chỗ ngủ trống cho người mới.');const s=S.builds.find(b=>b.prog!=null&&pieceDef(b.k)&&pieceDef(b.k).bed);j.lab='Lo chỗ ngủ cho người mới';aqPush(s?{k:'site',b:s}:{k:'place',piece:'hammock'},j);return AQ_RUN;}
+  const L=(G.npcs||[]).filter(n=>n.o&&n.o.visible);if(!L.length){if(G.vfire&&aqD(G.vfire.x,G.vfire.z)>160)return aqGoto(j,G.vfire.x,G.vfire.z,120,'Tới làng bên',{far:1});return aqFail('Làng bên không còn ai để mời.');}
+  let n=null,bd=1e9;for(const x of L){const d=aqD(x.x,x.z);if(d<bd){bd=d;n=x;}}j.lab='Làm thân với '+n.def.n;if(bd>REACH+6)return aqGoto(j,n.x,n.z,REACH,j.lab,{far:1});G.npcCur=n;
+  if((S.rep||0)<40){const V={honey:6,meatCooked:4,hide:4,meat:3,fishCooked:3,fish:2,pot:5};let bi=-1,bv=0;S.inv.forEach((s,i)=>{if(s&&V[s.id]>bv&&(s.id!=='meatCooked'||s.n>3)){bv=V[s.id];bi=i;}});
+    if(bi>=0){const s0=S.sel;S.sel=bi;try{npcAction('gift');}finally{S.sel=s0;}return AQ_RUN;}if(++j.tr>14)return aqFail('Chưa đủ thân với làng (cần 40): tặng thịt nướng, da, mật ong.');aqPush({k:'trade'},j);return AQ_RUN;}
+  j.lab='Mời '+n.def.n+' về ở cùng';npcAction('recruit');if(gC('cnt:folk')>j.c0)return AQ_DONE;if(++j.fl>3)return aqFail('Chưa mời được người về.');return AQ_RUN;};
+{const _i=aqInit;aqInit=function(j){_i(j);if(j.k==='folk'&&j.tr==null){j.tr=0;j.g=0;}};}
+AUG['Mời một người về ở cùng']=()=>({k:'folk'});delete AQ_GUIDEONLY['Mời một người về ở cùng'];
+/* ---------- thú không hung thì không chạy; khát mà không tới được suối thì tìm chỗ khác hoặc hứng nước mưa ---------- */
+// Chạy thử: đi săn lấy da cho Đài trống, cứ thấy sói, hổ ở xa là "lánh về trại" dù chúng không tấn công (người mới, gần lửa) → không bao giờ săn xong.
+{const _ap=aqPred;aqPred=function(){const L=_ap.apply(this,arguments);try{if(typeof stSafe==='function'&&stSafe())return L.filter(p=>p.a&&(p.a.angry||(G.foes&&G.foes.includes(p.a))));}catch(e){}return L;};}
+{const _d=AUJ.drink;AUJ.drink=function(j){let r=_d.apply(this,arguments);try{if(r&&r.fail&&!j.fill){j.bw=j.bw||[];if(typeof isRaining==='function'&&isRaining()){S.p.water=Math.min(100,S.p.water+35);aqSay('🤖 Không tới được suối: ngửa mặt hứng nước mưa uống tạm.','');return AQ_DONE;}
+        if(j.bw.length<4){const C=AQ.wC&&AQ.wC.w;if(C)j.bw.push([C.wx,C.wz]);AQ.wC=null;let best=null;for(let rr=150;rr<=5000&&!best;rr+=110){const n=Math.ceil(rr*6.283/150);for(let k=0;k<n;k++){const a=k/n*6.283+j.bw.length,x=P.x+Math.cos(a)*rr,z=P.z+Math.sin(a)*rr,wd=wdAt(x,z);if(wd>0.5&&wd<7&&wIn(x,z,1)&&!j.bw.some(b=>Math.hypot(b[0]-x,b[1]-z)<260)){best=[x,z];break;}}}
+          if(best){j.bw.push(best);j.cf=null;aqPush({k:'goto',x:best[0],z:best[1],r:150,far:1,lab:'Tìm chỗ uống nước khác'},j);return AQ_RUN;}}}}catch(e){}return r;};}
+// không tìm được chỗ đặt công trình / bãi san nền: coi như một lần hỏng (thử lại, rồi gác làm mục khác) thay vì lặng lẽ dừng và hiện thẻ chỉ dẫn
+for(const k of ['place','flat']){const _f=AUJ[k];AUJ[k]=function(j){const r=_f.apply(this,arguments);if(r&&r.guide&&r.fail&&AQ.gi>=0)return aqFail(r.fail);return r;};}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
