@@ -95,3 +95,12 @@ for(const k of ['place','flat']){const _f=AUJ[k];AUJ[k]=function(j){const r=_f.a
 /* ---------- BẢO HIỂM: Tự làm tắt mà người chơi không bấm dừng → 6 giây sau tự bật lại (tối đa 6 lần mỗi 10 phút) ---------- */
 setInterval(()=>{try{if(typeof S==='undefined'||!S||!G.on||!S.auOn){G._auOff=0;return;}if(AQ.on||AQ.pause||G.sleeping||G.paused||G.build||G.dying||(typeof HD==='object'&&HD.cur)||(typeof H4==='object'&&H4.on)||S.goal>=GOALS.length){G._auOff=0;return;}
     G._auOff=(G._auOff||0)+1;if(G._auOff<6)return;G._auOff=0;G._auRs=(G._auRs||[]).filter(t=>G.t-t<600);if(G._auRs.length>=6)return;if(aqNextAuto()<0)return;G._auRs.push(G.t);aqStart(S.goal);if(AQ.on)uiToast('🤖 Tự làm bật lại (bấm ✋ để dừng hẳn).','');}catch(e){}},1000);
+/* ---------- THOÁT KẸT: kẹt ở cùng một chỗ lần thứ 2 thì lùi về chỗ đã đi được trước đó, đánh dấu chỗ kẹt để vòng tránh ----------
+   Chạy thử: nhân vật lọt vào một hốc địa hình xa nhà, báo "Bị kẹt" 15 lần liền tại đúng một điểm, máu tụt dần. */
+const TK={c:[],s:[]};
+setInterval(()=>{try{if(!S||!G.on||!AQ.on||P.air||G.swim||G.climb||G.sleeping)return;if((P.speed||0)<30)return;const l=TK.c[TK.c.length-1];if(l&&Math.hypot(l[0]-P.x,l[1]-P.z)<120)return;TK.c.push([P.x,P.z,G.t]);if(TK.c.length>40)TK.c.shift();}catch(e){}},4000);
+{const _g=AUJ.goto;AUJ.goto=function(j){const r=_g.apply(this,arguments);try{if(r&&r.fail&&/^Bị kẹt/.test(r.fail)){TK.s=TK.s.filter(s=>G.t-s[2]<1500);const near=TK.s.filter(s=>Math.hypot(s[0]-P.x,s[1]-P.z)<90).length;TK.s.push([P.x,P.z,G.t]);
+      if(near>=1){let bk=null;for(let i=TK.c.length-1;i>=0;i--){const c=TK.c[i];if(Math.hypot(c[0]-P.x,c[1]-P.z)>260&&wdAt(c[0],c[1])<=0){bk=c;break;}}
+        if(!bk){const hb=(typeof aqBed==='function'&&aqBed())||(typeof aqFire==='function'&&aqFire());if(hb&&near>=3)bk=[hb.x+30,hb.z+30,G.t];}
+        if(bk){AQ.bad.push({x:P.x,z:P.z,t:G.t+900});P.x=bk[0];P.z=bk[1];P.y=groundY(P.x,P.z,hAt(P.x,P.z)+2);P.air=false;P.vy=0;AQ.path=null;AQ.dir=null;j.stuck=0;j.best=1e9;j.pts=null;j.pl=null;TK.c=TK.c.filter(c=>c!==bk);try{G.camInit=0;}catch(e){}
+          uiToast('🤖 Kẹt giữa địa hình: lùi về chỗ đi được trước đó rồi vòng đường khác.','');return AQ_RUN;}}}}catch(e){}return r;};}
