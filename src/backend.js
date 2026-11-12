@@ -35,7 +35,7 @@ function ldbErr(e){if(e&&typeof e.code==='string'&&/^[a-z_]+$/.test(e.code)&&!e.
 // gọi máy chủ: {data,error} → data, lỗi → {code,message} theo db.d.ts
 async function ldbQ(p,ms){let r;try{r=await ldbTO(Promise.resolve(p),ms||15000);}catch(e){throw ldbErr(e);}if(r&&r.error)throw ldbErr(r.error);return r?r.data:null;}
 /* ---------- tải thư viện (chỉ ở bản web), tạo kết nối ---------- */
-function ldbScript(src,ms){return new Promise((res,rj)=>{const s=document.createElement('script');s.src=src;s.async=true;s.crossOrigin='anonymous';
+function ldbScript(src,ms){return new Promise((res,rj)=>{const s=document.createElement('script');s.src=src;s.async=true;s.crossOrigin='anonymous';if(/supabase-js@2\.117\.2\//.test(src))s.integrity='sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok';/* đúng tệp supabase-js 2.117.2 đã biết */
   const t=setTimeout(()=>{s.remove();rj(new Error('timeout'));},ms);s.onload=()=>{clearTimeout(t);res();};s.onerror=()=>{clearTimeout(t);s.remove();rj(new Error('load'));};document.head.appendChild(s);});}
 LDB.init=async function(){if(LDB.sb)return LDB.sb;if(!LDB.configured)throw {code:'config',message:'Máy chủ chưa được cấu hình'};
   for(const u of LDB_LIB){if(window.supabase&&window.supabase.createClient)break;try{await ldbScript(u,15000);}catch(e){console.warn('tải thư viện máy chủ',u,e&&e.message);}}

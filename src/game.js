@@ -425,6 +425,7 @@ function camTick(dt){if(isFP()){fpCam(dt);occTick(G.cam,G.R,P.x,P.y,P.z,false);r
   if(!G.camInit){G.cam.position.copy(want);G.camInit=1;}else G.cam.position.lerp(want,1-Math.exp(-dt*7));const gh=hAt(G.cam.position.x,G.cam.position.z)+30;if(G.cam.position.y<gh)G.cam.position.y=gh;G.cam.lookAt(tx,ty,tz);occTick(G.cam,G.R,P.x,P.y,P.z,!G.build);}
 /* ---------- khởi động ---------- */
 // thư viện 3D three.js 0.149.0: thử lần lượt từng nguồn, nguồn nào tải được thì dùng
+const TSRI='sha384-RRHfJ6w1mTlKUBMYT/hvnRiOzEB/vyRV3DrQOseb6oYfvaZSfdd0byS4bHps0k2R';
 const TURLS=['https://cdnjs.cloudflare.com/ajax/libs/three.js/0.149.0/three.min.js','https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js','https://unpkg.com/three@0.149.0/build/three.min.js'];
 function boot(d){uiInit();const o=loadSave();if(o){S=o;if(d&&d.cont){uiOverlay(false);startGame();return;}uiOpen('start',{cont:true});}else uiOpen('start',{cont:false});}
 // trang được cập nhật khi đang chơi: lưu lại rồi vào thẳng ván đang chơi
@@ -434,5 +435,5 @@ function startGame(){if(G._starting||G.on)return;G._starting=1;uiLoading(true);c
     sceneInit();unlockCheck();uiHotbar();uiHud(true);uiLoading(false);inputInit();requestAnimationFrame(loop);G.lastSave=0;setTimeout(treeLoLater,2500);
     uiToast(S.goal===0?'Bạn tỉnh dậy với hai bàn tay trắng. Hãy bắt đầu từ những cành khô quanh đây.':`Chào mừng trở lại, ${S.name}! Ngày ${wcAge()} · Mùa ${SEASONS[seasonIdx()].n}.`,'');}catch(e){console.error(e);uiLoading(false);uiError('Không khởi động được đồ họa 3D: '+e.message);}};
   // cho màn "Đang tạo thế giới…" kịp hiện ra trước khi bắt đầu dựng (trước đây khoá luồng ngay → bấm Bắt đầu thấy đứng hình vài giây)
-  if(window.THREE){requestAnimationFrame(()=>setTimeout(go,20));return;}const load=i=>{if(i>=TURLS.length){uiLoading(false);uiError('Không tải được thư viện 3D. Kiểm tra kết nối mạng rồi tải lại trang.');return;}const s=document.createElement('script');s.src=TURLS[i];s.onload=()=>{if(window.THREE)go();else load(i+1);};s.onerror=()=>{s.remove();load(i+1);};document.head.appendChild(s);};load(0);}
+  if(window.THREE){requestAnimationFrame(()=>setTimeout(go,20));return;}const load=i=>{if(i>=TURLS.length){uiLoading(false);uiError('Không tải được thư viện 3D. Kiểm tra kết nối mạng rồi tải lại trang.');return;}const s=document.createElement('script');s.src=TURLS[i];s.crossOrigin='anonymous';s.integrity=TSRI;/* chỉ chạy đúng tệp three.js r149 đã biết: máy chủ phát tệp bị sửa thì trình duyệt từ chối */s.onload=()=>{if(window.THREE)go();else load(i+1);};s.onerror=()=>{s.remove();load(i+1);};document.head.appendChild(s);};load(0);}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});

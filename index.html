@@ -310,7 +310,7 @@ function ldbErr(e){if(e&&typeof e.code==='string'&&/^[a-z_]+$/.test(e.code)&&!e.
 // gọi máy chủ: {data,error} → data, lỗi → {code,message} theo db.d.ts
 async function ldbQ(p,ms){let r;try{r=await ldbTO(Promise.resolve(p),ms||15000);}catch(e){throw ldbErr(e);}if(r&&r.error)throw ldbErr(r.error);return r?r.data:null;}
 /* ---------- tải thư viện (chỉ ở bản web), tạo kết nối ---------- */
-function ldbScript(src,ms){return new Promise((res,rj)=>{const s=document.createElement('script');s.src=src;s.async=true;s.crossOrigin='anonymous';
+function ldbScript(src,ms){return new Promise((res,rj)=>{const s=document.createElement('script');s.src=src;s.async=true;s.crossOrigin='anonymous';if(/supabase-js@2\.117\.2\//.test(src))s.integrity='sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok';/* đúng tệp supabase-js 2.117.2 đã biết */
   const t=setTimeout(()=>{s.remove();rj(new Error('timeout'));},ms);s.onload=()=>{clearTimeout(t);res();};s.onerror=()=>{clearTimeout(t);s.remove();rj(new Error('load'));};document.head.appendChild(s);});}
 LDB.init=async function(){if(LDB.sb)return LDB.sb;if(!LDB.configured)throw {code:'config',message:'Máy chủ chưa được cấu hình'};
   for(const u of LDB_LIB){if(window.supabase&&window.supabase.createClient)break;try{await ldbScript(u,15000);}catch(e){console.warn('tải thư viện máy chủ',u,e&&e.message);}}
@@ -2446,6 +2446,7 @@ function camTick(dt){if(isFP()){fpCam(dt);occTick(G.cam,G.R,P.x,P.y,P.z,false);r
   if(!G.camInit){G.cam.position.copy(want);G.camInit=1;}else G.cam.position.lerp(want,1-Math.exp(-dt*7));const gh=hAt(G.cam.position.x,G.cam.position.z)+30;if(G.cam.position.y<gh)G.cam.position.y=gh;G.cam.lookAt(tx,ty,tz);occTick(G.cam,G.R,P.x,P.y,P.z,!G.build);}
 /* ---------- khởi động ---------- */
 // thư viện 3D three.js 0.149.0: thử lần lượt từng nguồn, nguồn nào tải được thì dùng
+const TSRI='sha384-RRHfJ6w1mTlKUBMYT/hvnRiOzEB/vyRV3DrQOseb6oYfvaZSfdd0byS4bHps0k2R';
 const TURLS=['https://cdnjs.cloudflare.com/ajax/libs/three.js/0.149.0/three.min.js','https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js','https://unpkg.com/three@0.149.0/build/three.min.js'];
 function boot(d){uiInit();const o=loadSave();if(o){S=o;if(d&&d.cont){uiOverlay(false);startGame();return;}uiOpen('start',{cont:true});}else uiOpen('start',{cont:false});}
 // trang được cập nhật khi đang chơi: lưu lại rồi vào thẳng ván đang chơi
@@ -2455,7 +2456,7 @@ function startGame(){if(G._starting||G.on)return;G._starting=1;uiLoading(true);c
     sceneInit();unlockCheck();uiHotbar();uiHud(true);uiLoading(false);inputInit();requestAnimationFrame(loop);G.lastSave=0;setTimeout(treeLoLater,2500);
     uiToast(S.goal===0?'Bạn tỉnh dậy với hai bàn tay trắng. Hãy bắt đầu từ những cành khô quanh đây.':`Chào mừng trở lại, ${S.name}! Ngày ${wcAge()} · Mùa ${SEASONS[seasonIdx()].n}.`,'');}catch(e){console.error(e);uiLoading(false);uiError('Không khởi động được đồ họa 3D: '+e.message);}};
   // cho màn "Đang tạo thế giới…" kịp hiện ra trước khi bắt đầu dựng (trước đây khoá luồng ngay → bấm Bắt đầu thấy đứng hình vài giây)
-  if(window.THREE){requestAnimationFrame(()=>setTimeout(go,20));return;}const load=i=>{if(i>=TURLS.length){uiLoading(false);uiError('Không tải được thư viện 3D. Kiểm tra kết nối mạng rồi tải lại trang.');return;}const s=document.createElement('script');s.src=TURLS[i];s.onload=()=>{if(window.THREE)go();else load(i+1);};s.onerror=()=>{s.remove();load(i+1);};document.head.appendChild(s);};load(0);}
+  if(window.THREE){requestAnimationFrame(()=>setTimeout(go,20));return;}const load=i=>{if(i>=TURLS.length){uiLoading(false);uiError('Không tải được thư viện 3D. Kiểm tra kết nối mạng rồi tải lại trang.');return;}const s=document.createElement('script');s.src=TURLS[i];s.crossOrigin='anonymous';s.integrity=TSRI;/* chỉ chạy đúng tệp three.js r149 đã biết: máy chủ phát tệp bị sửa thì trình duyệt từ chối */s.onload=()=>{if(window.THREE)go();else load(i+1);};s.onerror=()=>{s.remove();load(i+1);};document.head.appendChild(s);};load(0);}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
 /* ===================== SỰ SỐNG: CƠ THỂ, BỆNH, THỜI TIẾT, BỐN MÙA, THÚ VẬT, CÔN TRÙNG ===================== */
 // mùa và ngày trong mùa lấy theo đồng hồ chung (clock.js) để mọi người cùng mùa
@@ -17490,7 +17491,7 @@ function crInstall(){if(typeof K3==='undefined'||!K3.char2||K3.char2._cr)return;
 {const _i6=typeof SBmodels6cInit==='function'?SBmodels6cInit:null;if(_i6)SBmodels6cInit=function(){const r=_i6.apply(this,arguments);crInstall();return r;};
  const _i2=typeof K3char2Init==='function'?K3char2Init:null;if(_i2)K3char2Init=function(){const r=_i2.apply(this,arguments);if(typeof SBmodels6cInit!=='function')crInstall();return r;};}
 function crModelsInit(){K3init();K3lightsInit();['K3fxInit','K3charInit','SBmodelsInit','K3char2Init','SBmodels2Init','SBmodels3Init','SBmodels4aInit','SBmodels4bInit','SBmodels5Init','SBmodels6vInit','SBmodels6cInit'].forEach(n=>{const f=window[n];if(typeof f==='function')try{f();}catch(e){console.warn('creator init',n,e);}});crInstall();}
-function crLoad3D(cb){if(window.THREE){cb(true);return;}const load=i=>{if(i>=TURLS.length){cb(false);return;}const s=document.createElement('script');s.src=TURLS[i];s.onload=()=>{if(window.THREE)cb(true);else load(i+1);};s.onerror=()=>{s.remove();load(i+1);};document.head.appendChild(s);};load(0);}
+function crLoad3D(cb){if(window.THREE){cb(true);return;}const load=i=>{if(i>=TURLS.length){cb(false);return;}const s=document.createElement('script');s.src=TURLS[i];s.crossOrigin='anonymous';if(typeof TSRI==='string')s.integrity=TSRI;s.onload=()=>{if(window.THREE)cb(true);else load(i+1);};s.onerror=()=>{s.remove();load(i+1);};document.head.appendChild(s);};load(0);}
 /* ---------- nối vào game ---------- */
 {const _cl=charLook;charLook=function(){const L=_cl();if(typeof S!=='undefined'&&S&&S.app){L.app=S.app;L.crWear=!!(S.wear&&S.wear.body);}return L;};}
 {const _fs=fixSave;fixSave=function(o){const r=_fs(o);if(!r.app&&G.crPending){r.app=G.crPending;G.crPending=null;}r.app=crSan(r.app)||crFromLook(r.look|0);return r;};}
