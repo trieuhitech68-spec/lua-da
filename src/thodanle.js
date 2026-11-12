@@ -5,12 +5,12 @@
    - Bị bắt / hạ thì khoảng 10 phút sau có người khác xuất hiện ở nơi khác.
    "Tự làm" mục Bắt sống một thổ dân sẽ tìm những người này thay vì lao vào trại. */
 const TL_T=[{n:'Thợ săn lạc',role:'hunter',hp:8,dmg:7,fight:1,sp:'guard',spear:1},{n:'Người hái lượm',role:'gatherer',hp:5,dmg:3,fight:0,sp:'gather'},{n:'Thợ đá lang thang',role:'potter',hp:7,dmg:5,fight:1,sp:'stone'},{n:'Tiều phu lạc',role:'hunter',hp:7,dmg:5,fight:1,sp:'wood'},{n:'Người nấu bếp lạc đoàn',role:'elder',hp:5,dmg:3,fight:0,sp:'cook'}];
-const TL={n:14,last:0,seq:0};
+const TL={n:/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)?8:10,last:0,seq:0};
 function tlSpot(R,minP){for(let t=0;t<400;t++){let x,z;if(typeof V5!=='undefined'&&WV>=4&&R()<0.7){x=V5.box[0]+R()*V5.box[2];z=V5.box[1]+R()*V5.box[3];}else{const a=R()*6.283,rr=900+R()*3600;x=SPAWN[0]+Math.cos(a)*rr;z=SPAWN[1]+Math.sin(a)*rr;}
     if(!wIn(x,z,0.92)||hAt(x,z)<4||wdAt(x,z)>0||slopeAt(x,z)>0.5)continue;const dS=Math.hypot(x-SPAWN[0],z-SPAWN[1]);if(dS<800||dS>5200)continue;if(minP&&Math.hypot(x-P.x,z-P.z)<minP)continue;
     if((G.foes||[]).some(f=>f.alive&&Math.hypot(f.x-x,f.z-z)<520))continue;if(S.builds.some(b=>Math.hypot(b.x-x,b.z-z)<500))continue;if(G.vfire&&Math.hypot(G.vfire.x-x,G.vfire.z-z)<400)continue;return [x,z];}return null;}
 function tlSpawn(R,minP){const p=tlSpot(R,minP);if(!p||!G.foes)return null;const T=TL_T[Math.floor(R()*TL_T.length)];let o=null;try{o=window.SBM&&SBM.villager?SBM.villager(700+Math.floor(R()*190),T.role):K3.char2({sex:R()<0.5?'m':'f',skin:'#8a5a3a',top:'#5a4a2a'});}catch(e){o=K3.char({});}
-  o.traverse(m=>{if(m.isMesh)m.castShadow=true;});try{if(T.spear&&K3.char2Equip&&o.userData.rig)K3.char2Equip(o.userData.rig,model(['tool','spear']),'spear');}catch(e){}G.sc.add(o);try{seasonPatchAll(o);}catch(e){}
+  o.traverse(m=>{if(m.isMesh)m.castShadow=false;});try{if(T.spear&&K3.char2Equip&&o.userData.rig)K3.char2Equip(o.userData.rig,model(['tool','spear']),'spear');}catch(e){}G.sc.add(o);try{seasonPatchAll(o);}catch(e){}
   const lv=1+Math.floor(R()*3),k=1+0.3*(lv-1),f={kind:'raider',n:T.n,x:p[0],z:p[1],y:hAt(p[0],p[1]),r:9,hp:T.hp*k,hp0:T.hp*k,dmg:T.dmg*(1+0.1*(lv-1)),alive:true,o,rig:o.userData.rig,mode:'lone',lone:1,tl:T,sp0:T.sp,lv,_lvA:1,hx:p[0],hz:p[1],ph:R()*6,atkT:0,ry:0,state:'idle',id:++TL.seq};G.foes.push(f);return f;}
 function tlInit(){try{if(!G.foes)G.foes=[];const R=rng((S.seed|0)+5151);for(let i=0;i<TL.n;i++)tlSpawn(R,0);TL.last=G.t;}catch(e){console.warn('thổ dân lẻ',e);}}
 {const _ci=campInit;campInit=function(){const r=_ci.apply(this,arguments);tlInit();return r;};}

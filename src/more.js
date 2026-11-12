@@ -74,7 +74,7 @@ const MXM={
   watchtower:()=>{const K=K3,a=[];[[-13,-13],[13,-13],[-13,13],[13,13]].forEach(([x,z])=>a.push(K.cyl(2,2.4,108,'dwood',{x,z,y:-2},7)));
     a.push(K.box(36,3,36,'#7a5a38',{y:80}));[[0,-17,36,1.2],[0,17,36,1.2],[-17,0,1.2,36],[17,0,1.2,36]].forEach(([x,z,w,d])=>a.push(K.box(w,10,d,'#8a6a44',{x,z,y:83})));
     a.push(K.cone(29,24,'thatch',{y:104},10));[[-13,-13,13,13],[13,-13,-13,13]].forEach(([x0,z0,x1,z1])=>a.push(K.box(1.4,1.4,Math.hypot(x1-x0,z1-z0),'#6a4a2a',{y:40,ry:Math.atan2(x1-x0,z1-z0),center:1})));
-    for(let i=0;i<2;i++)a.push(K.cyl(0.9,0.9,92,'wood',{x:i?6:-6,y:0,z:24,rx:-0.2},5));for(let k=0;k<9;k++)a.push(K.box(13,1,1,'#7a5232',{y:6+k*9.4,z:24+(6+k*9.4)*0.2,center:1}));
+    for(let i=0;i<2;i++)a.push(K.cyl(0.9,0.9,92,'wood',{x:i?6:-6,y:0,z:24,rx:-0.2},5));for(let k=0;k<9;k++)a.push(K.box(13,1,1,'#7a5232',{y:6+k*9.4,z:24-(6+k*9.4)*0.2,center:1}));/* bậc thang nằm đúng giữa hai thanh dọc (thanh ngả vào trong 0,2 rad) */
     a.push(K.cone(2.2,8,'bone',{x:12,y:92,z:-12,rz:1.2},6));return K.group(a);},
   spikePit:()=>{const K=K3,a=[K.cyl(15,14,0.8,'#2a1e14',{y:-0.3},14),K.torus?K.torus(15,1.6,'soil',{rx:Math.PI/2,y:0.4},16):null];for(let i=0;i<9;i++){const an=i/9*6.283,r=i%3?8:3;a.push(K.cone(1,11,'bamboo',{x:Math.cos(an)*r,z:Math.sin(an)*r,y:-1,rx:Math.sin(an)*0.15,rz:-Math.cos(an)*0.15},5));}
     for(let i=0;i<6;i++){const an=i/6*6.283+0.3;a.push(K.sphere(4.5,'leaf',{x:Math.cos(an)*10,z:Math.sin(an)*10,y:0.6,sy:0.18},7,4));}return K.group(a);},

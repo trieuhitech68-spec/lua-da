@@ -20,7 +20,10 @@ aqFinishRoot=function(root){AQ.rt=0;const af=AQ.after;AQ.after=null;if(af&&root&
 {const _g=AUJ.goal;AUJ.goal=function(j){try{const g=GOALS[j.gi];if(g&&!j.cf){const [v,n]=goalProg(g);if(v<n){const sp=aqSpec(j.gi),pl=sp&&sp.plan();if(pl&&pl.guide&&pl.guide[0]==='@'){AQ.skip.add(j.gi);const ni=aqNextAuto();if(ni>=0){aqJump(ni,`"${g.t}" cần bạn tự tay.`);return AQ_RUN;}}}}}catch(e){}return _g.apply(this,arguments);};}
 // ruộng lúa: tự đặt (ưu tiên sát nước)
 {AUG['Đắp ruộng lúa nước']=()=>{const b=S.builds.find(b=>b.prog!=null&&b.k==='paddy');if(b)return {k:'site',b};const d=pieceDef('paddy');if(!d||(d.age&&(S.age||0)<d.age)||!S.known['b:paddy'])return {guide:'@farm'};return {k:'place',piece:'paddy'};};AQ_CREATIVE.delete('Đắp ruộng lúa nước');
-  const _sp=aq2Spots;aq2Spots=function(def){const out=_sp.apply(this,arguments);try{if(def.id==='paddy'){for(const s of out)if(nearWater(s.x,s.z,110))s.s-=2000;out.sort((a,b)=>a.s-b.s);}}catch(e){}return out;};}
+  const _sp=aq2Spots;aq2Spots=function(def){let out=_sp.apply(this,arguments);try{if(def.id==='paddy'){for(const s of out)if(nearWater(s.x,s.z,110))s.s-=2000;
+      /* quanh trại không có chỗ nào sát nước: tìm bãi bằng ngay cạnh nguồn nước gần nhất (ruộng xa nước phải tát bằng bầu, Tự làm hay kẹt ở đó) */
+      if(!out.some(s=>nearWater(s.x,s.z,110))){const w=aqFindWater();if(w){const ex=[];for(let r=70;r<=260;r+=30)for(let a=0;a<14;a++){const x=w.sx+Math.cos(a/14*6.283)*r,z=w.sz+Math.sin(a/14*6.283)*r;if(!nearWater(x,z,105))continue;let ok=true;for(const [u,v] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]])if(!aq2Free(x+u*CELL,z+v*CELL,CELL*0.55)){ok=false;break;}if(ok)ex.push({x,z,s:-3000+r});}out=ex.concat(out);}}
+      out.sort((a,b)=>a.s-b.s);out=out.slice(0,16);}}catch(e){}return out;};}
 /* ---------- khát: uống bầu nước trong túi, tìm nước xa hơn, không để cạn nước tới chết ----------
    Chạy thử: đi săn xa suối, "không thấy suối gần đây" nên không uống, trong túi có bầu nước mà không dùng, cạn nước rồi mất máu. */
 {const _d=AUJ.drink;AUJ.drink=function(j){try{if(!j.fill&&!j.goal&&S.p.water<70){const id=invCount('water')>0?'water':invCount('waterDirty')>0&&S.p.water<25?'waterDirty':null;if(id){eat(id);return AQ_DONE;}}}catch(e){}
