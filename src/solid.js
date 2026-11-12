@@ -72,3 +72,15 @@ if(typeof mxTowerUse==='function'){const _tu=mxTowerUse;mxTowerUse=function(b){i
 
 /* ---------- TRẦN NHÀ: đứng dưới mái mà nhảy thì đầu chạm mái, không chui lên trên mái được ---------- */
 {const _mv=moveTick;moveTick=function(dt){const r=_mv.apply(this,arguments);try{if(P.air&&P.vy>0&&typeof OCC!=='undefined'&&OCC.cell.size){const t=solTopAt(P.x,P.z);if(t!=null&&P.y<t-3&&P.y+38>t-5){P.vy=Math.min(P.vy,0);}}}catch(e){}return r;};}
+
+/* ---------- ĐÀI TRỐNG HỘI: lên được bằng bậc thang, không đi xuyên qua sàn đài ----------
+   Đài 70×70, mặt sàn cao 25; ba bậc (cao 6, 12, 18) ở cạnh +z của đài (xoay theo b.r); trống lớn bán kính 13 giữa sàn.
+   Trước: nằm trong danh sách "bước lên được" nhưng không có độ cao → người đi xuyên qua sàn, đầu chui qua mặt đài. */
+const SOL_DR={t:-9,L:[]};
+function solDrums(){if(G.t-SOL_DR.t>1.5||SOL_DR.n!==S.builds.length){SOL_DR.t=G.t;SOL_DR.n=S.builds.length;SOL_DR.L=S.builds.filter(b=>b.k==='drumStage'&&b.prog==null);}return SOL_DR.L;}
+function solDrLoc(b,x,z){const th=(b.r||0)*Math.PI/2,dx=x-b.x,dz=z-b.z,c=Math.cos(th),s=Math.sin(th);return [dx*c-dz*s,dx*s+dz*c];}
+function solDrTop(b,x,z){const [lx,lz]=solDrLoc(b,x,z);if(Math.abs(lx)<35&&Math.abs(lz)<35)return b.y+25;if(Math.abs(lx)<9){if(lz>=35&&lz<39.5)return b.y+18;if(lz>=39.5&&lz<44.8)return b.y+12;if(lz>=44.8&&lz<50.5)return b.y+6;}return null;}
+{const _gy=groundY;groundY=function(x,z,yRef){const g=_gy(x,z,yRef);try{if(S&&S.builds&&S.builds.length){const ref=yRef==null?P.y:yRef;for(const b of solDrums()){if(Math.abs(x-b.x)>60||Math.abs(z-b.z)>60)continue;const t=solDrTop(b,x,z);if(t!=null&&t>g&&ref>=t-9)return t;}}}catch(e){}return g;};}
+{const _c=collide;collide=function(nx,nz){let r=_c.apply(this,arguments);try{if(S&&G.on&&S.builds&&S.builds.length){const ox=P.x,oz=P.z,py=P.y;for(const b of solDrums()){if(Math.abs(r[0]-b.x)>70||Math.abs(r[1]-b.z)>70)continue;const [lx,lz]=solDrLoc(b,r[0],r[1]),top=b.y+25,th=(b.r||0)*Math.PI/2;
+        if(py>=top-9){/* đang ở trên sàn: không đi xuyên cái trống */const d=Math.hypot(lx,lz);if(d<17&&d>0.01){const k=17/d,ax=lx*k,az=lz*k,c=Math.cos(-th),s=Math.sin(-th);r=[b.x+ax*c-az*s,b.z+ax*s+az*c];}}
+        else if(Math.abs(lx)<37&&Math.abs(lz)<37){/* đứng dưới đất: sàn đài chặn ngang ngực, chỉ lên được từ bậc thang */const [l0x,l0z]=solDrLoc(b,ox,oz),onStair=Math.abs(l0x)<9&&l0z>=33;if(!(onStair&&py>=b.y+14)){if(Math.abs(l0x)<37&&Math.abs(l0z)<37){/* lỡ kẹt bên trong: cho đi ra */}else r=[ox,oz];}}}}}catch(e){}return r;};}
