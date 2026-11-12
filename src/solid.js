@@ -5,15 +5,21 @@
    2. Công trình nhiều ô và giường (lều nghiêng, lều da, giường, chuồng lợn, chuồng trâu, chuồng dê, kho thóc lớn, mộ…) trước không chặn: giờ đặc theo
       hình chữ nhật. Ruộng, mương, ao, sàn, cầu thang, bếp có mái che vẫn bước lên được.
    3. Thú, dân làng, người chơi khác: không đứng lồng vào nhau nữa (thú nuôi, thú đã gục thì bỏ qua để không kẹt cửa). */
+/* LỀU VÀO ĐƯỢC: hình vách của từng loại lều trong toạ độ riêng (mặt trước là +z), để hở phía cửa.
+   Lều nghiêng: vách sau và hai vách bên, mặt trước mở hẳn. Lều da: vòng tròn bán kính 31, hở cửa rộng 18 ở mặt trước. */
+const SOL_SH={leanto:[[-20,-36,20,-36],[-20,-36,-20,29],[20,-36,20,29]],
+  tent:(()=>{const a=[],R=31,n=14,g=0.3;for(let i=0;i<n;i++){const t0=g+(i/n)*(Math.PI*2-2*g),t1=g+((i+1)/n)*(Math.PI*2-2*g);a.push([Math.sin(t0)*R,Math.cos(t0)*R,Math.sin(t1)*R,Math.cos(t1)*R]);}return a;})()};
+function solShSegs(b,out){const L=SOL_SH[b.k];if(!L||b.prog!=null&&b.prog<0.5)return;const th=(b.r||0)*Math.PI/2,c=Math.cos(th),s=Math.sin(th);for(const q of L){/* kéo dài mỗi đoạn 2 đơn vị ở hai đầu: đi đúng vào chỗ hai đoạn nối nhau không bị lọt qua khe */const dx=q[2]-q[0],dz=q[3]-q[1],l=Math.hypot(dx,dz)||1,ex=dx/l*2,ez=dz/l*2,x0=q[0]-ex,z0=q[1]-ez,x1=q[2]+ex,z1=q[3]+ez;out.push([b.x+x0*c+z0*s,b.z-x0*s+z0*c,b.x+x1*c+z1*s,b.z-x1*s+z1*c]);}}
 const SOL_WALK=/^(paddy|channel|fishPond|drumStage|treePlatform|stiltDeck2|bambooStairs|logStairs|kitchenShed|farm|stilt|stiltBamboo|stairs|rug|sleepMat|hammock|spikePit|trap|fishTrap)$/;
-function solRectOf(b){const def=pieceDef(b.k);if(!def||def.kind!=='obj'||SOL_WALK.test(b.k)||def.farm)return null;const fp=def.fp||[1,1];if(fp[0]*fp[1]<2)return null;if(def.bed&&!def.shelter)return null;/* giường kê trong nhà: bước qua được, kẻo nhà nhỏ hết lối đi */
+function solRectOf(b){const def=pieceDef(b.k);if(!def||def.kind!=='obj'||SOL_WALK.test(b.k)||def.farm)return null;if(SOL_SH[b.k])return null;/* lều: vào được từ phía cửa, vách chặn bằng các đoạn tường (solShSegs) */const fp=def.fp||[1,1];if(fp[0]*fp[1]<2)return null;if(def.bed&&!def.shelter)return null;/* giường kê trong nhà: bước qua được, kẻo nhà nhỏ hết lối đi */
   if(b.prog!=null&&b.prog<0.5)return null;const w=(b.r%2?fp[1]:fp[0])*CELL/2-3,d=(b.r%2?fp[0]:fp[1])*CELL/2-3;return [b.x-w,b.z-d,b.x+w,b.z+d];}
 function solRects(x,z,py){const out=[],ci=Math.floor(x/CELL),cj=Math.floor(z/CELL),seen=new Set();for(let i=ci-3;i<=ci+3;i++)for(let j=cj-3;j<=cj+3;j++){const c=OCC.cell.get(i+','+j);if(!c)continue;
     for(let L=0;L<=LVMAX;L++){const id=c[slotN('obj',L)];if(!id||seen.has(id))continue;seen.add(id);const b=BYID.get(id);if(!b||Math.abs(b.y-py)>40||py>=b.y+SOL_HUT-4)continue;/* đang đứng trên nóc thì không bị đẩy */const r=solRectOf(b);if(r)out.push(r);}}return out;}
 // các đoạn tường (đã trừ lối cửa) + cột quanh một vùng
 function solSegs(x0,z0,x1,z1,py){const out=[],i0=Math.floor(Math.min(x0,x1)/CELL)-1,i1=Math.floor(Math.max(x0,x1)/CELL)+1,j0=Math.floor(Math.min(z0,z1)/CELL)-1,j1=Math.floor(Math.max(z0,z1)/CELL)+1;if((i1-i0)*(j1-j0)>400)return out;
   for(let L=0;L<=LVMAX;L++)for(let i=i0;i<=i1+1;i++)for(let j=j0;j<=j1+1;j++)for(const [k0,r] of [['h:'+i+','+j,0],['v:'+i+','+j,1]]){const id=OCC.edge.get(L?k0+'@'+L:k0);if(!id)continue;const b=BYID.get(id);if(!b)continue;const def=pieceDef(b.k);if(!def||/ladder/i.test(b.k))continue;
-      if(py+30<b.y||py>b.y+(def.low?12:46))continue;const ax=r?b.x:b.x-20,az=r?b.z-20:b.z,bx=r?b.x:b.x+20,bz=r?b.z+20:b.z;for(const [s0,s1] of (def.door&&solDoorOpen(b)?[[-0.08,0.17],[0.83,1.08]]:[[-0.08,1.08]]))out.push([ax+(bx-ax)*s0,az+(bz-az)*s0,ax+(bx-ax)*s1,az+(bz-az)*s1]);/* dài thêm mỗi đầu 3 đơn vị: bịt khe ở góc nhà */}
+      if(py+30<b.y||py>(def.low?Math.max(b.y,hAt(b.x,b.z))+(P.air?11:26):b.y+46))continue;const ax=r?b.x:b.x-20,az=r?b.z-20:b.z,bx=r?b.x:b.x+20,bz=r?b.z+20:b.z;for(const [s0,s1] of (def.door&&solDoorOpen(b)?[[-0.08,0.17],[0.83,1.08]]:[[-0.08,1.08]]))out.push([ax+(bx-ax)*s0,az+(bz-az)*s0,ax+(bx-ax)*s1,az+(bz-az)*s1]);/* dài thêm mỗi đầu 3 đơn vị: bịt khe ở góc nhà */}
+  try{const seen=new Set();for(let i=i0-1;i<=i1+1;i++)for(let j=j0-1;j<=j1+1;j++){const c=OCC.cell.get(i+','+j);if(!c)continue;const id=c[slotN('obj',0)];if(!id||seen.has(id))continue;seen.add(id);const b=BYID.get(id);if(b&&SOL_SH[b.k]&&Math.abs(b.y-py)<40)solShSegs(b,out);}}catch(e){}
   return out;}
 const solX=(a,b,c,d,p,q,r,s)=>{const d1=(c-a)*(q-b)-(d-b)*(p-a),d2=(c-a)*(s-b)-(d-b)*(r-a),d3=(r-p)*(b-q)-(s-q)*(a-p),d4=(r-p)*(d-q)-(s-q)*(c-p);return d1*d2<0&&d3*d4<0;};
 function solCross(ox,oz,x,z,py,segs,rects){for(const s of segs)if(solX(ox,oz,x,z,s[0],s[1],s[2],s[3]))return true;
@@ -91,3 +97,14 @@ function solDrTop(b,x,z){const [lx,lz]=solDrLoc(b,x,z);if(Math.abs(lx)<35&&Math.
 const SOL_R={};
 function solObjR(k){let r=SOL_R[k];if(r!=null)return r;r=0;try{const d=pieceDef(k);if(d&&d.kind==='obj'&&!d.bed&&!d.farm&&!d.shelter&&!SOL_WALK.test(k)&&(!d.fp||d.fp[0]*d.fp[1]===1)){const m=model(['piece',k]),bb=new THREE.Box3().setFromObject(m),w=Math.max(bb.max.x-bb.min.x,bb.max.z-bb.min.z),h=bb.max.y-bb.min.y;if(h>9&&w>30)r=Math.min(17.5,w*0.5*0.82);}}catch(e){}SOL_R[k]=r;return r;}
 {const _c=collide;collide=function(nx,nz){let r=_c.apply(this,arguments);try{if(S&&G.on&&typeof OCC!=='undefined'&&OCC.cell.size){const pr=7,py=P.y,ci=Math.floor(r[0]/CELL),cj=Math.floor(r[1]/CELL);for(let i=ci-1;i<=ci+1;i++)for(let j=cj-1;j<=cj+1;j++){const c=OCC.cell.get(i+','+j);if(!c)continue;for(let L=0;L<=LVMAX;L++){const id=c[slotN('obj',L)];if(!id)continue;const b=BYID.get(id);if(!b||Math.abs(b.y-py)>40)continue;const R=solObjR(b.k);if(!R)continue;const dx=r[0]-b.x,dz=r[1]-b.z,d=Math.hypot(dx,dz),rr=R+pr;if(d<rr&&d>0.01)r=[b.x+dx/d*rr,b.z+dz/d*rr];}}}}catch(e){}return r;};}
+
+/* ---------- RUỘNG, AO, LUỐNG: tự san phẳng đất bên dưới ----------
+   Trước: ruộng lúa 2×2 đặt theo góc cao nhất của mặt đất, đất gồ ghề thì chỗ lòi cỏ lên qua mặt ruộng, chỗ hở bên dưới ("nửa ngập nước, nửa xanh").
+   Giờ: dựng xong (và ruộng cũ đã có sẵn, một lần khi vào game) thì mặt đất dưới ruộng được san bằng đúng cao độ của ruộng. */
+const SOL_FLAT={paddy:74,fishPond:74,farm:36,flowerBed:36};
+function solFlatFor(b,quiet){try{const r=SOL_FLAT[b.k];if(!r||b.fl||b.remote||b.prog!=null)return false;if(typeof flatApply!=='function'||wdAt(b.x,b.z)>0.5){b.fl=1;return false;}
+    const h=+(b.y-0.9).toFixed(2);S.flat=S.flat||[];if(S.flat.some(f=>Math.hypot(f.x-b.x,f.z-b.z)<12&&Math.abs(f.h-h)<1.5)){b.fl=1;return false;}
+    const f={x:+b.x.toFixed(1),z:+b.z.toFixed(1),r,h};S.flat.push(f);flatApply(f);for(const i of near(b.x,b.z,r*1.3+30)){const q=RES[i];if(q.wy!=null)continue;const ny=hAt(q.x,q.z)-1.2;if(Math.abs(ny-q.y)>0.3){q.y=ny;try{resShow(q);}catch(e){}}}
+    try{RI.forEach(v=>v.api.flush());}catch(e){}if(!quiet)landRebuild(f);b.fl=1;return true;}catch(e){return false;}}
+{const _sd=siteDone;siteDone=function(b){const r=_sd.apply(this,arguments);try{if(b&&SOL_FLAT[b.k]&&solFlatFor(b)){G.gLast=null;P.y=groundY(P.x,P.z);save();}}catch(e){}return r;};}
+setTimeout(function chk(){try{if(typeof G==='undefined'||!G.on||!S||!S.builds){setTimeout(chk,3000);return;}let n=0;for(const b of S.builds){if(n<6&&SOL_FLAT[b.k]&&!b.fl&&b.prog==null&&!b.remote&&solFlatFor(b))n++;}if(n){G.gLast=null;P.y=groundY(P.x,P.z);save();}}catch(e){}},5000);

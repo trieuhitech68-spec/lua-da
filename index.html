@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261112125356">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261112133906">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -2443,7 +2443,7 @@ function loop(now){requestAnimationFrame(loop);if(!G.on||G.lost)return;const raw
   if(!G.paused){if(!ladderTick(dt)&&!rideTick(dt))moveTick(dt);npcTick(dt);folkTick(dt);foesTick(dt);raidTick();roofCut();actTick(dt);workTick(dt);projTick(dt);petsTick(dt);insectsTick(dt);fishTick(dt);smallLifeTick(dt);cleanTick(dt);dayTick(dt);weatherTick(dt);bodyTick(dt);seasonTick(dt);animalsTick(dt);if(G.t-(G.rgT||0)>2){const gd=(G.t-(G.rgT||G.t))*1/DAY_SEC;G.rgT=G.t;resRegrow();cropsTick(gd);fuelTick(gd*24);roofCut();}}
   animTick(dt);fxTick(dt);crittersTick(dt);birdsTick(dt);ambTick(dt);lightsTick(now/1000);grassTick();cullTick();skyTick();miniTick();fpArmTick(dt);exploreTick();if(typeof hlTick==='function')hlTick();compassTick();dropTick();uiActsTick();if(G.throwAnim>0)G.throwAnim-=dt;if(G.build)buildUpdate();camTick(dt);
   const tg=G.build||G.paused?null:findTarget();G.target=tg;uiTarget(tg);
-  if(K3.fx)K3.fx.render(G.R,G.sc,G.cam,{vig:0.24,bloom:0.45,post:G.q>0});else G.R.render(G.sc,G.cam);
+  if(K3.fx)K3.fx.render(G.R,G.sc,G.cam,{vig:0.24,bloom:0.45,post:G.q>0&&!G.noPost});else G.R.render(G.sc,G.cam);
   perfTick(rawDt);if(G.t-G.lastSave>15){G.lastSave=G.t;save();}if(G.t-(G.hudT||0)>0.4){G.hudT=G.t;uiHud();}}
 // máy yếu: tự giảm chất lượng
 function perfTick(dt){if(!(dt>0)||dt>0.25)return;G.pfWarm=(G.pfWarm||0)+dt;if(G.pfWarm<3)return;G.ft=(G.ft||dt)*0.94+dt*0.06;G.prT=(G.prT||0)+dt;if(G.prT<1.2)return;G.prT=0;const k=G.prK||1;
@@ -2919,7 +2919,7 @@ function grassTick(){const g=G.grass;if(!g)return;const px=P.x,pz=P.z;if(G.gLast
   g.instanceMatrix.needsUpdate=true;if(g.instanceColor)g.instanceColor.needsUpdate=true;}
 /* ---------- tắt các khối tài nguyên ở xa (cộng với cắt theo khung nhìn của three.js) ---------- */
 function cullTick(){if(G.t-(G.cullT||0)<0.25)return;G.cullT=G.t;const cx=G.cam.position.x,cz=G.cam.position.z,F=G.fogF||2000;
-  const nearD=[480,650,900][G.q|0],loD=[700,1000,1400][G.q|0];for(const v of RI.values()){const s=v.sph;if(!s)continue;const d=Math.hypot(s.x-cx,s.z-cz)-s.r,dc=Math.hypot(s.x-cx,s.z-cz);const on=v.api.nOn>0&&d<(v.small?nearD:(G.treeD||F));
+  const hv=G.hnV||1,nearD=[440,650,900][G.q|0]*hv,loD=[600,1000,1400][G.q|0]*hv;/* hv: nấc tự giảm tầm nhìn (hieunang.js) */for(const v of RI.values()){const s=v.sph;if(!s)continue;const d=Math.hypot(s.x-cx,s.z-cz)-s.r,dc=Math.hypot(s.x-cx,s.z-cz);const on=v.api.nOn>0&&d<(v.small?nearD:(G.treeD||F));
     if(v.api.lo){const far=dc-s.r*0.3>loD;v.api.hi.G.visible=on&&!far;v.api.lo.G.visible=on&&far;}else v.api.G.visible=on;}terrainLod();fallsTick();}
 function fallsTick(){if(!G.falls)return;const dt=G.t-(G.fallT||G.t);G.fallT=G.t;let near=1e9;const wm=window.SBM&&SBM.mat3&&SBM.mat3.sb3Water;if(wm&&wm.map)wm.map.offset.y+=dt*0.8;for(const f of G.falls)near=Math.min(near,Math.hypot(f.x-P.x,f.z-P.z));
   if(near<260&&AU.on&&AU.ctx&&G.t-(G.fallS||0)>1.3){G.fallS=G.t;noise(1.5,700,0.6,0.25*(1-near/260),0,'lowpass');}}
@@ -4680,7 +4680,7 @@ function collide(nx,nz){const pr=7,py=P.y;for(let it=0;it<2;it++){for(const c of
     for(const i of near(nx,nz,40)){const q=RES[i];if(q.st!==0)continue;const D=RT[q.t];if(D.pass)continue;if(Math.abs(q.y-py)>60)continue;const r=(D.r||6)*q.s*0.7+pr,dx=nx-q.x,dz=nz-q.z,d=Math.hypot(dx,dz);if(d<r&&d>0.01){nx=q.x+dx/d*r;nz=q.z+dz/d*r;}}
     const ci=Math.floor(nx/CELL),cj=Math.floor(nz/CELL);
     for(let L=0;L<=LVMAX;L++)for(let i=ci-1;i<=ci+1;i++)for(let j=cj-1;j<=cj+1;j++){
-      for(const [k0,r] of [['h:'+i+','+j,0],['v:'+i+','+j,1]]){const id=OCC.edge.get(L?k0+'@'+L:k0);if(!id)continue;const b=BYID.get(id);if(!b)continue;const def=pieceDef(b.k);if(!def)continue;if(py+30<b.y||py>b.y+(def.low?12:46))continue;/* rào, vách lửng cao ~1 m: bật nhảy là qua */if(/ladder/i.test(b.k))continue;
+      for(const [k0,r] of [['h:'+i+','+j,0],['v:'+i+','+j,1]]){const id=OCC.edge.get(L?k0+'@'+L:k0);if(!id)continue;const b=BYID.get(id);if(!b)continue;const def=pieceDef(b.k);if(!def)continue;if(py+30<b.y||py>(def.low?Math.max(b.y,hAt(b.x,b.z))+(P.air?11:26):b.y+46))continue;/* rào, vách lửng cao ~1 m: chỉ khi ĐANG NHẢY và đã cao hơn mặt đất chỗ rào 11 đơn vị mới qua; đi bộ thì luôn bị chặn, kể cả trên dốc (trước so với chân rào nên đứng phía cao của dốc là đi xuyên) */if(/ladder/i.test(b.k))continue;
         const ax=r?b.x:b.x-20,az=r?b.z-20:b.z,bx=r?b.x:b.x+20,bz=r?b.z+20:b.z;const segs=def.door&&(typeof solDoorOpen!=='function'||solDoorOpen(b))?[[0,0.17],[0.83,1]]:[[0,1]];/* lối cửa rộng 26: người (bán kính 9) đi lọt */
         for(const [s0,s1] of segs){const x0=ax+(bx-ax)*s0,z0=az+(bz-az)*s0,x1=ax+(bx-ax)*s1,z1=az+(bz-az)*s1;const dx=x1-x0,dz=z1-z0,l2=dx*dx+dz*dz;let t=((nx-x0)*dx+(nz-z0)*dz)/l2;t=clamp(t,0,1);const qx=x0+dx*t,qz=z0+dz*t,ex=nx-qx,ez=nz-qz,d=Math.hypot(ex,ez),rr=pr+2;if(d<rr&&d>0.001){nx=qx+ex/d*rr;nz=qz+ez/d*rr;}}}
       const pid=OCC.edge.get(cornerKey(i*CELL,j*CELL,L));if(pid){const b=BYID.get(pid);if(b&&py+30>=b.y&&py<=b.y+LVH){const dx=nx-b.x,dz=nz-b.z,d=Math.hypot(dx,dz),rr=pr+3;if(d<rr&&d>0.01){nx=b.x+dx/d*rr;nz=b.z+dz/d*rr;}}}
@@ -18883,15 +18883,21 @@ AUJ.camp=function(j){if(j.cf)return AQ_DONE;const hb=aqBed()||aqFire();if(!hb)re
    2. Công trình nhiều ô và giường (lều nghiêng, lều da, giường, chuồng lợn, chuồng trâu, chuồng dê, kho thóc lớn, mộ…) trước không chặn: giờ đặc theo
       hình chữ nhật. Ruộng, mương, ao, sàn, cầu thang, bếp có mái che vẫn bước lên được.
    3. Thú, dân làng, người chơi khác: không đứng lồng vào nhau nữa (thú nuôi, thú đã gục thì bỏ qua để không kẹt cửa). */
+/* LỀU VÀO ĐƯỢC: hình vách của từng loại lều trong toạ độ riêng (mặt trước là +z), để hở phía cửa.
+   Lều nghiêng: vách sau và hai vách bên, mặt trước mở hẳn. Lều da: vòng tròn bán kính 31, hở cửa rộng 18 ở mặt trước. */
+const SOL_SH={leanto:[[-20,-36,20,-36],[-20,-36,-20,29],[20,-36,20,29]],
+  tent:(()=>{const a=[],R=31,n=14,g=0.3;for(let i=0;i<n;i++){const t0=g+(i/n)*(Math.PI*2-2*g),t1=g+((i+1)/n)*(Math.PI*2-2*g);a.push([Math.sin(t0)*R,Math.cos(t0)*R,Math.sin(t1)*R,Math.cos(t1)*R]);}return a;})()};
+function solShSegs(b,out){const L=SOL_SH[b.k];if(!L||b.prog!=null&&b.prog<0.5)return;const th=(b.r||0)*Math.PI/2,c=Math.cos(th),s=Math.sin(th);for(const q of L){/* kéo dài mỗi đoạn 2 đơn vị ở hai đầu: đi đúng vào chỗ hai đoạn nối nhau không bị lọt qua khe */const dx=q[2]-q[0],dz=q[3]-q[1],l=Math.hypot(dx,dz)||1,ex=dx/l*2,ez=dz/l*2,x0=q[0]-ex,z0=q[1]-ez,x1=q[2]+ex,z1=q[3]+ez;out.push([b.x+x0*c+z0*s,b.z-x0*s+z0*c,b.x+x1*c+z1*s,b.z-x1*s+z1*c]);}}
 const SOL_WALK=/^(paddy|channel|fishPond|drumStage|treePlatform|stiltDeck2|bambooStairs|logStairs|kitchenShed|farm|stilt|stiltBamboo|stairs|rug|sleepMat|hammock|spikePit|trap|fishTrap)$/;
-function solRectOf(b){const def=pieceDef(b.k);if(!def||def.kind!=='obj'||SOL_WALK.test(b.k)||def.farm)return null;const fp=def.fp||[1,1];if(fp[0]*fp[1]<2)return null;if(def.bed&&!def.shelter)return null;/* giường kê trong nhà: bước qua được, kẻo nhà nhỏ hết lối đi */
+function solRectOf(b){const def=pieceDef(b.k);if(!def||def.kind!=='obj'||SOL_WALK.test(b.k)||def.farm)return null;if(SOL_SH[b.k])return null;/* lều: vào được từ phía cửa, vách chặn bằng các đoạn tường (solShSegs) */const fp=def.fp||[1,1];if(fp[0]*fp[1]<2)return null;if(def.bed&&!def.shelter)return null;/* giường kê trong nhà: bước qua được, kẻo nhà nhỏ hết lối đi */
   if(b.prog!=null&&b.prog<0.5)return null;const w=(b.r%2?fp[1]:fp[0])*CELL/2-3,d=(b.r%2?fp[0]:fp[1])*CELL/2-3;return [b.x-w,b.z-d,b.x+w,b.z+d];}
 function solRects(x,z,py){const out=[],ci=Math.floor(x/CELL),cj=Math.floor(z/CELL),seen=new Set();for(let i=ci-3;i<=ci+3;i++)for(let j=cj-3;j<=cj+3;j++){const c=OCC.cell.get(i+','+j);if(!c)continue;
     for(let L=0;L<=LVMAX;L++){const id=c[slotN('obj',L)];if(!id||seen.has(id))continue;seen.add(id);const b=BYID.get(id);if(!b||Math.abs(b.y-py)>40||py>=b.y+SOL_HUT-4)continue;/* đang đứng trên nóc thì không bị đẩy */const r=solRectOf(b);if(r)out.push(r);}}return out;}
 // các đoạn tường (đã trừ lối cửa) + cột quanh một vùng
 function solSegs(x0,z0,x1,z1,py){const out=[],i0=Math.floor(Math.min(x0,x1)/CELL)-1,i1=Math.floor(Math.max(x0,x1)/CELL)+1,j0=Math.floor(Math.min(z0,z1)/CELL)-1,j1=Math.floor(Math.max(z0,z1)/CELL)+1;if((i1-i0)*(j1-j0)>400)return out;
   for(let L=0;L<=LVMAX;L++)for(let i=i0;i<=i1+1;i++)for(let j=j0;j<=j1+1;j++)for(const [k0,r] of [['h:'+i+','+j,0],['v:'+i+','+j,1]]){const id=OCC.edge.get(L?k0+'@'+L:k0);if(!id)continue;const b=BYID.get(id);if(!b)continue;const def=pieceDef(b.k);if(!def||/ladder/i.test(b.k))continue;
-      if(py+30<b.y||py>b.y+(def.low?12:46))continue;const ax=r?b.x:b.x-20,az=r?b.z-20:b.z,bx=r?b.x:b.x+20,bz=r?b.z+20:b.z;for(const [s0,s1] of (def.door&&solDoorOpen(b)?[[-0.08,0.17],[0.83,1.08]]:[[-0.08,1.08]]))out.push([ax+(bx-ax)*s0,az+(bz-az)*s0,ax+(bx-ax)*s1,az+(bz-az)*s1]);/* dài thêm mỗi đầu 3 đơn vị: bịt khe ở góc nhà */}
+      if(py+30<b.y||py>(def.low?Math.max(b.y,hAt(b.x,b.z))+(P.air?11:26):b.y+46))continue;const ax=r?b.x:b.x-20,az=r?b.z-20:b.z,bx=r?b.x:b.x+20,bz=r?b.z+20:b.z;for(const [s0,s1] of (def.door&&solDoorOpen(b)?[[-0.08,0.17],[0.83,1.08]]:[[-0.08,1.08]]))out.push([ax+(bx-ax)*s0,az+(bz-az)*s0,ax+(bx-ax)*s1,az+(bz-az)*s1]);/* dài thêm mỗi đầu 3 đơn vị: bịt khe ở góc nhà */}
+  try{const seen=new Set();for(let i=i0-1;i<=i1+1;i++)for(let j=j0-1;j<=j1+1;j++){const c=OCC.cell.get(i+','+j);if(!c)continue;const id=c[slotN('obj',0)];if(!id||seen.has(id))continue;seen.add(id);const b=BYID.get(id);if(b&&SOL_SH[b.k]&&Math.abs(b.y-py)<40)solShSegs(b,out);}}catch(e){}
   return out;}
 const solX=(a,b,c,d,p,q,r,s)=>{const d1=(c-a)*(q-b)-(d-b)*(p-a),d2=(c-a)*(s-b)-(d-b)*(r-a),d3=(r-p)*(b-q)-(s-q)*(a-p),d4=(r-p)*(d-q)-(s-q)*(c-p);return d1*d2<0&&d3*d4<0;};
 function solCross(ox,oz,x,z,py,segs,rects){for(const s of segs)if(solX(ox,oz,x,z,s[0],s[1],s[2],s[3]))return true;
@@ -18969,6 +18975,17 @@ function solDrTop(b,x,z){const [lx,lz]=solDrLoc(b,x,z);if(Math.abs(lx)<35&&Math.
 const SOL_R={};
 function solObjR(k){let r=SOL_R[k];if(r!=null)return r;r=0;try{const d=pieceDef(k);if(d&&d.kind==='obj'&&!d.bed&&!d.farm&&!d.shelter&&!SOL_WALK.test(k)&&(!d.fp||d.fp[0]*d.fp[1]===1)){const m=model(['piece',k]),bb=new THREE.Box3().setFromObject(m),w=Math.max(bb.max.x-bb.min.x,bb.max.z-bb.min.z),h=bb.max.y-bb.min.y;if(h>9&&w>30)r=Math.min(17.5,w*0.5*0.82);}}catch(e){}SOL_R[k]=r;return r;}
 {const _c=collide;collide=function(nx,nz){let r=_c.apply(this,arguments);try{if(S&&G.on&&typeof OCC!=='undefined'&&OCC.cell.size){const pr=7,py=P.y,ci=Math.floor(r[0]/CELL),cj=Math.floor(r[1]/CELL);for(let i=ci-1;i<=ci+1;i++)for(let j=cj-1;j<=cj+1;j++){const c=OCC.cell.get(i+','+j);if(!c)continue;for(let L=0;L<=LVMAX;L++){const id=c[slotN('obj',L)];if(!id)continue;const b=BYID.get(id);if(!b||Math.abs(b.y-py)>40)continue;const R=solObjR(b.k);if(!R)continue;const dx=r[0]-b.x,dz=r[1]-b.z,d=Math.hypot(dx,dz),rr=R+pr;if(d<rr&&d>0.01)r=[b.x+dx/d*rr,b.z+dz/d*rr];}}}}catch(e){}return r;};}
+
+/* ---------- RUỘNG, AO, LUỐNG: tự san phẳng đất bên dưới ----------
+   Trước: ruộng lúa 2×2 đặt theo góc cao nhất của mặt đất, đất gồ ghề thì chỗ lòi cỏ lên qua mặt ruộng, chỗ hở bên dưới ("nửa ngập nước, nửa xanh").
+   Giờ: dựng xong (và ruộng cũ đã có sẵn, một lần khi vào game) thì mặt đất dưới ruộng được san bằng đúng cao độ của ruộng. */
+const SOL_FLAT={paddy:74,fishPond:74,farm:36,flowerBed:36};
+function solFlatFor(b,quiet){try{const r=SOL_FLAT[b.k];if(!r||b.fl||b.remote||b.prog!=null)return false;if(typeof flatApply!=='function'||wdAt(b.x,b.z)>0.5){b.fl=1;return false;}
+    const h=+(b.y-0.9).toFixed(2);S.flat=S.flat||[];if(S.flat.some(f=>Math.hypot(f.x-b.x,f.z-b.z)<12&&Math.abs(f.h-h)<1.5)){b.fl=1;return false;}
+    const f={x:+b.x.toFixed(1),z:+b.z.toFixed(1),r,h};S.flat.push(f);flatApply(f);for(const i of near(b.x,b.z,r*1.3+30)){const q=RES[i];if(q.wy!=null)continue;const ny=hAt(q.x,q.z)-1.2;if(Math.abs(ny-q.y)>0.3){q.y=ny;try{resShow(q);}catch(e){}}}
+    try{RI.forEach(v=>v.api.flush());}catch(e){}if(!quiet)landRebuild(f);b.fl=1;return true;}catch(e){return false;}}
+{const _sd=siteDone;siteDone=function(b){const r=_sd.apply(this,arguments);try{if(b&&SOL_FLAT[b.k]&&solFlatFor(b)){G.gLast=null;P.y=groundY(P.x,P.z);save();}}catch(e){}return r;};}
+setTimeout(function chk(){try{if(typeof G==='undefined'||!G.on||!S||!S.builds){setTimeout(chk,3000);return;}let n=0;for(const b of S.builds){if(n<6&&SOL_FLAT[b.k]&&!b.fl&&b.prog==null&&!b.remote&&solFlatFor(b))n++;}if(n){G.gLast=null;P.y=groundY(P.x,P.z);save();}}catch(e){}},5000);
 /* ===================== NHÂN VẬT (bản 3): MÀN HÌNH "TƯỚNG" =====================
    Bố cục kiểu màn tướng của game chiến thuật: nhân vật lớn đứng giữa sân, ô trang bị bao hai bên (có huy hiệu +cường hoá),
    bảng tên + sao danh hiệu + LỰC CHIẾN, đường thăng danh hiệu 8 bậc, rồi 4 thẻ: Tổng quan · Thuộc tính · Cường hoá · Kỹ năng.
@@ -20688,6 +20705,31 @@ if(typeof HD_L!=='undefined')HD_L.push({id:'dapdo',ic:'⚒️',t:'Đập đồ (
 
 /* lực chiến tính thêm phần cường hoá mới (+11…+15 của 3 ô cũ và 6 ô mới) */
 if(typeof heroPower==='function'){const _hp=heroPower;heroPower=function(){let x=0;try{const e=dpS().en2;for(const k in e)x+=clamp(e[k]|0,0,15);}catch(er){}return _hp.apply(this,arguments)+x*12;};}
+/* ===================== TỰ CÂN CHỈNH HIỆU NĂNG THEO MÁY (phần nối tiếp bộ giảm độ nét sẵn có) =====================
+   Game đã có sẵn bộ tự giảm ĐỘ NÉT (perfTick: hạ dần tới 55%, rồi hạ mức đồ hoạ). Nhưng máy yếu ở mức đồ hoạ thấp nhất, độ nét đã chạm đáy mà vẫn giật
+   thì không còn gì để hạ: lúc đó nghẽn ở SỐ VẬT phải vẽ (khoảng 590 nghìn tam giác, 250 lần vẽ mỗi khung trên điện thoại), không phải ở số điểm ảnh.
+   Phần này đếm khung hình thật mỗi 3 giây; khi độ nét đã thấp (≤ 62%) mà vẫn dưới 26 khung/giây suốt 6 giây thì hạ thêm một nấc TẦM NHÌN:
+     Nấc 1: tầm nhìn 80%.   Nấc 2: tầm nhìn 65%, tắt bóng nắng và lớp toả sáng.   Nấc 3: tầm nhìn 50%, ẩn thảm cỏ quanh người.
+   Mượt lâu (trên 50 khung/giây suốt 30 giây) thì nâng lại một nấc; nâng lên mà giật lại ngay thì khoá 5 phút. Nấc được nhớ theo máy.
+   Tắt/bật ở Cài đặt → "Tự cân chỉnh cho mượt". */
+const HNG={lv:0,fr:0,lo:0,hi:0,t:0,lock:0,base:null,auto:true,VW:[1,0.8,0.65,0.5],fps:0};
+try{HNG.auto=localStorage.getItem('ld-perf-auto')!=='0';HNG.lv=clamp(+(localStorage.getItem('ld-perf')||0)|0,0,3);if(!HNG.auto)HNG.lv=0;}catch(e){}
+function hnApply(){try{if(typeof G==='undefined'||!G.R||!G.cam)return;const L=HNG.lv;
+    if(HNG.base){const v=HNG.VW[L];G.fogF=Math.round(HNG.base.fogF*v);G.fogN=Math.round(HNG.base.fogN*v);G.treeD=Math.round(HNG.base.treeD*v);G.cam.far=G.fogF+300;G.cam.updateProjectionMatrix();}
+    G.hnV=HNG.VW[L];G.cullT=0;
+    G.noPost=L>=2;if(G.L&&G.L.sun)G.L.sun.castShadow=(G.q|0)>0&&L<2;if(G.grass)G.grass.visible=L<3;try{localStorage.setItem('ld-perf',String(L));}catch(e){}}catch(e){}}
+{const _aq=applyQ;applyQ=function(){const r=_aq.apply(this,arguments);try{HNG.base={fogF:G.fogF,fogN:G.fogN,treeD:G.treeD||G.fogF};hnApply();}catch(e){}return r;};}
+(function(){const tick=()=>{HNG.fr++;requestAnimationFrame(tick);};requestAnimationFrame(tick);
+  setInterval(()=>{try{const fr=HNG.fr;HNG.fr=0;if(typeof G==='undefined'||!G.on||G.paused||document.hidden||!fr){HNG.lo=HNG.hi=0;return;}const fps=fr/3;HNG.fps=fps;if(!HNG.auto)return;
+      if(G.t<12||(G.t-HNG.t)<9){HNG.lo=HNG.hi=0;return;}/* mới vào game / vừa đổi nấc: chờ ổn định */
+      if(fps<26&&(G.prK||1)<=0.62){HNG.hi=0;if(++HNG.lo>=2&&HNG.lv<3){HNG.lo=0;const up=G.t-(HNG.upT||-999)<25;HNG.lv++;HNG.t=G.t;if(up)HNG.lock=G.t+300;hnApply();if(!HNG.told){HNG.told=1;uiToast('⚙️ Máy đang nặng: game tự giảm tầm nhìn cho mượt. Tắt ở Cài đặt → "Tự cân chỉnh cho mượt".','');}}}
+      else if(fps>50){HNG.lo=0;if(++HNG.hi>=10&&HNG.lv>0&&G.t>HNG.lock){HNG.hi=0;HNG.lv--;HNG.t=G.t;HNG.upT=G.t;hnApply();}}
+      else{HNG.lo=0;HNG.hi=0;}}catch(e){}},3000);})();
+/* công tắc trong Cài đặt */
+setInterval(()=>{try{if(typeof G==='undefined'||!G.on||G.panel!=='settings')return;const bd=document.querySelector('#panel .p-body');if(!bd||bd.querySelector('.hn-b'))return;
+    bd.insertAdjacentHTML('afterbegin',`<div class="hn-b"><label><input type="checkbox" data-a="hnauto" ${HNG.auto?'checked':''}> <b>Tự cân chỉnh cho mượt</b></label><span class="small muted">Game tự đo tốc độ trên máy bạn: giật thì giảm độ nét, tầm nhìn; mượt thì nâng lại. Hiện: khoảng <b>${Math.round(HNG.fps)||'?'}</b> khung/giây · độ nét ${Math.round((G.prK||1)*100)}% · nấc giảm tầm nhìn <b>${HNG.lv}</b>/3.</span></div>`);}catch(e){}},700);
+document.addEventListener('change',e=>{const b=e.target;if(!b||!b.dataset||b.dataset.a!=='hnauto')return;HNG.auto=!!b.checked;try{localStorage.setItem('ld-perf-auto',HNG.auto?'1':'0');}catch(er){}if(!HNG.auto){HNG.lv=0;hnApply();}},true);
+{const s=document.createElement('style');s.textContent='#game .panel .hn-b{display:flex;flex-direction:column;gap:3px;padding:9px 11px;margin-bottom:10px;border-radius:12px;background:rgba(120,200,100,.08);border:1px solid rgba(120,200,100,.35)}#game .panel .hn-b label{display:flex;align-items:center;gap:8px;font-size:14px}#game .panel .hn-b input{width:20px;height:20px}';document.head.appendChild(s);}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.

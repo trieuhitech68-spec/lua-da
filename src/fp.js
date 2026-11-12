@@ -34,7 +34,7 @@ function grassTick(){const g=G.grass;if(!g)return;const px=P.x,pz=P.z;if(G.gLast
   g.instanceMatrix.needsUpdate=true;if(g.instanceColor)g.instanceColor.needsUpdate=true;}
 /* ---------- tắt các khối tài nguyên ở xa (cộng với cắt theo khung nhìn của three.js) ---------- */
 function cullTick(){if(G.t-(G.cullT||0)<0.25)return;G.cullT=G.t;const cx=G.cam.position.x,cz=G.cam.position.z,F=G.fogF||2000;
-  const nearD=[480,650,900][G.q|0],loD=[700,1000,1400][G.q|0];for(const v of RI.values()){const s=v.sph;if(!s)continue;const d=Math.hypot(s.x-cx,s.z-cz)-s.r,dc=Math.hypot(s.x-cx,s.z-cz);const on=v.api.nOn>0&&d<(v.small?nearD:(G.treeD||F));
+  const hv=G.hnV||1,nearD=[440,650,900][G.q|0]*hv,loD=[600,1000,1400][G.q|0]*hv;/* hv: nấc tự giảm tầm nhìn (hieunang.js) */for(const v of RI.values()){const s=v.sph;if(!s)continue;const d=Math.hypot(s.x-cx,s.z-cz)-s.r,dc=Math.hypot(s.x-cx,s.z-cz);const on=v.api.nOn>0&&d<(v.small?nearD:(G.treeD||F));
     if(v.api.lo){const far=dc-s.r*0.3>loD;v.api.hi.G.visible=on&&!far;v.api.lo.G.visible=on&&far;}else v.api.G.visible=on;}terrainLod();fallsTick();}
 function fallsTick(){if(!G.falls)return;const dt=G.t-(G.fallT||G.t);G.fallT=G.t;let near=1e9;const wm=window.SBM&&SBM.mat3&&SBM.mat3.sb3Water;if(wm&&wm.map)wm.map.offset.y+=dt*0.8;for(const f of G.falls)near=Math.min(near,Math.hypot(f.x-P.x,f.z-P.z));
   if(near<260&&AU.on&&AU.ctx&&G.t-(G.fallS||0)>1.3){G.fallS=G.t;noise(1.5,700,0.6,0.25*(1-near/260),0,'lowpass');}}

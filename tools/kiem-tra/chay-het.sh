@@ -11,11 +11,11 @@ echo "3. Va chạm: thử đi xuyên qua TẤT CẢ công trình dạng vật (k
 timeout 900 node va-cham.js >/dev/null 2>&1
 python3 - "$TMP/ld-va-cham.txt" <<'PY' && ok "không món nào bị đi xuyên ngoài danh sách cho phép" || bad "có món bị đi xuyên (xem trên)"
 import re,sys
-CHO_PHEP={'stilt','stiltBamboo','stiltDeck2','treePlatform','hammock','kitchenShed','sleepMat','fishPond','paddy','channel','farm','rug','spikePit','trap','fishTrap','bed','bambooBed','caveBed','flowerBed'}
+CHO_PHEP={'leanto','tent','stilt','stiltBamboo','stiltDeck2','treePlatform','hammock','kitchenShed','sleepMat','fishPond','paddy','channel','farm','rug','spikePit','trap','fishTrap','bed','bambooBed','caveBed','flowerBed'}
 try: rows=[l.split(' | ') for l in open(sys.argv[1]).read().split('\n') if l]
 except Exception as e: print('   không có kết quả:',e); sys.exit(1)
 bad=0
-if len(rows)<60: print('   quá ít món được thử:',len(rows)); bad=1
+if len(rows)<110: print('   quá ít món được thử:',len(rows)); bad=1
 for r in rows:
     if len(r)<8: print('   LỖI',r); bad=1; continue
     H=int(r[3][1:]); pen=int(re.sub(r'[^\-0-9]','',r[5])); up=int(re.sub(r'[^\-0-9]','',r[6]))

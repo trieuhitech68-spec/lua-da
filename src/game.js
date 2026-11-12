@@ -388,7 +388,7 @@ function loop(now){requestAnimationFrame(loop);if(!G.on||G.lost)return;const raw
   if(!G.paused){if(!ladderTick(dt)&&!rideTick(dt))moveTick(dt);npcTick(dt);folkTick(dt);foesTick(dt);raidTick();roofCut();actTick(dt);workTick(dt);projTick(dt);petsTick(dt);insectsTick(dt);fishTick(dt);smallLifeTick(dt);cleanTick(dt);dayTick(dt);weatherTick(dt);bodyTick(dt);seasonTick(dt);animalsTick(dt);if(G.t-(G.rgT||0)>2){const gd=(G.t-(G.rgT||G.t))*1/DAY_SEC;G.rgT=G.t;resRegrow();cropsTick(gd);fuelTick(gd*24);roofCut();}}
   animTick(dt);fxTick(dt);crittersTick(dt);birdsTick(dt);ambTick(dt);lightsTick(now/1000);grassTick();cullTick();skyTick();miniTick();fpArmTick(dt);exploreTick();if(typeof hlTick==='function')hlTick();compassTick();dropTick();uiActsTick();if(G.throwAnim>0)G.throwAnim-=dt;if(G.build)buildUpdate();camTick(dt);
   const tg=G.build||G.paused?null:findTarget();G.target=tg;uiTarget(tg);
-  if(K3.fx)K3.fx.render(G.R,G.sc,G.cam,{vig:0.24,bloom:0.45,post:G.q>0});else G.R.render(G.sc,G.cam);
+  if(K3.fx)K3.fx.render(G.R,G.sc,G.cam,{vig:0.24,bloom:0.45,post:G.q>0&&!G.noPost});else G.R.render(G.sc,G.cam);
   perfTick(rawDt);if(G.t-G.lastSave>15){G.lastSave=G.t;save();}if(G.t-(G.hudT||0)>0.4){G.hudT=G.t;uiHud();}}
 // máy yếu: tự giảm chất lượng
 function perfTick(dt){if(!(dt>0)||dt>0.25)return;G.pfWarm=(G.pfWarm||0)+dt;if(G.pfWarm<3)return;G.ft=(G.ft||dt)*0.94+dt*0.06;G.prT=(G.prT||0)+dt;if(G.prT<1.2)return;G.prT=0;const k=G.prK||1;
