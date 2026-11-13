@@ -32,8 +32,8 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
       else if((AQ.fl3||[]).length>=6){AQ.fl3=[];AQ.noFleeT=G.t+90;const a=top.a;AQ.jobs.pop();AQ.path=null;AQ.dir=null;const weap=hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'),t2=AQ.jobs[AQ.jobs.length-1];
         const D=(a&&ANIMALS[a.kind])||{},weakA=(D.hp||9)<=7;/* chỉ đánh lại thú vừa sức (sói, lợn rừng); gấu, hổ, cá sấu thì KHÔNG đánh: đánh dấu vùng của nó để vòng tránh (chạy thử: quay lại đánh cá sấu, mất gần hết máu) */
         if(a&&!weakA){try{AQ.bad.push({x:a.x,z:a.z,t:G.t+600});}catch(e){}aqSay('🤖 '+(a.n||'Thú dữ')+' giữ vùng này: vòng đường khác, không dây vào.','bad');}
-        else if(weap&&S.p.hp>38&&a&&a.alive!==false&&t2){aqPush({k:'fight',a,t0:G.t,urgent:1},t2);aqSay('🤖 Né mãi không thoát '+((a.n||'thú dữ').toLowerCase())+': quay lại đánh.','bad');}
-        else aqSay('🤖 Né mãi không thoát: mặc kệ nó, lo ăn uống và về trại trước.','bad');}}}catch(e){}return r;};}
+        else if((weap?S.p.hp>20:S.p.hp>30)&&a&&a.alive!==false&&t2){/* thú vừa sức mà cứ bám riết: đánh trả còn hơn để nó cắn tới gục (chạy thử: bầy sói bám, nhân vật mặc kệ rồi chết) */aqPush({k:'fight',a,t0:G.t,urgent:1},t2);aqSay('🤖 Né mãi không thoát '+((a.n||'thú dữ').toLowerCase())+': quay lại đánh.','bad');}
+        else{aqSay('🤖 Né mãi không thoát: mặc kệ nó, lo ăn uống và về trại trước.','bad');try{const hb=aqBed()||aqFire();if(hb&&t2&&aqD(hb.x,hb.z)>120&&!aqHasUrgent('camp'))aqPush({k:'camp',urgent:1},t2);}catch(e){}}}}}catch(e){}return r;};}
 /* 5. Chiến binh bộ lạc thù địch: trước Tự làm KHÔNG BAO GIỜ đánh trả người (mã cũ so sánh nhầm "dg===G.foes"), chỉ né, nên bị một tên đuổi đánh tới gục.
       Giờ: chỉ có MỘT tên ở gần, mình có vũ khí và còn trên 45 máu thì đánh trả; từ hai tên trở lên thì vẫn lánh về trại. */
 {const _sf=aqSafety;aqSafety=function(){try{if(AQ.on&&AQ.jobs.length&&!G.sleeping&&S&&S.p&&G.foes&&G.foes.length&&!aqHasUrgent('fight')&&S.p.hp>45&&aqCfg().fight&&!AQ.jobs.some(j=>j.k==='capture')){
