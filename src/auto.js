@@ -39,12 +39,14 @@ function aqCtx(x0,z0,x1,z1,swim){const col=[];for(const s of (typeof SCOL!=='und
 // đoạn (ax,az)→(bx,bz) có cắt tường, cột, lều, chuồng (công trình đặc) không. Chỉ xét khi gần công trình (ô 80).
 function aqWall(ctx,ax,az,bx,bz){if(!ctx||!ctx.bk||!ctx.bk.size||typeof solCross!=='function')return false;const L=Math.hypot(bx-ax,bz-az),n=Math.max(1,Math.ceil(L/40));
   for(let i=0;i<n;i++){const x0=ax+(bx-ax)*i/n,z0=az+(bz-az)*i/n,x1=ax+(bx-ax)*(i+1)/n,z1=az+(bz-az)*(i+1)/n;if(!ctx.bk.has(Math.floor(x0/80)+','+Math.floor(z0/80))&&!ctx.bk.has(Math.floor(x1/80)+','+Math.floor(z1/80)))continue;
-    const py=hAt(x0,z0)+2;let rc=solRects((x0+x1)/2,(z0+z1)/2,py);/* nới chữ nhật ra 8 đơn vị: thân người */rc=rc.map(r=>[r[0]-8,r[1]-8,r[2]+8,r[3]+8]);if(solCross(x0,z0,x1,z1,py,solSegs(x0,z0,x1,z1,py),rc))return true;}return false;}
+    const py=hAt(x0,z0)+2;let rc=solRects((x0+x1)/2,(z0+z1)/2,py);/* nới chữ nhật ra 8 đơn vị: thân người */rc=rc.map(r=>[r[0]-8,r[1]-8,r[2]+8,r[3]+8]);const sg=solSegs(x0,z0,x1,z1,py);if(solCross(x0,z0,x1,z1,py,sg,rc))return true;
+    /* điểm tới nằm ĐÈ LÊN rào/tường (cách đoạn tường dưới 3): cấm. Phép kiểm tra cắt bỏ sót trường hợp chạm đúng vào tường nên trước đây đường đi được vạch xuyên qua rào ở các điểm mốc trùng đường rào. Giữa khung cửa cách hai trụ cửa 13 nên vẫn qua được. */
+    if(i===n-1&&!AQ.lax)for(let q=0;q<sg.length;q++){const s=sg[q],dx=s[2]-s[0],dz=s[3]-s[1],l2=dx*dx+dz*dz||1;let t=((x1-s[0])*dx+(z1-s[1])*dz)/l2;t=t<0?0:t>1?1:t;const ex=x1-(s[0]+dx*t),ez=z1-(s[1]+dz*t);if(ex*ex+ez*ez<1.2)return true;/* chỉ cấm điểm mốc nằm TRÙNG lên rào/tường; ngưỡng rộng hơn làm khu nhà chật (lều, bếp sát nhau) bị coi như kín mít */}}return false;}
 // chỉ xét TƯỜNG/VÁCH/RÀO (không xét khối đặc như lều, bàn: đích thường nằm ngay trong khối đó)
 function aqSegCut(ctx,ax,az,bx,bz){try{if(!ctx||!ctx.bk||!ctx.bk.size||typeof solSegs!=='function'||Math.hypot(bx-ax,bz-az)<6)return false;const py=hAt(ax,az)+2;for(const s of solSegs(ax,az,bx,bz,py))if(solX(ax,az,bx,bz,s[0],s[1],s[2],s[3]))return true;}catch(e){}return false;}
 function aqPlanStart(sx,sz,gx,gz,r,swim){const D=Math.hypot(gx-sx,gz-sz),M=Math.max(320,D*0.3);let C=Math.max(20,Math.min(60,D/110)),x0=Math.min(sx,gx)-M,z0=Math.min(sz,gz)-M;
   /* có công trình: lưới tìm đường phải khớp ô xây (40) để luồn được qua cửa, cổng rào (lối hẹp 26). Lưới thưa 60 lệch ô là không bao giờ thấy lối cửa → đâm vào tường rồi kẹt. */
-  try{if(typeof BYID!=='undefined'&&BYID.size){C=C<=24?20:40;/* điểm mốc KHÔNG được nằm đúng trên đường rào/tường (bội số của 40): phép kiểm tra cắt tường bỏ sót trường hợp chạm đúng vào tường, nên trước đây đường đi được vạch xuyên thẳng qua rào. Lưới 20 đặt lệch 10 (10, 30, 50…), lưới 40 đặt giữa ô (20, 60…). */const of=C===20?10:20;x0=Math.floor(x0/40)*40+of;z0=Math.floor(z0/40)*40+of;}}catch(e){}
+  try{if(typeof BYID!=='undefined'&&BYID.size){C=C<=24?20:40;/* lưới khớp ô xây: có điểm mốc đúng giữa khung cửa (20, 60…). Điểm mốc rơi đúng lên rào/tường thì bị cấm trong aqWall. */x0=Math.floor(x0/40)*40+20;z0=Math.floor(z0/40)*40+20;}}catch(e){}
   const W=Math.ceil((Math.abs(gx-sx)+2*M)/C)+1,H=Math.ceil((Math.abs(gz-sz)+2*M)/C)+1,N=W*H;
   const pl={sx,sz,gx,gz,r,C,x0,z0,W,H,g:new Float32Array(N).fill(Infinity),par:new Int32Array(N).fill(-1),cl:new Uint8Array(N),cost:new Float32Array(N).fill(-1),hh:new Float32Array(N),
     hi:[],hf:[],exp:0,ok:false,fail:false,pts:null,ctx:aqCtx(x0,z0,x0+W*C,z0+H*C,swim)};
@@ -59,7 +61,7 @@ function aqPlanStep(pl,budget){if(pl.ok||pl.fail)return;const {W,H,C,x0,z0,gx,gz
     for(const [di,dj] of AQ_NB){const ni=ci+di,nj=cj+dj;if(ni<0||nj<0||ni>=W||nj>=H)continue;const n=nj*W+ni;if(pl.cl[n])continue;const nx=x0+ni*C,nz=z0+nj*C;
       let c=pl.cost[n];if(c<0){c=aqCost(nx,nz,pl.ctx);pl.cost[n]=c;pl.hh[n]=hAt(nx,nz);}if(!isFinite(c))continue;
       const L=(di&&dj)?C*1.4142:C;if(Math.abs(pl.hh[n]-pl.hh[i])/L>0.95&&pl.exp>10)continue;// vách dốc / mép vực
-      if(pl.ctx.bk.size&&aqWall(pl.ctx,x,z,nx,nz))continue;// tường, lều chắn giữa hai ô
+      if(pl.ctx.bk.size&&aqWall(pl.ctx,i===pl.s?pl.sx:x,i===pl.s?pl.sz:z,nx,nz))continue;// tường, lều chắn giữa hai ô (ô xuất phát: xét từ ĐÚNG chỗ đang đứng, vì điểm mốc gần nhất có thể rơi lên chính bức rào đang chắn)
       const g=pl.g[i]+L*(pl.cost[i]+c)*0.5;if(g<pl.g[n]){pl.g[n]=g;pl.par[n]=i;aqHPush(pl,n,g+Math.hypot(gx-nx,gz-nz)*0.75);}}}}
 // đoạn thẳng có đi được không (không qua nước sâu, vách dốc, vật cản)
 function aqClear(ax,az,bx,bz,ctx){const L=Math.hypot(bx-ax,bz-az),n=Math.max(1,Math.ceil(L/10)),st=L/n;let ph=hAt(ax,az);
@@ -93,6 +95,9 @@ function aqFindWater(){const C=AQ.wC;if(C&&G.t-C.t<4&&Math.hypot(C.px-P.x,C.pz-P
       const d=Math.hypot(sx-P.x,sz-P.z),L=Math.hypot(x-sx,z-sz)||1;if(!w||d<w.d)w={sx,sz,wx:x,wz:z,fx:sx+(x-sx)/L*Math.min(24,L),fz:sz+(z-sz)/L*Math.min(24,L),d};}if(w&&!w.well)break;}
   if(!w&&PR.length&&!AQ._noPr){AQ._noPr=1;AQ.wC=null;try{return aqFindWater();}finally{AQ._noPr=0;}}
   AQ.wC={t:G.t,px:P.x,pz:P.z,w};return w;}
+/* nhật ký lần tìm đường thất bại (để chẩn đoán): vì sao 8 ô quanh chỗ đứng không đi được */
+function aqPfLog(j){AQ.pf=AQ.pf||[];if(AQ.pf.length>=30)return;const C=20,ctx=aqCtx(P.x-200,P.z-200,P.x+200,P.z+200,true),nb=[];for(const [di,dj] of AQ_NB){const x=Math.round(P.x/C)*C+di*C,z=Math.round(P.z/C)*C+dj*C;let why='ok';if(!wIn(x,z,1.02))why='biên';else if(wdAt(x,z)>9)why='sâu'+Math.round(wdAt(x,z));else if(slopeAt(x,z)>1.2)why='dốc';else if(!isFinite(aqCost(x,z,ctx)))why='vật';else if(Math.abs(hAt(x,z)-hAt(P.x,P.z))/C>0.95)why='vực';else if(aqWall(ctx,P.x,P.z,x,z))why='tường';nb.push(why);}
+  AQ.pf.push((G.t|0)+'s @'+(P.x|0)+','+(P.z|0)+' → '+(j.x|0)+','+(j.z|0)+' xa'+Math.round(Math.hypot(j.x-P.x,j.z-P.z))+' r'+(j.r|0)+' bán kính tâm '+Math.round(Math.hypot(P.x,P.z))+'/'+Math.round(Math.hypot(j.x,j.z))+' WR'+(typeof WR!=='undefined'?Math.round(WR):'?')+' nước đích '+Math.round(wdAt(j.x,j.z))+' quanh:'+nb.join(',')+' bad'+AQ.bad.length+' gần:'+S.builds.filter(b=>Math.abs(b.x-P.x)<90&&Math.abs(b.z-P.z)<90).map(b=>b.k+(b.prog!=null?'*':'')+'@'+Math.round(b.x-P.x)+','+Math.round(b.z-P.z)+'r'+(b.r||0)).join(' ').slice(0,700));}
 function aqStation(st){let best=null,bd=1e9;for(const b of S.builds){const d=pieceDef(b.k);if(!d||d.st!==st||b.prog!=null)continue;const dd=aqD(b.x,b.z);if(dd<bd){bd=dd;best=b;}}return best;}
 function aqFire(lit){let best=null,bd=1e9;for(const b of S.builds){const d=pieceDef(b.k);if(!d||b.prog!=null||!(d.st==='campfire'||d.st==='hearth'||GD_FIRE.test(b.k)))continue;if(lit&&!fireLit(b))continue;const dd=aqD(b.x,b.z);if(dd<bd){bd=dd;best=b;}}return best;}
 function aqBed(){let best=null,bd=1e9;for(const b of S.builds){const d=pieceDef(b.k);if(!d||!d.bed||b.prog!=null)continue;const dd=aqD(b.x,b.z);if(dd<bd){bd=dd;best=b;}}return best;}
@@ -161,8 +166,8 @@ const AUJ={
   goto(j){const d=aqD(j.x,j.z);if(d<=j.r){AQ.path=null;return AQ_DONE;}
     if(!j.far&&d>aqCfg().max*2.4)return aqFail('Xa quá (vượt tầm xa đã đặt).');
     if(M3&&(M3.st==='climb'||M3.st==='hang')){/* tự làm mà lỡ bám vào vách/mép đá: tự buông hoặc đu lên rồi đi tiếp, không bỏ nhiệm vụ */AQ.bad.push({x:P.x,z:P.z,t:G.t+90});try{if(P.y-hAt(P.x,P.z)>=80&&M3.st==='hang'&&typeof m3hangUp==='function')m3hangUp();if((M3.st==='climb'||M3.st==='hang')&&typeof m3drop==='function')m3drop();}catch(e){}if(M3.st==='climb'||M3.st==='hang')return aqFail('Đang bám vách: bạn tự leo xuống nhé.');}
-    if(!j.pts){if(!j.pl){j.pl=aqPlanStart(P.x,P.z,j.x,j.z,j.r,j.swim);}aqPlanStep(j.pl,650);
-      if(j.pl.fail){j.pl=null;if(!j.swim){j.swim=1;return AQ_RUN;}/* rào của mình quây kín không có cổng: mở một cổng trên đường đi rồi tìm đường lại */try{if(typeof rcOpenGate==='function'&&(j._og|0)<2&&rcOpenGate(j)){j._og=(j._og|0)+1;j.swim=0;return AQ_RUN;}}catch(e){}return aqFail('Không tìm được đường tới đó (nước sâu, vách đá).');}
+    if(!j.pts){if(!j.pl){j.pl=aqPlanStart(P.x,P.z,j.x,j.z,j.r,j.swim);}AQ.lax=j._lax?1:0;try{aqPlanStep(j.pl,650);}finally{AQ.lax=0;}
+      if(j.pl.fail){j.pl=null;if(!j.swim){j.swim=1;return AQ_RUN;}/* lối dự phòng: thử lại, bỏ quy tắc cấm điểm mốc trùng rào (thà đi sát rào còn hơn đứng chết một chỗ) */if(!j._lax){j._lax=1;j.swim=0;return AQ_RUN;}/* rào của mình quây kín không có cổng: mở một cổng trên đường đi rồi tìm đường lại */try{if(typeof rcOpenGate==='function'&&(j._og|0)<2&&rcOpenGate(j)){j._og=(j._og|0)+1;j.swim=0;return AQ_RUN;}}catch(e){}try{aqPfLog(j);}catch(e){}return aqFail('Không tìm được đường tới đó (nước sâu, vách đá).');}
       if(!j.pl.ok)return AQ_RUN;j.pts=aqSmooth(j.pl.pts,j.pl.ctx);j.ctx=j.pl.ctx;j.pl=null;j.wi=1;j.lp=[P.x,P.z];j.lt=G.t;j.best=d;AQ.path=j.pts.concat([[j.x,j.z]]);}
     // bám theo đường
     const pts=j.pts;let tx=j.x,tz=j.z;

@@ -15,7 +15,7 @@ function anTick(){if(typeof G==='undefined'||!G.on||!S||!AU.ctx)return;const on=
   let vk=0;if(on){const wx=S.wx&&S.wx.type,k=(G.wxK||0);vk=(wx==='storm'?0.05:wx==='rain'?0.02:wx==='wind'?0.04:0)*k+clamp((P.y-260)/900,0,1)*0.03;}
   anSet(AN.wind,vk);
   // lửa: có bếp, đuốc đang cháy trong 200
-  AN.fire=0;if(on){for(const b of S.builds){if(b.prog!=null)continue;const d=Math.hypot(b.x-P.x,b.z-P.z);if(d>200)continue;let lit=false;try{lit=typeof fireLit==='function'&&fireLit(b);}catch(e){}if(lit){AN.fire=Math.max(AN.fire,1-d/200);}}}}
+  AN.fire=0;if(on){for(const b of S.builds){if(b.prog!=null)continue;const d=Math.hypot(b.x-P.x,b.z-P.z);if(d>200)continue;let lit=false;try{const fd=pieceDef(b.k);lit=!!(fd&&fd.fuel&&(S.fuel[b.id]||0)>0);}catch(e){}if(lit){AN.fire=Math.max(AN.fire,1-d/200);}}}}
 function anCrackle(){try{if(!AN.fire||!AU.on||!AU.ctx)return;const c=AU.ctx,t=c.currentTime,s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=noiseBuf();f.type='highpass';f.frequency.value=1800+Math.random()*2500;const v=0.05*AN.fire*(0.4+Math.random()*0.6),d=0.012+Math.random()*0.03;
     g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.0001,t+d);s.connect(f);f.connect(g);g.connect(AU.master);s.start(t,Math.random()*0.9,d+0.01);}catch(e){}}
 setInterval(()=>{try{anTick();}catch(e){}},600);
