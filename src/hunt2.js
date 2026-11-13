@@ -16,7 +16,7 @@ function boatLeave(){const b=G.ride;if(!b)return;for(let d=24;d<90;d+=6)for(let 
 function rideTick(dt){const b=G.ride;if(!b)return false;const k=G.keys,sp=b.k==='canoe'?150:95;let f=0,turn=0;if(k.KeyW||k.ArrowUp)f+=1;if(k.KeyS||k.ArrowDown)f-=0.5;if(k.KeyA||(k.ArrowLeft&&!isFP()))turn+=1;if(k.KeyD||(k.ArrowRight&&!isFP()))turn-=1;
   if(G.joy.on){f=-G.joy.y;turn=-G.joy.x;}if(isFP()){b.ry=P.ry;}else{b.ry+=turn*dt*1.4;P.ry=b.ry;}if(isFP()&&turn)P.ry+=turn*dt*1.4;
   b.v=(b.v||0)+((f*sp)-(b.v||0))*Math.min(1,dt*1.5);const nx=b.x+Math.sin(b.ry)*b.v*dt,nz=b.z+Math.cos(b.ry)*b.v*dt;if(wdAt(nx,nz)>2.2&&wIn(nx,nz,1.08)){b.x=nx;b.z=nz;}else b.v*=-0.2;
-  if(Math.abs(b.v)>5&&G.t-(G.padT||0)>0.9){G.padT=G.t;sfx('drink');addXp('run',0.3);}boatPlace(b);P.x=b.x;P.z=b.z;P.y=b._o.position.y+(b.k==='canoe'?1.5:3.5);P.speed=0;P.air=false;S.p.wet=Math.max(S.p.wet,0);return true;}
+  if(Math.abs(b.v)>5&&G.t-(G.padT||0)>0.9){G.padT=G.t;sfx('drink');addXp('run',0.3);}boatPlace(b);P.x=b.x;P.z=b.z;P.y=b._o.position.y+(b.k==='canoe'?1.5:6.2);/* mặt bè cao hơn tâm bè: trước chân nhân vật lún dưới mặt bè */P.speed=0;P.air=false;S.p.wet=Math.max(S.p.wet,0);return true;}
 /* ---------- khoan lửa: bếp mới dựng chưa có lửa, phải khoan que cho bén ---------- */
 function isRaining(){return (G.wxK||0)>0.4&&S.wx&&S.wx.type!=='clear'&&S.wx.type!=='cloudy';}
 function fireSheltered(x,z){if(underRoof(x,z))return true;for(const b of S.builds){if(b.prog==null&&(b.k==='leanto'||b.k==='tent')&&Math.hypot(b.x-x,b.z-z)<48)return true;}return false;}
