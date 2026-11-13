@@ -232,9 +232,9 @@ function occTick(cam,R,px,py,pz,on){if(!OCCU.uPS.value)OCCU.uPS.value=new THREE.
   cam.updateMatrixWorld();a.set(px,py+18,pz).applyMatrix4(cam.matrixWorldInverse);OCCU.uPD.value=-a.z;a.set(px,py+18,pz).project(cam);b.set(px,py+40,pz).project(cam);
   OCCU.uPS.value.set((a.x*0.5+0.5)*sz.x,(a.y*0.5+0.5)*sz.y);OCCU.uOR.value=Math.min(sz.y*0.2,Math.max(40,Math.abs(b.y-a.y)*0.5*sz.y*3.4));OCCU.uPY.value=py;}
 // một nhóm vẽ hàng loạt có thể thêm/bớt phần tử. set(i, x,y,z,ry,s) · hide(i)
-function instGroup(parts,cap,opt){const T=THREE,opt_=opt||{},G=new T.Group();G.userData.cap=cap;
+function instGroup(parts,cap,opt){const T=THREE,opt_=opt||{},G=new T.Group();G.userData.cap=cap;G.matrixAutoUpdate=false;/* nhóm đứng yên ở gốc toạ độ (vị trí nằm trong từng phần tử): khỏi tính lại ma trận cho hàng chục nghìn nhóm mỗi khung hình */
   const sp=opt_.sphere;const ims=parts.map(p=>{let geo=p.geo;if(sp){geo=new T.BufferGeometry();for(const k in p.geo.attributes)geo.setAttribute(k,p.geo.attributes[k]);if(p.geo.index)geo.setIndex(p.geo.index);geo.boundingSphere=new T.Sphere(new T.Vector3(sp.x,sp.y,sp.z),sp.r);geo.boundingBox=null;}
-    const im=new T.InstancedMesh(geo,p.mat,cap);im.count=cap;im.castShadow=opt_.shadow!==false;im.receiveShadow=true;im.frustumCulled=!!sp;const Z=new T.Matrix4().makeScale(0,0,0);for(let i=0;i<cap;i++)im.setMatrixAt(i,Z);G.add(im);return im;});
+    const im=new T.InstancedMesh(geo,p.mat,cap);im.count=cap;im.castShadow=opt_.shadow!==false;im.receiveShadow=true;im.frustumCulled=!!sp;im.matrixAutoUpdate=false;const Z=new T.Matrix4().makeScale(0,0,0);for(let i=0;i<cap;i++)im.setMatrixAt(i,Z);G.add(im);return im;});
   const M=new T.Matrix4(),Q=new T.Quaternion(),V=new T.Vector3(),SC=new T.Vector3(),UP=new T.Vector3(0,1,0);
   const on=new Uint8Array(cap),mark=(i,v)=>{if(on[i]!==v){on[i]=v;api.nOn+=v?1:-1;}};const api={G,ims,cap,nOn:0,set(i,x,y,z,ry,s,tilt){Q.setFromAxisAngle(UP,ry||0);if(tilt)Q.multiply(tilt);V.set(x,y,z);SC.setScalar(s==null?1:s);M.compose(V,Q,SC);for(const im of ims)im.setMatrixAt(i,M);mark(i,(s==null?1:s)>0?1:0);api.dirty=1;},
     setM(i,m){for(const im of ims)im.setMatrixAt(i,m);mark(i,1);api.dirty=1;},hide(i){M.makeScale(0,0,0);for(const im of ims)im.setMatrixAt(i,M);mark(i,0);api.dirty=1;},

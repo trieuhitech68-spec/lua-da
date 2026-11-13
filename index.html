@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113073155">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113073723">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -2061,9 +2061,9 @@ function occTick(cam,R,px,py,pz,on){if(!OCCU.uPS.value)OCCU.uPS.value=new THREE.
   cam.updateMatrixWorld();a.set(px,py+18,pz).applyMatrix4(cam.matrixWorldInverse);OCCU.uPD.value=-a.z;a.set(px,py+18,pz).project(cam);b.set(px,py+40,pz).project(cam);
   OCCU.uPS.value.set((a.x*0.5+0.5)*sz.x,(a.y*0.5+0.5)*sz.y);OCCU.uOR.value=Math.min(sz.y*0.2,Math.max(40,Math.abs(b.y-a.y)*0.5*sz.y*3.4));OCCU.uPY.value=py;}
 // một nhóm vẽ hàng loạt có thể thêm/bớt phần tử. set(i, x,y,z,ry,s) · hide(i)
-function instGroup(parts,cap,opt){const T=THREE,opt_=opt||{},G=new T.Group();G.userData.cap=cap;
+function instGroup(parts,cap,opt){const T=THREE,opt_=opt||{},G=new T.Group();G.userData.cap=cap;G.matrixAutoUpdate=false;/* nhóm đứng yên ở gốc toạ độ (vị trí nằm trong từng phần tử): khỏi tính lại ma trận cho hàng chục nghìn nhóm mỗi khung hình */
   const sp=opt_.sphere;const ims=parts.map(p=>{let geo=p.geo;if(sp){geo=new T.BufferGeometry();for(const k in p.geo.attributes)geo.setAttribute(k,p.geo.attributes[k]);if(p.geo.index)geo.setIndex(p.geo.index);geo.boundingSphere=new T.Sphere(new T.Vector3(sp.x,sp.y,sp.z),sp.r);geo.boundingBox=null;}
-    const im=new T.InstancedMesh(geo,p.mat,cap);im.count=cap;im.castShadow=opt_.shadow!==false;im.receiveShadow=true;im.frustumCulled=!!sp;const Z=new T.Matrix4().makeScale(0,0,0);for(let i=0;i<cap;i++)im.setMatrixAt(i,Z);G.add(im);return im;});
+    const im=new T.InstancedMesh(geo,p.mat,cap);im.count=cap;im.castShadow=opt_.shadow!==false;im.receiveShadow=true;im.frustumCulled=!!sp;im.matrixAutoUpdate=false;const Z=new T.Matrix4().makeScale(0,0,0);for(let i=0;i<cap;i++)im.setMatrixAt(i,Z);G.add(im);return im;});
   const M=new T.Matrix4(),Q=new T.Quaternion(),V=new T.Vector3(),SC=new T.Vector3(),UP=new T.Vector3(0,1,0);
   const on=new Uint8Array(cap),mark=(i,v)=>{if(on[i]!==v){on[i]=v;api.nOn+=v?1:-1;}};const api={G,ims,cap,nOn:0,set(i,x,y,z,ry,s,tilt){Q.setFromAxisAngle(UP,ry||0);if(tilt)Q.multiply(tilt);V.set(x,y,z);SC.setScalar(s==null?1:s);M.compose(V,Q,SC);for(const im of ims)im.setMatrixAt(i,M);mark(i,(s==null?1:s)>0?1:0);api.dirty=1;},
     setM(i,m){for(const im of ims)im.setMatrixAt(i,m);mark(i,1);api.dirty=1;},hide(i){M.makeScale(0,0,0);for(const im of ims)im.setMatrixAt(i,M);mark(i,0);api.dirty=1;},
@@ -20048,7 +20048,7 @@ function mtOff(q){const m=G.mnt;if(!m)return;m.x=+P.x.toFixed(1);m.z=+P.z.toFixe
     try{const o=MT.o.get(G.mnt.id);if(o&&P.model){const gy=groundY(P.x,P.z),mv=P.speed>8;MT.ph=(MT.ph||0)+dt*(mv?(G.running?13:8):0);const bob=mv?Math.abs(Math.sin(MT.ph))*(G.running?1.6:0.7):0;
         o.position.set(P.x,gy+bob,P.z);o.rotation.y=P.ry||0;P.model.position.set(P.x,gy+bob+17*MT.sc-6,P.z);P.model.rotation.y=P.ry||0;
         /* tư thế cưỡi: hai chân kẹp hai bên sườn ngựa, người hơi ngả trước, tay đưa ra nắm bờm */const R=P.rig;if(R&&R.legL&&R.legR){R.legL.rotation.set(0,0,1.28);R.legR.rotation.set(0,0,-1.28);/* gối gập, cẳng chân buông xuôi hai bên sườn (trước duỗi thẳng, bàn chân thò ra trước ngực ngựa) */if(R.shinL)R.shinL.rotation.set(0.25,0,-0.7);if(R.shinR)R.shinR.rotation.set(0.25,0,0.7);if(R.torso)R.torso.rotation.x=0.12+(mv?Math.sin(MT.ph*2)*0.04:0);if(R.armL)R.armL.rotation.set(-0.85,0,0.18);if(R.armR)R.armR.rotation.set(-0.85,0,-0.18);}
-        const rg=o.userData.rig||{},a=mv?(G.running?0.7:0.45):0;if(rg.legFL){rg.legFL.rotation.x=Math.sin(MT.ph)*a;rg.legFR.rotation.x=Math.sin(MT.ph+Math.PI)*a;rg.legBL.rotation.x=Math.sin(MT.ph+Math.PI+0.5)*a;rg.legBR.rotation.x=Math.sin(MT.ph+0.5)*a;}if(rg.head)rg.head.rotation.x=mv?Math.sin(MT.ph*2)*0.06:Math.sin(G.t*0.8)*0.04;if(rg.tail)rg.tail.rotation.z=Math.sin(G.t*2.2)*0.25;}}catch(e){}return r;};}
+        const rg=o.userData.rig||{},a=mv?(G.running?0.7:0.45):0;if(rg.legFL){if(mv&&G.running){/* phi nước đại: hai chân trước cùng vươn, hai chân sau cùng đạp, thân chồm lên xuống theo nhịp */const p=MT.ph;rg.legFL.rotation.x=Math.sin(p)*0.9;rg.legFR.rotation.x=Math.sin(p+0.4)*0.9;rg.legBL.rotation.x=Math.sin(p+Math.PI)*0.95;rg.legBR.rotation.x=Math.sin(p+Math.PI+0.4)*0.95;if(rg.body)rg.body.rotation.x=Math.sin(p+0.6)*0.07;}else{rg.legFL.rotation.x=Math.sin(MT.ph)*a;rg.legFR.rotation.x=Math.sin(MT.ph+Math.PI)*a;rg.legBL.rotation.x=Math.sin(MT.ph+Math.PI+0.5)*a;rg.legBR.rotation.x=Math.sin(MT.ph+0.5)*a;if(rg.body)rg.body.rotation.x=0;}}if(rg.head)rg.head.rotation.x=mv?Math.sin(MT.ph*2)*0.06:Math.sin(G.t*0.8)*0.04;if(rg.tail)rg.tail.rotation.z=Math.sin(G.t*2.2)*0.25;}}catch(e){}return r;};}
 // ngồi / ngủ / bơi / chết: xuống ngựa
 {const _st=sitToggle;sitToggle=function(v){if(G.mnt&&(v==null||v)){mtOff();return;}return _st.apply(this,arguments);};}
 setInterval(()=>{try{if(!S||!G.on)return;if(G.mnt&&(G.sleeping||G.swim||G.dying||G.build||G.work))mtOff(1);for(const m of mtList())if(!MT.o.has(m.id))mtShow(m);}catch(e){}},600);
@@ -20338,6 +20338,9 @@ H3PO.whittle2=(R,k,o)=>{const K=h3ik(),L=h3lerp,t=(o&&o.t)||k*4,c=h3fr(t/0.62),p
 /* 9. BUỘC LẠT: tay trái giữ chỗ buộc, tay phải quấn dây hai vòng quanh rồi giật ra siết chặt */
 H3PO.lash2=(R,k,o)=>{const K=h3ik(),L=h3lerp,t=(o&&o.t)||k*4,c=h3fr(t/1.9),wr=Math.min(1,c/0.7),pull=c>0.7?h3ss((c-0.7)/0.12)*(c>0.9?1-h3ss((c-0.9)/0.1):1):0,a=wr*Math.PI*4;K.hipsAt(R,0,16.4,0.3);K.feet(R,-2.6,2.0,2.6,-1.0);R.torso.rotation.set(0.36-0.1*pull,0.14*pull,0);R.head.rotation.set(0.36,0,0);
   K.armTo(R,-1,-1.0,20.6,6.8,-1,-0.4,-0.4);K.armTo(R,1,L(-1.0+Math.cos(a)*2.4,5.4,pull),L(20.6+Math.sin(a)*2.4,22.6,pull),L(7.4+Math.sin(a*0.5)*0.6,3.6,pull),1,-0.4,-0.4);K.cloak(R);};
+/* 10. CÀY RUỘNG: khom lưng, hai tay ghì cán cày phía trước, chân bước từng bước nặng theo luống */
+H3PO.plough2=(R,k,o)=>{const K=h3ik(),t=(o&&o.t)||k*4,st=Math.sin(t*3.2),push=Math.sin(t*1.6)*0.5+0.5;K.hipsAt(R,0,15.6+Math.abs(st)*0.4,0.6);K.feet(R,-2.6,st*3.2,2.6,-st*3.2);R.hips.rotation.set(0.08,0,st*0.04);R.torso.rotation.set(0.56+0.08*push,st*0.06,0);R.head.rotation.set(0.06,0,0);
+  K.armTo(R,1,2.4,18.4-push*1.0,8.2+push*1.2,1,-0.5,-0.3);K.armTo(R,-1,-2.4,18.4-push*1.0,8.2+push*1.2,-1,-0.5,-0.3);K.cloak(R);};
 /* ---------- ĐẠO CỤ trong tay khi làm: vồ gỗ lúc đóng (nếu tay đang không cầm gì), que khoan + thanh gỗ nền lúc khoan lửa ---------- */
 const DTP={m:null,d:null};
 function dtProps(R,fn,W){try{const T=THREE,mat=(c)=>new T.MeshStandardMaterial({color:c,roughness:0.9,flatShading:true});
@@ -20356,7 +20359,7 @@ function dtProps(R,fn,W){try{const T=THREE,mat=(c)=>new T.MeshStandardMaterial({
         else if(a==='gather'&&!fire){fn=H3PO.gather2;k=h3fr(W.t/1.7);}
         else if(a==='lash'&&fire){fn=H3PO.drill;o={t:W.t};}
         else if(a==='cook'&&fire){fn=H3PO.blow;o={t:W.t};}
-        else if(a==='cook'){fn=H3PO.cook2;o={t:W.t};}else if(a==='whittle'){fn=H3PO.whittle2;o={t:W.t};}else if(a==='lash'){fn=H3PO.lash2;o={t:W.t};}}
+        else if(a==='cook'){fn=H3PO.cook2;o={t:W.t};}else if(a==='whittle'){fn=H3PO.whittle2;o={t:W.t};}else if(a==='lash'&&/plough/i.test(String(W.icon||''))){fn=H3PO.plough2;o={t:W.t};}else if(a==='lash'){fn=H3PO.lash2;o={t:W.t};}}
       else if(A&&!G.h3aim&&A.t){const ty=A.t.type,kk=clamp(1-(A.next||0)/(A.per||0.72),0,1);
         if(ty==='res'&&(tk==='axe'||tk==='pick')&&P.anim!=='gather'&&P.anim!=='dig'){fn=tk==='pick'?H3PO.mine2:H3PO.chop2;k=kk;}
         else if(ty==='site'){fn=H3PO.hammer2;k=kk;}
