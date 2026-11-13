@@ -61,4 +61,6 @@ echo "15. Nhiệm vụ hằng ngày: 3 việc mỗi ngày, nhận thưởng đú
 OUT=$(timeout 400 node nhiem-vu-ngay.js 2>&1); echo "$OUT" | grep -q "^NV-DAT" && ok "nhiệm vụ ngày" || bad "nhiệm vụ ngày: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-500)"
 echo "16. Rác bộ nhớ: đi bộ ở 60 khung/giây tạo dưới 4,5 MB rác mỗi giây (mốc cũ 7,9) để trình duyệt không phải dừng game dọn liên tục"
 OUT=$(timeout 400 node rac-bo-nho.js 2>&1); echo "$OUT" | grep "^{" | sed "s/^/   /"; echo "$OUT" | grep -q "^RAC-DAT" && ok "rác bộ nhớ" || bad "rác bộ nhớ: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-400)"
+echo "17. Gom ghi bản lưu: gọi lưu dồn dập không ghi thật, rời trang / mở Cài đặt / sắp đẩy lên máy chủ thì ghi ngay, dữ liệu ghi là mới nhất"
+OUT=$(timeout 400 node luu-gom.js 2>&1); echo "$OUT" | grep -q "^LG-DAT" && ok "gom ghi bản lưu" || bad "gom ghi bản lưu: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-500)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
