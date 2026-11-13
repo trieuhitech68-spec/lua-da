@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113015958">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113030140">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -2908,9 +2908,13 @@ function grassInit(){const T=THREE;if(G.grass){G.sc.remove(G.grass);G.grass.geom
   const tf=K3.fx&&K3.fx.tufts(pts,{h:6.6,blades:q>0?18:12,w:0.4,sp:[0.4,5.2]})/* lá mảnh, thấp, toả rộng: thành thảm cỏ mềm (trước lá to bản nhọn như lá dứa) */;if(!tf)return;tf.frustumCulled=false;tf.receiveShadow=q>0;G.sc.add(tf);G.grass=tf;G.gLast=null;try{seasonPatchAll(tf);}catch(e){}}
 // màu cỏ: tối & đậm hơn cho khớp mặt đất mới (lá cỏ đón nắng thẳng đứng nên dễ cháy sáng thành trắng bạc)
 const GCOL={2:['#557a2c','#628532'],3:['#46702a','#517a2e'],4:['#33561f','#3c6024'],5:['#486f2b','#537a30']};
-function grassTick(){const g=G.grass;if(!g)return;const px=P.x,pz=P.z;if(G.gLast&&Math.hypot(px-G.gLast[0],pz-G.gLast[1])<9)return;G.gLast=[px,pz];
-  const R=G.gR,S2=R*2,M=grassTick.M||(grassTick.M=new THREE.Matrix4()),Q=grassTick.Q||(grassTick.Q=new THREE.Quaternion()),V=grassTick.V||(grassTick.V=new THREE.Vector3()),SC=grassTick.SC||(grassTick.SC=new THREE.Vector3()),UP=new THREE.Vector3(0,1,0),C=grassTick.C||(grassTick.C=new THREE.Color());
-  const off=G.gOff;for(let i=0;i<off.length;i++){const o=off[i];const x=o[0]+S2*Math.round((px-o[0])/S2),z=o[1]+S2*Math.round((pz-o[1])/S2),d=Math.hypot(x-px,z-pz);
+/* CHỐNG GIẬT: trước cứ đi 9 đơn vị là xếp lại và nạp lại TOÀN BỘ bụi cỏ (tới 8.600 bụi) trong một khung hình → khựng mỗi giây khi đi bộ.
+   Giờ mỗi khung chỉ xếp một phần 24 số bụi (xoay vòng, đủ một lượt sau ~0,4 giây) và chỉ nạp đúng phần đó lên card đồ hoạ.
+   Lần đầu hoặc khi địa hình đổi (G.gLast=null) thì làm trọn một lượt. */
+function grassTick(){const g=G.grass;if(!g)return;const px=P.x,pz=P.z,N=G.gOff.length;let i0=0,i1=N;
+  if(G.gLast){if(!g.visible)return;const moved=Math.hypot(px-G.gLast[0],pz-G.gLast[1]);if(moved<0.5&&!(G.gLeft>0))return;if(moved>=0.5){G.gLast=[px,pz];G.gLeft=24;}const ch=Math.ceil(N/24);i0=(G.gCur|0)%N;i1=Math.min(N,i0+ch);G.gCur=i1>=N?0:i1;G.gLeft--;}else{G.gLast=[px,pz];G.gCur=0;G.gLeft=0;}
+  const R=G.gR,S2=R*2,M=grassTick.M||(grassTick.M=new THREE.Matrix4()),Q=grassTick.Q||(grassTick.Q=new THREE.Quaternion()),V=grassTick.V||(grassTick.V=new THREE.Vector3()),SC=grassTick.SC||(grassTick.SC=new THREE.Vector3()),UP=grassTick.UP||(grassTick.UP=new THREE.Vector3(0,1,0)),C=grassTick.C||(grassTick.C=new THREE.Color());
+  const off=G.gOff;for(let i=i0;i<i1;i++){const o=off[i];const x=o[0]+S2*Math.round((px-o[0])/S2),z=o[1]+S2*Math.round((pz-o[1])/S2),d=Math.hypot(x-px,z-pz);
     const b=bgAt(x,z),tr=typeof trailAt==='function'?trailAt(x,z):0;let s=(b>=2&&b<=5&&d<R)?o[2]*Math.min(1,(R-d)/(R*0.3)):0;if(tr>0.35)s*=0.25;
     if(s>0){const c=cellAt(x,z);if(c&&(c.floor||c.obj))s=0;}const y=hAt(x,z);if(y<1.2)s=0;
     // không mọc cỏ trong lòng suối/sông nông (trước đây ngọn cỏ chọc lên khỏi mặt nước)
@@ -2918,7 +2922,8 @@ function grassTick(){const g=G.grass;if(!g)return;const px=P.x,pz=P.z;if(G.gLast
     Q.setFromAxisAngle(UP,o[3]);V.set(x,y-0.6,z);SC.set(s,s*(b===2?1.15:1),s);M.compose(V,Q,SC);g.setMatrixAt(i,M);
     if(s>0){/* màu cỏ lấy đúng màu mặt đất ngay dưới chân nó (thảm cỏ liền với đất, không còn các bụi đen nổi lên) */let ok=false;try{if(typeof TCOL!=='undefined'&&TCOL){const ti=clamp(Math.round((x+WSIZE/2)/HSTEP),0,HN-1),tj=clamp(Math.round((z+WOZ)/HSTEP),0,HN-1),n=(tj*HN+ti)*3;const r0=TCOL[n],g0=TCOL[n+1],b0=TCOL[n+2];if(r0+g0+b0>0.05){const k=0.9+o[4]*0.22;C.setRGB(Math.min(1,r0*k*0.42),Math.min(1,g0*k*0.8),Math.min(1,b0*k*0.46));ok=true;}}}catch(e){}
       if(!ok){const cc=GCOL[b]||GCOL[3];C.set(cc[o[4]<0.5?0:1]).multiplyScalar(0.86+o[4]*0.28);}g.setColorAt(i,C);}}
-  g.instanceMatrix.needsUpdate=true;if(g.instanceColor)g.instanceColor.needsUpdate=true;}
+  const full=i0===0&&i1===N;g.instanceMatrix.updateRange.offset=full?0:i0*16;g.instanceMatrix.updateRange.count=full?-1:(i1-i0)*16;g.instanceMatrix.needsUpdate=true;
+  if(g.instanceColor){g.instanceColor.updateRange.offset=full?0:i0*3;g.instanceColor.updateRange.count=full?-1:(i1-i0)*3;g.instanceColor.needsUpdate=true;}}
 /* ---------- tắt các khối tài nguyên ở xa (cộng với cắt theo khung nhìn của three.js) ---------- */
 function cullTick(){if(G.t-(G.cullT||0)<0.25)return;G.cullT=G.t;const cx=G.cam.position.x,cz=G.cam.position.z,F=G.fogF||2000;
   const hv=G.hnV||1,nearD=[440,650,900][G.q|0]*hv,loD=[600,1000,1400][G.q|0]*hv;/* hv: nấc tự giảm tầm nhìn (hieunang.js) */for(const v of RI.values()){const s=v.sph;if(!s)continue;const d=Math.hypot(s.x-cx,s.z-cz)-s.r,dc=Math.hypot(s.x-cx,s.z-cz);const on=v.api.nOn>0&&d<(v.small?nearD:(G.treeD||F));
@@ -19592,7 +19597,7 @@ setInterval(()=>{try{if(typeof S==='undefined'||!S||!G.on||!S.auOn){G._auOff=0;r
    Chạy thử: nhân vật lọt vào một hốc địa hình xa nhà, báo "Bị kẹt" 15 lần liền tại đúng một điểm, máu tụt dần. */
 const TK={c:[],s:[]};
 setInterval(()=>{try{if(!S||!G.on||!AQ.on||P.air||G.swim||G.climb||G.sleeping)return;if((P.speed||0)<30)return;const l=TK.c[TK.c.length-1];if(l&&Math.hypot(l[0]-P.x,l[1]-P.z)<120)return;TK.c.push([P.x,P.z,G.t]);if(TK.c.length>40)TK.c.shift();}catch(e){}},4000);
-{const _g=AUJ.goto;AUJ.goto=function(j){const r=_g.apply(this,arguments);try{if(r&&r.fail&&/^Bị kẹt/.test(r.fail)){try{let nb='',nd=1e9;for(const b of S.builds){const d=Math.hypot(b.x-P.x,b.z-P.z);if(d<nd){nd=d;nb=b.k+(b.prog!=null?'*':'');}}let nr='',rd=1e9;for(const i of near(P.x,P.z,60)){const q=RES[i];if(q.st!==0||RT[q.t].pass)continue;const d=Math.hypot(q.x-P.x,q.z-P.z);if(d<rd){rd=d;nr=q.t;}}(TK.log=TK.log||[]).push([G.t|0,P.x|0,P.z|0,(j.x|0)+','+(j.z|0),nb+'@'+(nd|0),nr+'@'+(rd|0),'wd'+wdAt(P.x,P.z).toFixed(1),'sl'+slopeAt(P.x,P.z).toFixed(2),'dy'+((P.y-hAt(P.x,P.z))|0)].join(' '));if(TK.log.length>30)TK.log.shift();}catch(e){}TK.s=TK.s.filter(s=>G.t-s[2]<1500);const near=TK.s.filter(s=>Math.hypot(s[0]-P.x,s[1]-P.z)<90).length;TK.s.push([P.x,P.z,G.t]);
+{const _g=AUJ.goto;AUJ.goto=function(j){const r=_g.apply(this,arguments);try{if(r&&r.fail&&/^Bị kẹt/.test(r.fail)){try{let nb='',nd=1e9;for(const b of S.builds){const d=Math.hypot(b.x-P.x,b.z-P.z);if(d<nd){nd=d;nb=b.k+(b.prog!=null?'*':'');}}let nr='',rd=1e9;try{for(const i of near(P.x,P.z,60)){const q=RES[i];if(!q||q.st!==0||!RT[q.t]||RT[q.t].pass)continue;const d=Math.hypot(q.x-P.x,q.z-P.z);if(d<rd){rd=d;nr=q.t;}}}catch(e2){nr='?'+String(e2).slice(0,30);}(TK.log=TK.log||[]).push([G.t|0,P.x|0,P.z|0,(j.x|0)+','+(j.z|0),nb+'@'+(nd|0),nr+'@'+(rd|0),'wd'+wdAt(P.x,P.z).toFixed(1),'sl'+slopeAt(P.x,P.z).toFixed(2),'dy'+((P.y-hAt(P.x,P.z))|0),'stuck'+(j.stuck|0),'jobs:'+AQ.jobs.map(x=>x.k).join('>')].join(' '));if(TK.log.length>30)TK.log.shift();}catch(e){(TK.log=TK.log||[]).push('LỖI GHI VẾT '+String(e).slice(0,80));}TK.s=TK.s.filter(s=>G.t-s[2]<1500);const near=TK.s.filter(s=>Math.hypot(s[0]-P.x,s[1]-P.z)<90).length;TK.s.push([P.x,P.z,G.t]);
       if(near>=1){let bk=null;for(let i=TK.c.length-1;i>=0;i--){const c=TK.c[i];if(Math.hypot(c[0]-P.x,c[1]-P.z)>260&&wdAt(c[0],c[1])<=0){bk=c;break;}}
         if(!bk){const hb=(typeof aqBed==='function'&&aqBed())||(typeof aqFire==='function'&&aqFire());if(hb&&near>=3)bk=[hb.x+30,hb.z+30,G.t];}
         if(bk){AQ.bad.push({x:P.x,z:P.z,t:G.t+900});P.x=bk[0];P.z=bk[1];P.y=groundY(P.x,P.z,hAt(P.x,P.z)+2);P.air=false;P.vy=0;AQ.path=null;AQ.dir=null;j.stuck=0;j.best=1e9;j.pts=null;j.pl=null;TK.c=TK.c.filter(c=>c!==bk);try{G.camInit=0;}catch(e){}
@@ -20825,6 +20830,60 @@ function hvTool(id){const T=THREE,I=ITEMS[id];if(!HV_TOOL[I.tool]&&id!=='digStic
     if(I.t==='wear'&&I.slot){if(!hvWear(id)){/* người mẫu chưa sẵn sàng: thử lại sau */delete ICO.url[id];}}}catch(e){if(!ICO.hvE){ICO.hvE=1;console.warn('hình vật phẩm',e);}}};iconMake.__base=_im;}
 /* vài biểu tượng thay thế sai hẳn (món chưa có hình riêng) */
 if(typeof EMO==='object')Object.assign(EMO,{birdRaw:'🐦',birdCooked:'🍗',iron:'⬛',meatDried:'🥓',banhChung:'🍙',charcoalWater:'🥣',herbPoultice:'🍃',turmericPowder:'🟠'});
+/* ===================== VÕ NGHỆ: LIÊN HOÀN ĐÒN · SỞ TRƯỜNG TỪNG LOẠI VŨ KHÍ · TUYỆT KỸ =====================
+   Trước: đánh nhau chỉ là giữ nút Đánh, vũ khí nào cũng như nhau ngoài con số sức đánh.
+   1. LIÊN HOÀN: đánh trúng liên tiếp cùng một mục tiêu (không nghỉ quá 2,5 giây) thì cộng dồn, mỗi tầng +8% sát thương (tối đa 5 tầng).
+      Đòn thứ 3 và thứ 5 là ĐÒN KẾT: ×1,6 sát thương, làm đối thủ choáng 0,8 giây. Bị trúng đòn thì mất chuỗi.
+   2. SỞ TRƯỜNG theo loại vũ khí (luôn có khi cầm):
+        Giáo   : 25% đòn gây CHẢY MÁU (mất máu dần 4 giây).           Dao  : 25% đòn CHÍ MẠNG ×2.
+        Rìu    : mỗi đòn PHÁ GIÁP, đối thủ nhận thêm 15% trong 5 giây.  Chùy/kiếm: 20% đòn làm CHOÁNG 1,2 giây.
+        Cung/nỏ: kéo căng hết cỡ rồi mới buông thì +30% sát thương.
+   3. TUYỆT KỸ (cấp 5, nút 🔥 ở trang Kỹ năng, phím V): tuỳ vũ khí đang cầm
+        Giáo: Xuyên tâm (đâm thẳng xuyên mọi kẻ địch trước mặt 6 m, ×2,2)      Dao: Liên trảm (3 nhát nhanh ×0,9 vào kẻ gần nhất)
+        Rìu : Bổ xoáy (×1,8 mọi kẻ địch quanh 4 m, phá giáp)                  Chùy/kiếm: Bổ đôi (×2,8 vào kẻ gần nhất, choáng 2 giây)
+        Cung/nỏ: Tam tiễn (bắn 3 mũi tên toả quạt, tốn 3 tên)                 Tay không: Đá xoay (×1,5 quanh 3 m, đẩy lùi)
+   Thú chúa và thú lớn (gấu, hổ, cá sấu) chỉ choáng nửa thời gian. */
+const VN={tg:null,n:0,t:0,dot:[],stun:[],on:0};
+const vnTool=()=>{try{const id=P.toolId,I=id&&ITEMS[id];return I&&I.t==='tool'?I.tool:null;}catch(e){return null;}};
+function vnStun(e,sec){try{if(!e||e.alive===false)return;const big=e.boss||((ANIMALS[e.kind]||{}).hp||0)>=12;sec*=big?0.5:1;const until=G.t+sec;if(e._vnS>G.t){e._vnS=Math.max(e._vnS,until);return;}e._vnS=until;e._vnSp=e.spd;e._vnX=e.x;e._vnZ=e.z;VN.stun.push(e);}catch(er){}}
+function vnTick(){try{if(typeof G==='undefined'||!G.on)return;for(let i=VN.stun.length-1;i>=0;i--){const e=VN.stun[i];if(!e||e.alive===false||e._vnS<=G.t){if(e){e._vnS=0;}VN.stun.splice(i,1);continue;}/* choáng: đứng yên tại chỗ, không ra đòn */e.x=e._vnX;e.z=e._vnZ;e.atkT=Math.max(e.atkT||0,0.6);if(e.o)e.o.position.x=e.x,e.o.position.z=e.z;}
+    if(VN.n&&G.t-VN.t>2.5){VN.n=0;VN.tg=null;}}catch(e){}}
+setInterval(vnTick,50);
+setInterval(()=>{try{if(typeof G==='undefined'||!G.on)return;for(let i=VN.dot.length-1;i>=0;i--){const d=VN.dot[i];if(!d.e||d.e.alive===false||--d.n<0){VN.dot.splice(i,1);continue;}VN.on++;try{(d.foe?foeDamage:animalDamage)(d.e,d.v);}finally{VN.on--;}try{puff(d.e.x,(d.e.y||0)+12,d.e.z,'#b01818',2);}catch(e){}}}catch(e){}},1000);
+/* đòn đánh của NGƯỜI CHƠI đi qua hitTarget → animalHit: đánh dấu để chỉ áp võ nghệ cho đòn của người chơi (không áp cho lính, sủng thú, bẫy) */
+{const _ht=hitTarget;hitTarget=function(t){const mine=t&&(t.type==='animal'||t.type==='foe');if(mine)VN.pl=1;try{return _ht.apply(this,arguments);}finally{VN.pl=0;}};}
+function vnApply(e,dmg,foe){if(!VN.pl||VN.on||!e||e.alive===false)return dmg;const tl=vnTool();let m=1,tag='';
+  if(VN.tg===e&&G.t-VN.t<=2.5)VN.n=Math.min(5,VN.n+1);else{VN.tg=e;VN.n=1;}VN.t=G.t;m*=1+0.08*(VN.n-1);
+  if(VN.n===3||VN.n===5){m*=1.6;vnStun(e,0.8);tag='ĐÒN KẾT';}
+  if(e._vnBr>G.t)m*=1.15;
+  if(tl==='spear'&&Math.random()<0.25){VN.dot.push({e,foe,n:4,v:Math.max(0.3,dmg*0.18)});tag=tag||'Chảy máu';}
+  else if(tl==='knife'&&Math.random()<0.25){m*=2;tag='CHÍ MẠNG';}
+  else if(tl==='axe'){e._vnBr=G.t+5;}
+  else if(tl==='club'&&Math.random()<0.2){vnStun(e,1.2);tag=tag||'Choáng';}
+  try{const y=(e.y||hAt(e.x,e.z))+(e._hgt||30);if(VN.n>=2)uiFloat('×'+VN.n+(tag?' '+tag:''),e.x,y+10,e.z,VN.n>=3?'#ffb020':'#ffe6a0');else if(tag)uiFloat(tag,e.x,y+10,e.z,'#ffb020');}catch(er){}
+  return dmg*m;}
+{const _ad=animalDamage;animalDamage=function(a,dmg){return _ad.call(this,a,vnApply(a,dmg,0));};const _fd=foeDamage;foeDamage=function(f,dmg){return _fd.call(this,f,vnApply(f,dmg,1));};}
+/* bị trúng đòn: mất chuỗi */
+setInterval(()=>{try{if(typeof S==='undefined'||!S||!G.on)return;const hp=S.p.hp;if(VN._hp!=null&&hp<VN._hp-0.5&&VN.n){VN.n=0;VN.tg=null;}VN._hp=hp;}catch(e){}},200);
+/* cung, nỏ: kéo căng hết cỡ +30% */
+if(typeof h3release==='function'){const _hr=h3release;h3release=function(){const A=G.h3aim,full=A&&A.bow&&A.k>=0.98,n0=G.proj?G.proj.length:0;const r=_hr.apply(this,arguments);try{if(full&&G.proj&&G.proj.length>n0){G.proj[G.proj.length-1].pow*=1.3;uiFloat('Căng hết cỡ',P.x,P.y+52,P.z,'#ffe6a0');}}catch(e){}return r;};}
+/* ---------- TUYỆT KỸ ---------- */
+const VN_ULT={spear:['Xuyên tâm','🔱'],knife:['Liên trảm','🗡️'],axe:['Bổ xoáy','🪓'],club:['Bổ đôi','⚔️'],bow:['Tam tiễn','🏹'],none:['Đá xoay','🦵']};
+KNS.push({id:'wp',lv:5,ic:'🔥',n:'Tuyệt kỹ',d:'Chiêu mạnh tuỳ vũ khí đang cầm: giáo Xuyên tâm, dao Liên trảm, rìu Bổ xoáy, chùy/kiếm Bổ đôi, cung Tam tiễn, tay không Đá xoay.',st:22,cd:14,key:'KeyV'});
+function vnEnemies(r){const L=[];for(const a of (G.animals||[])){if(a.alive&&a.o&&a.o.visible&&!a.tame&&!(S.pets||[]).includes(a)){const d=Math.hypot(a.x-P.x,a.z-P.z)-(a.r||8);if(d<r)L.push({e:a,d,foe:0});}}for(const f of (G.foes||[])){if(f.alive&&!(f.lone&&!f.prov)){const d=Math.hypot(f.x-P.x,f.z-P.z)-(f.r||9);if(d<r)L.push({e:f,d,foe:1});}}return L.sort((a,b)=>a.d-b.d);}
+function vnHit(t,dmg){VN.on++;try{(t.foe?foeDamage:animalDamage)(t.e,dmg);}finally{VN.on--;}}
+function vnUlt(){const tl=vnTool(),k=VN_ULT[tl]?tl:'none',base=(typeof fistPow==='function'?fistPow():1)*(1+0.06*skLv('hunt'));let n=0;
+  if(k==='bow'){const have=invCount('arrow');if(have<1||typeof h3aimStart!=='function'){uiToast('Tam tiễn cần ít nhất 1 mũi tên.','bad');return false;}const ry0=P.ry;for(const off of [-0.16,0,0.16].slice(0,Math.min(3,have))){try{P.ry=ry0+off;if(h3aimStart()){G.h3aim.t0=G.t-5;G.h3aim.k=1;G.h3aim.tg=null;const A=G.h3aim;h3release();n++;}}catch(e){}}P.ry=ry0;if(!n)return false;}
+  else if(k==='spear'){const fx=Math.sin(P.ry),fz=Math.cos(P.ry);for(const t of vnEnemies(130)){const dx=t.e.x-P.x,dz=t.e.z-P.z,along=dx*fx+dz*fz,side=Math.abs(dx*fz-dz*fx);if(along>-5&&side<22+(t.e.r||8)){vnHit(t,base*2.2);n++;}}try{for(let i=1;i<=5;i++)puff(P.x+fx*i*24,P.y+18,P.z+fz*i*24,'#ffe6a0',3);}catch(e){}}
+  else if(k==='knife'){const t=vnEnemies(46)[0];if(t){n=1;vnHit(t,base*0.9);setTimeout(()=>{try{if(t.e.alive!==false)vnHit(t,base*0.9);}catch(e){}},160);setTimeout(()=>{try{if(t.e.alive!==false)vnHit(t,base*0.9);}catch(e){}},320);}}
+  else if(k==='axe'){for(const t of vnEnemies(80)){t.e._vnBr=G.t+5;vnHit(t,base*1.8);n++;}try{for(let i=0;i<8;i++){const an=i/8*6.283;puff(P.x+Math.sin(an)*55,P.y+16,P.z+Math.cos(an)*55,'#ffd27a',3);}}catch(e){}}
+  else if(k==='club'){const t=vnEnemies(50)[0];if(t){vnHit(t,base*2.8);vnStun(t.e,2);n=1;try{puff(t.e.x,(t.e.y||P.y)+20,t.e.z,'#fff2c0',10);G.shakeCam=0.35;}catch(e){}}}
+  else{for(const t of vnEnemies(60)){vnHit(t,base*1.5);const an=Math.atan2(t.e.x-P.x,t.e.z-P.z);t.e.x+=Math.sin(an)*30;t.e.z+=Math.cos(an)*30;n++;}}
+  G.punchT=0.4;try{uiFloat(VN_ULT[k][1]+' '+VN_ULT[k][0]+(n?'':' (trượt)'),P.x,P.y+60,P.z,'#ffb020');}catch(e){}return true;}
+{const _ku=knUse;knUse=function(id){if(id!=='wp')return _ku.apply(this,arguments);const c0=KN.cd.wp||0;_ku.apply(this,arguments);if((KN.cd.wp||0)>c0&&(KN.cd.wp||0)>G.t){/* đã trừ thể lực và tính hồi chiêu: ra đòn */if(vnUlt()===false){KN.cd.wp=0;S.p.stam=Math.min(maxStam(),S.p.stam+22);try{knUi(true);}catch(e){}}}};}
+/* tên chiêu trên nút đổi theo vũ khí đang cầm */
+setInterval(()=>{try{const b=document.querySelector('.kn-b[data-kn="wp"] i');if(!b||typeof G==='undefined'||!G.on)return;const tl=vnTool(),u=VN_ULT[VN_ULT[tl]?tl:'none'];if(b.textContent!==u[0])b.textContent=u[0];}catch(e){}},700);
+if(typeof HD_L!=='undefined')HD_L.push({id:'vonghe',ic:'⚔️',t:'Võ nghệ: liên hoàn và tuyệt kỹ',w:()=>VN.n>=2||(typeof heroLv==='function'&&heroLv()>=5&&G.foes&&G.foes.some(f=>f.alive&&Math.hypot(f.x-P.x,f.z-P.z)<400)),p:['Đánh trúng <b>liên tiếp</b> một mục tiêu sẽ cộng dồn: mỗi tầng +8% sát thương (tối đa ×5). Đòn thứ 3 và thứ 5 là <b>ĐÒN KẾT</b>: mạnh ×1,6 và làm đối thủ choáng. Bị trúng đòn thì mất chuỗi, nên biết <b>Đỡ</b> và <b>Né</b>.','Mỗi loại vũ khí có <b>sở trường</b>: giáo gây chảy máu, dao có đòn chí mạng ×2, rìu phá giáp, chùy và kiếm làm choáng, cung nỏ kéo căng hết cỡ thì mạnh hơn 30%.','Từ cấp 5 có <b>🔥 Tuyệt kỹ</b> (trang Kỹ năng, phím V): chiêu khác nhau tuỳ vũ khí đang cầm, tên chiêu ghi ngay trên nút. Tốn 22 thể lực, hồi 14 giây.']});
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.

@@ -21,9 +21,13 @@ function grassInit(){const T=THREE;if(G.grass){G.sc.remove(G.grass);G.grass.geom
   const tf=K3.fx&&K3.fx.tufts(pts,{h:6.6,blades:q>0?18:12,w:0.4,sp:[0.4,5.2]})/* lá mảnh, thấp, toả rộng: thành thảm cỏ mềm (trước lá to bản nhọn như lá dứa) */;if(!tf)return;tf.frustumCulled=false;tf.receiveShadow=q>0;G.sc.add(tf);G.grass=tf;G.gLast=null;try{seasonPatchAll(tf);}catch(e){}}
 // màu cỏ: tối & đậm hơn cho khớp mặt đất mới (lá cỏ đón nắng thẳng đứng nên dễ cháy sáng thành trắng bạc)
 const GCOL={2:['#557a2c','#628532'],3:['#46702a','#517a2e'],4:['#33561f','#3c6024'],5:['#486f2b','#537a30']};
-function grassTick(){const g=G.grass;if(!g)return;const px=P.x,pz=P.z;if(G.gLast&&Math.hypot(px-G.gLast[0],pz-G.gLast[1])<9)return;G.gLast=[px,pz];
-  const R=G.gR,S2=R*2,M=grassTick.M||(grassTick.M=new THREE.Matrix4()),Q=grassTick.Q||(grassTick.Q=new THREE.Quaternion()),V=grassTick.V||(grassTick.V=new THREE.Vector3()),SC=grassTick.SC||(grassTick.SC=new THREE.Vector3()),UP=new THREE.Vector3(0,1,0),C=grassTick.C||(grassTick.C=new THREE.Color());
-  const off=G.gOff;for(let i=0;i<off.length;i++){const o=off[i];const x=o[0]+S2*Math.round((px-o[0])/S2),z=o[1]+S2*Math.round((pz-o[1])/S2),d=Math.hypot(x-px,z-pz);
+/* CHỐNG GIẬT: trước cứ đi 9 đơn vị là xếp lại và nạp lại TOÀN BỘ bụi cỏ (tới 8.600 bụi) trong một khung hình → khựng mỗi giây khi đi bộ.
+   Giờ mỗi khung chỉ xếp một phần 24 số bụi (xoay vòng, đủ một lượt sau ~0,4 giây) và chỉ nạp đúng phần đó lên card đồ hoạ.
+   Lần đầu hoặc khi địa hình đổi (G.gLast=null) thì làm trọn một lượt. */
+function grassTick(){const g=G.grass;if(!g)return;const px=P.x,pz=P.z,N=G.gOff.length;let i0=0,i1=N;
+  if(G.gLast){if(!g.visible)return;const moved=Math.hypot(px-G.gLast[0],pz-G.gLast[1]);if(moved<0.5&&!(G.gLeft>0))return;if(moved>=0.5){G.gLast=[px,pz];G.gLeft=24;}const ch=Math.ceil(N/24);i0=(G.gCur|0)%N;i1=Math.min(N,i0+ch);G.gCur=i1>=N?0:i1;G.gLeft--;}else{G.gLast=[px,pz];G.gCur=0;G.gLeft=0;}
+  const R=G.gR,S2=R*2,M=grassTick.M||(grassTick.M=new THREE.Matrix4()),Q=grassTick.Q||(grassTick.Q=new THREE.Quaternion()),V=grassTick.V||(grassTick.V=new THREE.Vector3()),SC=grassTick.SC||(grassTick.SC=new THREE.Vector3()),UP=grassTick.UP||(grassTick.UP=new THREE.Vector3(0,1,0)),C=grassTick.C||(grassTick.C=new THREE.Color());
+  const off=G.gOff;for(let i=i0;i<i1;i++){const o=off[i];const x=o[0]+S2*Math.round((px-o[0])/S2),z=o[1]+S2*Math.round((pz-o[1])/S2),d=Math.hypot(x-px,z-pz);
     const b=bgAt(x,z),tr=typeof trailAt==='function'?trailAt(x,z):0;let s=(b>=2&&b<=5&&d<R)?o[2]*Math.min(1,(R-d)/(R*0.3)):0;if(tr>0.35)s*=0.25;
     if(s>0){const c=cellAt(x,z);if(c&&(c.floor||c.obj))s=0;}const y=hAt(x,z);if(y<1.2)s=0;
     // không mọc cỏ trong lòng suối/sông nông (trước đây ngọn cỏ chọc lên khỏi mặt nước)
@@ -31,7 +35,8 @@ function grassTick(){const g=G.grass;if(!g)return;const px=P.x,pz=P.z;if(G.gLast
     Q.setFromAxisAngle(UP,o[3]);V.set(x,y-0.6,z);SC.set(s,s*(b===2?1.15:1),s);M.compose(V,Q,SC);g.setMatrixAt(i,M);
     if(s>0){/* màu cỏ lấy đúng màu mặt đất ngay dưới chân nó (thảm cỏ liền với đất, không còn các bụi đen nổi lên) */let ok=false;try{if(typeof TCOL!=='undefined'&&TCOL){const ti=clamp(Math.round((x+WSIZE/2)/HSTEP),0,HN-1),tj=clamp(Math.round((z+WOZ)/HSTEP),0,HN-1),n=(tj*HN+ti)*3;const r0=TCOL[n],g0=TCOL[n+1],b0=TCOL[n+2];if(r0+g0+b0>0.05){const k=0.9+o[4]*0.22;C.setRGB(Math.min(1,r0*k*0.42),Math.min(1,g0*k*0.8),Math.min(1,b0*k*0.46));ok=true;}}}catch(e){}
       if(!ok){const cc=GCOL[b]||GCOL[3];C.set(cc[o[4]<0.5?0:1]).multiplyScalar(0.86+o[4]*0.28);}g.setColorAt(i,C);}}
-  g.instanceMatrix.needsUpdate=true;if(g.instanceColor)g.instanceColor.needsUpdate=true;}
+  const full=i0===0&&i1===N;g.instanceMatrix.updateRange.offset=full?0:i0*16;g.instanceMatrix.updateRange.count=full?-1:(i1-i0)*16;g.instanceMatrix.needsUpdate=true;
+  if(g.instanceColor){g.instanceColor.updateRange.offset=full?0:i0*3;g.instanceColor.updateRange.count=full?-1:(i1-i0)*3;g.instanceColor.needsUpdate=true;}}
 /* ---------- tắt các khối tài nguyên ở xa (cộng với cắt theo khung nhìn của three.js) ---------- */
 function cullTick(){if(G.t-(G.cullT||0)<0.25)return;G.cullT=G.t;const cx=G.cam.position.x,cz=G.cam.position.z,F=G.fogF||2000;
   const hv=G.hnV||1,nearD=[440,650,900][G.q|0]*hv,loD=[600,1000,1400][G.q|0]*hv;/* hv: nấc tự giảm tầm nhìn (hieunang.js) */for(const v of RI.values()){const s=v.sph;if(!s)continue;const d=Math.hypot(s.x-cx,s.z-cz)-s.r,dc=Math.hypot(s.x-cx,s.z-cz);const on=v.api.nOn>0&&d<(v.small?nearD:(G.treeD||F));

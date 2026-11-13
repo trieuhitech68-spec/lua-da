@@ -47,4 +47,6 @@ echo "10. Trang bị: sức đánh từng vũ khí, mọi loại cung bắn đư
 OUT=$(timeout 600 node trang-bi.js 2>&1); echo "$OUT" | grep -q "^TB-DAT" && ok "trang bị" || bad "trang bị: $(echo "$OUT" | tail -8 | tr '\n' ';' | cut -c1-500)"
 echo "11. Rà tổng quát nội dung: chế tạo thật mọi công thức, dựng thật mọi công trình, ăn uống mọi món, mọi nhiệm vụ và kế hoạch Tự làm, mở mọi bảng"
 OUT=$(timeout 900 node tong-quat.js 2>&1); echo "$OUT" | grep "^SỐ LƯỢNG" | sed "s/^/   /"; echo "$OUT" | grep -q "^TQ-DAT" && ok "nội dung" || bad "nội dung: $(echo "$OUT" | sed -n '/^TQ-HONG/,$p' | head -10 | tr '\n' ';' | cut -c1-700)"
+echo "12. Võ nghệ: liên hoàn, đòn kết, sở trường vũ khí, tuyệt kỹ"
+OUT=$(timeout 600 node vo-nghe.js 2>&1); echo "$OUT" | grep -q "^VN-DAT" && ok "võ nghệ" || bad "võ nghệ: $(echo "$OUT" | tail -6 | tr '\n' ';' | cut -c1-500)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

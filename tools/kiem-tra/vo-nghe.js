@@ -1,0 +1,19 @@
+// Võ nghệ: liên hoàn cộng dồn, đòn kết gây choáng, sở trường vũ khí, tuyệt kỹ từng loại vũ khí; đòn của lính/bẫy không được hưởng liên hoàn.
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});const c=await b.newContext({viewport:{width:500,height:300}});
+await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-b');localStorage.setItem('ldtt-nohd','1');localStorage.setItem('ld-perf-auto','0')}catch(e){}});const p=await c.newPage();const errs=[];p.on('pageerror',e=>errs.push(String(e.message).slice(0,160)));
+await p.goto('file://'+require('path').resolve(__dirname,'../../index.html'));await p.waitForTimeout(5000);
+const click=async t=>{await p.evaluate(t=>{const b=[...document.querySelectorAll('button')].filter(b=>b.offsetParent).find(b=>b.innerText.includes(t));b&&b.click()},t);await p.waitForTimeout(1500)};
+await click('Tạo nhân vật mới');await click('Bắt đầu');await p.waitForFunction(()=>typeof G==='object'&&G.on&&G.animals&&G.animals.length&&P.model,null,{timeout:240000});await p.waitForTimeout(3000);
+const r=await p.evaluate(()=>{const bad=[],R=rng(7),_r=Math.random;addXp('hunt',2000);for(let i=0;i<40;i++)addXp('gather',400);const mk=(dx)=>{const a=animalNew('bear',P.x+dx,P.z+30,R);a.hp=1e6;G.animals.push(a);return a;};
+ const hit=(a)=>{const t={type:'animal',a};G.act={t,next:0,n:0};const h0=a.hp;hitTarget(t);return h0-a.hp;};const hold=id=>{S.inv[0]={id,n:1};S.sel=0;equip(id);};
+ try{/* liên hoàn */Math.random=()=>0.99;hold('club');const a=mk(40);VN.n=0;VN.tg=null;const d=[];for(let i=0;i<5;i++)d.push(hit(a));
+  if(!(d[1]>d[0]*1.05))bad.push('đòn 2 không mạnh hơn đòn 1: '+d.map(x=>x.toFixed(2)));if(!(d[2]>d[0]*1.7))bad.push('đòn kết thứ 3 không ×1,6: '+d.map(x=>x.toFixed(2)));if(VN.n!==5)bad.push('chuỗi không lên 5: '+VN.n);if(!(a._vnS>G.t))bad.push('đòn kết không gây choáng');
+  /* lính đánh không hưởng liên hoàn */const fresh=mk(140);let h0=fresh.hp;animalDamage(fresh,1);const base1=h0-fresh.hp;h0=a.hp;animalDamage(a,1);/* a đang ở chuỗi ×5: đòn của lính vào nó phải bằng đòn vào con chưa bị đánh */if(Math.abs((h0-a.hp)-base1)>1e-6)bad.push('đòn không phải của người chơi được hưởng liên hoàn: '+(h0-a.hp)+' ≠ '+base1);
+  /* dao chí mạng */hold('knife');const b2=mk(60);VN.n=0;VN.tg=null;Math.random=()=>0.99;const n1=hit(b2);VN.n=0;VN.tg=null;Math.random=()=>0.01;const n2=hit(b2);if(!(n2>n1*1.9))bad.push('dao không chí mạng ×2: '+n1.toFixed(2)+' → '+n2.toFixed(2));
+  /* giáo chảy máu */hold('spear');const b3=mk(80);VN.dot.length=0;Math.random=()=>0.01;hit(b3);if(!VN.dot.length)bad.push('giáo không gây chảy máu');
+  /* rìu phá giáp */hold('axe');const b4=mk(100);VN.n=0;VN.tg=null;Math.random=()=>0.99;hit(b4);if(!(b4._vnBr>G.t))bad.push('rìu không phá giáp');
+  /* tuyệt kỹ từng loại */S.p.stam=100;for(const [id,nm] of [['spear','Xuyên tâm'],['knife','Liên trảm'],['axe','Bổ xoáy'],['club','Bổ đôi'],[null,'Đá xoay']]){if(id)hold(id);else{S.inv[0]=null;equip(null);}const e=mk(0);e.x=P.x+Math.sin(P.ry)*30;e.z=P.z+Math.cos(P.ry)*30;const h=e.hp;KN.cd.wp=0;S.p.stam=100;knUse('wp');if(!(e.hp<h))bad.push('tuyệt kỹ '+nm+' không gây sát thương');if(!((KN.cd.wp||0)>G.t))bad.push('tuyệt kỹ '+nm+' không tính hồi chiêu');e.alive=false;}
+  /* cung: tam tiễn */hold('bow');S.inv[1]={id:'arrow',n:5};KN.cd.wp=0;S.p.stam=100;const p0=(G.proj||[]).length;knUse('wp');const shot=(G.proj||[]).length-p0;if(shot<2)bad.push('Tam tiễn bắn ra '+shot+' mũi');if(invCount('arrow')!==5-shot)bad.push('Tam tiễn trừ tên sai');
+  if(!document.querySelector('.kn-b[data-kn="wp"]'))bad.push('thiếu nút Tuyệt kỹ');}catch(e){bad.push('lỗi: '+String(e)+(e.stack||'').slice(0,200));}Math.random=_r;return bad;});
+const bad=r.concat(errs.map(e=>'lỗi chạy: '+e));console.log(bad.length?'VN-HONG\n'+bad.join('\n'):'VN-DAT');await b.close();})();
