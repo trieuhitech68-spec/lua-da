@@ -19,8 +19,10 @@ const r=await p.evaluate(async()=>{const bad=[],o={};G.R.render=()=>{};if(K3.fx)
     if(lo<0.8)bad.push(id+': nhân vật chìm dưới mặt thuyền ('+lo.toFixed(1)+')');if(mv<8)bad.push(id+': chèo không đi ('+mv.toFixed(0)+')');sane(id);
     // quay về bờ rồi lên bờ
     bt.x=w[2]*0.3+w[0]*0.7;bt.z=w[3]*0.3+w[1]*0.7;if(wdAt(bt.x,bt.z)<2.3){bt.x=w[2];bt.z=w[3];}await ff(0.3);const t2=findTarget();if(t2&&t2.type==='leave')actStart(t2);else boatLeave();await ff(0.3);if(G.ride){bad.push(id+': không lên bờ được');G.ride=null;}}
-  // B. bơi
-  {reset();const w=deep(16);if(w){P.x=w[2];P.z=w[3];P.y=waterAt(P.x,P.z);G.keys={KeyW:true};await ff(3);G.keys={};const d=P.y-waterAt(P.x,P.z);o.swim={on:!!G.swim,d:+d.toFixed(1),wd:Math.round(wdAt(P.x,P.z))};if(wdAt(P.x,P.z)>12&&(d<-16||d>4))bad.push('bơi: độ cao sai ('+d.toFixed(1)+')');sane('bơi');P.x=w[0];P.z=w[1];P.y=groundY(P.x,P.z);G.swim=false;await ff(0.5);}}
+  // B. bơi: thả giữa chỗ nước sâu, đứng yên rồi bơi một đoạn
+  {reset();const w=deep(16);if(w){let cx=w[2],cz=w[3];for(let k=1;k<30;k++){const x=w[2]+(w[2]-w[0])/Math.hypot(w[2]-w[0],w[3]-w[1])*k*12,z=w[3]+(w[3]-w[1])/Math.hypot(w[2]-w[0],w[3]-w[1])*k*12;if(wdAt(x,z)>wdAt(cx,cz)){cx=x;cz=z;}}
+      P.x=cx;P.z=cz;P.y=waterAt(cx,cz)-6;P.air=false;P.vy=0;await ff(1.5);const d0=P.y-waterAt(P.x,P.z),on0=!!G.swim,wd0=Math.round(wdAt(P.x,P.z));P.ry=Math.atan2(w[0]-cx,w[1]-cz);G.keys={KeyW:true};const x0=P.x,z0=P.z;await ff(2);G.keys={};const mv=Math.hypot(P.x-x0,P.z-z0);
+      o.swim={on:on0,d:+d0.toFixed(1),wd:wd0,mv:Math.round(mv)};if(wd0>12){if(!on0)bad.push('bơi: xuống nước sâu mà không chuyển sang bơi');if(d0<-18||d0>3)bad.push('bơi: độ cao sai ('+d0.toFixed(1)+')');if(mv<10)bad.push('bơi: không bơi đi được ('+mv.toFixed(0)+')');}sane('bơi');P.x=w[0];P.z=w[1];P.y=groundY(P.x,P.z);G.swim=false;await ff(0.5);}}
   // C. ngựa
   {reset();try{if(!Array.isArray(S.mounts))S.mounts=[];let sp=null;for(let r=60;r<900&&!sp;r+=40)for(let a=0;a<12;a++){const x=P.x+Math.cos(a)*r,z=P.z+Math.sin(a)*r;if(wdAt(x,z)<=0&&slopeAt(x,z)<0.2){sp=[x,z];break;}}
       const m={id:(S.mseq=(S.mseq||0)+1),k:'horse',n:'Ngựa thử',x:sp[0],z:sp[1],ry:0,land:mtLand()};S.mounts.push(m);mtShow(m);P.x=sp[0]+10;P.z=sp[1];P.y=groundY(P.x,P.z);await ff(0.4);mtRide(m);await ff(0.3);if(!G.mnt)bad.push('ngựa: không lên được');

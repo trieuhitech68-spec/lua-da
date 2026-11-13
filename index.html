@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113113512">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113114535">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -2266,7 +2266,7 @@ function findTarget(){if(G.work||G.sit)return null;let best=null,bs=1e9;const fx
   for(const i of near(P.x,P.z,90)){const q=RES[i];const D=RT[q.t];if(q.st!==0)continue;const dx=q.x-P.x,dz=q.z-P.z,d=Math.hypot(dx,dz)-(D.r||4)*q.s*0.7;if(d>REACH)continue;const dot=(dx*fx+dz*fz)/(Math.hypot(dx,dz)||1);const sc=d-dot*10+cone(dx,dz,d);if(sc<bs){bs=sc;best={type:'res',q,d};}}
   for(const b of S.builds){const def=pieceDef(b.k);if(!def||(b.prog==null&&!def.st&&!def.store&&!def.bed&&!def.farm&&b.k!=='well'&&b.k!=='rainBarrel'&&b.k!=='beeBox'&&!['trap','fishTrap','drum','stool','ladder','ropeLadder','coop'].includes(b.k)))continue;if(Math.abs(b.y-P.y)>60&&b.k!=='ladder')continue;const d=Math.hypot(b.x-P.x,b.z-P.z)-(def.fp?Math.max(...def.fp)*12:14);if(d>REACH+10)continue;const sc=d-4+cone(b.x-P.x,b.z-P.z,d+20);if(sc<bs){bs=sc;best={type:'build',b,def,d};}}
   for(const a of G.animals){if(!a.alive||(!a.o.visible&&!a.angry))continue;const d=Math.hypot(a.x-P.x,a.z-P.z)-a.r;if(d>REACH+(a.angry?26:14))continue;const sc=d-8-(a.angry?40:0)+(a.angry?0:cone(a.x-P.x,a.z-P.z,d+20));if(sc<bs){bs=sc;best={type:'animal',a,d};}}
-  if(!best||bs>8){for(const d of [16,26,36]){const wx=P.x+fx*d,wz=P.z+fz*d;if(wdAt(wx,wz)>0.3){if(!best||bs>d*0.5)best={type:'water',x:wx,z:wz};break;}}}
+  if(!best||bs>8){for(const d of [16,26,36]){const wx=P.x+fx*d,wz=P.z+fz*d;if(wdAt(wx,wz)>0.3){if(!best||(bs>d*0.5&&best.type!=='boat'))best={type:'water',x:wx,z:wz};/* có bè, thuyền trong tầm với thì ưu tiên "Lên thuyền" hơn "Uống nước" (trước: bè thả cách 3-4 bước là chỉ hiện Uống nước, không lên được) */break;}}}
   return best;}
 function targetInfo(t){if(!t)return null;const si=seasonIdx();
   if(t.type==='leave')return {name:ITEMS[G.ride.k].n,verb:'Lên bờ',ok:true,icon:G.ride.k};if(t.type==='npc')return npcInfo(t.n);if(t.type==='foe')return {name:FOE.n+' · '+Math.max(0,Math.ceil(t.a.hp))+' máu',verb:'Đánh',ok:true,icon:'spear'};if(t.type==='chest')return chestInfo();if(t.type==='folk')return folkInfo(t.f);if(t.type==='boat')return {name:ITEMS[t.b.k].n,verb:'Lên thuyền',ok:true,icon:t.b.k};
