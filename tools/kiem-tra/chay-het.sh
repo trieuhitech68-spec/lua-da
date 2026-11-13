@@ -63,4 +63,6 @@ echo "16. Rác bộ nhớ: đi bộ ở 60 khung/giây tạo dưới 4,5 MB rác
 OUT=$(timeout 400 node rac-bo-nho.js 2>&1); echo "$OUT" | grep "^{" | sed "s/^/   /"; echo "$OUT" | grep -q "^RAC-DAT" && ok "rác bộ nhớ" || bad "rác bộ nhớ: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-400)"
 echo "17. Gom ghi bản lưu: gọi lưu dồn dập không ghi thật, rời trang / mở Cài đặt / sắp đẩy lên máy chủ thì ghi ngay, dữ liệu ghi là mới nhất"
 OUT=$(timeout 400 node luu-gom.js 2>&1); echo "$OUT" | grep -q "^LG-DAT" && ok "gom ghi bản lưu" || bad "gom ghi bản lưu: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-500)"
+echo "18. Người làng: có việc thì đi làm, mang đồ về kho; hết việc quanh nhà thì không quét tìm lại mỗi khung hình"
+OUT=$(timeout 400 node nguoi-lang.js 2>&1); echo "$OUT" | grep -q "^NL-DAT" && ok "người làng" || bad "người làng: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-500)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

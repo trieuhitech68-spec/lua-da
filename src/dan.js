@@ -39,7 +39,7 @@ function danEnemy(ax,az,r){let best=null,bd=r;if(G.foes)for(const e of G.foes){i
   for(const a of G.animals){if(!a.alive||a.state!=='chase'||!a.o||!a.o.visible)continue;const d=Math.hypot(a.x-ax,a.z-az);if(d<bd){bd=d;best={e:a,foe:0};}}return best;}
 function danGate(home){let best=null,bd=700;for(const b of S.builds){if(b.prog!=null||!/gate/i.test(b.k))continue;const d=Math.hypot(b.x-home.x,b.z-home.z);if(d<bd){bd=d;best=b;}}return best||home;}
 function danStrike(f,t){if(t.foe)foeDamage(t.e,danDmg(f));else animalDamage(t.e,danDmg(f));danXp(f,1);}
-function danPost(f,dt){if(!f._o)folkSpawn(f);const home=folkHome(f),sol=f.job==='soldier';let ax,az;if(sol){ax=P.x-Math.sin(P.ry||0)*40+((f.seed%5)-2)*14;az=P.z-Math.cos(P.ry||0)*40+((f.seed%3)-1)*14;}else{const g=danGate(home);ax=g.x+((f.seed%3)-1)*18;az=g.z+18;}
+function danPost(f,dt){if(!f._o)folkSpawn(f);const home=folkHome(f),sol=f.job==='soldier';let ax,az;if(sol){ax=P.x-Math.sin(P.ry||0)*40+((f.seed%5)-2)*14;az=P.z-Math.cos(P.ry||0)*40+((f.seed%3)-1)*14;}else{/* tìm cổng 3 giây một lần thay vì dò mọi công trình mỗi khung hình */if(!f._gc||G.t-f._gc.t>3||G.t<f._gc.t)f._gc={t:G.t,g:danGate(home)};const g=f._gc.g;ax=g.x+((f.seed%3)-1)*18;az=g.z+18;}
   let tx=ax,tz=az,pose='idle',sp=sol?150:70;f._t=(f._t||0)-dt;const t=danEnemy(sol?P.x:ax,sol?P.z:az,sol?260:240);
   if(t){tx=t.e.x;tz=t.e.z;sp=sol?150:110;if(Math.hypot(t.e.x-f.x,t.e.z-f.z)<(t.e.r||9)+16){tx=f.x;tz=f.z;pose='chop';f._ry=Math.atan2(t.e.x-f.x,t.e.z-f.z);if(f._t<=0){f._t=1.1;danStrike(f,t);}}}
   const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(sol&&d>1400){f.x=ax;f.z=az;}else if(d>6&&pose!=='chop'){f.x+=dx/d*Math.min(d,sp*dt);f.z+=dz/d*Math.min(d,sp*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*(sp>100?2:1.4);}
