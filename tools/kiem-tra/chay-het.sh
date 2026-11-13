@@ -45,4 +45,6 @@ echo "9. Đập đồ: mở bảng, thành công, hỏng cộng may mắn, tụt
 OUT=$(timeout 600 node dap-do.js 2>&1); echo "$OUT" | grep -q "^DP-DAT" && ok "đập đồ" || bad "đập đồ: $(echo "$OUT" | tail -3 | tr '\n' ' ' | cut -c1-400)"
 echo "10. Trang bị: sức đánh từng vũ khí, mọi loại cung bắn được, mọi món mặc dựng hình không lỗi, công thức hợp lệ"
 OUT=$(timeout 600 node trang-bi.js 2>&1); echo "$OUT" | grep -q "^TB-DAT" && ok "trang bị" || bad "trang bị: $(echo "$OUT" | tail -8 | tr '\n' ';' | cut -c1-500)"
+echo "11. Rà tổng quát nội dung: chế tạo thật mọi công thức, dựng thật mọi công trình, ăn uống mọi món, mọi nhiệm vụ và kế hoạch Tự làm, mở mọi bảng"
+OUT=$(timeout 900 node tong-quat.js 2>&1); echo "$OUT" | grep "^SỐ LƯỢNG" | sed "s/^/   /"; echo "$OUT" | grep -q "^TQ-DAT" && ok "nội dung" || bad "nội dung: $(echo "$OUT" | sed -n '/^TQ-HONG/,$p' | head -10 | tr '\n' ';' | cut -c1-700)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

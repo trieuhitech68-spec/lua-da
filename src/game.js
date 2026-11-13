@@ -395,8 +395,10 @@ function perfTick(dt){if(!(dt>0)||dt>0.25)return;G.pfWarm=(G.pfWarm||0)+dt;if(G.
   // độ phân giải động: giữ khoảng 40-60 khung hình/giây. Cần 2 lần đo chậm liên tiếp mới hạ, 3 lần nhanh mới nâng; vừa hạ thì chờ 20 s mới nâng lại (tránh nhảy qua lại gây giật)
   const cap=typeof SET!=='undefined'&&SET.fpsCap?1/SET.fpsCap:0,slow=Math.max(0.027,cap*1.22),fast=Math.max(0.0175,cap*1.08);// có giới hạn khung hình thì ngưỡng chậm/nhanh tính theo giới hạn đó
   if(G.ft>slow){G.pfUp=0;G.pfDn=(G.pfDn||0)+1;}else if(G.ft<fast){G.pfDn=0;G.pfUp=(G.pfUp||0)+1;}else{G.pfDn=0;G.pfUp=0;}
-  if(G.pfDn>=2&&k>0.55){G.pfDn=0;G.prK=Math.max(0.55,+(k-0.12).toFixed(2));G.pfDnT=G.t;resize();}
-  else if(G.pfUp>=3&&k<1&&G.t-(G.pfDnT||-99)>20){G.pfUp=0;G.prK=Math.min(1,+(k+0.06).toFixed(2));resize();}
+  /* CHỐNG GIẬT: mỗi lần đổi độ nét là cấp phát lại toàn bộ bộ đệm hình (khựng một nhịp). Trước: hạ nhanh, 20 giây sau lại nâng, rồi lại hạ → cứ vài chục giây khựng một lần.
+     Giờ: hạ theo nấc lớn (0.15), sau mỗi lần hạ phải mượt liên tục lâu mới được nâng (2 phút, mỗi lần hạ lại tăng gấp đôi, tối đa 15 phút), và nâng cần 6 lần đo nhanh liên tiếp. */
+  if(G.pfDn>=2&&k>0.55){G.pfDn=0;G.prK=Math.max(0.55,+(k-0.15).toFixed(2));G.pfDnT=G.t;G.pfHold=Math.min(900,(G.pfHold||60)*2);resize();}
+  else if(G.pfUp>=6&&k<1&&G.t-(G.pfDnT||-999)>(G.pfHold||120)){G.pfUp=0;G.prK=Math.min(1,+(k+0.15).toFixed(2));G.pfDnT=G.t;resize();}
   else if(G.ft>Math.max(0.034,cap*1.3)&&k<=0.56&&G.q>0&&!G.noAdapt&&G.pfDn>=2){G.pfDn=0;G.q--;G.prK=0.8;applyQ();console.info('Giảm chất lượng đồ họa còn mức',G.q);}}
 function moveTick(dt){let ix=0,iz=0;const k=G.keys,fp=isFP();if(k.KeyW||k.ArrowUp)iz-=1;if(k.KeyS||k.ArrowDown)iz+=1;if(k.KeyA||(!fp&&k.ArrowLeft))ix-=1;if(k.KeyD||(!fp&&k.ArrowRight))ix+=1;if(fp){if(k.ArrowLeft)P.ry+=dt*2.2;if(k.ArrowRight)P.ry-=dt*2.2;}swimCheck();if(G.work){if(Math.hypot(ix,iz)>0.3)workStop('Đã dừng tay.');}
   if(G.joy.on){ix=G.joy.x;iz=G.joy.y;}let m=Math.hypot(ix,iz);
