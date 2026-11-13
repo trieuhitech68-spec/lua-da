@@ -33,3 +33,15 @@ setInterval(()=>{try{lthTick();}catch(e){if(!LTH.err){LTH.err=1;console.warn('l�
     return _fd.apply(this,arguments);};}
 // phá nhà: lính đang đứng đó xông ra, không gọi thêm lính từ hư không
 {const _pd=pvpDefend;pvpDefend=function(uid,b){try{const p=MP.players[uid];if(p&&p.fk&&p.fk.length&&LTH.sp[uid]){lthRouse(uid);return;}}catch(e){}return _pd.apply(this,arguments);};}
+/* ---------- lính bị người khác hạ: bên chủ nhà cũng bị thương thật ----------
+   Người đánh ghi sites/<mình>.F={<chủ làng>:[số lính đã hạ trong đợt, giờ bắt đầu đợt]}. Máy chủ làng đọc thấy: bấy nhiêu lính bị thương, nghỉ 10 phút
+   (không gác, không tính vào phòng thủ, không hiện ra với người khác), rồi tự trở lại việc cũ. */
+function lthS(){if(!S.lth||typeof S.lth!=='object')S.lth={};const o=S.lth;if(!o.k||typeof o.k!=='object')o.k={};if(!o.seen||typeof o.seen!=='object')o.seen={};return o;}
+function lthMark(uid){const o=lthS(),now=pvpNow(),e=o.k[uid];if(e&&now-e[1]<600000)e[0]++;else o.k[uid]=[1,now];try{RL.mp.putT=0;RL.mp.last='';}catch(e2){}}
+{const _fd=foeDamage;foeDamage=function(f,dmg){const al=f&&f.rf&&f.alive&&!f.civ;const r=_fd.apply(this,arguments);try{if(al&&!f.alive){lthMark(f.rf);save();}}catch(e){}return r;};}
+{const _mp=mpPut;mpPut=function(path,data){try{if(S&&S.lth&&MP.uid&&path==='sites/'+MP.uid&&data&&typeof data==='object'){const F={},now=pvpNow();let n=0;for(const u in S.lth.k){const e=S.lth.k[u];if(n<8&&mpIdOk(u)&&now-e[1]<1800000){F[u]=[Math.min(10,e[0]|0),e[1]];n++;}}if(n)data.F=F;}}catch(e){}return _mp.apply(this,arguments);};}
+function lthIn(docs){if(!S||!pvpOn())return;const o=lthS(),now=pvpNow();for(const d of docs){const u=d.id;if(u===MP.uid||!mpIdOk(u))continue;const v=d.data();if(!v||v.w!==seed0()||!v.F||typeof v.F!=='object')continue;const e=v.F[MP.uid];if(!Array.isArray(e)||!mpNum(e[0],1,10)||!mpNum(e[1],1e12,now+600000)||now-e[1]>1800000)continue;
+    const p=o.seen[u],delta=p&&p[1]===e[1]?e[0]-p[0]:e[0];o.seen[u]=[e[0],e[1]];if(delta<=0)continue;let n=0;for(const f of S.folk||[]){if(n>=delta)break;if(f.wd||!(f.job==='gate'||f.job==='guard'||f.job==='soldier'))continue;f.job0=f.job;f.job='idle';f.wd=Date.now()+600000;n++;}
+    if(n){LTH.t=0;uiToast(`🩸 ${mpName(u)} đã hạ ${n} lính của bạn! Họ bị thương, nghỉ 10 phút mới gác lại được.`,'bad');sfx('hurt');save();}}}
+{const _pi=pvpIn;pvpIn=function(docs){try{lthIn(docs);}catch(e){console.warn('lính bị thương',e);}return _pi.apply(this,arguments);};}
+setInterval(()=>{try{if(typeof S==='undefined'||!S||!S.folk)return;const now=Date.now();let ch=0;for(const f of S.folk)if(f.wd&&now>f.wd){if(f.job==='idle'&&f.job0)f.job=f.job0;delete f.wd;delete f.job0;ch++;}if(ch){LTH.t=0;uiToast(`🛡️ ${ch} lính đã khoẻ lại, trở về vị trí.`,'good');save();}}catch(e){}},5000);

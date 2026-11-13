@@ -22,6 +22,10 @@ const {chromium}=require('playwright');const fs=require('fs');
     mpClanWrite({name:'Lửa Thiêng',leader:MP.uid,members:[MP.uid,'b1'],color:MPCOL[0],emblem:MPEMB[0],createdAt:Date.now(),zone:null,deny:[]});mpSaveMe({clan:MP.uid,req:null});__put('players/b1',Object.assign({},__db.get('players/b1'),{clan:MP.uid}));
     return new Promise(r=>setTimeout(()=>{const s=lthOf('b1').find(f=>f.alive&&!f.civ);const hp0=s.hp;foeDamage(s,5);r({fk,ally:s.hp===hp0,doc:(__db.get('players/me1')||{}).fk})},3000))});
   need(r3.fk&&r3.fk.length>=1&&r3.doc,'lính của mình được gửi lên máy chủ');need(r3.ally,'không đánh được lính đồng minh');
+  // lính của mình bị người khác hạ: bị thương, nghỉ gác; bảng xếp hạng mùa
+  const r4=await ev(()=>{const A=S.folk.find(f=>f.n==='A');__put('players/b2',{look:0,clan:null,req:null,w:S.seed,lastSeen:Date.now(),hl:8,rk:[55,xhSeason()]});__put('sites/b2',{w:S.seed,c:null,L:{},F:{me1:[1,Date.now()]}});RL.mp.putT=0;RL.mp.last='';rlMpTick();
+    return new Promise(r=>setTimeout(()=>{rlMpTick();setTimeout(()=>{const h=xhHtml();r({job:A.job,wd:A.wd>Date.now(),kills:S.lth.k.b1&&S.lth.k.b1[0],F:(__db.get('sites/me1')||{}).F,pts:xhS().p,html:/Bảng xếp hạng mùa/.test(h)&&/55 điểm/.test(h)})},2500)},3000))});
+  need(r4.job==='idle'&&r4.wd,'lính bị hạ phải bị thương, nghỉ gác');need(r4.kills>=1&&r4.F&&r4.F.b1,'ghi số lính đã hạ lên máy chủ');need(r4.pts>=2,'hạ lính được điểm mùa');need(r4.html,'bảng xếp hạng hiện người có điểm');
   need(!logs.length,'lỗi: '+logs.slice(0,3).join(' | '));
   console.log(bad.length?'LT-HONG '+bad.join('; '):'LT-DAT');await b.close();
 })();
