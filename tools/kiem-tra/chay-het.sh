@@ -54,4 +54,6 @@ echo "12. Võ nghệ: liên hoàn, đòn kết, sở trường vũ khí, tuyệt
 OUT=$(timeout 600 node vo-nghe.js 2>&1); echo "$OUT" | grep -q "^VN-DAT" && ok "võ nghệ" || bad "võ nghệ: $(echo "$OUT" | tail -6 | tr '\n' ';' | cut -c1-500)"
 echo "13. Kho làng: rương cả làng (45 m) được tính và tự rút khi chế tạo, rương xa không tính, xem tổng và lấy về túi"
 OUT=$(timeout 600 node kho-lang.js 2>&1); echo "$OUT" | grep -q "^KL-DAT" && ok "kho làng" || bad "kho làng: $(echo "$OUT" | tail -4 | tr '\n' ';' | cut -c1-500)"
+echo "14. Lớp nghe máy chủ: gom thay đổi dồn dập, giải mã một lần, báo đúng thêm/sửa/xoá, chi phí mỗi thay đổi dưới 2 ms với 400 người"
+OUT=$(timeout 300 node may-chu.js 2>&1); echo "$OUT" | grep -q "^MC-DAT" && ok "lớp nghe máy chủ" || bad "lớp nghe máy chủ: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-500)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

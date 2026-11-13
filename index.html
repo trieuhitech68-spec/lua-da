@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113043917">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113050040">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -439,25 +439,35 @@ async function ldbFetch(L){if(L.kind==='doc'){const d=await ldbGet(L.path);L.map
   let q=LDB.sb.from('docs').select('path,data').eq('coll',L.coll);let exact=!L.ord;
   for(const [f,op,v] of L.w){if(op==='=='&&/^[A-Za-z0-9_]{1,64}$/.test(f)&&(typeof v==='string'||typeof v==='number'||typeof v==='boolean'))q=q.eq('data->>'+f,String(v));else exact=false;}
   q=q.order('path',{ascending:true}).limit(exact&&L.lim?L.lim:1000);
-  const rows=await ldbQ(q,20000);const m=new Map();for(const r of rows||[])if(r&&r.data&&ldbMatch(r.data,L.w))m.set(r.path,JSON.stringify(r.data));L.map=m;}
-function ldbQS(L,prev){let E=[...L.map].map(([p,j])=>({p,j,d:JSON.parse(j)}));
+  const rows=await ldbQ(q,20000);const m=new Map();for(const r of rows||[])if(r&&r.data&&ldbMatch(r.data,L.w))m.set(r.path,JSON.stringify(r.data));
+  {const o=L.map;let ch=!o||o.size!==m.size||L.ver==null;if(!ch)for(const [p,j] of m)if(o.get(p)!==j){ch=true;break;}L.map=m;if(ch)L.ver=(L.ver|0)+1;}}
+/* CHỐNG GIẬT (thế giới chung): trước đây mỗi lần BẤT KỲ ai trên máy chủ ghi một bản ghi, bộ nghe giải mã lại TOÀN BỘ bộ sưu tập (hàng trăm bản ghi),
+   đóng gói lại từng bản, ghép một chuỗi khoá dài cả trăm nghìn ký tự, rồi mỗi phần của game gọi data() lại giải mã thêm lần nữa → khựng 1-2 giây một lần khi đông người.
+   Giờ: mỗi bản ghi chỉ giải mã MỘT lần khi nội dung của nó đổi (nhớ trong L.cache), data() trả lại bản đã giải mã, so "có đổi không" bằng số phiên bản L.ver,
+   và các thay đổi dồn dập được gom lại: mỗi bộ nghe báo tối đa một lần mỗi 1,5 giây. */
+const LDB_GAP=1500;
+function ldbQS(L,prev){const C=L.cache||(L.cache=new Map());let E=[];for(const [p,j] of L.map){let c=C.get(p);if(!c||c.j!==j){const d=JSON.parse(j);c={p,j,d,ds:Object.freeze({id:ldbId(p),exists:true,data:()=>d,metadata:LDB_MD})};C.set(p,c);}E.push(c);}
+  if(C.size>L.map.size)for(const p of [...C.keys()])if(!L.map.has(p))C.delete(p);
   if(L.ord){const [f,dir]=L.ord,s=dir==='desc'?-1:1;E.sort((a,b)=>{const x=ldbField(a.d,f),y=ldbField(b.d,f);if(x===undefined&&y===undefined)return a.p<b.p?-1:1;if(x===undefined)return 1;if(y===undefined)return -1;return (x<y?-1:x>y?1:(a.p<b.p?-1:1))*s;});}
   else E.sort((a,b)=>a.p<b.p?-1:a.p>b.p?1:0);if(L.lim)E=E.slice(0,L.lim);
-  const docs=E.map(e=>ldbDS(e.p,e.d)),idx=new Map(E.map((e,i)=>[e.p,i])),pj=prev?prev.j:new Map(),pi=prev?prev.i:new Map();
+  const docs=E.map(e=>e.ds),idx=new Map(E.map((e,i)=>[e.p,i])),pj=prev?prev.j:new Map(),pi=prev?prev.i:new Map();
   const ch=[];for(const [p,i] of pi)if(!idx.has(p))ch.push({type:'removed',doc:ldbDS(p,JSON.parse(pj.get(p))),oldIndex:i,newIndex:-1});
   E.forEach((e,i)=>{if(!pi.has(e.p))ch.push({type:'added',doc:docs[i],oldIndex:-1,newIndex:i});else if(pj.get(e.p)!==e.j||pi.get(e.p)!==i)ch.push({type:'modified',doc:docs[i],oldIndex:pi.get(e.p),newIndex:i});});
   const snap=Object.freeze({docs,size:docs.length,empty:!docs.length,docChanges:()=>ch.slice(),metadata:LDB_MD});
-  return {snap,j:new Map(E.map(e=>[e.p,e.j])),i:idx,key:E.map(e=>e.p+'\u0001'+e.j).join('\u0002')};}
+  return {snap,j:new Map(E.map(e=>[e.p,e.j])),i:idx};}
+// đổi một bản ghi trong bộ nghe; trả về true nếu nội dung thật sự khác
+function ldbMapPut(L,path,j){if(j!=null){if(L.map.get(path)===j)return false;L.map.set(path,j);}else{if(!L.map.has(path))return false;L.map.delete(path);}L.ver=(L.ver|0)+1;return true;}
 function ldbEmit(L){if(L.dead)return;if(L.kind==='doc'){const j=L.map.get(L.path)||'';if(L.sent&&L.last===j)return;L.sent=true;L.last=j;try{L.next(ldbDS(L.path,j?JSON.parse(j):null));}catch(e){console.warn('máy chủ: nghe',e);}return;}
-  const r=ldbQS(L,L.prev);if(L.sent&&r.key===L.prevKey)return;L.sent=true;L.prev=r;L.prevKey=r.key;try{L.next(r.snap);}catch(e){console.warn('máy chủ: nghe',e);}}
+  if(L.sent&&L.sentVer===L.ver)return;{const now=Date.now();if(L.sent&&now-(L.emitT||0)<LDB_GAP){if(!L.et)L.et=setTimeout(()=>{L.et=null;ldbEmit(L);},LDB_GAP-(now-L.emitT)+5);return;}L.emitT=now;}
+  const r=ldbQS(L,L.prev);L.sent=true;L.sentVer=L.ver;L.prev=r;try{L.next(r.snap);}catch(e){console.warn('máy chủ: nghe',e);}}
 // ghi xong: các bộ nghe trên máy này thấy ngay (như Firestore)
 function ldbLocal(path,data){const coll=ldbParent(path);for(const L of LDB.ls){if(L.dead||!L.ready)continue;
-    if(L.kind==='doc'?L.path!==path:L.coll!==coll)continue;if(data&&(L.kind==='doc'||ldbMatch(data,L.w)))L.map.set(path,JSON.stringify(data));else L.map.delete(path);ldbEmit(L);}}
+    if(L.kind==='doc'?L.path!==path:L.coll!==coll)continue;ldbMapPut(L,path,data&&(L.kind==='doc'||ldbMatch(data,L.w))?JSON.stringify(data):null);ldbEmit(L);}}
 // thay đổi từ máy chủ (Realtime postgres_changes)
 function ldbRtEvent(pl){const t=pl&&pl.eventType;if(t==='DELETE'){const p=pl.old&&pl.old.path;if(typeof p==='string')ldbLocalRemote(p,null);return;}
   const n=pl&&pl.new;if(!n||typeof n.path!=='string')return;if(n.data&&typeof n.data==='object')ldbLocalRemote(n.path,n.data);else ldbRefetchFor(n.path);}
 function ldbLocalRemote(path,data){const coll=ldbParent(path);for(const L of LDB.ls){if(L.dead||!L.ready)continue;if(L.kind==='doc'?L.path!==path:L.coll!==coll)continue;
-    const j=data?JSON.stringify(data):null;if(data&&(L.kind==='doc'||ldbMatch(data,L.w)))L.map.set(path,j);else L.map.delete(path);ldbEmit(L);}}
+    const j=data?JSON.stringify(data):null;ldbMapPut(L,path,data&&(L.kind==='doc'||ldbMatch(data,L.w))?j:null);ldbEmit(L);}}
 function ldbRefetchFor(path){const coll=ldbParent(path);for(const L of LDB.ls)if(!L.dead&&(L.kind==='doc'?L.path===path:L.coll===coll))ldbRefetch(L);}
 function ldbRefetch(L){if(L.rf)return;L.rf=setTimeout(async()=>{L.rf=null;if(L.dead)return;try{await ldbFetch(L);L.ready=true;ldbEmit(L);}catch(e){}},250);}
 function ldbRtKey(L){return L.kind==='doc'?'path=eq.'+L.path:'coll=eq.'+L.coll;}
@@ -471,7 +481,7 @@ function ldbRtUnsub(key){const c=LDB.rt.get(key);if(!c)return;if(--c.n>0)return;
 function ldbListen(L){if(typeof L.next!=='function')throw new TypeError('cần hàm nhận');if(L.kind==='doc')ldbPath(L.path,false);L.map=new Map();LDB.ls.add(L);const key=ldbRtKey(L);
   try{ldbRtSub(key);}catch(e){console.warn('máy chủ: realtime',e);}
   (async()=>{for(let k=0;k<3&&!L.dead;k++){try{await ldbFetch(L);L.ready=true;ldbEmit(L);return;}catch(e){if(k===2||e.code!=='unavailable'){if(L.err&&!L.dead)try{L.err(e);}catch(er){}return;}await new Promise(r=>setTimeout(r,1500*(k+1)));}}})();
-  return ()=>{if(L.dead)return;L.dead=true;LDB.ls.delete(L);if(L.rf)clearTimeout(L.rf);ldbRtUnsub(key);};}
+  return ()=>{if(L.dead)return;L.dead=true;LDB.ls.delete(L);if(L.rf)clearTimeout(L.rf);if(L.et)clearTimeout(L.et);ldbRtUnsub(key);};}
 /* ---------- room: kênh Realtime "lanhdia-room" (presence = ai đang ở đây, broadcast = vị trí + chủ đề) ---------- */
 const LDB_PEER=/^[a-z0-9]{6,32}$/,LDB_ID=/^[A-Za-z0-9_\-.:@+~]{1,128}$/;
 function ldbRoomNS(name){const R={name,peers:new Map(),mine:{},seq:0,ch:null,ready:null,conn:false,hp:new Set(),ht:new Map(),hc:new Set(),pend:null,lastB:0,bT:null,lastT:0,pruneT:null,joinedOnce:false};
