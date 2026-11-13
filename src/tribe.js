@@ -77,7 +77,7 @@ function folkTick(dt){if(!S.folk)return;const night=S.hour>=20||S.hour<6;for(con
       else if(f._st==='work'&&f._q){tx=f.x;tz=f.z;pose=f.job==='wood'?'chop':f.job==='stone'?'mine':'gather';f._ry=Math.atan2(f._q.x-f.x,f._q.z-f.z);if(f._t<=0){const q=f._q,D=RT[q.t];if(q.st===0){for(const k in D.yield){const [a,b]=D.yield[k];const n=a+Math.floor(Math.random()*(b-a+1));if(n>0)f._bag[k]=(f._bag[k]||0)+n;}resDeplete(q);}f._st='back';}}
       else if(f._st==='back'){const st=storeNear(f.x,f.z);if(!st){f._st='rest';f._t=10;}else{tx=st.x+8;tz=st.z+8;if(Math.hypot(tx-f.x,tz-f.z)<10){for(const k in f._bag){slotsAdd(S.store[st.id],k,f._bag[k]);}f._bag={};f._st='idle';save();}}}
       else if(f._st==='rest'){pose='sit';if(f._t<=0)f._st='idle';}}
-    const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(d>4&&pose!=='sleep'){f.x+=dx/d*Math.min(d,55*dt);f.z+=dz/d*Math.min(d,55*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*1.4;}
+    f._gx=tx;f._gz=tz;/* đích đang đi tới: để tính đường vòng khi bị rào chặn (raochan.js) */const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(d>4&&pose!=='sleep'){f.x+=dx/d*Math.min(d,55*dt);f.z+=dz/d*Math.min(d,55*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*1.4;}
     f._o.position.set(f.x,groundY(f.x,f.z,(f._o.position.y||0)+10),f.z);f._o.rotation.y=lerpAng(f._o.rotation.y,f._ry||0,Math.min(1,dt*6));
     if(K3.char2Pose&&f._rig&&Math.hypot(P.x-f.x,P.z-f.z)<800){try{K3.char2Pose(f._rig,pose,pose==='walk'?f._g:G.t+f.seed,{});}catch(e){}}}}
 // mỗi giờ: ăn sáng từ kho; nhịn 2 ngày thì bỏ đi

@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113095526">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113102950">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -7081,7 +7081,7 @@ function folkTick(dt){if(!S.folk)return;const night=S.hour>=20||S.hour<6;for(con
       else if(f._st==='work'&&f._q){tx=f.x;tz=f.z;pose=f.job==='wood'?'chop':f.job==='stone'?'mine':'gather';f._ry=Math.atan2(f._q.x-f.x,f._q.z-f.z);if(f._t<=0){const q=f._q,D=RT[q.t];if(q.st===0){for(const k in D.yield){const [a,b]=D.yield[k];const n=a+Math.floor(Math.random()*(b-a+1));if(n>0)f._bag[k]=(f._bag[k]||0)+n;}resDeplete(q);}f._st='back';}}
       else if(f._st==='back'){const st=storeNear(f.x,f.z);if(!st){f._st='rest';f._t=10;}else{tx=st.x+8;tz=st.z+8;if(Math.hypot(tx-f.x,tz-f.z)<10){for(const k in f._bag){slotsAdd(S.store[st.id],k,f._bag[k]);}f._bag={};f._st='idle';save();}}}
       else if(f._st==='rest'){pose='sit';if(f._t<=0)f._st='idle';}}
-    const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(d>4&&pose!=='sleep'){f.x+=dx/d*Math.min(d,55*dt);f.z+=dz/d*Math.min(d,55*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*1.4;}
+    f._gx=tx;f._gz=tz;/* đích đang đi tới: để tính đường vòng khi bị rào chặn (raochan.js) */const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(d>4&&pose!=='sleep'){f.x+=dx/d*Math.min(d,55*dt);f.z+=dz/d*Math.min(d,55*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*1.4;}
     f._o.position.set(f.x,groundY(f.x,f.z,(f._o.position.y||0)+10),f.z);f._o.rotation.y=lerpAng(f._o.rotation.y,f._ry||0,Math.min(1,dt*6));
     if(K3.char2Pose&&f._rig&&Math.hypot(P.x-f.x,P.z-f.z)<800){try{K3.char2Pose(f._rig,pose,pose==='walk'?f._g:G.t+f.seed,{});}catch(e){}}}}
 // mỗi giờ: ăn sáng từ kho; nhịn 2 ngày thì bỏ đi
@@ -14529,7 +14529,7 @@ function aqWall(ctx,ax,az,bx,bz){if(!ctx||!ctx.bk||!ctx.bk.size||typeof solCross
 function aqSegCut(ctx,ax,az,bx,bz){try{if(!ctx||!ctx.bk||!ctx.bk.size||typeof solSegs!=='function'||Math.hypot(bx-ax,bz-az)<6)return false;const py=hAt(ax,az)+2;for(const s of solSegs(ax,az,bx,bz,py))if(solX(ax,az,bx,bz,s[0],s[1],s[2],s[3]))return true;}catch(e){}return false;}
 function aqPlanStart(sx,sz,gx,gz,r,swim){const D=Math.hypot(gx-sx,gz-sz),M=Math.max(320,D*0.3);let C=Math.max(20,Math.min(60,D/110)),x0=Math.min(sx,gx)-M,z0=Math.min(sz,gz)-M;
   /* có công trình: lưới tìm đường phải khớp ô xây (40) để luồn được qua cửa, cổng rào (lối hẹp 26). Lưới thưa 60 lệch ô là không bao giờ thấy lối cửa → đâm vào tường rồi kẹt. */
-  try{if(typeof BYID!=='undefined'&&BYID.size){C=C<=24?20:40;x0=Math.floor(x0/40)*40+20;z0=Math.floor(z0/40)*40+20;}}catch(e){}
+  try{if(typeof BYID!=='undefined'&&BYID.size){C=C<=24?20:40;/* điểm mốc KHÔNG được nằm đúng trên đường rào/tường (bội số của 40): phép kiểm tra cắt tường bỏ sót trường hợp chạm đúng vào tường, nên trước đây đường đi được vạch xuyên thẳng qua rào. Lưới 20 đặt lệch 10 (10, 30, 50…), lưới 40 đặt giữa ô (20, 60…). */const of=C===20?10:20;x0=Math.floor(x0/40)*40+of;z0=Math.floor(z0/40)*40+of;}}catch(e){}
   const W=Math.ceil((Math.abs(gx-sx)+2*M)/C)+1,H=Math.ceil((Math.abs(gz-sz)+2*M)/C)+1,N=W*H;
   const pl={sx,sz,gx,gz,r,C,x0,z0,W,H,g:new Float32Array(N).fill(Infinity),par:new Int32Array(N).fill(-1),cl:new Uint8Array(N),cost:new Float32Array(N).fill(-1),hh:new Float32Array(N),
     hi:[],hf:[],exp:0,ok:false,fail:false,pts:null,ctx:aqCtx(x0,z0,x0+W*C,z0+H*C,swim)};
@@ -14647,7 +14647,7 @@ const AUJ={
     if(!j.far&&d>aqCfg().max*2.4)return aqFail('Xa quá (vượt tầm xa đã đặt).');
     if(M3&&(M3.st==='climb'||M3.st==='hang')){/* tự làm mà lỡ bám vào vách/mép đá: tự buông hoặc đu lên rồi đi tiếp, không bỏ nhiệm vụ */AQ.bad.push({x:P.x,z:P.z,t:G.t+90});try{if(P.y-hAt(P.x,P.z)>=80&&M3.st==='hang'&&typeof m3hangUp==='function')m3hangUp();if((M3.st==='climb'||M3.st==='hang')&&typeof m3drop==='function')m3drop();}catch(e){}if(M3.st==='climb'||M3.st==='hang')return aqFail('Đang bám vách: bạn tự leo xuống nhé.');}
     if(!j.pts){if(!j.pl){j.pl=aqPlanStart(P.x,P.z,j.x,j.z,j.r,j.swim);}aqPlanStep(j.pl,650);
-      if(j.pl.fail){j.pl=null;if(!j.swim){j.swim=1;return AQ_RUN;}return aqFail('Không tìm được đường tới đó (nước sâu, vách đá).');}
+      if(j.pl.fail){j.pl=null;if(!j.swim){j.swim=1;return AQ_RUN;}/* rào của mình quây kín không có cổng: mở một cổng trên đường đi rồi tìm đường lại */try{if(typeof rcOpenGate==='function'&&(j._og|0)<2&&rcOpenGate(j)){j._og=(j._og|0)+1;j.swim=0;return AQ_RUN;}}catch(e){}return aqFail('Không tìm được đường tới đó (nước sâu, vách đá).');}
       if(!j.pl.ok)return AQ_RUN;j.pts=aqSmooth(j.pl.pts,j.pl.ctx);j.ctx=j.pl.ctx;j.pl=null;j.wi=1;j.lp=[P.x,P.z];j.lt=G.t;j.best=d;AQ.path=j.pts.concat([[j.x,j.z]]);}
     // bám theo đường
     const pts=j.pts;let tx=j.x,tz=j.z;
@@ -16459,7 +16459,7 @@ function danStrike(f,t){if(t.foe)foeDamage(t.e,danDmg(f));else animalDamage(t.e,
 function danPost(f,dt){if(!f._o)folkSpawn(f);const home=folkHome(f),sol=f.job==='soldier';let ax,az;if(sol){ax=P.x-Math.sin(P.ry||0)*40+((f.seed%5)-2)*14;az=P.z-Math.cos(P.ry||0)*40+((f.seed%3)-1)*14;}else{/* tìm cổng 3 giây một lần thay vì dò mọi công trình mỗi khung hình */if(!f._gc||G.t-f._gc.t>3||G.t<f._gc.t)f._gc={t:G.t,g:danGate(home)};const g=f._gc.g;ax=g.x+((f.seed%3)-1)*18;az=g.z+18;}
   let tx=ax,tz=az,pose='idle',sp=sol?150:70;f._t=(f._t||0)-dt;const t=danEnemy(sol?P.x:ax,sol?P.z:az,sol?260:240);
   if(t){tx=t.e.x;tz=t.e.z;sp=sol?150:110;if(Math.hypot(t.e.x-f.x,t.e.z-f.z)<(t.e.r||9)+16){tx=f.x;tz=f.z;pose='chop';f._ry=Math.atan2(t.e.x-f.x,t.e.z-f.z);if(f._t<=0){f._t=1.1;danStrike(f,t);}}}
-  const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(sol&&d>1400){f.x=ax;f.z=az;}else if(d>6&&pose!=='chop'){f.x+=dx/d*Math.min(d,sp*dt);f.z+=dz/d*Math.min(d,sp*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*(sp>100?2:1.4);}
+  f._gx=tx;f._gz=tz;const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(sol&&d>1400){f.x=ax;f.z=az;}else if(d>6&&pose!=='chop'){f.x+=dx/d*Math.min(d,sp*dt);f.z+=dz/d*Math.min(d,sp*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*(sp>100?2:1.4);}
   f._o.position.set(f.x,groundY(f.x,f.z,(f._o.position.y||0)+10),f.z);f._o.rotation.y=lerpAng(f._o.rotation.y,f._ry||0,Math.min(1,dt*6));
   if(K3.char2Pose&&f._rig&&Math.hypot(P.x-f.x,P.z-f.z)<800){try{K3.char2Pose(f._rig,pose,pose==='walk'?f._g:G.t+f.seed,{});}catch(e){}}}
 {const _ft=folkTick;folkTick=function(dt){if(!S||!S.folk||!S.folk.length)return _ft.apply(this,arguments);const all=S.folk,cus=all.filter(danCustom);
@@ -18956,7 +18956,7 @@ function solRects(x,z,py){if(OCC.cell.size===0)return SOL_E;const out=[],ci=Math
 // các đoạn tường (đã trừ lối cửa) + cột quanh một vùng
 function solSegs(x0,z0,x1,z1,py){if(OCC.edge.size===0&&OCC.cell.size===0)return SOL_E;const out=[],i0=Math.floor(Math.min(x0,x1)/CELL)-1,i1=Math.floor(Math.max(x0,x1)/CELL)+1,j0=Math.floor(Math.min(z0,z1)/CELL)-1,j1=Math.floor(Math.max(z0,z1)/CELL)+1;if((i1-i0)*(j1-j0)>400)return out;
   if(OCC.edge.size)for(let L=0;L<=LVMAX;L++)for(let i=i0;i<=i1+1;i++)for(let j=j0;j<=j1+1;j++){const K=colKey(i,j,L);for(let r=0;r<2;r++){const id=OCC.edge.get(r?K.v:K.h);if(!id)continue;const b=BYID.get(id);if(!b)continue;const def=pieceDef(b.k);if(!def||/ladder/i.test(b.k))continue;
-      if(py+30<b.y||py>(def.low?Math.max(b.y,hAt(b.x,b.z))+(P.air?11:26):b.y+46))continue;const ax=r?b.x:b.x-20,az=r?b.z-20:b.z,bx=r?b.x:b.x+20,bz=r?b.z+20:b.z,sg=def.door&&solDoorOpen(b)?SOL_SGD:SOL_SGF;for(let q=0;q<sg.length;q+=2){const s0=sg[q],s1=sg[q+1];out.push([ax+(bx-ax)*s0,az+(bz-az)*s0,ax+(bx-ax)*s1,az+(bz-az)*s1]);}/* dài thêm mỗi đầu 3 đơn vị: bịt khe ở góc nhà */}}
+      if(py+30<b.y||py>(def.low?Math.max(b.y,hAt(b.x,b.z))+(P.air?11:26):b.y+46))continue;const ax=r?b.x:b.x-20,az=r?b.z-20:b.z,bx=r?b.x:b.x+20,bz=r?b.z+20:b.z,sg=def.door&&!solSegs.shut&&solDoorOpen(b)?SOL_SGD:SOL_SGF;/* solSegs.shut=1: coi mọi cửa, cổng là đóng (dùng cho kẻ địch) */for(let q=0;q<sg.length;q+=2){const s0=sg[q],s1=sg[q+1];out.push([ax+(bx-ax)*s0,az+(bz-az)*s0,ax+(bx-ax)*s1,az+(bz-az)*s1]);}/* dài thêm mỗi đầu 3 đơn vị: bịt khe ở góc nhà */}}
   try{let seen=null;if(OCC.cell.size)for(let i=i0-1;i<=i1+1;i++)for(let j=j0-1;j<=j1+1;j++){const c=OCC.cell.get(colKey(i,j,0).cell);if(!c)continue;const id=c[slotN('obj',0)];if(!id)continue;if(!seen)seen=new Set();if(seen.has(id))continue;seen.add(id);const b=BYID.get(id);if(b&&SOL_SH[b.k]&&Math.abs(b.y-py)<40)solShSegs(b,out);}}catch(e){}
   return out;}
 const SOL_SGD=[-0.08,0.17,0.83,1.08],SOL_SGF=[-0.08,1.08];
@@ -21306,6 +21306,39 @@ const HV2=(()=>{const T=()=>THREE,M=(c,o)=>new THREE.MeshStandardMaterial(Object
     fishNet:()=>net(),fishHook:()=>hook(),woodSpoon:()=>spoon(),sling:()=>{const g=G();add(g,sph(),'#8a5a34',0,-2,0,2.6,1,1.8);add(g,tor(4.4,0.25),'#c9b98a',0,2.2,0,0.5,1,1);add(g,sph(),'#77797c',0,-1.4,0,1.3);return g;},calf:()=>calf()};
   return S;})();
 {const _im=iconMake;iconMake=function(id){const r=_im.apply(this,arguments);try{if(!ICO.url[id]&&HV2[id]&&window.THREE&&G.on){if(!ICO.R)_im.call(this,'stick');const g=HV2[id]();g.rotation.y=-0.5;if(typeof hvShot==='function'&&ICO.R)hvShot(id,g);}}catch(e){if(!ICO.h2e){ICO.h2e=1;console.warn('hình vật phẩm 2',id,e);}}return r;};}
+/* ---------- HÀNG RÀO, TƯỜNG CHẶN CẢ NGƯỜI LÀNG, THỔ DÂN, KẺ ĐỊCH ----------
+   Trước: chỉ người chơi và thú bị rào, tường chặn; người làng, lính, thổ dân làng bên, chiến binh địch đi xuyên qua rào như không có.
+   Giờ: · Bước nào cắt qua rào, tường thì bị chặn lại. Cửa, cổng: người làng mình và thổ dân qua được; kẻ địch thì không (cổng coi như cài then).
+        · Người làng, lính bị rào chặn sẽ tự tìm cổng gần nhất, đi vòng qua cổng rồi đi tiếp. Không có cổng nào thì báo cho người chơi làm cổng.
+        · "Tự làm" gặp rào của chính mình quây kín không có lối: tự đổi một đoạn rào trên đường đi thành cổng (tốn vật liệu làm cổng) rồi đi tiếp. */
+const RAO={ox:[],oz:[],warn:-999};
+function rcCross(ox,oz,x,z,py,shut){if(!OCC.edge.size)return false;let segs;solSegs.shut=shut?1:0;try{segs=solSegs(ox,oz,x,z,py);}finally{solSegs.shut=0;}for(let i=0;i<segs.length;i++){const s=segs[i];if(solX(ox,oz,x,z,s[0],s[1],s[2],s[3])){RAO.seg=s;return true;}}return false;}
+function rcGate(x,z){let best=null,bd=520;for(const b of S.builds){if(b.prog!=null)continue;const d=pieceDef(b.k);if(!d||!d.door||d.kind!=='edge'||!solDoorOpen(b))continue;const dd=Math.hypot(b.x-x,b.z-z);if(dd<bd){bd=dd;best=b;}}return best;}
+// chặn một danh sách người đi bộ; det=true: bị chặn thì vòng qua cổng
+function rcGuard(L,shut,det,dt){const n=L.length,ox=RAO.ox,oz=RAO.oz;for(let i=0;i<n;i++){const f=L[i];if(!f||f.x==null||Math.abs(f.x-P.x)>800||Math.abs(f.z-P.z)>800||f.alive===false)continue;
+    let nx=f.x,nz=f.z;const px=ox[i],pz=oz[i];if(px==null)continue;const py=hAt(px,pz)+2,want=Math.hypot(nx-px,nz-pz),gx=f._gx!=null?f._gx:f.tx,gz=f._gz!=null?f._gz:f.tz;
+    if(f._pl){/* đang tính đường vòng (chia nhỏ qua nhiều khung hình) */try{aqPlanStep(f._pl,220);}catch(e){f._pl.fail=true;}
+      if(f._pl.ok){f._det=f._pl.pts.slice(1).map(q=>({x:q[0],z:q[1]}));f._det.push({x:f._pl.gx,z:f._pl.gz});f._detG=[f._pl.gx,f._pl.gz];f._detT=45;f._pl=null;}
+      else if(f._pl.fail){f._pl=null;if(det&&!rcGate(px,pz)&&G.t-RAO.warn>180){RAO.warn=G.t;uiToast('🚧 Người làng bị hàng rào chặn, không có cổng để qua. Dựng một Cổng rào (Xây → Rào) cho họ ra vào.','');}}}
+    if(f._det){/* đi theo đường vòng đã tính: bỏ bước của game */const w=f._det[0],dx=w.x-px,dz=w.z-pz,d=Math.hypot(dx,dz);f._detT-=dt;nx=px;nz=pz;
+      if(f._detT<=0||(gx!=null&&Math.hypot(gx-f._detG[0],gz-f._detG[1])>90))f._det=null;/* quá lâu hoặc đích đã đổi: bỏ, tính lại khi cần */
+      else if(d<6){f._det.shift();if(!f._det.length)f._det=null;}
+      else{const st=Math.min(d,64*dt);nx=px+dx/d*st;nz=pz+dz/d*st;if(rcCross(px,pz,nx,nz,py,shut)){nx=px;nz=pz;f._det=null;}else f._ry=Math.atan2(dx,dz);}
+      f.x=nx;f.z=nz;}
+    else if(want<0.01||want>300){f.x=nx;f.z=nz;}
+    else if(!rcCross(px,pz,nx,nz,py,shut)){f.x=nx;f.z=nz;f._blk=0;}
+    else{/* bước này cắt qua rào, tường: đứng lại; người mình và thổ dân thì tính đường vòng qua cổng tới đích */f.x=px;f.z=pz;f._blk=(f._blk||0)+dt;
+      if(!shut&&f._blk>0.3&&!f._pl&&gx!=null&&!(f._plT>G.t)&&typeof aqPlanStart==='function'){f._plT=G.t+5;f._blk=0;try{f._pl=aqPlanStart(px,pz,gx,gz,14,false);}catch(e){f._pl=null;}}}
+    if(f._o&&f._o.position){f._o.position.x=f.x;f._o.position.z=f.z;if(f._ry!=null&&f._det)f._o.rotation.y=f._ry;}else if(f.o&&f.o.position){f.o.position.x=f.x;f.o.position.z=f.z;}}}
+function rcSnap(L){const ox=RAO.ox,oz=RAO.oz;ox.length=0;oz.length=0;for(let i=0;i<L.length;i++){const f=L[i];ox.push(f?f.x:null);oz.push(f?f.z:null);}}
+{const wrap=(name,get,shut,det)=>{try{const f0=(0,eval)(name);if(typeof f0!=='function')return;window.__rcw=function(dt){let L=null;try{if(S&&G.on&&OCC.edge.size){L=get();if(L&&L.length)rcSnap(L);else L=null;}}catch(e){L=null;}const r=f0.apply(this,arguments);if(L)try{rcGuard(L,shut,det,dt||0.016);}catch(e){if(!RAO.err){RAO.err=1;console.warn('rào chặn',e);}}return r;};(0,eval)(name+'=__rcw');}catch(e){}};
+  wrap('folkTick',()=>S.folk,false,true);wrap('npcTick',()=>G.npcs,false,false);wrap('foesTick',()=>G.foes,true,false);try{delete window.__rcw;}catch(e){}}
+// Tự làm: rào của mình quây kín, không tìm được đường → đổi đoạn rào nằm trên đường đi thành cổng
+function rcOpenGate(j){if(!S||!OCC.edge.size)return false;let best=null,bd=1e9;for(const b of S.builds){if(b.remote||b.prog!=null)continue;const d=pieceDef(b.k);if(!d||d.kind!=='edge'||d.door||!/fence|palisade|rail|rào/i.test(b.k+' '+(d.n||'')))continue;const dd=Math.hypot(b.x-P.x,b.z-P.z);if(dd>700)continue;
+    const ax=b.r%2?b.x:b.x-23,az=b.r%2?b.z-23:b.z,bx=b.r%2?b.x:b.x+23,bz=b.r%2?b.z+23:b.z;/* dài thêm 3 mỗi đầu: đường đi trúng đúng mối nối hai đoạn rào vẫn tính là cắt */if(!solX(P.x,P.z,j.x,j.z,ax,az,bx,bz))continue;if(dd<bd){bd=dd;best=b;}}
+  if(!best)return false;const gid=/palisade/i.test(best.k)&&pieceDef('palisadeGate')?'palisadeGate':'gate',gd=pieceDef(gid);if(!gd)return false;
+  if(!canPay(gd.cost)){if(G.t-(RAO.gw||-999)>60){RAO.gw=G.t;uiToast('🚧 Hàng rào quây kín không có lối ra. Cần '+Object.entries(gd.cost).map(([k,v])=>v+' '+(ITEMS[k]?ITEMS[k].n.toLowerCase():k)).join(', ')+' để mở một cổng.','bad');}return false;}
+  pay(gd.cost);try{structRemove(best);}catch(e){}best.k=gid;try{structAdd(best,true);}catch(e){}try{occMark(best,best.id);}catch(e){}aqSay('🤖 Hàng rào quây kín không có lối: đã mở một '+gd.n.toLowerCase()+' ở đoạn rào trên đường đi.','good');sfx('build');save();return true;}
 /* ---------- GOM VIỆC GHI BẢN LƯU (chống giật) ----------
    Số đo trên máy người chơi: 80 trên 84 lần khựng là do "ghi bản lưu", mỗi lần tới 356 ms, cách nhau 1,6 giây.
    Game gọi save() ở gần 300 chỗ (mỗi lần nhặt đồ, người làng cất đồ, xong một việc…); mỗi lần là đóng gói TOÀN BỘ ván chơi rồi ghi xuống máy hai lần.
