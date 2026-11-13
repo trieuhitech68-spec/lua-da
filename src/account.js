@@ -12,12 +12,30 @@ function slotMeta(s){const ag=typeof AGES!=='undefined'&&AGES[s.age||0];return {
 // bản lưu cũ (trước khi có nhân vật): biến thành nhân vật đầu tiên
 (function accMigrate(){const sl=slotsLocal();const raw=accLS(SKEY);if(!Object.keys(sl).length&&raw){try{const s=JSON.parse(raw);const id='c'+Date.now().toString(36);sl[id]=slotMeta(s);slotsWrite(sl);accLS(SKEY+'#'+id,raw);accLS(CURK,id);}catch(e){}}})();
 // mỗi lần lưu: chép sang ngăn của nhân vật đang chơi + đẩy lên máy chủ (thưa)
-{const _sv=save;save=function(){_sv();const id=curSlot();if(!id||!S)return;const raw=accLS(SKEY);if(!raw)return;accLS(SKEY+'#'+id,raw);const sl=slotsLocal();sl[id]=Object.assign(sl[id]||{},slotMeta(S));slotsWrite(sl);
-  if(ACC.db&&Date.now()-ACC.lastPush>45000)accPush(id);};}
-addEventListener('pagehide',()=>{try{save();const id=curSlot();if(ACC.db&&id)accPush(id,true);}catch(e){}});
-async function accPush(id,force){if(!ACC.db||ACC.busy||!id)return;const raw=accLS(SKEY+'#'+id);if(!raw)return;ACC.busy=true;ACC.lastPush=Date.now();
-  try{const base='data/users/'+ACC.uid+'/save';const n=Math.ceil(raw.length/PART);for(let i=0;i<n;i++)await ACC.db.doc(`${base}/parts/${id}_${i}`).set({s:raw.slice(i*PART,(i+1)*PART)});
-    const m=Object.assign({},slotsLocal()[id]||slotMeta(S),{parts:n,len:raw.length});await ACC.db.doc(`${base}/chars/${id}`).set(m);ACC.cloud[id]=m;}catch(e){console.warn('lưu máy chủ',e);}ACC.busy=false;}
+{const _sv=save;save=function(){if(ACC.stop)return;_sv();const id=curSlot();if(!id||!S)return;const raw=accLS(SKEY);if(!raw)return;accLS(SKEY+'#'+id,raw);const sl=slotsLocal();sl[id]=Object.assign(sl[id]||{},slotMeta(S));slotsWrite(sl);
+  if(ACC.db&&Date.now()-ACC.lastPush>20000)accPush(id);};}
+addEventListener('pagehide',()=>{try{if(ACC.stop)return;save();const id=curSlot();if(ACC.db&&id)accPush(id,true);}catch(e){}});
+async function accPush(id,force){if(!ACC.db||ACC.busy||!id||ACC.stop)return;const raw=accLS(SKEY+'#'+id);if(!raw)return;ACC.busy=true;ACC.lastPush=Date.now();
+  try{const base='data/users/'+ACC.uid+'/save';
+    /* máy khác đã lưu bản mới hơn bản mình đang cầm: KHÔNG ghi đè, báo người chơi tải bản mới */
+    let rev=accRev(id);try{const d=await ACC.db.doc(`${base}/chars/${id}`).get();if(d&&d.exists){const c=d.data()||{};ACC.cloud[id]=c;if((c.rev|0)>rev&&c.dev&&c.dev!==accDev()){ACC.busy=false;accConflict(id);return;}rev=Math.max(rev,c.rev|0);}}catch(e){}
+    const n=Math.ceil(raw.length/PART);for(let i=0;i<n;i++)await ACC.db.doc(`${base}/parts/${id}_${i}`).set({s:raw.slice(i*PART,(i+1)*PART)});
+    const m=Object.assign({},slotsLocal()[id]||slotMeta(S),{parts:n,len:raw.length,rev:rev+1,dev:accDev()});await ACC.db.doc(`${base}/chars/${id}`).set(m);ACC.cloud[id]=m;accRev(id,rev+1);}catch(e){console.warn('lưu máy chủ',e);}ACC.busy=false;}
+/* ---------- đồng bộ giữa các máy: mỗi lần lưu lên máy chủ tăng số bản (rev) và ghi mã máy (dev) ---------- */
+function accDev(){let d=accLS('ld-dev');if(!d){d='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);accLS('ld-dev',d);}return d||'d0';}
+function accRev(id,v){if(v===undefined)return +(accLS('ld-rev#'+id)||0)||0;accLS('ld-rev#'+id,String(v));}
+// máy chủ có bản mới hơn bản trên máy này?
+function accNewer(id){const C=ACC.cloud[id];if(!C)return false;if((C.rev|0)>0)return (C.rev|0)>accRev(id)&&C.dev!==accDev();const L=slotsLocal()[id];return !L||(C.ts||0)>(L.ts||0)+5000;}
+async function accPullTry(id){for(let k=0;k<3;k++){const r=await accPull(id);if(r)return r;await new Promise(r=>setTimeout(r,900));try{const d=await ACC.db.doc('data/users/'+ACC.uid+'/save/chars/'+id).get();if(d&&d.exists)ACC.cloud[id]=d.data();}catch(e){}}return null;}
+function accTake(id,raw){accLS(SKEY+'#'+id,raw);const C=ACC.cloud[id]||{};const sl=slotsLocal();sl[id]=Object.assign({},C);slotsWrite(sl);accRev(id,C.rev|0);}
+function accConflict(id){if(ACC.stop)return;ACC.stop=1;const go=async()=>{const el=document.getElementById('acc-cf');if(el)el.querySelector('b').textContent='Đang tải bản mới nhất…';const r=await accPullTry(id);if(r){accTake(id,r);if(curSlot()===id)accLS(SKEY,r);}
+    try{sessionStorage.setItem('ldtt-auto',id);sessionStorage.removeItem('ldtt-menu');sessionStorage.removeItem('ldtt-autoh');}catch(e){}location.reload();};
+  const d=document.createElement('div');d.id='acc-cf';d.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:20px';
+  d.innerHTML='<div style="max-width:360px;background:#2a1c10;border:1px solid #f2c55a;border-radius:16px;padding:18px;color:#ffe9c4;text-align:center;font:15px system-ui"><div style="font-size:34px">☁️</div><b style="display:block;margin:6px 0">Nhân vật này vừa được chơi trên máy khác</b><p style="font-size:13px;opacity:.85;margin:0 0 12px">Để không ghi đè mất tiến độ, game sẽ tải bản mới nhất từ máy chủ về máy này.</p><button class="btn big" id="acc-cf-go">Tải bản mới nhất</button></div>';
+  document.body.appendChild(d);d.querySelector('#acc-cf-go').onclick=go;setTimeout(go,8000);}
+// đang chơi: định kỳ và mỗi lần quay lại trang, hỏi máy chủ xem máy khác có lưu bản mới hơn không
+async function accCheck(){try{if(!ACC.db||ACC.stop||ACC.busy||!S||!G.on)return;const id=curSlot();if(!id)return;const d=await ACC.db.doc('data/users/'+ACC.uid+'/save/chars/'+id).get();if(!d||!d.exists)return;const c=d.data()||{};ACC.cloud[id]=c;if((c.rev|0)>accRev(id)&&c.dev&&c.dev!==accDev())accConflict(id);}catch(e){}}
+setInterval(accCheck,60000);document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState==='visible')accCheck();else if(S&&G.on&&!ACC.stop){save();const id=curSlot();if(ACC.db&&id)accPush(id,true);}}catch(e){}});
 async function accPull(id){const m=ACC.cloud[id];if(!ACC.db||!m)return null;try{const base='data/users/'+ACC.uid+'/save';let s='';for(let i=0;i<(m.parts||1);i++){const d=await ACC.db.doc(`${base}/parts/${id}_${i}`).get();if(!d.exists)return null;s+=d.data().s||'';}return s.length===m.len?s:null;}catch(e){return null;}}
 async function accDelCloud(id){if(!ACC.db)return;const m=ACC.cloud[id];const base='data/users/'+ACC.uid+'/save';try{await ACC.db.doc(`${base}/chars/${id}`).delete();for(let i=0;i<((m&&m.parts)||1);i++)await ACC.db.doc(`${base}/parts/${id}_${i}`).delete();}catch(e){}delete ACC.cloud[id];}
 // kết nối tài khoản claude.ai (nếu trang mở trên claude.ai)
@@ -45,7 +63,7 @@ document.addEventListener('click',async e=>{const b=e.target&&e.target.closest&&
   if(a==='sex'){G.nsex=b.dataset.v;document.querySelectorAll('.sexs .sx').forEach(x=>x.classList.toggle('on',x.dataset.v===G.nsex));accLooks();return;}
   if(a==='chnew'){accLS(CURK,null);G.newChar=1;uiOpen('start',{cont:false,form:1});return;}
   if(a==='chdel'){const id=b.dataset.id;if(G.delArm!==id){G.delArm=id;uiStart({cont:true});return;}G.delArm=null;const sl=slotsLocal();delete sl[id];slotsWrite(sl);accLS(SKEY+'#'+id,null);if(curSlot()===id){accLS(CURK,null);accLS(SKEY,null);}await accDelCloud(id);uiStart({cont:true});return;}
-  if(a==='chplay'){const id=b.dataset.id;let raw=accLS(SKEY+'#'+id);const L=slotsLocal()[id],C=ACC.cloud[id];if(C&&(!raw||!L||(C.ts||0)>(L.ts||0)+5000)){b.textContent='…';const r=await accPull(id);if(r){raw=r;accLS(SKEY+'#'+id,r);const sl=slotsLocal();sl[id]=Object.assign({},C);slotsWrite(sl);}}
+  if(a==='chplay'){const id=b.dataset.id;let raw=accLS(SKEY+'#'+id);const L=slotsLocal()[id];if(ACC.db){try{const d=await ACC.db.doc('data/users/'+ACC.uid+'/save/chars/'+id).get();if(d&&d.exists)ACC.cloud[id]=d.data();}catch(e){}}const C=ACC.cloud[id];if(C&&(!raw||!L||accNewer(id))){b.textContent='…';const r=await accPullTry(id);if(r){raw=r;accTake(id,r);}else if(raw){uiToast('⚠️ Máy chủ có bản mới hơn nhưng chưa tải được (mạng yếu). Thử lại sau ít giây để khỏi mất tiến độ.','bad');b.textContent='Chơi';return;}}
     if(!raw){uiToast('Không tải được nhân vật này.','bad');return;}accLS(SKEY,raw);accLS(CURK,id);const o=loadSave();if(!o){uiToast('Bản lưu bị hỏng.','bad');return;}S=o;uiOverlay(false);startGame();}},true);
 // tạo nhân vật mới: cấp ngăn lưu riêng
 {const _ng=newGame;newGame=function(o){const r=_ng(o);if(G.newChar||!curSlot()){G.newChar=0;const id='c'+Date.now().toString(36);accLS(CURK,id);const sl=slotsLocal();sl[id]=slotMeta(S);slotsWrite(sl);}return r;};}
@@ -62,7 +80,7 @@ function accSS(k,v){try{if(v===undefined)return sessionStorage.getItem(k);if(v==
     if(accSS('ldtt-menu')){accSS('ldtt-menu',null);accSS('ldtt-auto',null);}
     else{const id=accSS('ldtt-auto');const raw=id&&(accLS(SKEY+'#'+id)||(curSlot()===id&&accLS(SKEY)));
       if(raw){const now=Date.now(),hist=(accSS('ldtt-autoh')||'').split(',').map(Number).filter(t=>now-t<90000);hist.push(now);accSS('ldtt-autoh',hist.join(','));
-        if(hist.length<=2){accLS(SKEY,raw);accLS(CURK,id);const s=loadSave();if(s){S=s;uiOverlay(false);setTimeout(()=>uiToast('↻ Đã vào lại nhân vật đang chơi.',''),1500);startGame();return;}}
+        if(hist.length<=2){accLS(SKEY,raw);accLS(CURK,id);const s=loadSave();if(s){S=s;uiOverlay(false);setTimeout(()=>uiToast('↻ Đã vào lại nhân vật đang chơi.',''),1500);startGame();{let n=0;const iv=setInterval(()=>{if(++n>40||ACC.db){clearInterval(iv);accCheck();}},1500);}return;}}
         else{accSS('ldtt-auto',null);G.memWarn=1;}}}}
   _us2(o);if(G.memWarn){G.memWarn=0;setTimeout(()=>uiToast('⚠️ Trang bị tải lại nhiều lần — có thể máy thiếu bộ nhớ. Vào Cài đặt → Đồ họa, chọn mức nhẹ nhất rồi chơi tiếp.','bad'),600);}};}
 // mất bộ nhớ đồ họa: báo rõ thay vì màn hình đen

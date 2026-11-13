@@ -42,6 +42,8 @@ m chien-tranh '"atWar":true' "chiến tranh liên minh: tuyên chiến, tính đ
 m ha-co 'Hạ cờ' "hạ cờ chiếm đất chung"
 m cua-dong '"open0":false' "cửa nhà người khác đóng, đồng minh qua được"
 m cong-thanh '^CT-DAT' "công thành: công phá điểm giàu phe khác, mất quyền giữ 24 giờ, chia sản vật đất liên minh, lính giữ tiền đồn"
+m linh-thay '^LT-DAT' "lính, tù binh của người khác hiện ra, đánh được, đồng minh thì không"
+m dong-bo '^DB-DAT' "đồng bộ đổi máy: đánh số bản lưu, không ghi đè bản mới của máy khác, tải bản mới về"
 echo "9. Đập đồ: mở bảng, thành công, hỏng cộng may mắn, tụt cấp, đá hộ mệnh, +15, nâng thú"
 OUT=$(timeout 600 node dap-do.js 2>&1); echo "$OUT" | grep -q "^DP-DAT" && ok "đập đồ" || bad "đập đồ: $(echo "$OUT" | tail -3 | tr '\n' ' ' | cut -c1-400)"
 echo "10. Trang bị: sức đánh từng vũ khí, mọi loại cung bắn được, mọi món mặc dựng hình không lỗi, công thức hợp lệ"
