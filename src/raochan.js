@@ -20,6 +20,7 @@ function rcGuard(L,shut,det,dt){const n=L.length,ox=RAO.ox,oz=RAO.oz;for(let i=0
     else if(want<0.01||want>300){f.x=nx;f.z=nz;}
     else if(!rcCross(px,pz,nx,nz,py,shut)){f.x=nx;f.z=nz;f._blk=0;}
     else{/* bước này cắt qua rào, tường: đứng lại; người mình và thổ dân thì tính đường vòng qua cổng tới đích */f.x=px;f.z=pz;f._blk=(f._blk||0)+dt;
+      if(shut)try{rcBreak(f,dt);}catch(e){}
       if(!shut&&f._blk>0.3&&!f._pl&&gx!=null&&!(f._plT>G.t)&&typeof aqPlanStart==='function'){f._plT=G.t+5;f._blk=0;try{f._pl=aqPlanStart(px,pz,gx,gz,14,false);}catch(e){f._pl=null;}}}
     if(f._o&&f._o.position){f._o.position.x=f.x;f._o.position.z=f.z;if(f._ry!=null&&f._det)f._o.rotation.y=f._ry;}else if(f.o&&f.o.position){f.o.position.x=f.x;f.o.position.z=f.z;}}}
 function rcSnap(L){const ox=RAO.ox,oz=RAO.oz;ox.length=0;oz.length=0;for(let i=0;i<L.length;i++){const f=L[i];ox.push(f?f.x:null);oz.push(f?f.z:null);}}
@@ -31,3 +32,14 @@ function rcOpenGate(j){if(!S||!OCC.edge.size)return false;let best=null,bd=1e9;f
   if(!best)return false;const gid=/palisade/i.test(best.k)&&pieceDef('palisadeGate')?'palisadeGate':'gate',gd=pieceDef(gid);if(!gd)return false;
   if(!canPay(gd.cost)){if(G.t-(RAO.gw||-999)>60){RAO.gw=G.t;uiToast('🚧 Hàng rào quây kín không có lối ra. Cần '+Object.entries(gd.cost).map(([k,v])=>v+' '+(ITEMS[k]?ITEMS[k].n.toLowerCase():k)).join(', ')+' để mở một cổng.','bad');}return false;}
   pay(gd.cost);try{structRemove(best);}catch(e){}best.k=gid;try{structAdd(best,true);}catch(e){}try{occMark(best,best.id);}catch(e){}aqSay('🤖 Hàng rào quây kín không có lối: đã mở một '+gd.n.toLowerCase()+' ở đoạn rào trên đường đi.','good');sfx('build');save();return true;}
+
+/* ---------- kẻ địch phá rào ----------
+   Kẻ địch bị rào, tường của mình chặn sẽ đứng lại phá: rào thường chịu được khoảng 12 giây, rào cọc và tường chắc hơn (tới 60 giây), nhiều tên cùng phá thì nhanh hơn.
+   Bị phá thủng thì đoạn đó thành công trình dở dang (45%), ai cũng đi lọt; tới cạnh bấm Hành động để dựng lại (không tốn thêm vật liệu). */
+function rcBreak(f,dt){const sg=RAO.seg;if(!sg)return;const mx=(sg[0]+sg[2])/2,mz=(sg[1]+sg[3])/2;let b=f._bt&&BYID.get(f._bt.id)===f._bt&&f._bt.prog==null&&Math.hypot(f._bt.x-mx,f._bt.z-mz)<30?f._bt:null;
+  if(!b){let bd=30;for(const o of S.builds){if(o.remote||o.prog!=null)continue;const d=pieceDef(o.k);if(!d||d.kind!=='edge')continue;const dd=Math.hypot(o.x-mx,o.z-mz);if(dd<bd){bd=dd;b=o;}}f._bt=b;}
+  if(!b)return;const def=pieceDef(b.k);if(b._hp==null){let c=0;for(const k in def.cost||{})c+=def.cost[k];b._hp=clamp(4+c*1.4,10,60);b._hp0=b._hp;}
+  b._hp-=dt;f._ry=Math.atan2(b.x-f.x,b.z-f.z);f._hitT=(f._hitT||0)-dt;if(f._hitT<=0){f._hitT=1.3;try{puff(b.x,(b.y||hAt(b.x,b.z))+18,b.z,'#a88a62',5);if(Math.hypot(b.x-P.x,b.z-P.z)<500)sfx('thud');}catch(e){}
+    if(G.t-(RAO.bw||-999)>25&&Math.hypot(b.x-P.x,b.z-P.z)<900){RAO.bw=G.t;uiToast('⚠️ Kẻ địch đang phá '+def.n.toLowerCase()+'! Ra đánh đuổi trước khi rào thủng.','bad');}}
+  if(b._hp<=0){b._hp=null;b.prog=0.45;if(typeof STG!=='undefined'&&STG[b.k])b.paid=STG[b.k].length;if(b.cond!=null)b.cond=60;try{siteShow(b);}catch(e){}try{puff(b.x,(b.y||hAt(b.x,b.z))+14,b.z,'#8a6a42',16);sfx('fall');}catch(e){}
+    uiToast('💥 Kẻ địch đã phá thủng '+def.n.toLowerCase()+'! Tới cạnh bấm Hành động để dựng lại.','bad');f._bt=null;try{cnt('cnt','breach');}catch(e){}save();}}
