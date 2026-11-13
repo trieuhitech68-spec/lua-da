@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113142548">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113150126">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -14652,7 +14652,7 @@ const AUJ={
     if(!j.far&&d>aqCfg().max*2.4)return aqFail('Xa quá (vượt tầm xa đã đặt).');
     if(M3&&(M3.st==='climb'||M3.st==='hang')){/* tự làm mà lỡ bám vào vách/mép đá: tự buông hoặc đu lên rồi đi tiếp, không bỏ nhiệm vụ */AQ.bad.push({x:P.x,z:P.z,t:G.t+90});try{if(P.y-hAt(P.x,P.z)>=80&&M3.st==='hang'&&typeof m3hangUp==='function')m3hangUp();if((M3.st==='climb'||M3.st==='hang')&&typeof m3drop==='function')m3drop();}catch(e){}if(M3.st==='climb'||M3.st==='hang')return aqFail('Đang bám vách: bạn tự leo xuống nhé.');}
     if(!j.pts){if(!j.pl){j.pl=aqPlanStart(P.x,P.z,j.x,j.z,j.r,j.swim);}AQ.lax=j._lax?1:0;try{aqPlanStep(j.pl,650);}finally{AQ.lax=0;}
-      if(j.pl.fail){j.pl=null;if(!j.swim){j.swim=1;return AQ_RUN;}/* lối dự phòng: thử lại, bỏ quy tắc cấm điểm mốc trùng rào (thà đi sát rào còn hơn đứng chết một chỗ) */if(!j._lax){j._lax=1;j.swim=0;return AQ_RUN;}/* rào của mình quây kín không có cổng: mở một cổng trên đường đi rồi tìm đường lại */try{if(typeof rcOpenGate==='function'&&(j._og|0)<2&&rcOpenGate(j)){j._og=(j._og|0)+1;j.swim=0;return AQ_RUN;}}catch(e){}try{aqPfLog(j);}catch(e){}return aqFail('Không tìm được đường tới đó (nước sâu, vách đá).');}
+      if(j.pl.fail){j.pl=null;if(!j.swim){j.swim=1;return AQ_RUN;}/* lối dự phòng: thử lại, bỏ quy tắc cấm điểm mốc trùng rào (thà đi sát rào còn hơn đứng chết một chỗ) *//* rào của mình quây kín không có cổng: mở một cổng trên đường đi rồi tìm đường lại (làm TRƯỚC lối dự phòng, kẻo lối dự phòng vạch đường sát rào rồi nhân vật đâm vào rào) */try{if(typeof rcOpenGate==='function'&&(j._og|0)<2&&rcOpenGate(j)){j._og=(j._og|0)+1;j.swim=0;return AQ_RUN;}}catch(e){}if(!j._lax){j._lax=1;j.swim=0;try{aqPfLog(j);}catch(e){}return AQ_RUN;}try{aqPfLog(j);}catch(e){}return aqFail('Không tìm được đường tới đó (nước sâu, vách đá).');}
       if(!j.pl.ok)return AQ_RUN;j.pts=aqSmooth(j.pl.pts,j.pl.ctx);j.ctx=j.pl.ctx;j.pl=null;j.wi=1;j.lp=[P.x,P.z];j.lt=G.t;j.best=d;AQ.path=j.pts.concat([[j.x,j.z]]);}
     // bám theo đường
     const pts=j.pts;let tx=j.x,tz=j.z;
@@ -21384,7 +21384,7 @@ function cngProxy(b){let p=CNG.px.get(b);if(!p){const al=CNG.A[b.k];p=new Proxy(
    Giờ: người chơi đứng trong vòng 16 m quanh một bếp lửa / đống lửa ĐANG CHÁY thì thú dữ không chủ động lao vào tấn công.
    Thú đã bị đánh (đang nổi giận) thì vẫn đánh trả. Lửa tắt là hết tác dụng: giữ lửa cháy qua đêm mới an toàn. */
 function cngFireSafe(){try{if(G.t-(CNG.fT||-9)<0.8&&G.t>=(CNG.fT||0))return CNG.fS;CNG.fT=G.t;let ok=false;for(const b of S.builds){if(b.prog!=null)continue;const dx=b.x-P.x,dz=b.z-P.z;if(dx>320||dx<-320||dz>320||dz<-320)continue;if(dx*dx+dz*dz>320*320)continue;const fd=pieceDef(b.k);/* chỉ tính bếp, đống lửa thật sự có củi đang cháy (fireLit() coi mọi món không cần củi là "có lửa") */if(fd&&fd.fuel&&(S.fuel[b.id]||0)>0){ok=true;break;}}CNG.fS=ok;return ok;}catch(e){return false;}}
-if(typeof l3hostile==='function'){const _lh=l3hostile;l3hostile=function(a,D,d){try{if(a&&!a.angry&&d<700&&cngFireSafe()){if(d<420&&!CNG.fTold&&S.hd){CNG.fTold=1;uiToast('🔥 Thú dữ sợ lửa: bạn đang ở gần bếp lửa cháy nên nó không dám lao vào. Giữ lửa cháy qua đêm để yên thân.','good');}/* tới gần quá thì hoảng, bỏ chạy khỏi vùng lửa (trước: hổ đóng luôn cạnh nhà, người ra khỏi vòng lửa là bị vồ) */if(d<460&&!(a._panic>G.t))a._panic=G.t+7;return false;}}catch(e){}return _lh.apply(this,arguments);};}
+if(typeof l3hostile==='function'){const _lh=l3hostile;l3hostile=function(a,D,d){try{if(a&&!a.angry&&d<700&&cngFireSafe()){if(d<420&&!CNG.fTold&&S.hd){CNG.fTold=1;uiToast('🔥 Thú dữ sợ lửa: bạn đang ở gần bếp lửa cháy nên nó không dám lao vào. Giữ lửa cháy qua đêm để yên thân.','good');}/* tới gần quá thì hoảng, bỏ chạy khỏi vùng lửa (trước: hổ đóng luôn cạnh nhà, người ra khỏi vòng lửa là bị vồ) */if(d<460&&!(a._panic>G.t)&&!(a.tame>0)&&!(a._tfT!=null&&G.t-a._tfT<180))a._panic=G.t+7;/* con đang được thuần thì không hoảng bỏ chạy vì lửa */return false;}}catch(e){}return _lh.apply(this,arguments);};}
 /* Tự làm: con thú đang hoảng bỏ chạy thì không còn là mối nguy, khỏi né */
 if(typeof aqPred==='function'){const _ap=aqPred;aqPred=function(){const L=_ap.apply(this,arguments);try{return L.filter(o=>!(o.a&&o.a._panic>G.t));}catch(e){return L;}};}
 /* ---------- CHUỒNG LỢN, CHUỒNG TRÂU, CHUỒNG DÊ, AO CÁ ----------
@@ -21407,6 +21407,16 @@ function cngFeedItem(){for(const id of CNG.FEED)if(ITEMS[id]&&invCount(id)>0)ret
 // ao cá sinh cá theo giờ; vật nuôi có chuồng chịu đói lâu hơn
 if(typeof petsHourly==='function'){const _ph=petsHourly;petsHourly=function(gh){try{if(S&&S.builds){if(!S.tank)S.tank={};for(const b of S.builds)if(b.k==='fishPond'&&b.prog==null&&!b.remote)S.tank[b.id]=Math.min(6,(S.tank[b.id]||0)+(gh||1)/24*1.5);
       const day=TNOW();for(const p of S.pets||[]){if(day-(p.fed||0)>2&&day-(p.fed||0)<4.8&&S.builds.some(b=>CNG.SHED[b.k]&&b.prog==null&&CNG.SHED[b.k].test(p.k)&&Math.hypot(b.x-p.x,b.z-p.z)<240))p.fed=Math.max(p.fed||0,day-2.4);}}}catch(e){}return _ph.apply(this,arguments);};}
+/* ---------- THUẦN THÚ KHÔNG BỊ CẮN TRẢ ----------
+   Trước: cho ăn chỉ làm con thú hiền đúng 30 giây; chưa thuần xong mà hết 30 giây là nó lao vào cắn; với sói thì chỉ con được cho ăn hiền, cả bầy còn lại vẫn vồ
+   (người chơi: "khom người cho ăn rồi nhưng thú cắn trả, đánh chết luôn").
+   Giờ: · Đang lom khom và trong túi có đúng món nó ăn: thú thuần được (gà rừng, lợn rừng, sói, ngựa…) dè chừng chứ không chủ động tấn công, để mình lại gần.
+        · Con đã được cho ăn thì 3 phút sau lần cho ăn gần nhất không tấn công người; cả bầy cùng loài ở gần cũng dịu theo.
+        · Mình đánh nó thì hết: nó nổi giận lại như thường và mất tiến độ thuần. */
+if(typeof tameFeed==='function'){const _tf=tameFeed;tameFeed=function(a){const t0=a?a.tame||0:0;const r=_tf.apply(this,arguments);try{if(a&&(a.tame||0)>t0||(a&&!a.alive)){a._tfT=G.t;a._panic=0;for(const o of G.animals||[]){if(o===a||!o.alive||o.kind!==a.kind)continue;if(Math.hypot(o.x-a.x,o.z-a.z)<420){o._tfT=G.t;o.angry=false;o.calm=Math.max(o.calm||0,G.t+20);o._panic=0;}}}}catch(e){}return r;};}
+if(typeof animalDamage==='function'){const _ad=animalDamage;animalDamage=function(a){try{if(a&&a._tfT!=null&&a.alive){a._tfT=null;if(a.tame>0&&a.tame<0.99){a.tame=0;if(G.t-(CNG.tbT||-99)>5){CNG.tbT=G.t;uiToast('Bạn đánh con thú đang thuần: nó hoảng, mất hết lòng tin.','bad');}}}}catch(e){}return _ad.apply(this,arguments);};}
+if(typeof l3hostile==='function'){const _lh=l3hostile;l3hostile=function(a,D,d){try{if(a&&!a.angry){if(a._tfT!=null&&G.t-a._tfT<180&&G.t>=a._tfT)return false;
+      if(G.sneak&&d<420&&typeof tameFood==='function'&&((typeof TAME==='object'&&TAME[a.kind])||a.kind==='horse')&&tameFood(a.kind)){if(d<300&&!CNG.tmTold){CNG.tmTold=1;uiToast('🤲 Lom khom và có thức ăn nó thích trong túi: con thú dè chừng, không lao vào. Lại gần bấm Hành động để cho ăn; đứng thẳng dậy là nó có thể tấn công.','');}return false;}}}catch(e){}return _lh.apply(this,arguments);};}
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.
