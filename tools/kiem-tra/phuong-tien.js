@@ -15,7 +15,7 @@ const r=await p.evaluate(async()=>{const bad=[],o={};G.R.render=()=>{};if(K3.fx)
   // A. bè tre, thuyền độc mộc
   for(const id of ['raft','canoe']){reset();const w=deep(8);if(!w){bad.push(id+': không tìm thấy nước');continue;}P.x=w[0];P.z=w[1];P.y=groundY(P.x,P.z);P.ry=Math.atan2(w[2]-w[0],w[3]-w[1]);give({[id]:1});S.boats=[];boatLaunch(id);const bt=(S.boats||[])[0];if(!bt){bad.push(id+': không thả được');continue;}
     await ff(0.5);const t=findTarget();if(!t||t.type!=='boat'){bad.push(id+': không thấy nút lên thuyền ('+(t&&t.type)+')');boatBoard(bt);}else actStart(t);await ff(0.3);if(!G.ride)bad.push(id+': không lên được');
-    const x0=bt.x,z0=bt.z;G.keys={KeyW:true};let lo=1e9;for(let i=0;i<10;i++){await ff(0.5);lo=Math.min(lo,P.y-bt._o.position.y);}G.keys={};const mv=Math.hypot(bt.x-x0,bt.z-z0);o[id]={mv:Math.round(mv),lo:+lo.toFixed(1)};
+    const x0=bt.x,z0=bt.z;G.keys={KeyW:true};let lo=1e9;for(let i=0;i<10;i++){await ff(0.5);lo=Math.min(lo,P.y-bt._o.position.y);}let mv=Math.hypot(bt.x-x0,bt.z-z0);for(let k=0;k<3&&mv<8;k++){/* suối hẹp: chạm bờ thì bẻ lái thử hướng khác */bt.ry=(bt.ry||0)+1.57;P.ry=bt.ry;for(let i=0;i<8;i++)await ff(0.5);mv=Math.hypot(bt.x-x0,bt.z-z0);}G.keys={};o[id]={mv:Math.round(mv),lo:+lo.toFixed(1)};
     if(lo<0.8)bad.push(id+': nhân vật chìm dưới mặt thuyền ('+lo.toFixed(1)+')');if(mv<8)bad.push(id+': chèo không đi ('+mv.toFixed(0)+')');sane(id);
     // quay về bờ rồi lên bờ
     bt.x=w[2]*0.3+w[0]*0.7;bt.z=w[3]*0.3+w[1]*0.7;if(wdAt(bt.x,bt.z)<2.3){bt.x=w[2];bt.z=w[3];}await ff(0.3);const t2=findTarget();if(t2&&t2.type==='leave')actStart(t2);else boatLeave();await ff(0.3);if(G.ride){bad.push(id+': không lên bờ được');G.ride=null;}}

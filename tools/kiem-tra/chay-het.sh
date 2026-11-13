@@ -74,4 +74,6 @@ echo "21. Tương tác: đặt từng công trình trong 188 loại, đứng c�
 OUT=$(timeout 700 node tuong-tac.js 2>&1); echo "$OUT" | grep -q "^TT-DAT" && ok "tương tác công trình" || bad "tương tác công trình: $(echo "$OUT" | tail -1 | cut -c1-900)"
 echo "22. Công trình kiểu mới có chức năng: giếng khơi, chuồng gà trên cột, chuồng vịt, giá trống đồng, giá cồng chiêng, cột vật tổ chim/rồng"
 OUT=$(timeout 400 node chuc-nang.js 2>&1); echo "$OUT" | grep -q "^CN-DAT" && ok "chức năng công trình mới" || bad "chức năng công trình mới: $(echo "$OUT" | tail -1 | cut -c1-700)"
+echo "23. Vũ khí: cầm cung bấm Hành động / nút Đánh / giữ G đều bắn được, tên trúng thân cây và nhặt lại được, hết tên có báo; rìu vẫn chặt cây"
+OUT=$(timeout 400 node vu-khi.js 2>&1); echo "$OUT" | grep -q "^VK-DAT" && ok "vũ khí" || bad "vũ khí: $(echo "$OUT" | tail -1 | cut -c1-700)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

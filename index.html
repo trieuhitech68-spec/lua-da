@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113131640">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113135331">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -20917,7 +20917,7 @@ if(typeof EMO==='object')Object.assign(EMO,{birdRaw:'🐦',birdCooked:'🍗',iro
         Giáo   : 25% đòn gây CHẢY MÁU (mất máu dần 4 giây).           Dao  : 25% đòn CHÍ MẠNG ×2.
         Rìu    : mỗi đòn PHÁ GIÁP, đối thủ nhận thêm 15% trong 5 giây.  Chùy/kiếm: 20% đòn làm CHOÁNG 1,2 giây.
         Cung/nỏ: kéo căng hết cỡ rồi mới buông thì +30% sát thương.
-   3. TUYỆT KỸ (cấp 5, nút 🔥 ở trang Kỹ năng, phím V): tuỳ vũ khí đang cầm
+   3. TUYỆT KỸ (cấp 5, nút 🔥 ở trang Kỹ năng, phím Y): tuỳ vũ khí đang cầm
         Giáo: Xuyên tâm (đâm thẳng xuyên mọi kẻ địch trước mặt 6 m, ×2,2)      Dao: Liên trảm (3 nhát nhanh ×0,9 vào kẻ gần nhất)
         Rìu : Bổ xoáy (×1,8 mọi kẻ địch quanh 4 m, phá giáp)                  Chùy/kiếm: Bổ đôi (×2,8 vào kẻ gần nhất, choáng 2 giây)
         Cung/nỏ: Tam tiễn (bắn 3 mũi tên toả quạt, tốn 3 tên)                 Tay không: Đá xoay (×1,5 quanh 3 m, đẩy lùi)
@@ -20948,7 +20948,7 @@ setInterval(()=>{try{if(typeof S==='undefined'||!S||!G.on)return;const hp=S.p.hp
 if(typeof h3release==='function'){const _hr=h3release;h3release=function(){const A=G.h3aim,full=A&&A.bow&&A.k>=0.98,n0=G.proj?G.proj.length:0;const r=_hr.apply(this,arguments);try{if(full&&G.proj&&G.proj.length>n0){G.proj[G.proj.length-1].pow*=1.3;uiFloat('Căng hết cỡ',P.x,P.y+52,P.z,'#ffe6a0');}}catch(e){}return r;};}
 /* ---------- TUYỆT KỸ ---------- */
 const VN_ULT={spear:['Xuyên tâm','🔱'],knife:['Liên trảm','🗡️'],axe:['Bổ xoáy','🪓'],club:['Bổ đôi','⚔️'],bow:['Tam tiễn','🏹'],none:['Đá xoay','🦵']};
-KNS.push({id:'wp',lv:5,ic:'🔥',n:'Tuyệt kỹ',d:'Chiêu mạnh tuỳ vũ khí đang cầm: giáo Xuyên tâm, dao Liên trảm, rìu Bổ xoáy, chùy/kiếm Bổ đôi, cung Tam tiễn, tay không Đá xoay.',st:22,cd:14,key:'KeyV'});
+KNS.push({id:'wp',lv:5,ic:'🔥',n:'Tuyệt kỹ',d:'Chiêu mạnh tuỳ vũ khí đang cầm: giáo Xuyên tâm, dao Liên trảm, rìu Bổ xoáy, chùy/kiếm Bổ đôi, cung Tam tiễn, tay không Đá xoay.',st:22,cd:14,key:'KeyY'});
 function vnEnemies(r){const L=[];for(const a of (G.animals||[])){if(a.alive&&a.o&&a.o.visible&&!a.tame&&!(S.pets||[]).includes(a)){const d=Math.hypot(a.x-P.x,a.z-P.z)-(a.r||8);if(d<r)L.push({e:a,d,foe:0});}}for(const f of (G.foes||[])){if(f.alive&&!(f.lone&&!f.prov)){const d=Math.hypot(f.x-P.x,f.z-P.z)-(f.r||9);if(d<r)L.push({e:f,d,foe:1});}}return L.sort((a,b)=>a.d-b.d);}
 function vnHit(t,dmg){VN.on++;try{(t.foe?foeDamage:animalDamage)(t.e,dmg);}finally{VN.on--;}}
 function vnUlt(){const tl=vnTool(),k=VN_ULT[tl]?tl:'none',base=(typeof fistPow==='function'?fistPow():1)*(1+0.06*skLv('hunt'));let n=0;
@@ -20962,7 +20962,7 @@ function vnUlt(){const tl=vnTool(),k=VN_ULT[tl]?tl:'none',base=(typeof fistPow==
 {const _ku=knUse;knUse=function(id){if(id!=='wp')return _ku.apply(this,arguments);const c0=KN.cd.wp||0;_ku.apply(this,arguments);if((KN.cd.wp||0)>c0&&(KN.cd.wp||0)>G.t){/* đã trừ thể lực và tính hồi chiêu: ra đòn */if(vnUlt()===false){KN.cd.wp=0;S.p.stam=Math.min(maxStam(),S.p.stam+22);try{knUi(true);}catch(e){}}}};}
 /* tên chiêu trên nút đổi theo vũ khí đang cầm */
 setInterval(()=>{try{const b=document.querySelector('.kn-b[data-kn="wp"] i');if(!b||typeof G==='undefined'||!G.on)return;const tl=vnTool(),u=VN_ULT[VN_ULT[tl]?tl:'none'];if(b.textContent!==u[0])b.textContent=u[0];}catch(e){}},700);
-if(typeof HD_L!=='undefined')HD_L.push({id:'vonghe',ic:'⚔️',t:'Võ nghệ: liên hoàn và tuyệt kỹ',w:()=>VN.n>=2||(typeof heroLv==='function'&&heroLv()>=5&&G.foes&&G.foes.some(f=>f.alive&&Math.hypot(f.x-P.x,f.z-P.z)<400)),p:['Đánh trúng <b>liên tiếp</b> một mục tiêu sẽ cộng dồn: mỗi tầng +8% sát thương (tối đa ×5). Đòn thứ 3 và thứ 5 là <b>ĐÒN KẾT</b>: mạnh ×1,6 và làm đối thủ choáng. Bị trúng đòn thì mất chuỗi, nên biết <b>Đỡ</b> và <b>Né</b>.','Mỗi loại vũ khí có <b>sở trường</b>: giáo gây chảy máu, dao có đòn chí mạng ×2, rìu phá giáp, chùy và kiếm làm choáng, cung nỏ kéo căng hết cỡ thì mạnh hơn 30%.','Từ cấp 5 có <b>🔥 Tuyệt kỹ</b> (trang Kỹ năng, phím V): chiêu khác nhau tuỳ vũ khí đang cầm, tên chiêu ghi ngay trên nút. Tốn 22 thể lực, hồi 14 giây.']});
+if(typeof HD_L!=='undefined')HD_L.push({id:'vonghe',ic:'⚔️',t:'Võ nghệ: liên hoàn và tuyệt kỹ',w:()=>VN.n>=2||(typeof heroLv==='function'&&heroLv()>=5&&G.foes&&G.foes.some(f=>f.alive&&Math.hypot(f.x-P.x,f.z-P.z)<400)),p:['Đánh trúng <b>liên tiếp</b> một mục tiêu sẽ cộng dồn: mỗi tầng +8% sát thương (tối đa ×5). Đòn thứ 3 và thứ 5 là <b>ĐÒN KẾT</b>: mạnh ×1,6 và làm đối thủ choáng. Bị trúng đòn thì mất chuỗi, nên biết <b>Đỡ</b> và <b>Né</b>.','Mỗi loại vũ khí có <b>sở trường</b>: giáo gây chảy máu, dao có đòn chí mạng ×2, rìu phá giáp, chùy và kiếm làm choáng, cung nỏ kéo căng hết cỡ thì mạnh hơn 30%.','Từ cấp 5 có <b>🔥 Tuyệt kỹ</b> (trang Kỹ năng, phím Y): chiêu khác nhau tuỳ vũ khí đang cầm, tên chiêu ghi ngay trên nút. Tốn 22 thể lực, hồi 14 giây.']});
 /* ---------- CÔNG THÀNH, GIỮ ĐẤT LIÊN MINH ----------
    1) Công phá điểm giàu của phe khác (chơi chung): tới sát tâm điểm giàu đang do phe khác giữ → "Công phá" (40 giây, lính giữ đất xông ra).
       Phá xong ghi sites/<uid>.K={<điểm>:giờ}. Trong 24 giờ kể từ đó mọi phe khác KHÔNG được tính điểm giữ ở điểm ấy,
@@ -21382,6 +21382,42 @@ function cngFireSafe(){try{if(G.t-(CNG.fT||-9)<0.8&&G.t>=(CNG.fT||0))return CNG.
 if(typeof l3hostile==='function'){const _lh=l3hostile;l3hostile=function(a,D,d){try{if(a&&!a.angry&&d<700&&cngFireSafe()){if(d<420&&!CNG.fTold&&S.hd){CNG.fTold=1;uiToast('🔥 Thú dữ sợ lửa: bạn đang ở gần bếp lửa cháy nên nó không dám lao vào. Giữ lửa cháy qua đêm để yên thân.','good');}/* tới gần quá thì hoảng, bỏ chạy khỏi vùng lửa (trước: hổ đóng luôn cạnh nhà, người ra khỏi vòng lửa là bị vồ) */if(d<460&&!(a._panic>G.t))a._panic=G.t+7;return false;}}catch(e){}return _lh.apply(this,arguments);};}
 /* Tự làm: con thú đang hoảng bỏ chạy thì không còn là mối nguy, khỏi né */
 if(typeof aqPred==='function'){const _ap=aqPred;aqPred=function(){const L=_ap.apply(this,arguments);try{return L.filter(o=>!(o.a&&o.a._panic>G.t));}catch(e){return L;}};}
+/* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
+   Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
+   nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.
+   Giờ: · Cầm cung/nỏ: bấm Hành động (E, nút tròn) hoặc ⚔️ Đánh là giương cung rồi tự thả. Có thú, kẻ địch trong tầm thì tự quay về phía nó; không có thì bắn thẳng hướng đang nhìn.
+        · Vẫn GIỮ G (hoặc giữ nút 🎯) để giương lâu cho mạnh và ngắm kỹ như cũ.
+        · Tên, giáo, đá trúng thân cây, tảng đá thì cắm lại/rơi xuống, có tiếng và chữ "Trúng đích": tập bắn được, mỗi lần trúng lên một ít tay nghề săn.
+        · Lần đầu cầm cung, giáo, đá trong mỗi lần chơi có dòng chỉ cách dùng. */
+const VK={hint:{},xp:0};
+function vkBow(){const I=ITEMS[P.toolId];return !!(I&&I.tool==='bow');}
+function vkShoot(t){if(G.h3aim||G.work||G.swim||G.ride||G.sit||G.sleeping||G.build)return false;if(!vkBow())return false;
+  if(invCount('arrow')<1){if(G.t-(VK.na||-9)>4){VK.na=G.t;uiToast('🏹 Hết mũi tên. Chế Mũi tên ở Chế tạo (cành, đá lửa, lông chim) rồi bắn tiếp.','bad');sfx('no');}return true;}
+  if(S.p.stam<3){uiToast('Mệt quá, không giương cung nổi.','');return true;}
+  try{const o=t&&(t.q||t.a||t.b||(t.x!=null?t:null));if(o&&o.x!=null)P.ry=Math.atan2(o.x-P.x,o.z-P.z);}catch(e){}
+  G.walkTo=null;G.act=null;if(!h3aimStart())return false;G.h3aim.auto=1;G.h3aim.key=true;return true;}
+// giương đủ căng thì tự thả
+if(typeof h3aimTick==='function'){const _at=h3aimTick;h3aimTick=function(dt){const r=_at.apply(this,arguments);try{const A=G.h3aim;if(A&&A.auto&&A.k>=0.92)h3release();}catch(e){}return r;};}
+// bấm Hành động khi cầm cung
+{const _as=actStart;actStart=function(t){try{if(S&&G.on&&!G.work&&!G.h3aim&&!G.build&&vkBow()){const ty=t&&t.type;
+      if(!t||(ty==='res'&&t.q&&RT[t.q.t]&&RT[t.q.t].tool)||((ty==='animal'||ty==='foe')&&t.a&&t.a.alive&&!t.a._h3down&&!t.a.tame)){if(vkShoot(t))return;}}}catch(e){}return _as.apply(this,arguments);};}
+// nút ⚔️ Đánh khi cầm cung: bắn mục tiêu gần nhất trong 45 m, không có thì bắn thẳng
+if(typeof u7Attack==='function'){const _ua=u7Attack;u7Attack=function(){try{if(S&&G.on&&!G.sleeping&&!G.work&&vkBow()&&invCount('arrow')>0){if(G.sit&&typeof sitToggle==='function')sitToggle(false);const a=u7Enemy(900);if(vkShoot(a?{a}:null))return;}}catch(e){}return _ua.apply(this,arguments);};}
+// tên, giáo, đá trúng cây, tảng đá
+{const _pt=projTick;projTick=function(dt){try{if(G.proj&&G.proj.length)for(const p of G.proj.slice()){/* xét cả đoạn bay từ khung trước tới khung này: tên bay 30-40 đơn vị mỗi khung, chỉ xét điểm cuối là nhảy qua thân cây */const lx=p._lx==null?p.x:p._lx,ly=p._ly==null?p.y:p._ly,lz=p._lz==null?p.z:p._lz;p._lx=p.x;p._ly=p.y;p._lz=p.z;if(p.t<0.02)continue;
+      const sx=p.x-lx,sz=p.z-lz,sl2=sx*sx+sz*sz||1,N=near((p.x+lx)/2,(p.z+lz)/2,60);for(let n=0;n<N.length;n++){const q=RES[N[n]];if(q.st!==0)continue;const D=RT[q.t];if(!D||D.pass||!D.tool)continue;
+        const tree=D.tool==='axe',rr=(D.r||6)*q.s*(tree?0.32:0.6)+2.5;let u=((q.x-lx)*sx+(q.z-lz)*sz)/sl2;u=u<0?0:u>1?1:u;const cx=lx+sx*u,cz=lz+sz*u,cy=ly+(p.y-ly)*u,dx=q.x-cx,dz=q.z-cz;if(dx*dx+dz*dz>rr*rr)continue;const top=q.y+(tree?90:26)*q.s;if(cy<q.y-2||cy>top)continue;if(Math.hypot(q.x-P.x,q.z-P.z)<rr+9&&p.t<0.12)continue;/* đang đứng dính sát gốc: để tên bay ra */p.x=cx-sx/Math.sqrt(sl2)*rr;p.y=cy;p.z=cz-sz/Math.sqrt(sl2)*rr;
+        G.proj.splice(G.proj.indexOf(p),1);sfx('thud');try{puff(p.x,p.y,p.z,tree?'#a88a62':'#b8b8b0',5);}catch(e){}
+        if(Math.hypot(p.x-P.x,p.z-P.z)<900){try{uiFloat&&uiFloat('Trúng đích!','#ffd27a');}catch(e){}if(VK.xp<60){VK.xp++;addXp('hunt',0.6);}if(!VK.told){VK.told=1;uiToast('🎯 Trúng '+D.n.toLowerCase()+'! Tập bắn thế này lên tay nghề săn. Tên chưa gãy rơi dưới gốc, lại nhặt.','good');}}
+        if(p.id==='arrow'&&Math.random()<0.35){G.sc.remove(p.o);}else{const bx=p.x-(p.vx||0)*0.02,bz=p.z-(p.vz||0)*0.02;dropAdd(p.id,bx,hAt(bx,bz)+1,bz,p.o);}break;}}}catch(e){if(!VK.e){VK.e=1;console.warn('vũ khí: trúng cây',e);}}
+    return _pt.apply(this,arguments);};}
+// chỉ cách dùng khi lần đầu cầm vũ khí bắn, ném trong lần chơi này
+{const _eq=equip;equip=function(id){const r=_eq.apply(this,arguments);try{if(!S||!G.on||!id)return r;const I=ITEMS[id],touch=matchMedia&&matchMedia('(pointer:coarse)').matches;const k=I&&I.tool==='bow'?'bow':id==='spear'?'spear':null;
+      if(k&&!VK.hint[k]&&G.t>3){VK.hint[k]=1;uiToast(k==='bow'?(touch?'🏹 Cầm cung: bấm nút Hành động hoặc ⚔️ Đánh để bắn. Giữ nút 🎯 để giương lâu, bắn mạnh và xa hơn.':'🏹 Cầm cung: bấm E (Hành động) để bắn. GIỮ phím G để giương lâu, thả ra để bắn mạnh và xa hơn.'):(touch?'🔱 Cầm giáo: lại gần bấm Hành động để đâm. Giữ nút 🎯 rồi thả để phóng giáo.':'🔱 Cầm giáo: lại gần bấm E để đâm. GIỮ phím G rồi thả để phóng giáo.'),'');}}catch(e){}return r;};}
+if(typeof HD_L!=='undefined')HD_L.push({id:'vukhi',ic:'🏹',t:'Bắn cung, phóng giáo',w:()=>{try{return vkBow()&&invCount('arrow')>0;}catch(e){return false;}},p:['Cầm <b>cung</b> (có mũi tên trong túi): bấm <b>Hành động</b> hoặc <b>⚔️ Đánh</b> là giương cung rồi bắn. Có thú hay kẻ địch trong tầm thì tự quay về phía nó.','Muốn bắn mạnh và xa hơn: <b>giữ phím G</b> (điện thoại: giữ nút 🎯) cho cung căng hết rồi thả. Đường chấm vàng chỉ chỗ tên rơi.','Tập bắn vào <b>thân cây</b> hay tảng đá cũng lên tay nghề săn. Tên chưa gãy rơi dưới gốc, lại gần nhặt lại. <b>Giáo</b> và <b>đá</b> ném theo cùng cách.']});
+// dòng nhắc trên màn hình khớp với việc sẽ làm: cầm cung thì là "Bắn", không phải "Chặt — cần rìu"
+{const _ti=targetInfo;targetInfo=function(t){const r=_ti.apply(this,arguments);try{if(r&&t&&S&&vkBow()&&!G.work){const na=invCount('arrow')<1;if(t.type==='res'&&t.q&&RT[t.q.t]&&RT[t.q.t].tool)return Object.assign({},r,{verb:na?'Hết mũi tên':'Bắn (tập bắn)',ok:!na,need:na?'Mũi tên':null,icon:P.toolId});
+      if((t.type==='animal'||t.type==='foe')&&t.a&&t.a.alive&&!t.a._h3down&&!t.a.tame)return Object.assign({},r,{verb:na?'Hết mũi tên':'Bắn',ok:!na,icon:P.toolId});}}catch(e){}return r;};}
 /* ---------- GOM VIỆC GHI BẢN LƯU (chống giật) ----------
    Số đo trên máy người chơi: 80 trên 84 lần khựng là do "ghi bản lưu", mỗi lần tới 356 ms, cách nhau 1,6 giây.
    Game gọi save() ở gần 300 chỗ (mỗi lần nhặt đồ, người làng cất đồ, xong một việc…); mỗi lần là đóng gói TOÀN BỘ ván chơi rồi ghi xuống máy hai lần.

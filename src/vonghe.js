@@ -6,7 +6,7 @@
         Giáo   : 25% đòn gây CHẢY MÁU (mất máu dần 4 giây).           Dao  : 25% đòn CHÍ MẠNG ×2.
         Rìu    : mỗi đòn PHÁ GIÁP, đối thủ nhận thêm 15% trong 5 giây.  Chùy/kiếm: 20% đòn làm CHOÁNG 1,2 giây.
         Cung/nỏ: kéo căng hết cỡ rồi mới buông thì +30% sát thương.
-   3. TUYỆT KỸ (cấp 5, nút 🔥 ở trang Kỹ năng, phím V): tuỳ vũ khí đang cầm
+   3. TUYỆT KỸ (cấp 5, nút 🔥 ở trang Kỹ năng, phím Y): tuỳ vũ khí đang cầm
         Giáo: Xuyên tâm (đâm thẳng xuyên mọi kẻ địch trước mặt 6 m, ×2,2)      Dao: Liên trảm (3 nhát nhanh ×0,9 vào kẻ gần nhất)
         Rìu : Bổ xoáy (×1,8 mọi kẻ địch quanh 4 m, phá giáp)                  Chùy/kiếm: Bổ đôi (×2,8 vào kẻ gần nhất, choáng 2 giây)
         Cung/nỏ: Tam tiễn (bắn 3 mũi tên toả quạt, tốn 3 tên)                 Tay không: Đá xoay (×1,5 quanh 3 m, đẩy lùi)
@@ -37,7 +37,7 @@ setInterval(()=>{try{if(typeof S==='undefined'||!S||!G.on)return;const hp=S.p.hp
 if(typeof h3release==='function'){const _hr=h3release;h3release=function(){const A=G.h3aim,full=A&&A.bow&&A.k>=0.98,n0=G.proj?G.proj.length:0;const r=_hr.apply(this,arguments);try{if(full&&G.proj&&G.proj.length>n0){G.proj[G.proj.length-1].pow*=1.3;uiFloat('Căng hết cỡ',P.x,P.y+52,P.z,'#ffe6a0');}}catch(e){}return r;};}
 /* ---------- TUYỆT KỸ ---------- */
 const VN_ULT={spear:['Xuyên tâm','🔱'],knife:['Liên trảm','🗡️'],axe:['Bổ xoáy','🪓'],club:['Bổ đôi','⚔️'],bow:['Tam tiễn','🏹'],none:['Đá xoay','🦵']};
-KNS.push({id:'wp',lv:5,ic:'🔥',n:'Tuyệt kỹ',d:'Chiêu mạnh tuỳ vũ khí đang cầm: giáo Xuyên tâm, dao Liên trảm, rìu Bổ xoáy, chùy/kiếm Bổ đôi, cung Tam tiễn, tay không Đá xoay.',st:22,cd:14,key:'KeyV'});
+KNS.push({id:'wp',lv:5,ic:'🔥',n:'Tuyệt kỹ',d:'Chiêu mạnh tuỳ vũ khí đang cầm: giáo Xuyên tâm, dao Liên trảm, rìu Bổ xoáy, chùy/kiếm Bổ đôi, cung Tam tiễn, tay không Đá xoay.',st:22,cd:14,key:'KeyY'});
 function vnEnemies(r){const L=[];for(const a of (G.animals||[])){if(a.alive&&a.o&&a.o.visible&&!a.tame&&!(S.pets||[]).includes(a)){const d=Math.hypot(a.x-P.x,a.z-P.z)-(a.r||8);if(d<r)L.push({e:a,d,foe:0});}}for(const f of (G.foes||[])){if(f.alive&&!(f.lone&&!f.prov)){const d=Math.hypot(f.x-P.x,f.z-P.z)-(f.r||9);if(d<r)L.push({e:f,d,foe:1});}}return L.sort((a,b)=>a.d-b.d);}
 function vnHit(t,dmg){VN.on++;try{(t.foe?foeDamage:animalDamage)(t.e,dmg);}finally{VN.on--;}}
 function vnUlt(){const tl=vnTool(),k=VN_ULT[tl]?tl:'none',base=(typeof fistPow==='function'?fistPow():1)*(1+0.06*skLv('hunt'));let n=0;
@@ -51,4 +51,4 @@ function vnUlt(){const tl=vnTool(),k=VN_ULT[tl]?tl:'none',base=(typeof fistPow==
 {const _ku=knUse;knUse=function(id){if(id!=='wp')return _ku.apply(this,arguments);const c0=KN.cd.wp||0;_ku.apply(this,arguments);if((KN.cd.wp||0)>c0&&(KN.cd.wp||0)>G.t){/* đã trừ thể lực và tính hồi chiêu: ra đòn */if(vnUlt()===false){KN.cd.wp=0;S.p.stam=Math.min(maxStam(),S.p.stam+22);try{knUi(true);}catch(e){}}}};}
 /* tên chiêu trên nút đổi theo vũ khí đang cầm */
 setInterval(()=>{try{const b=document.querySelector('.kn-b[data-kn="wp"] i');if(!b||typeof G==='undefined'||!G.on)return;const tl=vnTool(),u=VN_ULT[VN_ULT[tl]?tl:'none'];if(b.textContent!==u[0])b.textContent=u[0];}catch(e){}},700);
-if(typeof HD_L!=='undefined')HD_L.push({id:'vonghe',ic:'⚔️',t:'Võ nghệ: liên hoàn và tuyệt kỹ',w:()=>VN.n>=2||(typeof heroLv==='function'&&heroLv()>=5&&G.foes&&G.foes.some(f=>f.alive&&Math.hypot(f.x-P.x,f.z-P.z)<400)),p:['Đánh trúng <b>liên tiếp</b> một mục tiêu sẽ cộng dồn: mỗi tầng +8% sát thương (tối đa ×5). Đòn thứ 3 và thứ 5 là <b>ĐÒN KẾT</b>: mạnh ×1,6 và làm đối thủ choáng. Bị trúng đòn thì mất chuỗi, nên biết <b>Đỡ</b> và <b>Né</b>.','Mỗi loại vũ khí có <b>sở trường</b>: giáo gây chảy máu, dao có đòn chí mạng ×2, rìu phá giáp, chùy và kiếm làm choáng, cung nỏ kéo căng hết cỡ thì mạnh hơn 30%.','Từ cấp 5 có <b>🔥 Tuyệt kỹ</b> (trang Kỹ năng, phím V): chiêu khác nhau tuỳ vũ khí đang cầm, tên chiêu ghi ngay trên nút. Tốn 22 thể lực, hồi 14 giây.']});
+if(typeof HD_L!=='undefined')HD_L.push({id:'vonghe',ic:'⚔️',t:'Võ nghệ: liên hoàn và tuyệt kỹ',w:()=>VN.n>=2||(typeof heroLv==='function'&&heroLv()>=5&&G.foes&&G.foes.some(f=>f.alive&&Math.hypot(f.x-P.x,f.z-P.z)<400)),p:['Đánh trúng <b>liên tiếp</b> một mục tiêu sẽ cộng dồn: mỗi tầng +8% sát thương (tối đa ×5). Đòn thứ 3 và thứ 5 là <b>ĐÒN KẾT</b>: mạnh ×1,6 và làm đối thủ choáng. Bị trúng đòn thì mất chuỗi, nên biết <b>Đỡ</b> và <b>Né</b>.','Mỗi loại vũ khí có <b>sở trường</b>: giáo gây chảy máu, dao có đòn chí mạng ×2, rìu phá giáp, chùy và kiếm làm choáng, cung nỏ kéo căng hết cỡ thì mạnh hơn 30%.','Từ cấp 5 có <b>🔥 Tuyệt kỹ</b> (trang Kỹ năng, phím Y): chiêu khác nhau tuỳ vũ khí đang cầm, tên chiêu ghi ngay trên nút. Tốn 22 thể lực, hồi 14 giây.']});
