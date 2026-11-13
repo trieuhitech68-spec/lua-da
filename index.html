@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113050900">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113060312">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -14557,11 +14557,12 @@ function aqFindRes(types,o){o=o||{};const maxR=o.max||aqCfg().max,key=types.join
         const wd=wdAt(q.x,q.z);if(wd>3.2)continue;if(pr.length&&pr.some(p=>Math.hypot(p.x-q.x,p.z-q.z)<210))continue;let sc=d*(o.w?o.w(q):1)+(wd>0.8?120:0);if(sc<bs){bs=sc;best=q;}}}}
   AQ.cache.set(key,{t:G.t,q:best});if(AQ.cache.size>60)AQ.cache.delete(AQ.cache.keys().next().value);return best;}
 // nước gần nhất: điểm nước + chỗ đứng trên bờ
-function aqFindWater(){const C=AQ.wC;if(C&&G.t-C.t<4&&Math.hypot(C.px-P.x,C.pz-P.z)<60)return C.w;let w=null;const maxR=aqCfg().max;
+function aqFindWater(){const C=AQ.wC;if(C&&G.t-C.t<4&&Math.hypot(C.px-P.x,C.pz-P.z)<60)return C.w;let w=null;const maxR=aqCfg().max,PR=AQ._noPr?[]:aqPred();/* tránh bến nước có thú dữ rình (cá sấu, hổ): trước cứ ra đúng bến đó, bị đuổi, quay lại… tới khát lả */
   for(const b of S.builds){if(b.prog!=null||b.k!=='well')continue;const d=aqD(b.x,b.z);if(d<maxR&&(!w||d<w.d))w={well:b,sx:b.x,sz:b.z,wx:b.x,wz:b.z,d};}
   for(let r=0;r<=maxR&&!(w&&w.d<r);r+=24){const n=Math.max(1,Math.ceil(r*6.283/26));for(let k=0;k<n;k++){const a=k/n*6.283,x=P.x+Math.cos(a)*r,z=P.z+Math.sin(a)*r,wd=wdAt(x,z);if(wd<0.5||wd>7)continue;
-      let sx=x,sz=z;const ux=(P.x-x)/(r||1),uz=(P.z-z)/(r||1);for(let s=0;s<16&&wdAt(sx,sz)>0.25;s++){sx+=ux*6;sz+=uz*6;}if(wdAt(sx,sz)>0.6)continue;if(slopeAt(sx,sz)>0.9)continue;
+      let sx=x,sz=z;const ux=(P.x-x)/(r||1),uz=(P.z-z)/(r||1);for(let s=0;s<16&&wdAt(sx,sz)>0.25;s++){sx+=ux*6;sz+=uz*6;}if(wdAt(sx,sz)>0.6)continue;if(slopeAt(sx,sz)>0.9)continue;if(PR.length&&PR.some(q=>Math.hypot(q.x-sx,q.z-sz)<320))continue;
       const d=Math.hypot(sx-P.x,sz-P.z),L=Math.hypot(x-sx,z-sz)||1;if(!w||d<w.d)w={sx,sz,wx:x,wz:z,fx:sx+(x-sx)/L*Math.min(24,L),fz:sz+(z-sz)/L*Math.min(24,L),d};}if(w&&!w.well)break;}
+  if(!w&&PR.length&&!AQ._noPr){AQ._noPr=1;AQ.wC=null;try{return aqFindWater();}finally{AQ._noPr=0;}}
   AQ.wC={t:G.t,px:P.x,pz:P.z,w};return w;}
 function aqStation(st){let best=null,bd=1e9;for(const b of S.builds){const d=pieceDef(b.k);if(!d||d.st!==st||b.prog!=null)continue;const dd=aqD(b.x,b.z);if(dd<bd){bd=dd;best=b;}}return best;}
 function aqFire(lit){let best=null,bd=1e9;for(const b of S.builds){const d=pieceDef(b.k);if(!d||b.prog!=null||!(d.st==='campfire'||d.st==='hearth'||GD_FIRE.test(b.k)))continue;if(lit&&!fireLit(b))continue;const dd=aqD(b.x,b.z);if(dd<bd){bd=dd;best=b;}}return best;}
@@ -20987,6 +20988,7 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 
 /* ---------- vá: cờ đã hạ thì 24 giờ sau mới hạ lại được ---------- */
 {const _fs=pvpFlagStart;pvpFlagStart=function(t){try{const z=S.pvp&&S.pvp.zo&&S.pvp.zo[t.cid];if(z&&pvpNow()-z<PVP_FLAGCD){uiToast('Cờ này bạn vừa hạ rồi. Chờ thủ lĩnh của họ nhận tin.','bad');sfx('no');return;}}catch(e){}return _fs.apply(this,arguments);};}
+if(typeof HD_L!=='undefined')HD_L.push({id:'congthanh',ic:'🏴',t:'Công phá đất của phe khác',w:()=>{try{return !!cthNear();}catch(e){return false;}},p:['Bạn đang đứng ở tâm một <b>điểm giàu do phe khác giữ</b>. Bấm nút <b>Hành động</b> để công phá (40 giây). Lính giữ đất sẽ xông ra: hạ họ hoặc cầm cự cho xong.','Hai liên minh phải <b>đang chiến tranh</b> mới công phá được nhau (thủ lĩnh tuyên chiến ở bảng Liên minh). Người chưa vào liên minh thì ai cũng đánh được.','Phá xong, 24 giờ họ không giữ được đất này. Hạ người canh rồi <b>dựng cột vật tổ</b> để phe bạn giữ. Xem đất đang giữ và phần chia ở bảng <b>Liên minh</b>.']});
 /* ---------- NHÀ Ở THEO CẤP, MỖI THỜI ĐẠI MỘT KIỂU NHÀ ----------
    Nhà chính nay có 5 cấp, dựng bằng vật liệu của từng thời đại (bảng Xây → Quy hoạch làng → Nhà chính):
      cấp 1 Nhà tre (Hòa Bình)  · cấp 2 Nhà chính (gỗ, mái lá) · cấp 3 Nhà gỗ súc (Bắc Sơn)
@@ -21123,6 +21125,57 @@ setInterval(()=>{try{if(typeof G==='undefined'||!G.on||G.panel!=='settings')retu
     const h=`<b>📈 Đo giật (5 phút gần nhất)</b><span class="small muted">${r.lan?`Khựng <b>${r.lan}</b> lần, nặng nhất <b>${r.nangNhat} ms</b>.<br>${r.theo.slice(0,4).map(esc).join('<br>')}`:'Chưa ghi nhận lần khựng nào.'}</span>`;
     if(!el){el=document.createElement('div');el.className='dg-b';const hn=bd.querySelector('.hn-b');if(hn)hn.after(el);else bd.prepend(el);}if(el.innerHTML!==h)el.innerHTML=h;}catch(e){}},1500);
 {const s=document.createElement('style');s.textContent='#game .panel .dg-b{display:flex;flex-direction:column;gap:3px;padding:9px 11px;margin-bottom:10px;border-radius:12px;background:rgba(120,160,230,.08);border:1px solid rgba(120,160,230,.35);font-size:14px}';document.head.appendChild(s);}
+/* ---------- ÂM THANH NỀN: suối chảy, lửa tí tách, gió ----------
+   - Tới gần sông suối nghe tiếng nước chảy, càng gần càng rõ.
+   - Đứng cạnh bếp lửa, đuốc đang cháy nghe tiếng củi nổ tí tách.
+   - Trời nổi gió, giông hoặc lên cao nghe tiếng gió rít nhẹ.
+   Tất cả là tiếng tổng hợp (không tải tệp), tắt theo nút Âm thanh. */
+const AN={w:null,wind:null,t:0,fire:0};
+function anLoop(freq,q,type){const c=AU.ctx,s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=noiseBuf();s.loop=true;f.type=type;f.frequency.value=freq;f.Q.value=q;g.gain.value=0;s.connect(f);f.connect(g);g.connect(AU.master);s.start();return {s,f,g};}
+function anSet(o,v){try{o.g.gain.setTargetAtTime(v,AU.ctx.currentTime,0.6);}catch(e){}}
+function anTick(){if(typeof G==='undefined'||!G.on||!S||!AU.ctx)return;const on=AU.on&&!G.paused&&!document.hidden;
+  if(!AN.w){try{AN.w=anLoop(1100,0.5,'bandpass');AN.wind=anLoop(320,0.8,'lowpass');}catch(e){return;}}
+  // nước: dò 3 vòng quanh người
+  let wk=0;if(on){let best=1e9;for(const r of [50,120,220])for(let a=0;a<8;a++){const x=P.x+Math.cos(a*0.785)*r,z=P.z+Math.sin(a*0.785)*r;if(wdAt(x,z)>0.4){best=Math.min(best,r);break;}}if(wdAt(P.x,P.z)>0.4)best=0;wk=best<1e9?0.05*(1-best/260):0;}
+  anSet(AN.w,wk);
+  // gió: theo thời tiết và độ cao
+  let vk=0;if(on){const wx=S.wx&&S.wx.type,k=(G.wxK||0);vk=(wx==='storm'?0.05:wx==='rain'?0.02:wx==='wind'?0.04:0)*k+clamp((P.y-260)/900,0,1)*0.03;}
+  anSet(AN.wind,vk);
+  // lửa: có bếp, đuốc đang cháy trong 200
+  AN.fire=0;if(on){for(const b of S.builds){if(b.prog!=null)continue;const d=Math.hypot(b.x-P.x,b.z-P.z);if(d>200)continue;let lit=false;try{lit=typeof fireLit==='function'&&fireLit(b);}catch(e){}if(lit){AN.fire=Math.max(AN.fire,1-d/200);}}}}
+function anCrackle(){try{if(!AN.fire||!AU.on||!AU.ctx)return;const c=AU.ctx,t=c.currentTime,s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=noiseBuf();f.type='highpass';f.frequency.value=1800+Math.random()*2500;const v=0.05*AN.fire*(0.4+Math.random()*0.6),d=0.012+Math.random()*0.03;
+    g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.0001,t+d);s.connect(f);f.connect(g);g.connect(AU.master);s.start(t,Math.random()*0.9,d+0.01);}catch(e){}}
+setInterval(()=>{try{anTick();}catch(e){}},600);
+(function loop(){setTimeout(loop,90+Math.random()*320);if(Math.random()<0.8)anCrackle();})();
+/* ---------- NHIỆM VỤ HẰNG NGÀY ----------
+   Mỗi ngày (theo ngày thật) có 3 việc chọn từ danh sách hợp với thời đại đang chơi. Làm xong từng việc nhận thưởng; xong cả ba mở "Rương ngày".
+   Làm đủ nhiều ngày liên tiếp thì thưởng rương tăng dần (tối đa 7 ngày). Xem ở bảng Nhật ký, phần đầu. */
+const NVN_P=[
+ {id:'go',t:'Kiếm 30 gỗ',k:'get:wood',n:30,ic:'🪵'},{id:'da',t:'Kiếm 25 đá',k:'get:stone',n:25,ic:'🪨'},{id:'co',t:'Kiếm 30 sợi cỏ',k:'get:fiber',n:30,ic:'🌿'},
+ {id:'san',t:'Săn 3 con thú',k:'cnt:hunt',n:3,ic:'🏹'},{id:'ca',t:'Bắt 4 con cá',k:'cnt:fish',n:4,ic:'🐟'},{id:'che',t:'Chế tạo 6 món',p:'craft:',n:6,ic:'🛠️'},
+ {id:'xay',t:'Dựng xong 4 công trình',p:'build:',n:4,ic:'🏗️',age:1},{id:'trong',t:'Gieo trồng 6 lần',k:'cnt:plant',n:6,ic:'🌱',age:2},{id:'gat',t:'Thu hoạch 5 lần',k:'cnt:harvest',n:5,ic:'🌾',age:2},
+ {id:'dich',t:'Hạ 3 kẻ địch',k:'cnt:foe',n:3,ic:'⚔️',age:1},{id:'doi',t:'Đổi đồ 2 lần với làng bên',k:'cnt:trade',n:2,ic:'🤝',age:1},{id:'dap',t:'Đập đồ 2 lần',k:'cnt:enhance',n:2,ic:'🔨',age:2}];
+function nvnVal(q){if(q.k)return S.cnt[q.k]||0;let s=0;for(const k in S.cnt)if(k.indexOf(q.p)===0)s+=S.cnt[k];return s;}
+function nvnDay(){const d=new Date(typeof wcNow==='function'?wcNow():Date.now());return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function nvnS(){const day=nvnDay();let N=S.nvn;if(!N||N.d!==day){const age=S.age||0,pool=NVN_P.filter(q=>(q.age||0)<=age);let h=0;for(const ch of day+(S.seed||0))h=(h*31+ch.charCodeAt(0))>>>0;const pick=[];const L=pool.slice();while(pick.length<3&&L.length){h=(h*1103515245+12345)>>>0;pick.push(L.splice(h%L.length,1)[0]);}
+    const prev=N&&N.d,y=new Date(typeof wcNow==='function'?wcNow():Date.now());y.setDate(y.getDate()-1);const yd=y.getFullYear()+'-'+(y.getMonth()+1)+'-'+y.getDate();
+    N=S.nvn={d:day,q:pick.map(q=>({id:q.id,b:nvnVal(q),c:0})),box:0,st:N&&N.box&&prev===yd?Math.min(7,(N.st||0)+1):0};}
+  return N;}
+function nvnProg(e){const q=NVN_P.find(x=>x.id===e.id);if(!q)return [0,1,null];return [Math.min(q.n,Math.max(0,nvnVal(q)-e.b)),q.n,q];}
+function nvnGift(big,st){const a=S.age||0,o=big?{rope:3+a,meatCooked:4}:{rope:1,meatCooked:2};if(big){if(ITEMS.dpStone)o.dpStone=1+(st>=3?1:0);if(a>=4&&ITEMS.bronze)o.bronze=1+(st>=5?1:0);else if(a>=2&&ITEMS.plank)o.plank=3+st;else o.flint=3+st;}else{if(a>=2&&ITEMS.clay)o.clay=2;else o.fiber=6;}for(const k in o)if(!ITEMS[k])delete o[k];return o;}
+function nvnClaim(i){const N=nvnS();if(i==='box'){if(N.box||!N.q.every(e=>e.c))return;N.box=1;const g=nvnGift(true,N.st);give(g,[P.x,P.y+20,P.z]);addXp('build',30+N.st*10);cnt('cnt','nvnbox');sfx('level');uiToast(`🎁 Mở Rương ngày${N.st?` (chuỗi ${N.st+1} ngày)`:''}! Mai làm tiếp để rương lớn hơn.`,'gold');}
+  else{const e=N.q[+i];if(!e||e.c)return;const [v,n]=nvnProg(e);if(v<n)return;e.c=1;give(nvnGift(false,0),[P.x,P.y+20,P.z]);addXp('gather',15);cnt('cnt','nvn');sfx('craft');}
+  save();try{uiHotbar();}catch(e){}if(G.panel)uiOpenRefresh();}
+function nvnHtml(){const N=nvnS(),all=N.q.every(e=>e.c);const gl=o=>Object.entries(o).map(([k,v])=>ITEMS[k].n+' ×'+v).join(', ');
+  const rows=N.q.map((e,i)=>{const [v,n,q]=nvnProg(e);if(!q)return '';const ok=v>=n;return `<div class="nvn-r${e.c?' done':''}"><span class="nvn-ic">${q.ic}</span><div class="nvn-m"><b>${esc(q.t)}</b><div class="nvn-bar"><i style="width:${Math.round(v/n*100)}%"></i></div></div><span class="nvn-n">${v}/${n}</span>${e.c?'<span class="nvn-ok">✔</span>':`<button class="btn sm${ok?'':' ghost'}" data-a="nvn" data-i="${i}" ${ok?'':'disabled'}>Nhận</button>`}</div>`;}).join('');
+  return `<div class="nvn-box"><div class="nvn-h"><b>📅 Nhiệm vụ hôm nay</b><span class="small muted">${N.st?`Chuỗi ${N.st} ngày · `:''}đổi mới mỗi ngày</span></div>${rows}<div class="nvn-r box${N.box?' done':''}"><span class="nvn-ic">🎁</span><div class="nvn-m"><b>Rương ngày</b><span class="small muted">${esc(gl(nvnGift(true,N.st)))}</span></div>${N.box?'<span class="nvn-ok">✔</span>':`<button class="btn sm${all?'':' ghost'}" data-a="nvn" data-i="box" ${all?'':'disabled'}>Mở</button>`}</div></div>`;}
+{const _jh=journalHtml;journalHtml=function(){let h=_jh.apply(this,arguments);try{h=nvnHtml()+h;}catch(e){console.warn('nhiệm vụ ngày',e);}return h;};}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="nvn"]');if(!b||!S)return;e.stopImmediatePropagation();nvnClaim(b.dataset.i);},true);
+// báo khi vừa đủ một việc
+setInterval(()=>{try{if(typeof G==='undefined'||!G.on||!S)return;const N=nvnS();N.q.forEach((e,i)=>{if(e.c||e.told)return;const [v,n,q]=nvnProg(e);if(q&&v>=n){e.told=1;uiToast(`📅 Xong việc hôm nay: ${q.t}. Mở Nhật ký để nhận thưởng.`,'gold');}});}catch(e){}},4000);
+{const st=document.createElement('style');st.textContent=`.nvn-box{grid-column:1/-1;margin:0 0 10px;padding:10px;border-radius:14px;border:1px solid rgba(242,197,90,.45);background:linear-gradient(170deg,rgba(242,197,90,.12),rgba(242,197,90,.03))}.nvn-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}.nvn-h b{color:#ffe2a8;font-size:15px;white-space:nowrap}
+.nvn-r{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid rgba(255,255,255,.07)}.nvn-r.done{opacity:.6}.nvn-ic{font-size:20px;width:28px;text-align:center}.nvn-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.nvn-m b{font-size:13.5px}.nvn-bar{height:5px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}.nvn-bar i{display:block;height:100%;background:#f2c55a}.nvn-n{font-size:12px;color:#d8c8a8;white-space:nowrap}.nvn-ok{color:#8ce07a;font-weight:800;width:44px;text-align:center}.nvn-r .btn{min-height:36px}`;document.head.appendChild(st);}
+if(typeof HD_L!=='undefined')HD_L.push({id:'nvngay',ic:'📅',t:'Nhiệm vụ hằng ngày',w:()=>G.panel==='journal',p:['Đầu bảng Nhật ký có <b>Nhiệm vụ hôm nay</b>: 3 việc đổi mới mỗi ngày, hợp với thời đại bạn đang chơi.','Xong việc nào bấm <b>Nhận</b> việc đó. Xong cả ba thì bấm <b>Mở</b> Rương ngày.','Làm đủ nhiều ngày liên tiếp, Rương ngày lớn dần (tối đa chuỗi 7 ngày).']});
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
