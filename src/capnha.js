@@ -9,7 +9,7 @@ const CN_T=[null,
  {id:'qh_go',lv:3,stam:16,rest:1.35,def:0.05},
  {id:'qh_da',lv:4,stam:22,rest:1.5,def:0.1},
  {id:'qh_thuyen',lv:5,stam:30,rest:1.7,def:0.15}];
-{const box=(A,w,h,fl,rf,wl,win,door,doorI)=>{for(let i=0;i<w;i++)for(let j=0;j<h;j++){A.F(i,j,fl);A.R(i,j,rf,0);}for(let i=0;i<w;i++){A.E(i,0,'n',i%2?win:wl);A.E(i,h-1,'s',i===doorI?door:wl);}for(let j=0;j<h;j++){A.E(0,j,'w',wl);A.E(w-1,j,'e',j===0?win:wl);}};
+{const box=(A,w,h,fl,rf,wl,win,door,doorI)=>{for(let i=0;i<w;i++)for(let j=0;j<h;j++){A.F(i,j,fl);A.R(i,j,rf,rf==='roof'?0:(j===0?2:0));/* mái tre, mái thuyền: hai hàng quay lưng vào nhau thành nóc giữa nhà */}for(let i=0;i<w;i++){A.E(i,0,'n',i%2?win:wl);A.E(i,h-1,'s',i===doorI?door:wl);}for(let j=0;j<h;j++){A.E(0,j,'w',wl);A.E(w-1,j,'e',j===0?win:wl);}};
  const N=[
   {id:'qh_tre',g:'Nhà chính',n:'Nhà tre · cấp 1',ic:'🎋',fx:'+5 thể lực tối đa · giường tre, sáng dậy ít đói khát hơn',d:'Nhà tre 2×2 ô vách tre đập dập, mái ống tre: căn nhà đầu tiên của thời Hòa Bình.',key:'roof',
    fn:A=>{box(A,2,2,'floor','bambooTileRoof','splitBambooWall','bambooWindowWall','rattanDoorWall',1);A.O(0,0,'bambooBed');A.O(1,0,'basket');}},
