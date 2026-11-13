@@ -8,7 +8,7 @@
 /* CHỐNG GIẬT (dọn rác bộ nhớ): Math.hypot của trình duyệt là hàm chậm và MỖI LẦN GỌI tạo một vật rác; game gọi nó hàng chục nghìn lần mỗi giây
    (va chạm, ẩn hiện cây, thú, tìm đường) → vài MB rác mỗi giây → trình duyệt dừng game để dọn đều đặn vài giây một lần.
    Thay bằng phép tính trực tiếp cho 2-3 số (trường hợp game dùng), không tạo rác, nhanh hơn nhiều. */
-{const _h=Math.hypot;Math.hypot=function(a,b,c,d,e,f){if(d===undefined){if(c===undefined)return b===undefined?Math.abs(+a):Math.sqrt(a*a+b*b);return Math.sqrt(a*a+b*b+c*c);}return f!==undefined?_h(a,b,c,d,e,f):e!==undefined?_h(a,b,c,d,e):_h(a,b,c,d);};}
+{const _h=Math.hypot;Math.hypot=function(a,b,c,d){if(d===undefined){const r=c===undefined?Math.sqrt(a*a+b*b):Math.sqrt(a*a+b*b+c*c);if(r===r)return r;}/* thiếu số, số lạ, hơn 3 số: để hàm gốc tính cho kết quả y hệt */return _h.apply(Math,arguments);};}
 
 const LOI={L:[],dirty:false,wT:0,ver:''};
 (function(){try{LOI.L=JSON.parse(localStorage.getItem('ld-err')||'[]');if(!Array.isArray(LOI.L))LOI.L=[];}catch(e){LOI.L=[];}
