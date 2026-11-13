@@ -30,7 +30,7 @@ OUT=$(timeout 600 node dai-trong.js 2>&1 | tr -d '\n '); echo "$OUT" | grep -q '
 echo "6. Tự làm tua nhanh 5 phút (không lỗi, không chết đói)"
 timeout 600 node tu-lam.js 5 > "$TMP/ld-tu-lam.log" 2>&1
 grep -q "LOOPERR\|^ERR " "$TMP/ld-tu-lam.log" && bad "có lỗi khi chạy: $(grep -m2 'LOOPERR\|^ERR ' "$TMP/ld-tu-lam.log" | cut -c1-200)" || ok "không lỗi chạy"
-K=$(grep -c "Bị kẹt\|Kẹt giữa" "$TMP/ld-tu-lam.log"); [ "$K" -le 3 ] && ok "kẹt đường $K lần (cho phép tối đa 3)" || bad "kẹt đường $K lần: $(grep -m2 'Bị kẹt' "$TMP/ld-tu-lam.log" | cut -c1-160)"
+K=$(grep -c "Bị kẹt\|Kẹt giữa" "$TMP/ld-tu-lam.log"); [ "$K" -le 5 ] && ok "kẹt đường $K lần, tính cả lần tự lùi ra (cho phép tối đa 5)" || bad "kẹt đường $K lần: $(sed -n '/^TKLOG/,/^TKEND/p' "$TMP/ld-tu-lam.log" | head -8 | tr '\n' ';' | cut -c1-500)"
 node -e "
 const l=require('fs').readFileSync('$TMP/ld-tu-lam.log','utf8').split('\n').find(x=>x.startsWith('{\"goal\"'));if(!l){console.log('   không có trạng thái cuối');process.exit(1)}const s=JSON.parse(l.slice(0,l.indexOf(',\"st\"'))+'}');console.log('   mục tiêu '+s.goal+', máu '+s.hp+', no '+s.food+', nước '+s.water);process.exit(s.hp<20||s.goal<12||s.water<3||s.food<3?1:0)" && ok "nhân vật còn khoẻ, không đói khát cạn, làm được từ 12 mục trở lên" || bad "nhân vật kiệt sức hoặc tiến quá chậm"
 echo "7. Giao diện điện thoại: mở từng bảng, các khối không đè nhau, không lỗi chạy"

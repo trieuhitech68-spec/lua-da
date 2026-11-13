@@ -16,6 +16,7 @@ const MAXMIN=+process.argv[2]||8,SEEDK=process.argv[3]||'';
   while(Date.now()-t0<MAXMIN*60000){await p.waitForTimeout(15000);const s=await p.evaluate(()=>({g:S.goal,t:G.t|0,n:window.__n||0,jobs:AQ.jobs.map(j=>j.k).join('>'),lab:AQ.lastLab}));if(s.g!==last){last=s.g;lastT=Date.now();}
     if(s.n>40||Date.now()-lastT>240000){console.log('STALL',JSON.stringify(s));break;}}
   console.log(JSON.stringify(await p.evaluate(()=>({goal:S.goal,gt:GOALS[S.goal]&&GOALS[S.goal].t,t:G.t|0,hp:S.p.hp|0,food:S.p.food|0,water:S.p.water|0,warm:S.p.warm|0,wet:S.p.wet|0,st:Object.keys(S.st),jobs:AQ.jobs.map(j=>j.k+(j.piece?':'+j.piece:'')+(j.id?':'+j.id:'')).join('>'),lab:AQ.lastLab,inv:S.inv.filter(Boolean).map(s=>s.id+s.n).join(' '),builds:S.builds.map(b=>b.k+(b.prog==null?'':'*')).join(' '),age:S.age,rt:AQ.rt,msg:AQ.msg,jd:JSON.stringify(AQ.jobs,(k,v)=>typeof v==='function'?'fn':(k==='r'||k==='b'||k==='q'||k==='pl'||k==='ctx'||k==='pts'||k==='a'||k==='sk'||k==='n')?(v&&v.id||1):v).slice(0,500),plan:(()=>{try{return JSON.stringify(aqSpec(S.goal).plan(),(k,v)=>typeof v==='function'?'fn':k==='r'?v.id:v).slice(0,300)}catch(e){return 'E'+e.message}})(),lv:JSON.stringify(S.sk)}))));
+  console.log('TKLOG\n'+(await p.evaluate(()=>(typeof TK!=='undefined'&&TK.log||[]).join('\n')))+'\nTKEND');
   console.log((await p.evaluate(()=>__T)).join('\n'));
   console.log(logs.slice(-6).join('\n'));await b.close();
 })();

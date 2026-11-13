@@ -57,7 +57,7 @@ void main(){vec3 d=normalize(vD);float h=d.y;vec3 c=h>0.0?mix(cH,cT,pow(clamp(h*
   // ---------------- bụi cỏ 3D ----------------
   // pts: [{x,z,s,c}] (c: màu THREE.Color hoặc '#hex'). Một InstancedMesh, lá cỏ đung đưa theo gió (dùng K3.GU.time)
   FX.tufts=(pts,o)=>{o=o||{};if(!pts.length)return null;const pos=[],nrm=[],hh=[];let sd=3;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
-    const blades=o.blades||7;for(let b=0;b<blades;b++){const a=b/blades*Math.PI*2+rnd()*0.6,r=0.8+rnd()*2.4,x=Math.cos(a)*r,z=Math.sin(a)*r,h=(o.h||9)*(0.55+rnd()*0.6),w=(o.w||1)*(0.7+rnd()*0.6),lean=0.14+rnd()*0.34,px=-Math.sin(a)*w,pz=Math.cos(a)*w;
+    const blades=o.blades||7;for(let b=0;b<blades;b++){const a=b/blades*Math.PI*2+rnd()*0.6,r=(o.sp||[0.8,2.4])[0]+rnd()*(o.sp||[0.8,2.4])[1],x=Math.cos(a)*r,z=Math.sin(a)*r,h=(o.h||9)*(0.55+rnd()*0.6),w=(o.w||1)*(0.7+rnd()*0.6),lean=0.14+rnd()*0.34,px=-Math.sin(a)*w,pz=Math.cos(a)*w;
       pos.push(x-px,0,z-pz, x+px,0,z+pz, x+Math.cos(a)*h*lean,h,z+Math.sin(a)*h*lean);for(let k=0;k<3;k++)nrm.push(0,1,0);hh.push(0,0,1);}
     const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('normal',new T.Float32BufferAttribute(nrm,3));g.setAttribute('th',new T.Float32BufferAttribute(hh,1));
     const m=new T.MeshStandardMaterial({color:'#ffffff',roughness:0.95,metalness:0,side:T.DoubleSide});m.userData.own=1;
@@ -70,9 +70,9 @@ void main(){vec3 d=normalize(vD);float h=d.y;vec3 c=h>0.0?mix(cH,cT,pow(clamp(h*
   vec2 ip=vec2(0.0);
   #endif
   /* gió: sóng lớn lướt qua đồng cỏ + rung nhỏ từng bụi */float gs=sin(time*0.85+(ip.x+ip.y*0.6)*0.0075);float wv=gs*0.9+sin(time*1.7+ip.x*0.021+ip.y*0.017)*0.5+sin(time*3.1+ip.x*0.05)*0.2;transformed.x+=wv*th*2.6;transformed.z+=wv*th*1.2;`);
-      sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying float vTh;').replace('#include <color_fragment>','#include <color_fragment>\n  /* gốc đậm, ngọn sáng ngả vàng */diffuseColor.rgb=mix(diffuseColor.rgb*0.62,diffuseColor.rgb*1.0+vec3(0.0,0.02,0.0),vTh);')
+      sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying float vTh;').replace('#include <color_fragment>','#include <color_fragment>\n  /* gốc đậm, ngọn sáng ngả vàng */diffuseColor.rgb=mix(diffuseColor.rgb*0.6,diffuseColor.rgb*0.92+vec3(0.0,0.015,0.0),vTh);')
         .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\n  /* lá mỏng ánh sáng xuyên qua: ngọn tự sáng nhẹ, không bị đen khi khuất nắng */totalEmissiveRadiance+=diffuseColor.rgb*0.04*vTh;');};
-    m.customProgramCacheKey=()=>'k3tuft5';
+    m.customProgramCacheKey=()=>'k3tuft6';
     const M=new T.InstancedMesh(g,m,pts.length),d=new T.Object3D(),col=new T.Color();pts.forEach((p,i)=>{d.position.set(p.x,0,p.z);d.rotation.set(0,p.ry??(i*2.399),0);d.scale.set(p.s,p.s*(p.sy||1),p.s);d.updateMatrix();M.setMatrixAt(i,d.matrix);col.set(p.c||'#5a8a3a');M.setColorAt(i,col);});
     M.instanceMatrix.needsUpdate=true;if(M.instanceColor)M.instanceColor.needsUpdate=true;M.receiveShadow=true;M.castShadow=false;M.frustumCulled=false;M.userData.tufts=1;return M;};
   // viền sáng quanh nhân vật (giống đèn hắt sau lưng trong phim): nhân vật tách khỏi nền đất

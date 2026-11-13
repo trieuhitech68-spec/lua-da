@@ -18,7 +18,7 @@ function bgAt(x,z){if(!BG)return 2;const i=Math.round((x+WSIZE/2)/HSTEP),j=Math.
 function grassInit(){const T=THREE;if(G.grass){G.sc.remove(G.grass);G.grass.geometry.dispose();G.grass=null;}
   const q=G.q|0,N=[2400,5200,8600][q],R=[190,250,320][q];G.gR=R;const R2=rng(4242),pts=[];
   for(let i=0;i<N;i++)pts.push({x:R2()*2*R,z:R2()*2*R,s:0.5+R2()*0.6,c:'#7aac48'});G.gOff=pts.map(p=>[p.x,p.z,p.s,R2()*6.283,R2()]);
-  const tf=K3.fx&&K3.fx.tufts(pts,{h:9.5,blades:q>0?10:8,w:0.95});if(!tf)return;tf.frustumCulled=false;tf.receiveShadow=q>0;G.sc.add(tf);G.grass=tf;G.gLast=null;try{seasonPatchAll(tf);}catch(e){}}
+  const tf=K3.fx&&K3.fx.tufts(pts,{h:6.6,blades:q>0?18:12,w:0.4,sp:[0.4,5.2]})/* lá mảnh, thấp, toả rộng: thành thảm cỏ mềm (trước lá to bản nhọn như lá dứa) */;if(!tf)return;tf.frustumCulled=false;tf.receiveShadow=q>0;G.sc.add(tf);G.grass=tf;G.gLast=null;try{seasonPatchAll(tf);}catch(e){}}
 // màu cỏ: tối & đậm hơn cho khớp mặt đất mới (lá cỏ đón nắng thẳng đứng nên dễ cháy sáng thành trắng bạc)
 const GCOL={2:['#557a2c','#628532'],3:['#46702a','#517a2e'],4:['#33561f','#3c6024'],5:['#486f2b','#537a30']};
 function grassTick(){const g=G.grass;if(!g)return;const px=P.x,pz=P.z;if(G.gLast&&Math.hypot(px-G.gLast[0],pz-G.gLast[1])<9)return;G.gLast=[px,pz];

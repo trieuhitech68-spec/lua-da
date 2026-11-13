@@ -137,6 +137,7 @@ float t3h=0.5,t3wet=0.0,t3rk=0.0,t3far=0.0;
  // đất -> đất đỏ đá ong
  vec4 cd=texture2D(tD,uv*(1.0/53.0));float lat=clamp(tq.z*smoothstep(0.2,0.55,m2.r+tq.z*0.35),0.0,1.0);float ld=dot(cd.rgb,vec3(0.3,0.59,0.11));
  cd.rgb=mix(cd.rgb,vec3(0.60,0.36,0.20)*ld*2.1,lat*0.8);
+ /* đất lối mòn: nâu trầm, bớt cam để không thành vệt gắt trên nền cỏ */cd.rgb=mix(cd.rgb,vec3(0.50,0.40,0.29)*ld*1.75,0.6);
  // cát / sỏi bãi sông
  vec4 cs=texture2D(tS,uv*(1.0/37.0));float dh=wp.y-tq.x;float gv=step(1.2,tq.x)*(1.0-smoothstep(5.0,18.0,dh));
  vec3 pebc=mix(vec3(0.22,0.21,0.19),vec3(0.58,0.55,0.50),cs.a)*mix(vec3(1.06,1.0,0.9),vec3(0.94,0.98,1.04),m2.b);float pm=smoothstep(0.05,0.2,cs.a)*gv*(1.0-smoothstep(120.0,520.0,dist)*0.75);
@@ -193,7 +194,7 @@ terrainSplatMat=function(m){const tx=t3Tex(),U=t3U();m.userData.noSea=1;T3.terr=
       .replace('#include <color_fragment>','#include <color_fragment>\n'+T3_TERR_FS)
       .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\n  roughnessFactor=clamp(roughnessFactor-t3rk*0.1-t3wet*0.55,0.32,1.0);')
       .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n'+T3_TERR_BUMP);};
-  m.customProgramCacheKey=()=>'t3terr2'+(G.q|0);m.needsUpdate=true;};
+  m.customProgramCacheKey=()=>'t3terr3'+(G.q|0);m.needsUpdate=true;};
 /* ---------- shader nước: sông/suối (RIVER), biển/hồ (mặc định), thác (FALL) ---------- */
 const T3_WATER_VS=`
 #ifdef RIVER
