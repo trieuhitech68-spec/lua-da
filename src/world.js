@@ -86,7 +86,7 @@ function hAt(x,z){const fx=(x+WSIZE/2)/HSTEP,fz=(z+WOZ)/HSTEP;let i=Math.floor(f
   const a=HG[j*HN+i],b=HG[j*HN+i+1],c=HG[(j+1)*HN+i],d=HG[(j+1)*HN+i+1];return a+(b-a)*tx+((c+(d-c)*tx)-(a+(b-a)*tx))*tz;}
 // mặt nước tại điểm (hoặc -999 nếu khô); độ sâu nước
 function waterAt(x,z){const fx=(x+WSIZE/2)/HSTEP,fz=(z+WOZ)/HSTEP,i=Math.round(fx),j=Math.round(fz);if(i<0||j<0||i>=HN||j>=HN)return 0;let w=WG[j*HN+i];
-  if(w<-900){const i0=Math.floor(fx),j0=Math.floor(fz);for(const [a,b] of [[i0,j0],[i0+1,j0],[i0,j0+1],[i0+1,j0+1]]){if(a>=0&&b>=0&&a<HN&&b<HN&&WG[b*HN+a]>w)w=WG[b*HN+a];}}return w;}
+  if(w<-900){/* không tạo mảng tạm: hàm này được gọi hàng nghìn lần mỗi giây */const i0=Math.floor(fx),j0=Math.floor(fz);for(let q=0;q<4;q++){const a=i0+(q&1),b=j0+(q>>1);if(a>=0&&b>=0&&a<HN&&b<HN&&WG[b*HN+a]>w)w=WG[b*HN+a];}}return w;}
 function wdAt(x,z){const w=waterAt(x,z);if(w<-900)return 0;return Math.max(0,w-hAt(x,z));}
 function slopeAt(x,z){const e=12;return Math.hypot(hAt(x+e,z)-hAt(x-e,z),hAt(x,z+e)-hAt(x,z-e))/(2*e);}
 // vùng sinh thái
@@ -202,7 +202,8 @@ function resGen(seed){RES.length=0;RGRID=new Map();const R=rng(seed*13+5);
   {const L=RG_('lake');if(L){let c=0,tr=0;while(c<26&&tr<2000){tr++;const a=R()*6.283,d=R()*L.r*1.1,x=L.x+Math.cos(a)*d,z=L.z+Math.sin(a)*d,h=hAt(x,z);if(h>-0.8||h<-8)continue;if(!okFree(x,z,14))continue;const q=put('lotus',x,z);q.wy=0.4;c++;}}}
   for(const t of TRAILS){for(let i=3;i<t.p.length;i+=7){const [x,z]=t.p[i];const ox=x+(R()-0.5)*26,oz=z+(R()-0.5)*26;if(hAt(ox,oz)<1||R()<0.45)continue;if(!okFree(ox,oz,6))continue;put('pathStone',ox,oz,0.7+R()*0.6);}}}
 function near(x,z,r){const out=[];const i0=Math.floor((x-r)/RG),i1=Math.floor((x+r)/RG),j0=Math.floor((z-r)/RG),j1=Math.floor((z+r)/RG);
-  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const L=RGRID.get(i+','+j);if(L)for(const k of L)out.push(k);}return out;}
+  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const n=(i+4096)*8192+(j+4096);let ks=NEARK.get(n);if(ks===undefined){if(NEARK.size>60000)NEARK.clear();ks=i+','+j;NEARK.set(n,ks);}const L=RGRID.get(ks);if(L)for(let q=0;q<L.length;q++)out.push(L[q]);}return out;}
+const NEARK=new Map();/* khoá ô lưới ghép một lần rồi nhớ: đỡ ghép chuỗi mỗi lần gọi */
 // ---------- vẽ hàng loạt: biến một mô hình K3 thành các InstancedMesh (gộp theo vật liệu) ----------
 function geoMerge(gs){const T=THREE;let n=0;const hasUV=gs.every(g=>g.attributes.uv),hasC=gs.some(g=>g.attributes.color);gs.forEach(g=>n+=g.attributes.position.count);
   const pos=new Float32Array(n*3),nor=new Float32Array(n*3),uv=hasUV?new Float32Array(n*2):null,col=hasC?new Float32Array(n*3):null;let o=0;

@@ -5,6 +5,11 @@
    · Chỉ ghi: nội dung lỗi, dòng mã, phiên bản game, loại máy (điện thoại/máy tính, trình duyệt), mục tiêu đang làm, bảng đang mở, số lần.
      KHÔNG ghi tên, thư điện tử, nội dung trò chuyện hay vị trí.
    · Ghi tối đa 1 lần mỗi 2 phút và chỉ khi có lỗi mới. Xem tại máy: ☰ Thêm → Cài đặt → cuối trang "Nhật ký lỗi" (hoặc gõ ldErrors() trong bảng điều khiển). */
+/* CHỐNG GIẬT (dọn rác bộ nhớ): Math.hypot của trình duyệt là hàm chậm và MỖI LẦN GỌI tạo một vật rác; game gọi nó hàng chục nghìn lần mỗi giây
+   (va chạm, ẩn hiện cây, thú, tìm đường) → vài MB rác mỗi giây → trình duyệt dừng game để dọn đều đặn vài giây một lần.
+   Thay bằng phép tính trực tiếp cho 2-3 số (trường hợp game dùng), không tạo rác, nhanh hơn nhiều. */
+{const _h=Math.hypot;Math.hypot=function(a,b,c,d,e,f){if(d===undefined){if(c===undefined)return b===undefined?Math.abs(+a):Math.sqrt(a*a+b*b);return Math.sqrt(a*a+b*b+c*c);}return f!==undefined?_h(a,b,c,d,e,f):e!==undefined?_h(a,b,c,d,e):_h(a,b,c,d);};}
+
 const LOI={L:[],dirty:false,wT:0,ver:''};
 (function(){try{LOI.L=JSON.parse(localStorage.getItem('ld-err')||'[]');if(!Array.isArray(LOI.L))LOI.L=[];}catch(e){LOI.L=[];}
   try{const m=document.querySelector('meta[name="ld-ver"]');LOI.ver=(m&&m.content)||(typeof LD_VER!=='undefined'?LD_VER:'')||'';}catch(e){}

@@ -395,3 +395,7 @@ addEventListener('keydown',e=>{if(typeof G==='undefined'||!G.on||e.target&&e.tar
   if(k==='KeyE'&&!G.build&&(M3.st==='climb'||M3.st==='hang'||(!G.target&&M3.ctx&&M3.ctx!=='prone'&&M3.ctx!=='roll'))){e.stopImmediatePropagation();e.preventDefault();m3ctxDo();return;}
   if(k==='KeyZ'&&!e.repeat){clearTimeout(M3.zT);M3.zT=setTimeout(()=>{if(!M3.prone&&!M3.st&&G.t-M3.exitProneT>0.6)m3setProne(true);},450);}},true);
 addEventListener('keyup',e=>{if(e.code==='KeyZ')clearTimeout(M3.zT);},true);
+/* CHỐNG GIẬT: hình va chạm của núi đá vôi, vách đá trước đây dựng đúng lúc người chơi đi tới gần lần đầu (dựng cả mô hình, quét mọi đỉnh) → khựng một nhịp giữa lúc đi.
+   Giờ dựng sẵn cho mọi kiểu núi đá ngay sau khi vào game, mỗi lần một kiểu vào lúc máy rảnh. */
+{const _si=sceneInit;sceneInit=function(){const r=_si.apply(this,arguments);try{const L=[],seen=new Set();for(const d of (typeof DECO_PLAN!=='undefined'&&DECO_PLAN)||[]){if(d.k!=='karst'&&d.k!=='cliffRock')continue;const k=d.k+'|'+d.v;if(seen.has(k))continue;seen.add(k);L.push(d);}
+    const step=()=>{const d=L.shift();if(!d)return;try{m3shape(d);}catch(e){}(window.requestIdleCallback||setTimeout)(step,{timeout:1500});};setTimeout(step,300);}catch(e){}return r;};}

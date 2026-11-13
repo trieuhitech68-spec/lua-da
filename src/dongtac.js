@@ -55,6 +55,15 @@ H3PO.drill=(R,k,o)=>{const K=h3ik(),t=(o&&o.t)||k*4,sl=h3fr(t*0.55),y=10.8-4.2*s
 /* thổi lửa: quỳ, chống hai tay, cúi sát thổi */
 H3PO.blow=(R,k,o)=>{const K=h3ik(),t=(o&&o.t)||k*4,b=Math.sin(t*2.6);K.kneel(R,7.2,0.3);R.hips.rotation.x=0.2;R.torso.rotation.set(0.95+0.04*b,0,0);R.head.rotation.set(-0.35+0.06*b,0,0);
   K.armTo(R,1,2.6,1.6,8.5,1,-0.2,-0.6);K.armTo(R,-1,-2.6,1.6,8.5,-1,-0.2,-0.6);K.cloak(R);};
+/* 7. NẤU ĂN: quỳ bên nồi, tay phải khuấy vòng tròn, tay trái tì gối; cuối nhịp đưa muôi lên nếm */
+H3PO.cook2=(R,k,o)=>{const K=h3ik(),L=h3lerp,t=(o&&o.t)||k*4,c=h3fr(t/3.2),taste=c>0.78?h3ss((c-0.78)/0.1)*(c>0.92?1-h3ss((c-0.92)/0.08):1):0,a=t*4.2;K.kneel(R,7.8,0.3);R.hips.rotation.x=0.12;R.torso.rotation.set(L(0.5,0.22,taste),0.1*Math.sin(a),0);R.head.rotation.set(L(0.34,0.05,taste),0,0);
+  K.armTo(R,1,L(1.4+Math.cos(a)*1.5,1.0,taste),L(7.4,14.6,taste),L(8.6+Math.sin(a)*1.5,3.4,taste),1,-0.4,-0.4);K.armTo(R,-1,-3.2,8.2,3.2,-1,-0.2,-0.6);K.cloak(R);};
+/* 8. VÓT, ĐẼO bằng dao: tay trái giữ phôi trước ngực, tay phải đẩy lưỡi dao ra xa người từng nhát dứt khoát rồi kéo về */
+H3PO.whittle2=(R,k,o)=>{const K=h3ik(),L=h3lerp,t=(o&&o.t)||k*4,c=h3fr(t/0.62),push=c<0.3?h3ss(c/0.3):1-h3ss((c-0.3)/0.7);K.hipsAt(R,0,16.6,0);K.feet(R,-2.6,1.4,2.6,-0.6);R.torso.rotation.set(0.3+0.06*push,-0.1+0.08*push,0);R.head.rotation.set(0.42,0.05,0);
+  K.armTo(R,-1,-1.4,21.6,6.4,-1,-0.4,-0.3);K.armTo(R,1,L(0.4,2.4,push),L(22.4,19.6,push),L(5.4,9.6,push),1,-0.5,-0.3);K.cloak(R);};
+/* 9. BUỘC LẠT: tay trái giữ chỗ buộc, tay phải quấn dây hai vòng quanh rồi giật ra siết chặt */
+H3PO.lash2=(R,k,o)=>{const K=h3ik(),L=h3lerp,t=(o&&o.t)||k*4,c=h3fr(t/1.9),wr=Math.min(1,c/0.7),pull=c>0.7?h3ss((c-0.7)/0.12)*(c>0.9?1-h3ss((c-0.9)/0.1):1):0,a=wr*Math.PI*4;K.hipsAt(R,0,16.4,0.3);K.feet(R,-2.6,2.0,2.6,-1.0);R.torso.rotation.set(0.36-0.1*pull,0.14*pull,0);R.head.rotation.set(0.36,0,0);
+  K.armTo(R,-1,-1.0,20.6,6.8,-1,-0.4,-0.4);K.armTo(R,1,L(-1.0+Math.cos(a)*2.4,5.4,pull),L(20.6+Math.sin(a)*2.4,22.6,pull),L(7.4+Math.sin(a*0.5)*0.6,3.6,pull),1,-0.4,-0.4);K.cloak(R);};
 /* ---------- ĐẠO CỤ trong tay khi làm: vồ gỗ lúc đóng (nếu tay đang không cầm gì), que khoan + thanh gỗ nền lúc khoan lửa ---------- */
 const DTP={m:null,d:null};
 function dtProps(R,fn,W){try{const T=THREE,mat=(c)=>new T.MeshStandardMaterial({color:c,roughness:0.9,flatShading:true});
@@ -72,7 +81,8 @@ function dtProps(R,fn,W){try{const T=THREE,mat=(c)=>new T.MeshStandardMaterial({
         else if(a==='hammer'){fn=H3PO.hammer2;k=h3fr(W.t/0.72);}
         else if(a==='gather'&&!fire){fn=H3PO.gather2;k=h3fr(W.t/1.7);}
         else if(a==='lash'&&fire){fn=H3PO.drill;o={t:W.t};}
-        else if(a==='cook'&&fire){fn=H3PO.blow;o={t:W.t};}}
+        else if(a==='cook'&&fire){fn=H3PO.blow;o={t:W.t};}
+        else if(a==='cook'){fn=H3PO.cook2;o={t:W.t};}else if(a==='whittle'){fn=H3PO.whittle2;o={t:W.t};}else if(a==='lash'){fn=H3PO.lash2;o={t:W.t};}}
       else if(A&&!G.h3aim&&A.t){const ty=A.t.type,kk=clamp(1-(A.next||0)/(A.per||0.72),0,1);
         if(ty==='res'&&(tk==='axe'||tk==='pick')&&P.anim!=='gather'&&P.anim!=='dig'){fn=tk==='pick'?H3PO.mine2:H3PO.chop2;k=kk;}
         else if(ty==='site'){fn=H3PO.hammer2;k=kk;}
