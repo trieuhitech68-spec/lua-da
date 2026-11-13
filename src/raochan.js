@@ -9,19 +9,21 @@ function rcGate(x,z){let best=null,bd=520;for(const b of S.builds){if(b.prog!=nu
 // chặn một danh sách người đi bộ; det=true: bị chặn thì vòng qua cổng
 function rcGuard(L,shut,det,dt){const n=L.length,ox=RAO.ox,oz=RAO.oz;for(let i=0;i<n;i++){const f=L[i];if(!f||f.x==null||Math.abs(f.x-P.x)>800||Math.abs(f.z-P.z)>800||f.alive===false)continue;
     let nx=f.x,nz=f.z;const px=ox[i],pz=oz[i];if(px==null)continue;const py=hAt(px,pz)+2,want=Math.hypot(nx-px,nz-pz),gx=f._gx!=null?f._gx:f.tx,gz=f._gz!=null?f._gz:f.tz;
-    if(f._pl){/* đang tính đường vòng (chia nhỏ qua nhiều khung hình) */try{aqPlanStep(f._pl,220);}catch(e){f._pl.fail=true;}
-      if(f._pl.ok){f._det=f._pl.pts.slice(1).map(q=>({x:q[0],z:q[1]}));f._det.push({x:f._pl.gx,z:f._pl.gz});f._detG=[f._pl.gx,f._pl.gz];f._detT=45;f._pl=null;}
-      else if(f._pl.fail){f._pl=null;if(det&&!rcGate(px,pz)&&G.t-RAO.warn>180){RAO.warn=G.t;uiToast('🚧 Người làng bị hàng rào chặn, không có cổng để qua. Dựng một Cổng rào (Xây → Rào) cho họ ra vào.','');}}}
+    /* LỐI THOÁT DỰ PHÒNG: người mình, thổ dân kẹt ở rào/tường quá 5 giây (không tính được đường vòng, đích nằm trong chỗ kín…) thì được đi qua trong 10 giây như trước đây, không đứng chết ở tường. */
+    if(!shut&&f._gh>G.t){f._det=null;f._pl=null;continue;}
+    if(f._pl){/* đang tính đường vòng (chia nhỏ qua nhiều khung hình) */try{aqPlanStep(f._pl,260);}catch(e){f._pl.fail=true;}
+      if(f._pl.ok){f._det=f._pl.pts.slice(1).map(q=>({x:q[0],z:q[1]}));f._det.push({x:f._pl.gx,z:f._pl.gz});f._detG=[f._pl.gx,f._pl.gz];f._detT=45;f._pl=null;f._stk=0;}
+      else if(f._pl.fail){f._pl=null;f._stk=(f._stk||0)+2.5;if(f.t!=null&&f.def)f.t=0;/* thổ dân: chọn chỗ khác mà đi */if(det&&!rcGate(px,pz)&&G.t-RAO.warn>180){RAO.warn=G.t;uiToast('🚧 Người làng bị hàng rào chặn, không có cổng để qua. Dựng một Cổng rào (Xây → Rào) cho họ ra vào.','');}}}
     if(f._det){/* đi theo đường vòng đã tính: bỏ bước của game */const w=f._det[0],dx=w.x-px,dz=w.z-pz,d=Math.hypot(dx,dz);f._detT-=dt;nx=px;nz=pz;
-      if(f._detT<=0||(gx!=null&&Math.hypot(gx-f._detG[0],gz-f._detG[1])>90))f._det=null;/* quá lâu hoặc đích đã đổi: bỏ, tính lại khi cần */
+      if(f._detT<=0||(gx!=null&&Math.hypot(gx-f._detG[0],gz-f._detG[1])>70)){f._det=null;f._plT=0;}/* quá lâu hoặc đích đã đổi (lính đi theo người chơi): bỏ, tính lại ngay khi cần */
       else if(d<6){f._det.shift();if(!f._det.length)f._det=null;}
-      else{const st=Math.min(d,64*dt);nx=px+dx/d*st;nz=pz+dz/d*st;if(rcCross(px,pz,nx,nz,py,shut)){nx=px;nz=pz;f._det=null;}else f._ry=Math.atan2(dx,dz);}
+      else{const sp=f.job==='soldier'?150:70,st=Math.min(d,sp*dt);nx=px+dx/d*st;nz=pz+dz/d*st;if(rcCross(px,pz,nx,nz,py,shut)){nx=px;nz=pz;f._det=null;f._stk=(f._stk||0)+1;}else f._ry=Math.atan2(dx,dz);}
       f.x=nx;f.z=nz;}
     else if(want<0.01||want>300){f.x=nx;f.z=nz;}
-    else if(!rcCross(px,pz,nx,nz,py,shut)){f.x=nx;f.z=nz;f._blk=0;}
-    else{/* bước này cắt qua rào, tường: đứng lại; người mình và thổ dân thì tính đường vòng qua cổng tới đích */f.x=px;f.z=pz;f._blk=(f._blk||0)+dt;
+    else if(!rcCross(px,pz,nx,nz,py,shut)){f.x=nx;f.z=nz;f._blk=0;f._fr=(f._fr||0)+dt;if(f._fr>1.2)f._stk=0;}
+    else{/* bước này cắt qua rào, tường: đứng lại; người mình và thổ dân thì tính đường vòng qua cổng tới đích */f.x=px;f.z=pz;f._blk=(f._blk||0)+dt;f._fr=0;if(!shut){f._stk=(f._stk||0)+dt;if(f._stk>5){f._stk=0;f._gh=G.t+10;f._pl=null;continue;}}
       if(shut)try{rcBreak(f,dt);}catch(e){}
-      if(!shut&&f._blk>0.3&&!f._pl&&gx!=null&&!(f._plT>G.t)&&typeof aqPlanStart==='function'){f._plT=G.t+5;f._blk=0;try{f._pl=aqPlanStart(px,pz,gx,gz,14,false);}catch(e){f._pl=null;}}}
+      if(!shut&&f._blk>0.25&&!f._pl&&gx!=null&&!(f._plT>G.t)&&typeof aqPlanStart==='function'){f._plT=G.t+2;f._blk=0;try{f._pl=aqPlanStart(px,pz,gx,gz,14,false);}catch(e){f._pl=null;}}}
     if(f._o&&f._o.position){f._o.position.x=f.x;f._o.position.z=f.z;if(f._ry!=null&&f._det)f._o.rotation.y=f._ry;}else if(f.o&&f.o.position){f.o.position.x=f.x;f.o.position.z=f.z;}}}
 function rcSnap(L){const ox=RAO.ox,oz=RAO.oz;ox.length=0;oz.length=0;for(let i=0;i<L.length;i++){const f=L[i];ox.push(f?f.x:null);oz.push(f?f.z:null);}}
 {const wrap=(name,get,shut,det)=>{try{const f0=(0,eval)(name);if(typeof f0!=='function')return;window.__rcw=function(dt){let L=null;try{if(S&&G.on&&OCC.edge.size){L=get();if(L&&L.length)rcSnap(L);else L=null;}}catch(e){L=null;}const r=f0.apply(this,arguments);if(L)try{rcGuard(L,shut,det,dt||0.016);}catch(e){if(!RAO.err){RAO.err=1;console.warn('rào chặn',e);}}return r;};(0,eval)(name+'=__rcw');}catch(e){}};
