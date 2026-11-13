@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113041237">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113043534">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -19378,10 +19378,10 @@ if(typeof fireSheltered==='function'){const _fs2=fireSheltered;fireSheltered=fun
    - Nhiệm vụ chính mới "Dựng giỏ đựng đồ" ngay sau khi lợp mái. "Tự làm" khi túi sắp đầy tự về kho cất (chưa có kho thì tự dựng giỏ). */
 function khoStashTo(b){const st=S.store[b.id]||(S.store[b.id]=Array(pieceDef(b.k).store).fill(null));let moved=0;for(let i=0;i<S.inv.length;i++){const s=S.inv[i],I=s&&ITEMS[s.id];if(!I||I.t!=='res')continue;const left=slotsAdd(st,s.id,s.n);moved+=s.n-left;if(left>0)s.n=left;else S.inv[i]=null;}return moved;}
 function khoNear(max){let best=null,bd=max||320;for(const b of S.builds){const d=pieceDef(b.k);if(!d||!d.store||b.prog!=null||b.k==='trough')continue;const st=S.store[b.id];if(st&&!st.some(s=>!s))continue;const dd=Math.hypot(b.x-P.x,b.z-P.z);if(dd<bd){bd=dd;best=b;}}return best;}
-function khoStash(){const b=khoNear(320);if(!b){uiToast('Chưa có giỏ hay rương còn chỗ trong vòng 16 m. Dựng Giỏ đựng đồ (14 sợi cỏ, 4 cành) ở bảng Xây, cạnh nhà.','');sfx('no');return;}
+function khoStash(){const b=khoNear(900);if(!b){uiToast('Chưa có giỏ hay rương còn chỗ trong vòng 45 m. Dựng Giỏ đựng đồ (14 sợi cỏ, 4 cành) ở bảng Xây, cạnh nhà.','');sfx('no');return;}
   const n=khoStashTo(b);if(n){uiToast(`📦 Đã cất ${n} món vật liệu vào ${pieceDef(b.k).n}. Đồ trong kho gần đây vẫn dùng để chế tạo, xây.`,'good');sfx('craft');save();uiHotbar();}else uiToast('Không có vật liệu nào cần cất (hoặc kho đã đầy).','');if(G.panel)uiOpenRefresh();}
-{const _bh=bagHtml;bagHtml=function(){let h=_bh.apply(this,arguments);try{const free=S.inv.filter(s=>!s).length,b=khoNear(320);
-    h=`<div class="kho-bar"><span>Túi còn <b>${free}</b>/${S.inv.length} ô</span><button class="btn sm${b?'':' ghost'}" data-a="khostash">📦 Cất vật liệu vào kho</button></div><p class="small muted kho-tip">${b?'Vật liệu để trong giỏ, rương gần đây vẫn được tính khi chế tạo và xây: túi chỉ cần giữ thứ đang dùng.':'Dựng Giỏ đựng đồ cạnh nhà để cất bớt vật liệu; đồ trong kho gần (16 m) vẫn dùng để chế tạo, xây được.'}</p>`+h;}catch(e){}return h;};}
+{const _bh=bagHtml;bagHtml=function(){let h=_bh.apply(this,arguments);try{const free=S.inv.filter(s=>!s).length,b=khoNear(900);
+    h=`<div class="kho-bar"><span>Túi còn <b>${free}</b>/${S.inv.length} ô</span><button class="btn sm${b?'':' ghost'}" data-a="khostash">📦 Cất vật liệu vào kho</button></div><p class="small muted kho-tip">${b?'Vật liệu để trong giỏ, rương gần đây vẫn được tính khi chế tạo và xây: túi chỉ cần giữ thứ đang dùng.':'Dựng Giỏ đựng đồ cạnh nhà để cất bớt vật liệu; đồ trong kho trong làng (45 m) vẫn dùng để chế tạo, xây được.'}</p>`+h;}catch(e){}return h;};}
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="khostash"]');if(!b||!S)return;e.stopImmediatePropagation();khoStash();},true);
 {const st=document.createElement('style');st.textContent=`.kho-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;grid-column:1/-1;margin-bottom:4px}.kho-bar span{font-size:13px;color:#d8c8a8}.kho-bar b{color:#ffd27a}.kho-tip{grid-column:1/-1;margin:0 0 8px}`;document.head.appendChild(st);}
 // nhiệm vụ chính: dựng giỏ đựng đồ
@@ -21043,6 +21043,27 @@ setInterval(()=>{try{lthTick();}catch(e){if(!LTH.err){LTH.err=1;console.warn('l�
     return _fd.apply(this,arguments);};}
 // phá nhà: lính đang đứng đó xông ra, không gọi thêm lính từ hư không
 {const _pd=pvpDefend;pvpDefend=function(uid,b){try{const p=MP.players[uid];if(p&&p.fk&&p.fk.length&&LTH.sp[uid]){lthRouse(uid);return;}}catch(e){}return _pd.apply(this,arguments);};}
+/* ---------- KHO LÀNG: rương, giỏ trong cả làng dùng chung; xem được cả làng đang có gì ----------
+   - Trước: chỉ rương trong 16 m mới được tính khi chế tạo, xây. Người làng, tù binh làm việc cất đồ vào rương ở xa hơn thì "thiếu" dù trong rương có.
+     Giờ: mọi giỏ, rương, chum, kệ trong vòng 45 m quanh mình (cả làng) đều được tính và tự rút ra khi chế tạo, xây, cho ăn.
+   - Túi đồ có mục "📦 Kho làng": tổng số từng món trong mọi rương. Chạm một món để rút về túi (rương trong 45 m). Món chỉ có ở rương xa thì ghi rõ. */
+const KL={R:900,t:-9,c:null,px:0,pz:0};
+function klStores(){const out=[];for(const b of S.builds){if(b.remote||b.prog!=null||b.k==='trough')continue;const d=pieceDef(b.k);if(!d||!d.store)continue;const st=S.store[b.id];if(!Array.isArray(st))continue;out.push({b,st,d:Math.hypot(b.x-P.x,b.z-P.z)});}return out.sort((a,b)=>a.d-b.d);}
+{const _ns=nearStores;nearStores=function(){if(!G.on||!S)return _ns.apply(this,arguments);if(KL.c&&G.t-KL.t<0.4&&G.t>=KL.t&&Math.abs(P.x-KL.px)+Math.abs(P.z-KL.pz)<30)return KL.c;
+  let out;try{out=klStores().filter(o=>o.d<KL.R).map(o=>o.st);}catch(e){return _ns.apply(this,arguments);}KL.c=out;KL.t=G.t;KL.px=P.x;KL.pz=P.z;return out;};}
+// tổng đồ trong mọi rương: {id:[gần, xa]}
+function klAll(){const T={};for(const o of klStores())for(const s of o.st)if(s&&ITEMS[s.id]){const e=T[s.id]||(T[s.id]=[0,0]);e[o.d<KL.R?0:1]+=s.n;}return T;}
+function klTake(id){let got=0;for(const o of klStores()){if(o.d>=KL.R)break;for(let i=0;i<o.st.length;i++){const s=o.st[i];if(!s||s.id!==id)continue;const left=slotsAdd(S.inv,id,s.n);got+=s.n-left;if(left>0){s.n=left;break;}o.st[i]=null;}if(got)break;}
+  KL.c=null;if(got){uiToast(`📦 Đã lấy ${got} ${ITEMS[id].n.toLowerCase()} từ kho về túi.`,'good');sfx('pick');save();try{uiHotbar();}catch(e){}}else uiToast(S.inv.some(s=>!s)?'Món này chỉ có ở rương xa (ngoài 45 m). Về gần rương rồi lấy.':'Túi đầy rồi.','bad');if(G.panel)uiOpenRefresh();}
+function klHtml(){const T=klAll(),ids=Object.keys(T).sort((a,b)=>(T[b][0]+T[b][1])-(T[a][0]+T[a][1]));const S0=klStores(),n=S0.length,used=S0.reduce((a,o)=>a+o.st.filter(Boolean).length,0),cap=S0.reduce((a,o)=>a+o.st.length,0);
+  if(!n)return '';const chips=ids.map(id=>{const e=T[id],far=!e[0];return `<button class="kl-i${far?' far':''}" data-a="kltake" data-k="${id}">${icon(id)}<span>${esc(ITEMS[id].n)}</span><em>${e[0]+e[1]}</em>${e[1]?`<small>${far?'ở xa':e[1]+' ở xa'}</small>`:''}</button>`;}).join('');
+  return `<details class="kl-box"${G.klOpen===0?'':' open'}><summary><b>📦 Kho làng</b><span class="small muted">${n} giỏ, rương · dùng ${used}/${cap} ô · ${ids.length} loại</span></summary>${ids.length?`<div class="kl-list">${chips}</div><p class="small muted">Đồ trong rương cả làng (45 m quanh bạn) tự được dùng khi chế tạo, xây. Chạm một món để lấy về túi.</p>`:'<p class="small muted">Các rương đang trống. Người làng, tù binh làm việc sẽ cất đồ vào đây.</p>'}</details>`;}
+{const _bh=bagHtml;bagHtml=function(){let h=_bh.apply(this,arguments);try{h+=klHtml();}catch(e){console.warn('kho làng',e);}return h;};}
+{const _sh=storeHtml;storeHtml=function(b){let h=_sh.apply(this,arguments);try{const st=S.store[b.id]||[];h=h.replace('<h3>',`<p class="small" style="color:#ffd27a;margin:0 0 4px">Rương này: ${st.filter(Boolean).length}/${st.length} ô đang có đồ.</p><h3>`)+klHtml();}catch(e){}return h;};}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="kltake"]');if(!b||!S)return;e.stopImmediatePropagation();klTake(b.dataset.k);},true);
+document.addEventListener('toggle',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('kl-box'))G.klOpen=t.open?1:0;},true);
+{const st=document.createElement('style');st.textContent=`.kl-box{grid-column:1/-1;margin:10px 0 0;border-radius:12px;border:1px solid rgba(242,197,90,.4);background:rgba(242,197,90,.06);padding:0 10px 8px}.kl-box summary{display:flex;flex-direction:column;gap:2px;padding:9px 0;cursor:pointer;list-style:none}.kl-box summary::-webkit-details-marker{display:none}.kl-box summary b{color:#ffe2a8;font-size:14.5px}
+.kl-list{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}.kl-i{display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:3px 9px 3px 5px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(20,13,8,.8);color:#eadcc0;font-size:12.5px;cursor:pointer}.kl-i svg,.kl-i img,.kl-i canvas{width:22px;height:22px}.kl-i em{font-style:normal;font-weight:800;color:#ffd27a}.kl-i small{font-size:10.5px;color:#ffb0a0}.kl-i.far{opacity:.6}`;document.head.appendChild(st);}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.

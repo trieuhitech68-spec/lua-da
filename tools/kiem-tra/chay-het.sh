@@ -52,4 +52,6 @@ echo "11. Rà tổng quát nội dung: chế tạo thật mọi công thức, d�
 OUT=$(timeout 900 node tong-quat.js 2>&1); echo "$OUT" | grep "^SỐ LƯỢNG" | sed "s/^/   /"; echo "$OUT" | grep -q "^TQ-DAT" && ok "nội dung" || bad "nội dung: $(echo "$OUT" | sed -n '/^TQ-HONG/,$p' | head -10 | tr '\n' ';' | cut -c1-700)"
 echo "12. Võ nghệ: liên hoàn, đòn kết, sở trường vũ khí, tuyệt kỹ"
 OUT=$(timeout 600 node vo-nghe.js 2>&1); echo "$OUT" | grep -q "^VN-DAT" && ok "võ nghệ" || bad "võ nghệ: $(echo "$OUT" | tail -6 | tr '\n' ';' | cut -c1-500)"
+echo "13. Kho làng: rương cả làng (45 m) được tính và tự rút khi chế tạo, rương xa không tính, xem tổng và lấy về túi"
+OUT=$(timeout 600 node kho-lang.js 2>&1); echo "$OUT" | grep -q "^KL-DAT" && ok "kho làng" || bad "kho làng: $(echo "$OUT" | tail -4 | tr '\n' ';' | cut -c1-500)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

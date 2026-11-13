@@ -1,0 +1,10 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});const c=await b.newContext({viewport:{width:393,height:852},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-b');localStorage.setItem('ldtt-nohd','1')}catch(e){}});const p=await c.newPage();const logs=[];p.on('pageerror',e=>logs.push('ERR '+e.message+(e.stack||'').slice(0,300)));
+await p.goto('file://'+require('path').resolve(__dirname,'../../index.html')+'');await p.waitForTimeout(5000);
+const click=async t=>{await p.evaluate(t=>{const b=[...document.querySelectorAll('button')].filter(b=>b.offsetParent).find(b=>b.innerText.includes(t));b&&b.click()},t);await p.waitForTimeout(1500)};
+await click('Tạo nhân vật mới');await click('Bắt đầu');await p.waitForFunction(()=>typeof G==='object'&&G.on&&G.animals&&G.animals.length&&P.model,null,{timeout:240000});await p.waitForTimeout(3000);
+const r=await p.evaluate(()=>{let n=9700;const mk=(dx,items)=>{const b={id:n++,k:'basket',x:P.x+dx,y:hAt(P.x+dx,P.z),z:P.z,r:0,lv:0};S.builds.push(b);structAdd(b,true);const st=S.store[b.id]=Array(pieceDef('basket').store).fill(null);for(const k in items)slotsAdd(st,k,items[k]);return b;};
+ mk(600,{wood:20,stone:7});mk(2000,{fiber:9,wood:5});KL.c=null;const o={w0:invCount('wood'),have:haveCount('wood'),fiber:haveCount('fiber'),all:klAll()};
+ const ok=canPay({wood:12});pay({wood:12});KL.c=null;o.paid=ok&&haveCount('wood')===o.have-12;klTake('stone');o.stone=invCount('stone');klTake('fiber');o.fiberInv=invCount('fiber');uiOpen('bag');o.html=/Kho làng/.test(document.querySelector('#panel').innerText);return o;});
+console.log(JSON.stringify(r));console.log(r.have===20&&r.fiber===0&&r.paid&&r.stone===7&&r.fiberInv===0&&r.html&&r.all.wood[1]===5&&!logs.length?'KL-DAT':'KL-HONG '+logs.join('|'));await p.waitForTimeout(800);await p.evaluate(()=>{const e=document.querySelector('.kl-box');e&&e.scrollIntoView()});await p.waitForTimeout(500);console.log(logs.slice(0,4).join('\n'));await b.close();})();
