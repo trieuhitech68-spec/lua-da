@@ -68,4 +68,6 @@ OUT=$(timeout 400 node nguoi-lang.js 2>&1); echo "$OUT" | grep -q "^NL-DAT" && o
 echo "19. Hàng rào: Tự làm ra vào qua cổng, rào kín thì tự mở cổng; người làng vòng qua cổng; thổ dân vào bằng cổng; kẻ địch bị rào chặn"
 OUT=$(timeout 400 node rao-chan.js fence gate 2>&1); echo "$OUT" | grep -q "^RAO-DAT" && ok "rào có cổng" || bad "rào có cổng: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-600)"
 OUT=$(timeout 400 node rao-chan.js fence none 2>&1); echo "$OUT" | grep -q "^RAO-DAT" && ok "rào kín không cổng" || bad "rào kín không cổng: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-600)"
+echo "20. Phương tiện và công cụ: bè tre, thuyền, ngựa lên/đi/xuống đúng, nhân vật không chìm; cầm từng dụng cụ dùng lên cây, đá, bụi, cỏ, thú không lỗi, không cảnh báo"
+OUT=$(timeout 700 node phuong-tien.js 2>&1); echo "$OUT" | grep -q "^PT-DAT" && ok "phương tiện, công cụ" || bad "phương tiện, công cụ: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
