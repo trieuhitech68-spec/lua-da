@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113114535">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113115441">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -2362,7 +2362,7 @@ function cropStage(c){return Math.min(3,Math.floor((c.p||0)*3.001));}
 const CROPO=new Map();
 function cropShow(b){const old=CROPO.get(b.id);if(old){G.sc.remove(old.o);CROPO.delete(b.id);}const c=S.crops[b.id];if(!c)return;const st=cropStage(c),o=model(['crop',c.k,st]);o.position.set(b.x,b.y+3,b.z);o.traverse(m=>{if(m.isMesh)m.castShadow=true;});seasonPatchAll(o);G.sc.add(o);CROPO.set(b.id,{o,st});}
 function cropsTick(gd){const grow=SEASONS[seasonIdx()].grow*((G.wxK||0)>0.4&&S.wx&&S.wx.type!=='snow'?1.4:1);
-  for(const id in S.crops){const c=S.crops[id],b=BYID.get(+id);if(!b)continue;const well=S.builds.some(w=>w.k==='well'&&Math.hypot(w.x-b.x,w.z-b.z)<200)?2:1,scare=S.builds.some(w=>w.k==='scarecrow'&&Math.hypot(w.x-b.x,w.z-b.z)<240)?1.2:1;c.p=Math.min(1,(c.p||0)+gd/(CROP_DAYS[c.k]||1)*grow*well*scare);const v=CROPO.get(+id);if(!v||v.st!==cropStage(c))cropShow(b);}}
+  for(const id in S.crops){const c=S.crops[id],b=BYID.get(+id);if(!b)continue;const well=S.builds.some(w=>(w.k==='well'||w.k==='wellStone')&&Math.hypot(w.x-b.x,w.z-b.z)<200)?2:1,scare=S.builds.some(w=>w.k==='scarecrow'&&Math.hypot(w.x-b.x,w.z-b.z)<240)?1.2:1;c.p=Math.min(1,(c.p||0)+gd/(CROP_DAYS[c.k]||1)*grow*well*scare);const v=CROPO.get(+id);if(!v||v.st!==cropStage(c))cropShow(b);}}
 function sleep(b){if(G.sleeping)return;const def=pieceDef(b.k);if(!isNight()){S.p.hp=Math.min(100,S.p.hp+12);S.p.stam=maxStam();uiToast('Nghỉ một lát: hồi thể lực. Sau 19 giờ mới ngủ qua đêm được.','');save();uiHud(true);return;}
   const comfy=(underRoof(b.x,b.z)?1:0)+(fireHeat(b.x,b.z)>0?1:0)+(def.id==='bed'?1:0);
   // nằm xuống chỗ ngủ rồi mới tối màn hình
@@ -5181,7 +5181,7 @@ function plantShowAll(){const want=new Map();for(const p of S.plants||[]){if(p.d
 function sapStub(k,st){const K=K3,h=st?30:9;return /pine/.test(k)?K.group(K.cone(st?9:3,h,'dleaf',{},6)):K.group(K.cyl(0.6,0.9,h,'wood'),K.ico(st?8:3,'leaf',{y:h},1,0.3,2));}
 // cây lớn dần theo giờ (mùa, mưa, giếng gần)
 function plantsTick(gh){if(!S.plants||!S.plants.length)return;const si=seasonIdx(),rain=(G.wxK||0)>0.4&&S.wx&&S.wx.type==='rain',grow=[1.3,1,0.8,0.15][si]*(rain?1.4:1);let ch=0;
-  for(const p of S.plants){if(p.done)continue;const s0=p.g<0.35?0:1;const well=S.builds.some(w=>w.k==='well'&&Math.hypot(w.x-p.x,w.z-p.z)<200)?1.6:1;p.g=Math.min(1,p.g+gh/24/(SAP[p.k].days)*grow*well);
+  for(const p of S.plants){if(p.done)continue;const s0=p.g<0.35?0:1;const well=S.builds.some(w=>(w.k==='well'||w.k==='wellStone')&&Math.hypot(w.x-p.x,w.z-p.z)<200)?1.6:1;p.g=Math.min(1,p.g+gh/24/(SAP[p.k].days)*grow*well);
     if(p.g>=1){p.done=1;plantMature(p);ch=1;}else if((p.g<0.35?0:1)!==s0)ch=1;}if(ch){plantShowAll();save();}}
 // cây trưởng thành: thêm vào danh sách tài nguyên (có nhóm vẽ riêng, mở rộng dần)
 function plantMature(p,quiet){const t=SAP[p.k].res,D=RT[t];if(!D)return;const q={i:RES.length,t,x:p.x,z:p.z,ry:p.ry||0,s:(D.sc||1)*0.95,hp:D.hp,st:0,rg:0,planted:1};q.y=hAt(q.x,q.z)-1.2;RES.push(q);
@@ -5205,7 +5205,7 @@ function tameFeed(a){const f=tameFood(a.kind);if(!f||!invTake(f,1))return;a.tame
 function petModel(k){let o=null;try{if(window.SBM&&SBM.animal&&SBM.list&&(SBM.list.animals||[]).includes(k))o=SBM.animal(k);}catch(e){}if(!o){const base={chicken:'junglefowl',chick:'junglefowl',pig:'boar',piglet:'boar',dog:'wolf',puppy:'wolf'}[k];o=animalModel(base);if(/^(chick|piglet|puppy)$/.test(k))o.scale.setScalar(0.5);}return o;}
 function petSpawn(p){const o=petModel(p.k);o.traverse(m=>{if(m.isMesh){m.castShadow=true;}});G.sc.add(o);seasonPatchAll(o);p._o=o;p._rig=o.userData.rig||{};p._tx=p.x;p._tz=p.z;p._t=0;p._ph=Math.random()*6;}
 function petsInit(){(S.pets||[]).forEach(petSpawn);}
-function petHome(p){const want=p.k==='chicken'||p.k==='chick'?'coop':p.k==='pig'||p.k==='piglet'?'trough':null;if(!want)return null;let best=null,bd=420;for(const b of S.builds){if(b.k===want&&b.prog==null){const d=Math.hypot(b.x-p.x,b.z-p.z);if(d<bd){bd=d;best=b;}}}return best;}
+function petHome(p){const want=p.k==='chicken'||p.k==='chick'?'coop':p.k==='pig'||p.k==='piglet'?'trough':null;if(!want)return null;let best=null,bd=420;for(const b of S.builds){if((b.k===want||(want==='coop'&&/^(chickenCoop2|duckHouse|chickenRoost)$/.test(b.k)))&&b.prog==null){const d=Math.hypot(b.x-p.x,b.z-p.z);if(d<bd){bd=d;best=b;}}}return best;}
 function petsTick(dt){if(!S.pets)return;for(const p of S.pets){if(!p._o)petSpawn(p);const o=p._o,R=p._rig;const home=petHome(p),dog=p.k==='dog'||p.k==='puppy';
     let tx=p._tx,tz=p._tz,sp=0;const dP=Math.hypot(P.x-p.x,P.z-p.z);
     if(dog&&!p.stay){if(dP>50){tx=P.x-Math.sin(P.ry)*30;tz=P.z-Math.cos(P.ry)*30;sp=dP>200?170:110;}
@@ -12521,7 +12521,7 @@ function mxSkyFire(b){if(invCount('stick')<2||invCount('fiber')<1){uiToast('Cầ
   l4Work([['Xếp bùi nhùi, cành nhỏ','gather',0.9,'pick'],['Châm đuốc vào bùi nhùi','cook',1.0,'step'],['Thổi cho lửa bén','cook',0.9,'drink']],{sk:'cook',icon:'torch'},()=>{if(invCount('wood')>0){invTake('wood',1);S.fuel[b.id]=4;}else{invTake('stick',2);S.fuel[b.id]=2;}flameSync();sfx('build');puff(b.x,b.y+10,b.z,'#ffb060',8);uiToast('🔥 Mồi lửa từ đuốc: bếp đã cháy!','gold');cnt('cnt','fire');save();});};}
 // nắng hạn mùa hạ: ít mưa, ruộng xa nước chậm lớn, tưới bằng bầu nước
 function mxDrought(){const M=MXI();return !!M.drT&&TNOW()<M.drT;}
-function mxWaterSrc(b){return S.builds.some(w=>(w.k==='well'||w.k==='channel'||w.k==='rainBarrel')&&w.prog==null&&Math.hypot(w.x-b.x,w.z-b.z)<200);}
+function mxWaterSrc(b){return S.builds.some(w=>((w.k==='well'||w.k==='wellStone')||w.k==='channel'||w.k==='rainBarrel')&&w.prog==null&&Math.hypot(w.x-b.x,w.z-b.z)<200);}
 {const _wt=weatherTick;weatherTick=function(dt){if(G.on&&S.wx&&mxDrought()&&TNOW()>=S.wx.until){S.wx={type:Math.random()<0.35?'cloudy':'clear',until:TNOW()+0.15+Math.random()*0.25};}_wt(dt);};}
 {const _ct=cropsTick;cropsTick=function(gd){const M=MXI(),before={};for(const id in S.crops)before[id]=S.crops[id].p||0;_ct(gd);const dr=mxDrought(),now=TNOW();
   for(const id in S.crops){const c=S.crops[id],b=BYID.get(+id);if(!b||before[id]==null)continue;let k=1;if(M.plow[id])k*=M.plow[id]>=2?1.45:1.3;if(dr&&!mxWaterSrc(b)&&!((M.wet[id]||0)>now))k*=0.4;if(k!==1){const dp=(c.p||0)-before[id];c.p=Math.min(1,before[id]+dp*k);}}};}
@@ -21353,6 +21353,22 @@ function rcBreak(f,dt){const sg=RAO.seg;if(!sg)return;const mx=(sg[0]+sg[2])/2,m
     if(G.t-(RAO.bw||-999)>25&&Math.hypot(b.x-P.x,b.z-P.z)<900){RAO.bw=G.t;uiToast('⚠️ Kẻ địch đang phá '+def.n.toLowerCase()+'! Ra đánh đuổi trước khi rào thủng.','bad');}}
   if(b._hp<=0){b._hp=null;b.prog=0.45;if(typeof STG!=='undefined'&&STG[b.k])b.paid=STG[b.k].length;if(b.cond!=null)b.cond=60;try{siteShow(b);}catch(e){}try{puff(b.x,(b.y||hAt(b.x,b.z))+14,b.z,'#8a6a42',16);sfx('fall');}catch(e){}
     uiToast('💥 Kẻ địch đã phá thủng '+def.n.toLowerCase()+'! Tới cạnh bấm Hành động để dựng lại.','bad');f._bt=null;try{cnt('cnt','breach');}catch(e){}save();}}
+/* ---------- CÔNG TRÌNH KIỂU MỚI CÓ ĐÚNG CHỨC NĂNG CỦA MÓN CÙNG LOẠI ----------
+   Giếng khơi cần vọt, chuồng gà trên cột, chuồng vịt, giàn gà đậu, giá trống đồng, giá cồng chiêng, cột vật tổ chim / rồng trước chỉ để ngắm:
+   đứng cạnh bấm Hành động không có gì xảy ra, người chơi tưởng lỗi. Giờ chúng dùng được như giếng, chuồng gà, trống hội, cột vật tổ thường:
+   múc/uống nước sạch (và tưới ruộng nhanh như giếng), gà về chuồng đẻ trứng rồi nhặt trứng, đánh trống gọi dân làng, dâng lễ vật tổ. */
+const CNG={A:{wellStone:'well',chickenCoop2:'coop',duckHouse:'coop',chickenRoost:'coop',bronzeDrumStand:'drum',gongStand:'drum',totemBird:'totem',totemDragon:'totem'},px:new WeakMap()};
+// "bản thay thế" của một công trình: giống hệt, chỉ khác mã loại (k) là món cùng chức năng; ghi gì vào nó là ghi vào công trình thật
+function cngProxy(b){let p=CNG.px.get(b);if(!p){const al=CNG.A[b.k];p=new Proxy(b,{get(t,k){return k==='k'?al:k==='_real'?t:t[k];},set(t,k,v){t[k]=v;return true;}});CNG.px.set(b,p);}return p;}
+{const _ft=findTarget;findTarget=function(){const r=_ft.apply(this,arguments);try{if(!S||G.work||G.sit||G.ride||G.build)return r;if(r&&(r.type==='animal'||r.type==='foe'||r.type==='npc'||r.type==='pet'||r.type==='drop'||r.type==='boat'||r.type==='mount'||r.type==='folk'))return r;
+    let best=null,bd=REACH+10;for(const b of S.builds){const al=CNG.A[b.k];if(!al||b.prog!=null)continue;if(al==='totem'&&b.remote)continue;if(Math.abs((b.y||0)-P.y)>60)continue;const def=pieceDef(b.k),d=Math.hypot(b.x-P.x,b.z-P.z)-(def&&def.fp?Math.max(def.fp[0],def.fp[1])*12:14);if(d<bd){bd=d;best=b;}}
+    if(best&&(!r||r.type==='water'||r.d==null||bd<=r.d+2))return {type:'build',b:cngProxy(best),def:Object.assign({},pieceDef(CNG.A[best.k]),{n:pieceDef(best.k).n}),d:bd};}catch(e){}return r;};}
+// tên hiển thị đúng món đang đứng cạnh (không phải tên món cùng loại)
+{const _ti=targetInfo;targetInfo=function(t){const r=_ti.apply(this,arguments);try{if(r&&t&&t.type==='build'&&t.b&&t.b._real){const d=pieceDef(t.b._real.k);if(d&&r.name){const base=pieceDef(t.b.k);if(base&&r.name.indexOf(base.n)===0)r.name=d.n+r.name.slice(base.n.length);else if(/^Chuồng gà/.test(r.name))r.name=d.n+r.name.slice(9);else if(/^Cột vật tổ/.test(r.name))r.name=d.n+r.name.slice(10);}}}catch(e){}return r;};}
+/* Bè, thuyền trong tầm với luôn được ưu tiên hơn "Uống nước", "Hái lượm", "Dấu vết": trước các mục tiêu này chen lên trước (bè thường nằm cách bờ 3-4 bước,
+   còn nước, rau cỏ thì ngay dưới chân) nên có chỗ thả bè xong không cách nào bấm "Lên thuyền". */
+{const _ft=findTarget;findTarget=function(){const r=_ft.apply(this,arguments);try{if(!S||!S.boats||!S.boats.length||G.ride||G.work||G.sit||G.build)return r;if(r&&r.type!=='water'&&r.type!=='forage'&&r.type!=='track')return r;
+    let best=null,bd=REACH+40;for(const b of S.boats){const d=Math.hypot(b.x-P.x,b.z-P.z);if(d<bd){bd=d;best=b;}}if(best)return {type:'boat',b:best,d:bd};}catch(e){}return r;};}
 /* ---------- GOM VIỆC GHI BẢN LƯU (chống giật) ----------
    Số đo trên máy người chơi: 80 trên 84 lần khựng là do "ghi bản lưu", mỗi lần tới 356 ms, cách nhau 1,6 giây.
    Game gọi save() ở gần 300 chỗ (mỗi lần nhặt đồ, người làng cất đồ, xong một việc…); mỗi lần là đóng gói TOÀN BỘ ván chơi rồi ghi xuống máy hai lần.

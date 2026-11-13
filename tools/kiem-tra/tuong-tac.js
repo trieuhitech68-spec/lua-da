@@ -14,7 +14,7 @@ const r=await p.evaluate(async()=>{const bad=[],o={n:0,acted:0,types:{}};G.R.ren
   for(const id of ids){const d=pieceDef(id);if(!d)continue;window.__cur=id;o.n++;G.work=null;G.act=null;G.sit=false;G.sleeping=false;G.keys={};G.ride=null;G.panel&&uiClose();S.p.hp=100;S.p.stam=100;S.p.food=80;S.p.water=80;S.hour=10;
     const fp=d.fp||[1,1],x=d.kind==='edge'?gx+20:d.kind==='corner'?gx:gx+fp[0]*20,z=d.kind==='edge'?gz:d.kind==='corner'?gz:gz+fp[1]*20,bb={id:n++,k:id,x,y:hAt(x,z),z,r:0,lv:0};
     try{S.builds.push(bb);structAdd(bb,true);if(d.store)S.store[bb.id]=Array(d.store).fill(null);if(typeof S.fuel==='object'&&S.fuel&&(d.st==='campfire'||d.fuel))S.fuel[bb.id]=300;}catch(e){bad.push('['+id+'] đặt lỗi: '+e.message);continue;}
-    const R=Math.max(fp[0],fp[1])*20+14;P.x=x;P.z=z-R;P.y=groundY(P.x,P.z);P.ry=0;P.air=false;P.vy=0;const x0=P.x,z0=P.z;
+    const R=Math.max(fp[0],fp[1])*20+(d.kind==='edge'||d.kind==='corner'?10:4);P.x=x;P.z=z-R;P.y=groundY(P.x,P.z);P.ry=0;P.air=false;P.vy=0;const x0=P.x,z0=P.z;
     try{await ff(0.25);const t=findTarget();if(t){o.types[t.type]=(o.types[t.type]||0)+1;const inf=targetInfo(t);if(inf&&inf.ok!==false){actStart(t);o.acted++;}await ff(1.5);if(G.panel){try{uiClose();}catch(e){bad.push('['+id+'] đóng bảng lỗi: '+e.message);}}if(G.work){try{workStop('');}catch(e){}}if(G.sit){try{sitToggle(false);}catch(e){G.sit=false;}}await ff(0.3);}}
     catch(e){bad.push('['+id+'] '+e.message+' '+String(e.stack).split('\\n')[1].trim().slice(0,90));}
     if(!isFinite(P.x)||!isFinite(P.y)||!isFinite(P.z)){bad.push('['+id+'] toạ độ hỏng');P.x=x0;P.z=z0;P.y=groundY(x0,z0);}

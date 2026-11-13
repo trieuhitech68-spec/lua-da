@@ -220,7 +220,7 @@ function mxSkyFire(b){if(invCount('stick')<2||invCount('fiber')<1){uiToast('Cầ
   l4Work([['Xếp bùi nhùi, cành nhỏ','gather',0.9,'pick'],['Châm đuốc vào bùi nhùi','cook',1.0,'step'],['Thổi cho lửa bén','cook',0.9,'drink']],{sk:'cook',icon:'torch'},()=>{if(invCount('wood')>0){invTake('wood',1);S.fuel[b.id]=4;}else{invTake('stick',2);S.fuel[b.id]=2;}flameSync();sfx('build');puff(b.x,b.y+10,b.z,'#ffb060',8);uiToast('🔥 Mồi lửa từ đuốc: bếp đã cháy!','gold');cnt('cnt','fire');save();});};}
 // nắng hạn mùa hạ: ít mưa, ruộng xa nước chậm lớn, tưới bằng bầu nước
 function mxDrought(){const M=MXI();return !!M.drT&&TNOW()<M.drT;}
-function mxWaterSrc(b){return S.builds.some(w=>(w.k==='well'||w.k==='channel'||w.k==='rainBarrel')&&w.prog==null&&Math.hypot(w.x-b.x,w.z-b.z)<200);}
+function mxWaterSrc(b){return S.builds.some(w=>((w.k==='well'||w.k==='wellStone')||w.k==='channel'||w.k==='rainBarrel')&&w.prog==null&&Math.hypot(w.x-b.x,w.z-b.z)<200);}
 {const _wt=weatherTick;weatherTick=function(dt){if(G.on&&S.wx&&mxDrought()&&TNOW()>=S.wx.until){S.wx={type:Math.random()<0.35?'cloudy':'clear',until:TNOW()+0.15+Math.random()*0.25};}_wt(dt);};}
 {const _ct=cropsTick;cropsTick=function(gd){const M=MXI(),before={};for(const id in S.crops)before[id]=S.crops[id].p||0;_ct(gd);const dr=mxDrought(),now=TNOW();
   for(const id in S.crops){const c=S.crops[id],b=BYID.get(+id);if(!b||before[id]==null)continue;let k=1;if(M.plow[id])k*=M.plow[id]>=2?1.45:1.3;if(dr&&!mxWaterSrc(b)&&!((M.wet[id]||0)>now))k*=0.4;if(k!==1){const dp=(c.p||0)-before[id];c.p=Math.min(1,before[id]+dp*k);}}};}

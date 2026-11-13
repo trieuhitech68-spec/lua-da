@@ -291,7 +291,7 @@ function cropStage(c){return Math.min(3,Math.floor((c.p||0)*3.001));}
 const CROPO=new Map();
 function cropShow(b){const old=CROPO.get(b.id);if(old){G.sc.remove(old.o);CROPO.delete(b.id);}const c=S.crops[b.id];if(!c)return;const st=cropStage(c),o=model(['crop',c.k,st]);o.position.set(b.x,b.y+3,b.z);o.traverse(m=>{if(m.isMesh)m.castShadow=true;});seasonPatchAll(o);G.sc.add(o);CROPO.set(b.id,{o,st});}
 function cropsTick(gd){const grow=SEASONS[seasonIdx()].grow*((G.wxK||0)>0.4&&S.wx&&S.wx.type!=='snow'?1.4:1);
-  for(const id in S.crops){const c=S.crops[id],b=BYID.get(+id);if(!b)continue;const well=S.builds.some(w=>w.k==='well'&&Math.hypot(w.x-b.x,w.z-b.z)<200)?2:1,scare=S.builds.some(w=>w.k==='scarecrow'&&Math.hypot(w.x-b.x,w.z-b.z)<240)?1.2:1;c.p=Math.min(1,(c.p||0)+gd/(CROP_DAYS[c.k]||1)*grow*well*scare);const v=CROPO.get(+id);if(!v||v.st!==cropStage(c))cropShow(b);}}
+  for(const id in S.crops){const c=S.crops[id],b=BYID.get(+id);if(!b)continue;const well=S.builds.some(w=>(w.k==='well'||w.k==='wellStone')&&Math.hypot(w.x-b.x,w.z-b.z)<200)?2:1,scare=S.builds.some(w=>w.k==='scarecrow'&&Math.hypot(w.x-b.x,w.z-b.z)<240)?1.2:1;c.p=Math.min(1,(c.p||0)+gd/(CROP_DAYS[c.k]||1)*grow*well*scare);const v=CROPO.get(+id);if(!v||v.st!==cropStage(c))cropShow(b);}}
 function sleep(b){if(G.sleeping)return;const def=pieceDef(b.k);if(!isNight()){S.p.hp=Math.min(100,S.p.hp+12);S.p.stam=maxStam();uiToast('Nghỉ một lát: hồi thể lực. Sau 19 giờ mới ngủ qua đêm được.','');save();uiHud(true);return;}
   const comfy=(underRoof(b.x,b.z)?1:0)+(fireHeat(b.x,b.z)>0?1:0)+(def.id==='bed'?1:0);
   // nằm xuống chỗ ngủ rồi mới tối màn hình

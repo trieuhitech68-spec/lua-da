@@ -72,4 +72,6 @@ echo "20. Phương tiện và công cụ: bè tre, thuyền, ngựa lên/đi/xu�
 OUT=$(timeout 700 node phuong-tien.js 2>&1); echo "$OUT" | grep -q "^PT-DAT" && ok "phương tiện, công cụ" || bad "phương tiện, công cụ: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo "21. Tương tác: đặt từng công trình trong 188 loại, đứng cạnh bấm Hành động; không lỗi, không cảnh báo, không văng, không kẹt trạng thái"
 OUT=$(timeout 700 node tuong-tac.js 2>&1); echo "$OUT" | grep -q "^TT-DAT" && ok "tương tác công trình" || bad "tương tác công trình: $(echo "$OUT" | tail -1 | cut -c1-900)"
+echo "22. Công trình kiểu mới có chức năng: giếng khơi, chuồng gà trên cột, chuồng vịt, giá trống đồng, giá cồng chiêng, cột vật tổ chim/rồng"
+OUT=$(timeout 400 node chuc-nang.js 2>&1); echo "$OUT" | grep -q "^CN-DAT" && ok "chức năng công trình mới" || bad "chức năng công trình mới: $(echo "$OUT" | tail -1 | cut -c1-700)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

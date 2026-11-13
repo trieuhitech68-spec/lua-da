@@ -1,0 +1,19 @@
+// Công trình kiểu mới dùng được như món cùng loại: giếng khơi, chuồng gà trên cột, chuồng vịt, giá trống đồng, giá cồng chiêng, cột vật tổ chim/rồng.
+const {chromium}=require('playwright');const path=require('path');
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});const c=await b.newContext({viewport:{width:400,height:240}});
+await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-b');localStorage.setItem('ldtt-nohd','1')}catch(e){}});const p=await c.newPage();const logs=[];p.on('pageerror',e=>logs.push('ERR '+e.message));
+await p.goto('file://'+path.resolve(__dirname,'../../index.html'));await p.waitForTimeout(5000);
+const click=async t=>{await p.evaluate(t=>{const b=[...document.querySelectorAll('button')].filter(b=>b.offsetParent).find(b=>b.innerText.includes(t));b&&b.click()},t);await p.waitForTimeout(1500)};
+await click('Tạo nhân vật mới');await click('Bắt đầu');await p.waitForFunction(()=>typeof G==='object'&&G.on&&G.animals&&G.animals.length&&P.model,null,{timeout:240000});await p.waitForTimeout(3000);
+const r=await p.evaluate(()=>{const o={},bad=[];let gx=0,gz=0,ok=false;for(let r=120;r<2400&&!ok;r+=80)for(let a=0;a<12&&!ok;a++){const x=Math.round((P.x+Math.cos(a)*r)/40)*40,z=Math.round((P.z+Math.sin(a)*r)/40)*40;let mn=1e9,mx=-1e9,wet=0;for(let i=-3;i<=4;i++)for(let j=-3;j<=4;j++){const h=hAt(x+i*40,z+j*40);mn=Math.min(mn,h);mx=Math.max(mx,h);if(wdAt(x+i*40,z+j*40)>0)wet=1;}if(mx-mn<14&&!wet){gx=x;gz=z;ok=true;}}
+  for(const i of near(gx,gz,300)){const q=RES[i];if(q.st===0)q.st=1;}for(const a of G.animals)a.alive=false;let n=30000;window.__T=[];const _u=uiToast;uiToast=function(m){__T.push(String(m).slice(0,80));return _u.apply(this,arguments)};
+  const at=id=>{const d=pieceDef(id),fp=d.fp||[1,1],x=gx+fp[0]*20,z=gz+fp[1]*20,bb={id:n++,k:id,x,y:hAt(x,z),z,r:0,lv:0};S.builds.push(bb);structAdd(bb,true);P.x=x;P.z=z-Math.max(fp[0],fp[1])*20-4;P.y=groundY(P.x,P.z);P.ry=0;G.work=null;G.act=null;G.sit=false;return bb;};
+  const rm=bb=>{try{structRemove(bb);}catch(e){}S.builds.splice(S.builds.indexOf(bb),1);};
+  for(const [id,want] of [['wellStone',/Uống nước|Múc nước/],['chickenCoop2',/trứng/],['duckHouse',/trứng/],['bronzeDrumStand',/Đánh trống/],['gongStand',/Đánh trống/],['totemBird',/./],['totemDragon',/./]]){if(!pieceDef(id)){bad.push(id+': không có');continue;}const bb=at(id);
+    try{const t=findTarget();if(!t||t.type!=='build'||!t.b._real||t.b._real!==bb){bad.push(id+': không nhắm được ('+(t&&t.type)+')');rm(bb);continue;}const inf=targetInfo(t);o[id]=inf.name+' / '+inf.verb;if(!want.test(inf.verb))bad.push(id+': sai chức năng "'+inf.verb+'"');if(inf.name.indexOf(pieceDef(id).n)!==0)bad.push(id+': sai tên "'+inf.name+'"');
+      if(id==='wellStone'){S.p.water=30;actStart(t);if(!(S.p.water>30))bad.push('giếng khơi: uống không lên nước');}
+      if(id==='chickenCoop2'){S.tank[bb.id]=3;const e0=invCount('egg');actStart(findTarget());if(invCount('egg')-e0!==3||S.tank[bb.id])bad.push('chuồng gà trên cột: không nhặt được trứng');const hen={k:'chicken',x:bb.x+10,z:bb.z};if(petHome(hen)!==bb)bad.push('chuồng gà trên cột: gà không nhận là chuồng');}
+      if(/Drum|gong/i.test(id)){const n0=(S.cnt['cnt:drum']||0);actStart(t);if((S.cnt['cnt:drum']||0)<=n0&&!__T.some(m=>/trống|Trống/.test(m)))bad.push(id+': đánh không kêu');}
+      if(/totem/.test(id)){actStart(t);}}catch(e){bad.push(id+': '+e.message);}rm(bb);}
+  o.bad=bad;return o;});
+console.log(JSON.stringify(r));const all=r.bad.concat(logs);console.log(all.length?'CN-HONG '+all.join(' ;; ').slice(0,900):'CN-DAT');await b.close();})();

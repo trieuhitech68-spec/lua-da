@@ -31,7 +31,7 @@ function plantShowAll(){const want=new Map();for(const p of S.plants||[]){if(p.d
 function sapStub(k,st){const K=K3,h=st?30:9;return /pine/.test(k)?K.group(K.cone(st?9:3,h,'dleaf',{},6)):K.group(K.cyl(0.6,0.9,h,'wood'),K.ico(st?8:3,'leaf',{y:h},1,0.3,2));}
 // cây lớn dần theo giờ (mùa, mưa, giếng gần)
 function plantsTick(gh){if(!S.plants||!S.plants.length)return;const si=seasonIdx(),rain=(G.wxK||0)>0.4&&S.wx&&S.wx.type==='rain',grow=[1.3,1,0.8,0.15][si]*(rain?1.4:1);let ch=0;
-  for(const p of S.plants){if(p.done)continue;const s0=p.g<0.35?0:1;const well=S.builds.some(w=>w.k==='well'&&Math.hypot(w.x-p.x,w.z-p.z)<200)?1.6:1;p.g=Math.min(1,p.g+gh/24/(SAP[p.k].days)*grow*well);
+  for(const p of S.plants){if(p.done)continue;const s0=p.g<0.35?0:1;const well=S.builds.some(w=>(w.k==='well'||w.k==='wellStone')&&Math.hypot(w.x-p.x,w.z-p.z)<200)?1.6:1;p.g=Math.min(1,p.g+gh/24/(SAP[p.k].days)*grow*well);
     if(p.g>=1){p.done=1;plantMature(p);ch=1;}else if((p.g<0.35?0:1)!==s0)ch=1;}if(ch){plantShowAll();save();}}
 // cây trưởng thành: thêm vào danh sách tài nguyên (có nhóm vẽ riêng, mở rộng dần)
 function plantMature(p,quiet){const t=SAP[p.k].res,D=RT[t];if(!D)return;const q={i:RES.length,t,x:p.x,z:p.z,ry:p.ry||0,s:(D.sc||1)*0.95,hp:D.hp,st:0,rg:0,planted:1};q.y=hAt(q.x,q.z)-1.2;RES.push(q);
@@ -55,7 +55,7 @@ function tameFeed(a){const f=tameFood(a.kind);if(!f||!invTake(f,1))return;a.tame
 function petModel(k){let o=null;try{if(window.SBM&&SBM.animal&&SBM.list&&(SBM.list.animals||[]).includes(k))o=SBM.animal(k);}catch(e){}if(!o){const base={chicken:'junglefowl',chick:'junglefowl',pig:'boar',piglet:'boar',dog:'wolf',puppy:'wolf'}[k];o=animalModel(base);if(/^(chick|piglet|puppy)$/.test(k))o.scale.setScalar(0.5);}return o;}
 function petSpawn(p){const o=petModel(p.k);o.traverse(m=>{if(m.isMesh){m.castShadow=true;}});G.sc.add(o);seasonPatchAll(o);p._o=o;p._rig=o.userData.rig||{};p._tx=p.x;p._tz=p.z;p._t=0;p._ph=Math.random()*6;}
 function petsInit(){(S.pets||[]).forEach(petSpawn);}
-function petHome(p){const want=p.k==='chicken'||p.k==='chick'?'coop':p.k==='pig'||p.k==='piglet'?'trough':null;if(!want)return null;let best=null,bd=420;for(const b of S.builds){if(b.k===want&&b.prog==null){const d=Math.hypot(b.x-p.x,b.z-p.z);if(d<bd){bd=d;best=b;}}}return best;}
+function petHome(p){const want=p.k==='chicken'||p.k==='chick'?'coop':p.k==='pig'||p.k==='piglet'?'trough':null;if(!want)return null;let best=null,bd=420;for(const b of S.builds){if((b.k===want||(want==='coop'&&/^(chickenCoop2|duckHouse|chickenRoost)$/.test(b.k)))&&b.prog==null){const d=Math.hypot(b.x-p.x,b.z-p.z);if(d<bd){bd=d;best=b;}}}return best;}
 function petsTick(dt){if(!S.pets)return;for(const p of S.pets){if(!p._o)petSpawn(p);const o=p._o,R=p._rig;const home=petHome(p),dog=p.k==='dog'||p.k==='puppy';
     let tx=p._tx,tz=p._tz,sp=0;const dP=Math.hypot(P.x-p.x,P.z-p.z);
     if(dog&&!p.stay){if(dP>50){tx=P.x-Math.sin(P.ry)*30;tz=P.z-Math.cos(P.ry)*30;sp=dP>200?170:110;}
