@@ -241,7 +241,7 @@ function mpShareAt(x,z){if(landFar())return false;const c=MP.claims[MP.uid];if(c
 // nơi công trình của người khác được phép hiện (chống vẽ bậy khắp bản đồ)
 // (trước đây chỉ hiện nhà nằm trong đất đã cắm mốc → hầu như không ai thấy nhà ai. Giờ nhà ở đâu cũng hiện, trừ khi nằm trong đất của người / liên minh KHÁC)
 function mpAllowAt(uid,x,z){if(landFar())return true;const c=MP.claims[uid];if(c&&Math.hypot(x-c.x,z-c.z)<c.r+24)return true;const mc=mpClanOf(uid),cl=MP.clans[mc];if(cl&&cl.zone&&Math.hypot(x-cl.zone.x,z-cl.zone.z)<cl.zone.r+24)return true;
-  for(const u in MP.claims){if(u===uid)continue;const o=MP.claims[u];if(Math.hypot(x-o.x,z-o.z)<o.r-4&&!(mc&&mpClanOf(u)===mc))return false;}
+  const CL=arguments[3]||MP.claims;for(const u in CL){if(u===uid)continue;const o=CL[u];if(Math.hypot(x-o.x,z-o.z)<o.r-4&&!(mc&&mpClanOf(u)===mc))return false;}
   for(const id in MP.clans){if(id===mc)continue;const z2=MP.clans[id].zone;if(z2&&Math.hypot(x-z2.x,z-z2.z)<z2.r-4)return false;}return true;}
 /* ---------- chia sẻ công trình của mình (gộp ghi: 5 giây sau thay đổi cuối) ---------- */
 function mpEncodeMine(){const a=[];const R=v=>Math.round(v*10)/10;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const b of S.builds){if(b.prog!=null||b.remote||!pieceDef(b.k))continue;if(b.x<x0)x0=b.x;if(b.x>x1)x1=b.x;if(b.z<z0)z0=b.z;if(b.z>z1)z1=b.z;a.push(b.id+','+b.k+','+R(b.x)+','+R(b.y)+','+R(b.z)+','+(Math.round((b.r||0)*100)/100)+','+((b.lv|0)||0));if(a.length>=MP_BCAP)break;}return {s:a.join(';'),n:a.length,h:a.length?[Math.round((x0+x1)/2),Math.round((z0+z1)/2),Math.round(Math.hypot(x1-x0,z1-z0)/2)]:null};}
@@ -272,7 +272,9 @@ function mpDecode(str){const out=[];if(!str)return out;const L=str.split(';');fo
     if(!mpNum(x,-WSIZE,WSIZE)||!mpNum(z,-WSIZE,WSIZE)||!mpNum(y,-800,4000)||!mpNum(r,0,4)||!mpNum(lv,0,LVMAX)||Math.floor(lv)!==lv)continue;out.push({lid:id,k,x,y,z,r,lv});}return out;}
 function mpRk(u){let n=MP.rk.get(u);if(n==null){n=++MP.rkN;MP.rk.set(u,n);}return n;}
 function mpRemoteApply(u){const raw=MP.braw.get(u)||[],cur=MP.bcur.get(u)||new Map(),n=mpRk(u),want=new Map();let room=MP_RCAP-(MP.rTot-cur.size);
-  for(const e of raw){if(room<=0)break;if(!mpAllowAt(u,e.x,e.z))continue;const id='m'+n+'_'+e.lid,sg=e.k+'|'+e.x+'|'+e.y+'|'+e.z+'|'+e.r+'|'+e.lv;want.set(id,{sg,e});room--;}
+  /* CHỐNG GIẬT: trước mỗi công trình bị so với TOÀN BỘ đất cắm trên máy chủ (công trình × đất cắm = hàng triệu phép so mỗi lượt). Giờ lọc trước các vùng đất nằm gần cụm công trình này. */
+  let CL=null;if(raw.length){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const e of raw){if(e.x<x0)x0=e.x;if(e.x>x1)x1=e.x;if(e.z<z0)z0=e.z;if(e.z>z1)z1=e.z;}CL={};for(const c in MP.claims){const o=MP.claims[c];if(o.x+o.r>x0&&o.x-o.r<x1&&o.z+o.r>z0&&o.z-o.r<z1)CL[c]=o;}if(MP.claims[u])CL[u]=MP.claims[u];}
+  for(const e of raw){if(room<=0)break;if(!mpAllowAt(u,e.x,e.z,CL))continue;const id='m'+n+'_'+e.lid,sg=e.k+'|'+e.x+'|'+e.y+'|'+e.z+'|'+e.r+'|'+e.lv;want.set(id,{sg,e});room--;}
   for(const [id,o] of cur){const w=want.get(id);if(!w||w.sg!==o.sg){MP.rq.push({rm:o.b});cur.delete(id);MP.rTot--;}}
   for(const [id,w] of want){if(cur.has(id))continue;const b={id,k:w.e.k,x:w.e.x,y:w.e.y,z:w.e.z,r:w.e.r,lv:w.e.lv,remote:u};cur.set(id,{sg:w.sg,b});MP.rTot++;MP.rq.push({add:b});}
   if(cur.size)MP.bcur.set(u,cur);else MP.bcur.delete(u);}
@@ -383,7 +385,9 @@ function mpNamesFlush(){if(!MP.user||!MP.nameQ.size||MP.nameBusy)return;const id
 function mpTick(dt){if(!mpOn())return;const t=performance.now()/1000,T=MP.tick;
   if(MP.room&&!MP.roomOn)mpRoomInit();if(t-T.pres>0.2){T.pres=t;mpPresTick();}mpAvTick(dt);mpQueueTick();
   if(t-T.mem>1){T.mem=t;if(MP.dirty.mem){MP.dirty.mem=false;mpMembership();}mpChatSub();mpNamesFlush();
-    if(MP.dirty.remote){MP.dirty.remote=false;for(const u of MP.bsub.keys())mpRemoteApply(u);}for(const [k,o] of MP.offers)if(mpNow()-o.at>90000)MP.offers.delete(k);}
+    if(MP.dirty.remote){MP.dirty.remote=false;/* chỉ xét lại công trình của hàng xóm khi đất cắm, vùng liên minh hay việc ai thuộc liên minh nào THẬT SỰ đổi (trước: mỗi lần bất kỳ ai ghi gì cũng xét lại hết) */
+      let sg=landFar()?S.land:'';for(const u in MP.claims){const c=MP.claims[u];sg+=u+c.x+','+c.z+','+c.r+';';}for(const id in MP.clans){const c=MP.clans[id],z=c.zone;sg+=id+(z?z.x+','+z.z+','+z.r:'')+c.members.join()+'|';}for(const u in MP.players){const c=MP.players[u].clan;if(c)sg+=u+c+';';}
+      if(sg!==MP.rsg){MP.rsg=sg;for(const u of MP.bsub.keys())mpRemoteApply(u);}}for(const [k,o] of MP.offers)if(mpNow()-o.at>90000)MP.offers.delete(k);}
   if(t-T.near>3){T.near=t;mpNearTick();}if(t-T.ring>2){T.ring=t;mpRingTick();}if(t-T.sig>4){T.sig=t;mpSigTick();}
   if(MP.dirty.ui&&t-T.ui>0.6&&G.panel==='clan'){T.ui=t;MP.dirty.ui=false;const a=document.activeElement;if(!(a&&a.id==='mpChat'&&a.value)&&!(a&&a.id==='mpCn'))mpPanelRefresh();}}
 {const _at=animTick;animTick=function(dt){_at(dt);if(MP.started)try{mpTick(dt);}catch(e){if(!MP.tickErr){MP.tickErr=1;console.warn('chơi chung',e);}}};}

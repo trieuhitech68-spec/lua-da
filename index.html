@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113050040">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113050900">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -18359,7 +18359,7 @@ function mpShareAt(x,z){if(landFar())return false;const c=MP.claims[MP.uid];if(c
 // nơi công trình của người khác được phép hiện (chống vẽ bậy khắp bản đồ)
 // (trước đây chỉ hiện nhà nằm trong đất đã cắm mốc → hầu như không ai thấy nhà ai. Giờ nhà ở đâu cũng hiện, trừ khi nằm trong đất của người / liên minh KHÁC)
 function mpAllowAt(uid,x,z){if(landFar())return true;const c=MP.claims[uid];if(c&&Math.hypot(x-c.x,z-c.z)<c.r+24)return true;const mc=mpClanOf(uid),cl=MP.clans[mc];if(cl&&cl.zone&&Math.hypot(x-cl.zone.x,z-cl.zone.z)<cl.zone.r+24)return true;
-  for(const u in MP.claims){if(u===uid)continue;const o=MP.claims[u];if(Math.hypot(x-o.x,z-o.z)<o.r-4&&!(mc&&mpClanOf(u)===mc))return false;}
+  const CL=arguments[3]||MP.claims;for(const u in CL){if(u===uid)continue;const o=CL[u];if(Math.hypot(x-o.x,z-o.z)<o.r-4&&!(mc&&mpClanOf(u)===mc))return false;}
   for(const id in MP.clans){if(id===mc)continue;const z2=MP.clans[id].zone;if(z2&&Math.hypot(x-z2.x,z-z2.z)<z2.r-4)return false;}return true;}
 /* ---------- chia sẻ công trình của mình (gộp ghi: 5 giây sau thay đổi cuối) ---------- */
 function mpEncodeMine(){const a=[];const R=v=>Math.round(v*10)/10;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const b of S.builds){if(b.prog!=null||b.remote||!pieceDef(b.k))continue;if(b.x<x0)x0=b.x;if(b.x>x1)x1=b.x;if(b.z<z0)z0=b.z;if(b.z>z1)z1=b.z;a.push(b.id+','+b.k+','+R(b.x)+','+R(b.y)+','+R(b.z)+','+(Math.round((b.r||0)*100)/100)+','+((b.lv|0)||0));if(a.length>=MP_BCAP)break;}return {s:a.join(';'),n:a.length,h:a.length?[Math.round((x0+x1)/2),Math.round((z0+z1)/2),Math.round(Math.hypot(x1-x0,z1-z0)/2)]:null};}
@@ -18390,7 +18390,9 @@ function mpDecode(str){const out=[];if(!str)return out;const L=str.split(';');fo
     if(!mpNum(x,-WSIZE,WSIZE)||!mpNum(z,-WSIZE,WSIZE)||!mpNum(y,-800,4000)||!mpNum(r,0,4)||!mpNum(lv,0,LVMAX)||Math.floor(lv)!==lv)continue;out.push({lid:id,k,x,y,z,r,lv});}return out;}
 function mpRk(u){let n=MP.rk.get(u);if(n==null){n=++MP.rkN;MP.rk.set(u,n);}return n;}
 function mpRemoteApply(u){const raw=MP.braw.get(u)||[],cur=MP.bcur.get(u)||new Map(),n=mpRk(u),want=new Map();let room=MP_RCAP-(MP.rTot-cur.size);
-  for(const e of raw){if(room<=0)break;if(!mpAllowAt(u,e.x,e.z))continue;const id='m'+n+'_'+e.lid,sg=e.k+'|'+e.x+'|'+e.y+'|'+e.z+'|'+e.r+'|'+e.lv;want.set(id,{sg,e});room--;}
+  /* CHỐNG GIẬT: trước mỗi công trình bị so với TOÀN BỘ đất cắm trên máy chủ (công trình × đất cắm = hàng triệu phép so mỗi lượt). Giờ lọc trước các vùng đất nằm gần cụm công trình này. */
+  let CL=null;if(raw.length){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const e of raw){if(e.x<x0)x0=e.x;if(e.x>x1)x1=e.x;if(e.z<z0)z0=e.z;if(e.z>z1)z1=e.z;}CL={};for(const c in MP.claims){const o=MP.claims[c];if(o.x+o.r>x0&&o.x-o.r<x1&&o.z+o.r>z0&&o.z-o.r<z1)CL[c]=o;}if(MP.claims[u])CL[u]=MP.claims[u];}
+  for(const e of raw){if(room<=0)break;if(!mpAllowAt(u,e.x,e.z,CL))continue;const id='m'+n+'_'+e.lid,sg=e.k+'|'+e.x+'|'+e.y+'|'+e.z+'|'+e.r+'|'+e.lv;want.set(id,{sg,e});room--;}
   for(const [id,o] of cur){const w=want.get(id);if(!w||w.sg!==o.sg){MP.rq.push({rm:o.b});cur.delete(id);MP.rTot--;}}
   for(const [id,w] of want){if(cur.has(id))continue;const b={id,k:w.e.k,x:w.e.x,y:w.e.y,z:w.e.z,r:w.e.r,lv:w.e.lv,remote:u};cur.set(id,{sg:w.sg,b});MP.rTot++;MP.rq.push({add:b});}
   if(cur.size)MP.bcur.set(u,cur);else MP.bcur.delete(u);}
@@ -18501,7 +18503,9 @@ function mpNamesFlush(){if(!MP.user||!MP.nameQ.size||MP.nameBusy)return;const id
 function mpTick(dt){if(!mpOn())return;const t=performance.now()/1000,T=MP.tick;
   if(MP.room&&!MP.roomOn)mpRoomInit();if(t-T.pres>0.2){T.pres=t;mpPresTick();}mpAvTick(dt);mpQueueTick();
   if(t-T.mem>1){T.mem=t;if(MP.dirty.mem){MP.dirty.mem=false;mpMembership();}mpChatSub();mpNamesFlush();
-    if(MP.dirty.remote){MP.dirty.remote=false;for(const u of MP.bsub.keys())mpRemoteApply(u);}for(const [k,o] of MP.offers)if(mpNow()-o.at>90000)MP.offers.delete(k);}
+    if(MP.dirty.remote){MP.dirty.remote=false;/* chỉ xét lại công trình của hàng xóm khi đất cắm, vùng liên minh hay việc ai thuộc liên minh nào THẬT SỰ đổi (trước: mỗi lần bất kỳ ai ghi gì cũng xét lại hết) */
+      let sg=landFar()?S.land:'';for(const u in MP.claims){const c=MP.claims[u];sg+=u+c.x+','+c.z+','+c.r+';';}for(const id in MP.clans){const c=MP.clans[id],z=c.zone;sg+=id+(z?z.x+','+z.z+','+z.r:'')+c.members.join()+'|';}for(const u in MP.players){const c=MP.players[u].clan;if(c)sg+=u+c+';';}
+      if(sg!==MP.rsg){MP.rsg=sg;for(const u of MP.bsub.keys())mpRemoteApply(u);}}for(const [k,o] of MP.offers)if(mpNow()-o.at>90000)MP.offers.delete(k);}
   if(t-T.near>3){T.near=t;mpNearTick();}if(t-T.ring>2){T.ring=t;mpRingTick();}if(t-T.sig>4){T.sig=t;mpSigTick();}
   if(MP.dirty.ui&&t-T.ui>0.6&&G.panel==='clan'){T.ui=t;MP.dirty.ui=false;const a=document.activeElement;if(!(a&&a.id==='mpChat'&&a.value)&&!(a&&a.id==='mpCn'))mpPanelRefresh();}}
 {const _at=animTick;animTick=function(dt){_at(dt);if(MP.started)try{mpTick(dt);}catch(e){if(!MP.tickErr){MP.tickErr=1;console.warn('chơi chung',e);}}};}
@@ -21099,6 +21103,26 @@ function dnFireflies(){const T=THREE,N=(G.q|0)>0?70:40,pos=new Float32Array(N*3)
     fragmentShader:'uniform float uK;varying float vA;void main(){float d=length(gl_PointCoord-0.5);float a=smoothstep(0.5,0.0,d);gl_FragColor=vec4(vec3(0.85,1.0,0.35)*a*vA*uK*1.6,a*vA*uK);}'});
   const f=new T.Points(g,m);f.frustumCulled=false;f.position.set(1e9,0,1e9);G.sc.add(f);DN.ff=f;}
 {const _st=skyTick;skyTick=function(){_st.apply(this,arguments);try{dnTick();}catch(e){if(!DN.err){DN.err=1;console.warn('đêm, nước',e);}}};}
+/* ---------- MÁY ĐO GIẬT ----------
+   Game tự ghi mỗi lần khựng (một khung hình lâu hơn 50 ms) và phần nào chiếm nhiều thời gian nhất trong khung đó.
+   Xem ở Cài đặt → "Đo giật": số lần trong 5 phút gần nhất, lần nặng nhất, do phần nào. Chụp màn hình gửi người làm game là biết chỗ sửa.
+   Gọi ldGiat() trong bảng điều khiển để xem chi tiết. Chi phí đo: vài phép đọc đồng hồ mỗi khung hình. */
+const DG={acc:{},ev:[],last:0,on:1,N:{animTick:'chuyển động, chơi chung',mpTick:'chơi chung',ldbEmit:'nhận dữ liệu máy chủ',foesTick:'kẻ địch, lính',folkTick:'người làng',skyTick:'trời, nước',grassTick:'cỏ',cullTick:'ẩn hiện cây cối',save:'ghi bản lưu',uiHud:'bảng chỉ số',miniTick:'bản đồ nhỏ',dayTick:'ngày đêm',aqTick:'Tự làm',animalsTick:'thú',cropsTick:'cây trồng',rlTick:'lãnh địa',rlMpCalc:'tính giữ đất',mpRemoteApply:'công trình hàng xóm',pvpIn:'biên bản cướp phá',perfTick:'cân chỉnh độ nét',ve:'vẽ hình (card đồ hoạ)'}};
+(function(){for(const n of Object.keys(DG.N)){if(n==='ve')continue;try{const f=(0,eval)(n);if(typeof f!=='function')continue;window.__dgw=function(){const t=performance.now();try{return f.apply(this,arguments);}finally{DG.acc[n]=(DG.acc[n]||0)+performance.now()-t;}};(0,eval)(n+'=__dgw');}catch(e){}}try{delete window.__dgw;}catch(e){}
+  const fr=()=>{requestAnimationFrame(fr);const now=performance.now();try{
+      if(typeof G!=='undefined'&&G.on&&G.R&&!G.R.__dg){G.R.__dg=1;const r=G.R.render;G.R.render=function(){const t=performance.now();try{return r.apply(this,arguments);}finally{DG.acc.ve=(DG.acc.ve||0)+performance.now()-t;}};}
+      const d=now-DG.last;if(DG.last&&d>50&&d<3000&&typeof G!=='undefined'&&G.on&&!G.paused&&!document.hidden&&G.t>15){let bk='',bv=0,sum=0;for(const k in DG.acc){const v=DG.acc[k];if(k!=='animTick')sum+=v;if(v>bv&&k!=='animTick'){bv=v;bk=k;}}
+        /* phần đo được chiếm dưới 35% thời gian khung: việc nằm ngoài mã game (trình duyệt dọn bộ nhớ, card đồ hoạ, máy bận việc khác) */
+        DG.ev.push([Date.now(),Math.round(d),bv>d*0.35?bk:'ngoai',Math.round(bv)]);if(DG.ev.length>400)DG.ev.splice(0,100);}
+    }catch(e){}DG.acc={};DG.last=now;};requestAnimationFrame(fr);
+  document.addEventListener('visibilitychange',()=>{DG.last=0;});})();
+function ldGiat(){const now=Date.now(),E=DG.ev.filter(e=>now-e[0]<300000),by={};for(const e of E){const a=by[e[2]]||(by[e[2]]={n:0,max:0});a.n++;a.max=Math.max(a.max,e[1]);}
+  const L=Object.entries(by).sort((a,b)=>b[1].n-a[1].n).map(([k,a])=>(k==='ngoai'?'ngoài mã game (trình duyệt, card đồ hoạ)':DG.N[k]||k)+': '+a.n+' lần, nặng nhất '+a.max+' ms');
+  return {lan:E.length,nangNhat:E.reduce((m,e)=>Math.max(m,e[1]),0),theo:L};}
+setInterval(()=>{try{if(typeof G==='undefined'||!G.on||G.panel!=='settings')return;const bd=document.querySelector('#panel .p-body');if(!bd)return;let el=bd.querySelector('.dg-b');const r=ldGiat();
+    const h=`<b>📈 Đo giật (5 phút gần nhất)</b><span class="small muted">${r.lan?`Khựng <b>${r.lan}</b> lần, nặng nhất <b>${r.nangNhat} ms</b>.<br>${r.theo.slice(0,4).map(esc).join('<br>')}`:'Chưa ghi nhận lần khựng nào.'}</span>`;
+    if(!el){el=document.createElement('div');el.className='dg-b';const hn=bd.querySelector('.hn-b');if(hn)hn.after(el);else bd.prepend(el);}if(el.innerHTML!==h)el.innerHTML=h;}catch(e){}},1500);
+{const s=document.createElement('style');s.textContent='#game .panel .dg-b{display:flex;flex-direction:column;gap:3px;padding:9px 11px;margin-bottom:10px;border-radius:12px;background:rgba(120,160,230,.08);border:1px solid rgba(120,160,230,.35);font-size:14px}';document.head.appendChild(s);}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
