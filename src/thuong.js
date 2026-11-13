@@ -46,3 +46,7 @@ try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITE
       rồi hết 20 giây lại bỏ, sói lại vồ). Ưu tiên giáo > chùy/kiếm > rìu > dao. Cho đánh tới 35 giây. */
 {const _f=AUJ.fight;AUJ.fight=function(j){try{if(!j.wp){j.wp=1;let best=-1,bp=0;for(let i=0;i<S.inv.length;i++){const s=S.inv[i],I=s&&ITEMS[s.id];if(!I||I.t!=='tool'||!['spear','club','axe','knife'].includes(I.tool))continue;if(typeof l4D==='function'&&l4D(s)!=null&&l4D(s)<=0)continue;const p=(I.pow||1)+(I.tool==='spear'?0.5:0);if(p>bp){bp=p;best=i;}}
       if(best>=0){if(best>=HOTN){const t=S.inv[0];S.inv[0]=S.inv[best];S.inv[best]=t;best=0;}S.sel=best;equip(selTool());try{uiHotbar();}catch(e){}}j.t0=G.t+15;}}catch(e){}return _f.apply(this,arguments);};}
+/* 9. Khát cạn giữa chuỗi việc khẩn: khi đang "về sưởi", "về ngủ", "chữa thương"… thì việc đi uống nước không được chen vào (đã có việc khẩn),
+      chuỗi việc khẩn kéo dài là nước tụt về 0 (chạy thử: rét ướt → về sưởi → buồn ngủ → về ngủ, nước 0). Giờ nước dưới 8 thì chen đi uống trước, trừ lúc đang chạy thú hoặc đánh nhau. */
+{const _sf=aqSafety;aqSafety=function(){const r=_sf.apply(this,arguments);try{if(!AQ.on||!AQ.jobs.length||G.sleeping||G.work)return r;const top=AQ.jobs[AQ.jobs.length-1];
+    if(S.p.water<8&&top&&top.k!=='drink'&&!aqHasUrgent('drink')&&!aqHasUrgent('flee')&&!aqHasUrgent('fight')&&G.t-(AQ._kdT||-99)>40){AQ._kdT=G.t;aqPush({k:'drink',urgent:1,tries:0},top);aqSay('🤖 Khát quá: đi uống nước trước đã.','bad');}}catch(e){}return r;};}

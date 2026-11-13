@@ -3,16 +3,24 @@
    Game gọi save() ở gần 300 chỗ (mỗi lần nhặt đồ, người làng cất đồ, xong một việc…); mỗi lần là đóng gói TOÀN BỘ ván chơi rồi ghi xuống máy hai lần.
    Giờ: save() chỉ đánh dấu "cần lưu"; việc ghi thật diễn ra tối đa 20 giây một lần. Ghi NGAY khi: rời trang / chuyển ứng dụng, đang mở Cài đặt,
    sắp đẩy bản lưu lên máy chủ, hoặc gọi saveNow(). Mất điện đột ngột thì mất tối đa 20 giây gần nhất. */
-const LTH2={t:0,pend:0,timer:null,GAP:20000,req:0,by:{},last:null};
+const LTH2={t:0,pend:0,timer:null,GAP:45000,req:0,by:{},last:null};
 {const _real=save;
   window.saveNow=function(){LTH2.pend=0;if(LTH2.timer){clearTimeout(LTH2.timer);LTH2.timer=null;}LTH2.t=performance.now();const t0=LTH2.t;try{return _real.apply(this,arguments);}finally{try{LTH2.last={ms:Math.round(performance.now()-t0),at:Date.now()};}catch(e){}}};
   save=function(){try{LTH2.req++;if(LTH2.req<=400){/* ghi lại ai gọi lưu nhiều nhất (xem ở Cài đặt → Đo giật) */const st=(new Error().stack||'').split('\n')[2]||'';const m=st.match(/at ([A-Za-z0-9_$.]+)/);const k=m?m[1]:'?';LTH2.by[k]=(LTH2.by[k]||0)+1;}}catch(e){}
-    const now=performance.now();if(typeof G==='undefined'||!G.on||G.panel==='settings'||now-LTH2.t>=LTH2.GAP)return saveNow();
+    const now=performance.now();if(typeof G==='undefined'||!G.on||G.panel==='settings')return saveNow();if(now-LTH2.t>=LTH2.GAP){LTH2.pend=1;if(!LTH2.timer)LTH2.timer=setTimeout(lth2Fire,0);return;}
     LTH2.pend=1;if(!LTH2.timer)LTH2.timer=setTimeout(lth2Fire,Math.max(200,LTH2.GAP-(now-LTH2.t)));};}
 /* tới hạn ghi: nếu nhân vật đang chạy/đi thì chờ lúc đứng yên, đang làm việc hoặc mở bảng (khựng lúc đó khó thấy hơn nhiều), tối đa chờ thêm 40 giây */
-function lth2Fire(){LTH2.timer=null;if(!LTH2.pend)return;try{const moving=typeof P!=='undefined'&&typeof G!=='undefined'&&G.on&&!G.panel&&!G.work&&!G.sit&&!G.sleeping&&(P.speed||0)>8;if(moving&&performance.now()-LTH2.t<LTH2.GAP+40000){LTH2.timer=setTimeout(lth2Fire,700);return;}}catch(e){}try{saveNow();}catch(e){}}
-if(typeof accPush==='function'){const _ap=accPush;accPush=function(){try{if(LTH2.pend)saveNow();}catch(e){}return _ap.apply(this,arguments);};}
-addEventListener('pagehide',()=>{try{if(LTH2.pend)saveNow();}catch(e){}},true);addEventListener('beforeunload',()=>{try{if(LTH2.pend)saveNow();}catch(e){}},true);
-document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState!=='visible'&&LTH2.pend)saveNow();}catch(e){}},true);
+/* Ghi GỌN cho lần ghi định kỳ: số đo trên máy người chơi cho thấy bản lưu chỉ 37 KB mà mỗi lần ghi mất 300-900 ms, tức thao tác ghi xuống máy rất chậm ở đó.
+   Bản ghi đầy đủ làm 4 thao tác với bộ nhớ máy (ghi bản chung, đọc lại, ghi bản của nhân vật, ghi danh sách nhân vật). Bản gọn chỉ ghi MỘT lần vào ngăn của nhân vật
+   (đủ để vào lại game và để đẩy lên máy chủ); bản chung và danh sách nhân vật được ghi khi rời trang, mở Cài đặt. Đo riêng thời gian đóng gói và thời gian ghi. */
+function lth2Lean(){try{if(typeof curSlot!=='function'||typeof ACC==='undefined')return false;const id=curSlot();if(!id||!S||!G.on||ACC.stop||G.ldLeaving===2)return false;
+    S.p.x=+P.x.toFixed(1);S.p.z=+P.z.toFixed(1);S.p.ry=+P.ry.toFixed(2);try{if(G.hoIn&&typeof hoS==='function')hoS().out=Date.now();}catch(e){}
+    const t0=performance.now(),raw=JSON.stringify(S,(k,v)=>k&&k[0]==='_'?undefined:v),t1=performance.now();localStorage.setItem(SKEY+'#'+id,raw);const t2=performance.now();
+    LTH2.pend=0;if(LTH2.timer){clearTimeout(LTH2.timer);LTH2.timer=null;}LTH2.t=t2;LTH2.last={ms:Math.round(t2-t0),goi:Math.round(t1-t0),dia:Math.round(t2-t1),gon:1,at:Date.now()};LTH2.plain=1;
+    if(ACC.db&&Date.now()-ACC.lastPush>60000)try{accPush(id);}catch(e){}return true;}catch(e){return false;}}
+function lth2Fire(){LTH2.timer=null;if(!LTH2.pend)return;try{const moving=typeof P!=='undefined'&&typeof G!=='undefined'&&G.on&&!G.panel&&!G.work&&!G.sit&&!G.sleeping&&(P.speed||0)>8;if(moving&&performance.now()-LTH2.t<LTH2.GAP+40000){LTH2.timer=setTimeout(lth2Fire,700);return;}}catch(e){}try{if(!lth2Lean())saveNow();}catch(e){}}
+if(typeof accPush==='function'){const _ap=accPush;accPush=function(){try{if(LTH2.pend&&!lth2Lean())saveNow();}catch(e){}return _ap.apply(this,arguments);};}
+addEventListener('pagehide',()=>{try{if(LTH2.pend||LTH2.plain){LTH2.plain=0;saveNow();}}catch(e){}},true);addEventListener('beforeunload',()=>{try{if(LTH2.pend||LTH2.plain){LTH2.plain=0;saveNow();}}catch(e){}},true);
+document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState!=='visible'&&(LTH2.pend||LTH2.plain)){LTH2.plain=0;saveNow();}}catch(e){}},true);
 // cho Cài đặt → Đo giật: bản lưu nặng bao nhiêu, phần nào chiếm chỗ, ai gọi lưu nhiều
 function ldLuu(){const o={goi:LTH2.req,lanCuoi:LTH2.last,nhieu:Object.entries(LTH2.by).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]+' ×'+e[1])};try{if(!LTH2.sz||Date.now()-LTH2.szT>60000){LTH2.szT=Date.now();const L=[];let tot=0;for(const k in S){if(k[0]==='_')continue;let n=0;try{n=JSON.stringify(S[k],(q,v)=>q&&q[0]==='_'?undefined:v).length;}catch(e){}tot+=n;L.push([k,n]);}L.sort((a,b)=>b[1]-a[1]);LTH2.sz={tong:tot,lon:L.slice(0,4).map(e=>e[0]+' '+Math.round(e[1]/1024)+'KB')};}o.co=LTH2.sz;}catch(e){}return o;}

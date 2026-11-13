@@ -15,7 +15,8 @@ function hnApply(){try{if(typeof G==='undefined'||!G.R||!G.cam)return;const L=HN
 (function(){const tick=()=>{HNG.fr++;requestAnimationFrame(tick);};requestAnimationFrame(tick);
   setInterval(()=>{try{const fr=HNG.fr;HNG.fr=0;if(typeof G==='undefined'||!G.on||G.paused||document.hidden||!fr){HNG.lo=HNG.hi=0;return;}const fps=fr/3;HNG.fps=fps;if(!HNG.auto)return;
       if(G.t<12||(G.t-HNG.t)<9){HNG.lo=HNG.hi=0;return;}/* mới vào game / vừa đổi nấc: chờ ổn định */
-      if(fps<26&&(G.prK||1)<=0.62){HNG.hi=0;if(++HNG.lo>=2&&HNG.lv<3){HNG.lo=0;const up=G.t-(HNG.upT||-999)<25;HNG.lv++;HNG.t=G.t;if(up)HNG.lock=G.t+300;hnApply();if(!HNG.told){HNG.told=1;uiToast('⚙️ Máy đang nặng: game tự giảm tầm nhìn cho mượt. Tắt ở Cài đặt → "Tự cân chỉnh cho mượt".','');}}}
+      if(HNG.lv>=3&&fps<46&&(G.q|0)>0&&!HNG.qStop){/* đã giảm hết tầm nhìn, độ nét mà vẫn nặng: hạ luôn mức chất lượng (Đẹp → Vừa → Nhẹ). Người chơi chọn lại mức cao hơn thì thôi không tự hạ nữa trong lần chơi này. */HNG.hi=0;if(++HNG.lo>=3){HNG.lo=0;G.q=(G.q|0)-1;HNG.qAuto=G.q;HNG.t=G.t;try{applyQ();}catch(e){}uiToast('⚙️ Máy vẫn nặng: game hạ chất lượng xuống '+(G.q===1?'Vừa':'Nhẹ')+' cho mượt. Muốn đổi lại: Cài đặt → Đồ họa.','');try{if(G.panel==='settings')uiOpenRefresh();}catch(e){}}}
+      else if(fps<26&&(G.prK||1)<=0.62){HNG.hi=0;if(++HNG.lo>=2&&HNG.lv<3){HNG.lo=0;const up=G.t-(HNG.upT||-999)<25;HNG.lv++;HNG.t=G.t;if(up)HNG.lock=G.t+300;hnApply();if(!HNG.told){HNG.told=1;uiToast('⚙️ Máy đang nặng: game tự giảm tầm nhìn cho mượt. Tắt ở Cài đặt → "Tự cân chỉnh cho mượt".','');}}}
       else if(fps>50){HNG.lo=0;if(++HNG.hi>=10&&HNG.lv>0&&G.t>HNG.lock){HNG.hi=0;HNG.lv--;HNG.t=G.t;HNG.upT=G.t;hnApply();}}
       else{HNG.lo=0;HNG.hi=0;}}catch(e){}},3000);})();
 /* công tắc trong Cài đặt */
@@ -26,3 +27,6 @@ document.addEventListener('change',e=>{const b=e.target;if(!b||!b.dataset||b.dat
 /* CHỐNG GIẬT khi đi tới vùng mới: bộ vẽ chỉ biên dịch chương trình tô bóng của một vật vào đúng lần đầu vật đó hiện ra, làm khựng một nhịp giữa lúc chơi.
    Biên dịch sẵn toàn bộ ngay lúc vừa vào game (đang còn màn mở đầu), và làm lại một lần mỗi khi số chương trình tăng thêm nhiều (dựng công trình loại mới). */
 setInterval(()=>{try{if(typeof G==='undefined'||!G.on||!G.R||!G.sc||!G.cam||G.t<1.5)return;if(!HNG.comp){HNG.comp=1;G.R.compile(G.sc,G.cam);HNG.np=(G.R.info.programs||[]).length;}}catch(e){}},1000);
+
+/* người chơi tự chọn mức cao hơn mức game vừa tự hạ: tôn trọng, không tự hạ nữa */
+document.addEventListener('click',e=>{try{const b=e.target&&e.target.closest&&e.target.closest('[data-a="q"]');if(b&&HNG.qAuto!=null&&+b.dataset.v>HNG.qAuto)HNG.qStop=1;}catch(er){}},true);

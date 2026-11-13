@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113093957">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113095526">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -19894,6 +19894,10 @@ try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITE
       rồi hết 20 giây lại bỏ, sói lại vồ). Ưu tiên giáo > chùy/kiếm > rìu > dao. Cho đánh tới 35 giây. */
 {const _f=AUJ.fight;AUJ.fight=function(j){try{if(!j.wp){j.wp=1;let best=-1,bp=0;for(let i=0;i<S.inv.length;i++){const s=S.inv[i],I=s&&ITEMS[s.id];if(!I||I.t!=='tool'||!['spear','club','axe','knife'].includes(I.tool))continue;if(typeof l4D==='function'&&l4D(s)!=null&&l4D(s)<=0)continue;const p=(I.pow||1)+(I.tool==='spear'?0.5:0);if(p>bp){bp=p;best=i;}}
       if(best>=0){if(best>=HOTN){const t=S.inv[0];S.inv[0]=S.inv[best];S.inv[best]=t;best=0;}S.sel=best;equip(selTool());try{uiHotbar();}catch(e){}}j.t0=G.t+15;}}catch(e){}return _f.apply(this,arguments);};}
+/* 9. Khát cạn giữa chuỗi việc khẩn: khi đang "về sưởi", "về ngủ", "chữa thương"… thì việc đi uống nước không được chen vào (đã có việc khẩn),
+      chuỗi việc khẩn kéo dài là nước tụt về 0 (chạy thử: rét ướt → về sưởi → buồn ngủ → về ngủ, nước 0). Giờ nước dưới 8 thì chen đi uống trước, trừ lúc đang chạy thú hoặc đánh nhau. */
+{const _sf=aqSafety;aqSafety=function(){const r=_sf.apply(this,arguments);try{if(!AQ.on||!AQ.jobs.length||G.sleeping||G.work)return r;const top=AQ.jobs[AQ.jobs.length-1];
+    if(S.p.water<8&&top&&top.k!=='drink'&&!aqHasUrgent('drink')&&!aqHasUrgent('flee')&&!aqHasUrgent('fight')&&G.t-(AQ._kdT||-99)>40){AQ._kdT=G.t;aqPush({k:'drink',urgent:1,tries:0},top);aqSay('🤖 Khát quá: đi uống nước trước đã.','bad');}}catch(e){}return r;};}
 /* ===================== GIỮ MÀN HÌNH SÁNG KHI TỰ LÀM · TỰ LÀM TIẾP SAU KHI TRANG TẢI LẠI =====================
    Trên điện thoại, bật Tự làm rồi để yên thì: (1) không ai chạm nên máy tự tắt màn hình, game ngừng; (2) quay lại, trình duyệt / ứng dụng thường tải lại trang,
    mà chế độ Tự làm trước đây không được ghi nhớ nên phải bấm lại. Giờ:
@@ -20850,7 +20854,8 @@ function hnApply(){try{if(typeof G==='undefined'||!G.R||!G.cam)return;const L=HN
 (function(){const tick=()=>{HNG.fr++;requestAnimationFrame(tick);};requestAnimationFrame(tick);
   setInterval(()=>{try{const fr=HNG.fr;HNG.fr=0;if(typeof G==='undefined'||!G.on||G.paused||document.hidden||!fr){HNG.lo=HNG.hi=0;return;}const fps=fr/3;HNG.fps=fps;if(!HNG.auto)return;
       if(G.t<12||(G.t-HNG.t)<9){HNG.lo=HNG.hi=0;return;}/* mới vào game / vừa đổi nấc: chờ ổn định */
-      if(fps<26&&(G.prK||1)<=0.62){HNG.hi=0;if(++HNG.lo>=2&&HNG.lv<3){HNG.lo=0;const up=G.t-(HNG.upT||-999)<25;HNG.lv++;HNG.t=G.t;if(up)HNG.lock=G.t+300;hnApply();if(!HNG.told){HNG.told=1;uiToast('⚙️ Máy đang nặng: game tự giảm tầm nhìn cho mượt. Tắt ở Cài đặt → "Tự cân chỉnh cho mượt".','');}}}
+      if(HNG.lv>=3&&fps<46&&(G.q|0)>0&&!HNG.qStop){/* đã giảm hết tầm nhìn, độ nét mà vẫn nặng: hạ luôn mức chất lượng (Đẹp → Vừa → Nhẹ). Người chơi chọn lại mức cao hơn thì thôi không tự hạ nữa trong lần chơi này. */HNG.hi=0;if(++HNG.lo>=3){HNG.lo=0;G.q=(G.q|0)-1;HNG.qAuto=G.q;HNG.t=G.t;try{applyQ();}catch(e){}uiToast('⚙️ Máy vẫn nặng: game hạ chất lượng xuống '+(G.q===1?'Vừa':'Nhẹ')+' cho mượt. Muốn đổi lại: Cài đặt → Đồ họa.','');try{if(G.panel==='settings')uiOpenRefresh();}catch(e){}}}
+      else if(fps<26&&(G.prK||1)<=0.62){HNG.hi=0;if(++HNG.lo>=2&&HNG.lv<3){HNG.lo=0;const up=G.t-(HNG.upT||-999)<25;HNG.lv++;HNG.t=G.t;if(up)HNG.lock=G.t+300;hnApply();if(!HNG.told){HNG.told=1;uiToast('⚙️ Máy đang nặng: game tự giảm tầm nhìn cho mượt. Tắt ở Cài đặt → "Tự cân chỉnh cho mượt".','');}}}
       else if(fps>50){HNG.lo=0;if(++HNG.hi>=10&&HNG.lv>0&&G.t>HNG.lock){HNG.hi=0;HNG.lv--;HNG.t=G.t;HNG.upT=G.t;hnApply();}}
       else{HNG.lo=0;HNG.hi=0;}}catch(e){}},3000);})();
 /* công tắc trong Cài đặt */
@@ -20861,6 +20866,9 @@ document.addEventListener('change',e=>{const b=e.target;if(!b||!b.dataset||b.dat
 /* CHỐNG GIẬT khi đi tới vùng mới: bộ vẽ chỉ biên dịch chương trình tô bóng của một vật vào đúng lần đầu vật đó hiện ra, làm khựng một nhịp giữa lúc chơi.
    Biên dịch sẵn toàn bộ ngay lúc vừa vào game (đang còn màn mở đầu), và làm lại một lần mỗi khi số chương trình tăng thêm nhiều (dựng công trình loại mới). */
 setInterval(()=>{try{if(typeof G==='undefined'||!G.on||!G.R||!G.sc||!G.cam||G.t<1.5)return;if(!HNG.comp){HNG.comp=1;G.R.compile(G.sc,G.cam);HNG.np=(G.R.info.programs||[]).length;}}catch(e){}},1000);
+
+/* người chơi tự chọn mức cao hơn mức game vừa tự hạ: tôn trọng, không tự hạ nữa */
+document.addEventListener('click',e=>{try{const b=e.target&&e.target.closest&&e.target.closest('[data-a="q"]');if(b&&HNG.qAuto!=null&&+b.dataset.v>HNG.qAuto)HNG.qStop=1;}catch(er){}},true);
 /* ===================== HÌNH VẬT PHẨM ĐÚNG VỚI MÓN ĐỒ =====================
    Trước: món nào chưa có mô hình riêng thì hiện biểu tượng cảm xúc thay thế (liềm là mặt trăng, giáo là đinh ba, mũ đồng là mũ cứu hộ, giáp da là áo phản quang…).
    Giờ: · Vũ khí, dụng cụ: chụp đúng mô hình mà nhân vật cầm trên tay.
@@ -21156,19 +21164,20 @@ function dnFireflies(){const T=THREE,N=(G.q|0)>0?70:40,pos=new Float32Array(N*3)
    Gọi ldGiat() trong bảng điều khiển để xem chi tiết. Chi phí đo: vài phép đọc đồng hồ mỗi khung hình. */
 const DG={acc:{},ev:[],last:0,on:1,N:{animTick:'chuyển động, chơi chung',mpTick:'chơi chung',ldbEmit:'nhận dữ liệu máy chủ',foesTick:'kẻ địch, lính',folkTick:'người làng',skyTick:'trời, nước',grassTick:'cỏ',cullTick:'ẩn hiện cây cối',save:'ghi bản lưu',uiHud:'bảng chỉ số',miniTick:'bản đồ nhỏ',dayTick:'ngày đêm',aqTick:'Tự làm',animalsTick:'thú',cropsTick:'cây trồng',rlTick:'lãnh địa',rlMpCalc:'tính giữ đất',mpRemoteApply:'công trình hàng xóm',pvpIn:'biên bản cướp phá',perfTick:'cân chỉnh độ nét',ve:'vẽ hình (card đồ hoạ)'}};
 (function(){for(const n of Object.keys(DG.N)){if(n==='ve')continue;try{const f=(0,eval)(n);if(typeof f!=='function')continue;window.__dgw=function(){const t=performance.now();try{return f.apply(this,arguments);}finally{DG.acc[n]=(DG.acc[n]||0)+performance.now()-t;}};(0,eval)(n+'=__dgw');}catch(e){}}try{delete window.__dgw;}catch(e){}
+  try{const lf=loop;loop=function(){const t=performance.now();try{return lf.apply(this,arguments);}finally{DG.acc.__loop=(DG.acc.__loop||0)+performance.now()-t;}};}catch(e){}
   const fr=()=>{requestAnimationFrame(fr);const now=performance.now();try{
       if(typeof G!=='undefined'&&G.on&&G.R&&!G.R.__dg){G.R.__dg=1;const r=G.R.render;G.R.render=function(){const t=performance.now();try{return r.apply(this,arguments);}finally{DG.acc.ve=(DG.acc.ve||0)+performance.now()-t;}};}
-      const d=now-DG.last;if(DG.last&&d>50&&d<3000&&typeof G!=='undefined'&&G.on&&!G.paused&&!document.hidden&&G.t>15){let bk='',bv=0,sum=0;for(const k in DG.acc){const v=DG.acc[k];if(k!=='animTick')sum+=v;if(v>bv&&k!=='animTick'){bv=v;bk=k;}}
+      const d=now-DG.last;if(DG.last&&d>50&&d<3000&&typeof G!=='undefined'&&G.on&&!G.paused&&!document.hidden&&G.t>15){let bk='',bv=0,sum=0;for(const k in DG.acc){const v=DG.acc[k];if(k==='animTick'||k==='__loop')continue;sum+=v;if(v>bv){bv=v;bk=k;}}
         /* phần đo được chiếm dưới 35% thời gian khung: việc nằm ngoài mã game (trình duyệt dọn bộ nhớ, card đồ hoạ, máy bận việc khác) */
-        DG.ev.push([Date.now(),Math.round(d),bv>d*0.35?bk:'ngoai',Math.round(bv)]);if(DG.ev.length>400)DG.ev.splice(0,100);}
+        const lp=DG.acc.__loop||0;DG.ev.push([Date.now(),Math.round(d),bv>d*0.35?bk:(lp>d*0.55?'nhieu':'ngoai'),Math.round(bv)]);if(DG.ev.length>400)DG.ev.splice(0,100);}
     }catch(e){}DG.acc={};DG.last=now;};requestAnimationFrame(fr);
   document.addEventListener('visibilitychange',()=>{DG.last=0;});})();
 function ldGiat(){const now=Date.now(),E=DG.ev.filter(e=>now-e[0]<300000),by={};for(const e of E){const a=by[e[2]]||(by[e[2]]={n:0,max:0});a.n++;a.max=Math.max(a.max,e[1]);}
-  const L=Object.entries(by).sort((a,b)=>b[1].n-a[1].n).map(([k,a])=>(k==='ngoai'?'ngoài mã game (trình duyệt, card đồ hoạ)':DG.N[k]||k)+': '+a.n+' lần, nặng nhất '+a.max+' ms');
+  const L=Object.entries(by).sort((a,b)=>b[1].n-a[1].n).map(([k,a])=>(k==='ngoai'?'ngoài mã game (trình duyệt dọn bộ nhớ, card đồ hoạ)':k==='nhieu'?'mã game, nhiều phần nhỏ cộng lại':DG.N[k]||k)+': '+a.n+' lần, nặng nhất '+a.max+' ms');
   let nhip=0;if(E.length>2){const g=[];for(let i=1;i<E.length;i++)g.push((E[i][0]-E[i-1][0])/1000);g.sort((a,b)=>a-b);nhip=+g[Math.floor(g.length/2)].toFixed(1);}let bo=0;try{bo=Math.round(performance.memory.usedJSHeapSize/1e6);}catch(e){}
   return {lan:E.length,nangNhat:E.reduce((m,e)=>Math.max(m,e[1]),0),theo:L,nhip,boNho:bo};}
 setInterval(()=>{try{if(typeof G==='undefined'||!G.on||G.panel!=='settings')return;const bd=document.querySelector('#panel .p-body');if(!bd)return;let el=bd.querySelector('.dg-b');const r=ldGiat();
-    const h=`<b>📈 Đo giật (5 phút gần nhất)</b><span class="small muted">${r.lan?`Khựng <b>${r.lan}</b> lần, nặng nhất <b>${r.nangNhat} ms</b>${r.nhip?`, thường cách nhau <b>${r.nhip} giây</b>`:''}${r.boNho?` · bộ nhớ ${r.boNho} MB`:''}.<br>${r.theo.slice(0,4).map(esc).join('<br>')}`:'Chưa ghi nhận lần khựng nào.'}${(()=>{try{const u=ldLuu();return `<br>Bản lưu: ${u.co?Math.round(u.co.tong/1024)+' KB ('+u.co.lon.join(', ')+')':'?'}${u.lanCuoi?' · lần ghi gần nhất '+u.lanCuoi.ms+' ms':''} · yêu cầu lưu ${u.goi} lần${u.nhieu.length?' ('+u.nhieu.join(', ')+')':''}`;}catch(e){return '';}})()}</span>`;
+    const h=`<b>📈 Đo giật (5 phút gần nhất)</b><span class="small muted">${r.lan?`Khựng <b>${r.lan}</b> lần, nặng nhất <b>${r.nangNhat} ms</b>${r.nhip?`, thường cách nhau <b>${r.nhip} giây</b>`:''}${r.boNho?` · bộ nhớ ${r.boNho} MB`:''}.<br>${r.theo.slice(0,4).map(esc).join('<br>')}`:'Chưa ghi nhận lần khựng nào.'}${(()=>{try{const u=ldLuu();return `<br>Bản lưu: ${u.co?Math.round(u.co.tong/1024)+' KB ('+u.co.lon.join(', ')+')':'?'}${u.lanCuoi?' · lần ghi gần nhất '+u.lanCuoi.ms+' ms'+(u.lanCuoi.gon?' (đóng gói '+u.lanCuoi.goi+', ghi xuống máy '+u.lanCuoi.dia+')':''):''} · yêu cầu lưu ${u.goi} lần${u.nhieu.length?' ('+u.nhieu.join(', ')+')':''}`;}catch(e){return '';}})()}</span>`;
     if(!el){el=document.createElement('div');el.className='dg-b';const hn=bd.querySelector('.hn-b');if(hn)hn.after(el);else bd.prepend(el);}if(el.innerHTML!==h)el.innerHTML=h;}catch(e){}},1500);
 {const s=document.createElement('style');s.textContent='#game .panel .dg-b{display:flex;flex-direction:column;gap:3px;padding:9px 11px;margin-bottom:10px;border-radius:12px;background:rgba(120,160,230,.08);border:1px solid rgba(120,160,230,.35);font-size:14px}';document.head.appendChild(s);}
 /* ---------- ÂM THANH NỀN: suối chảy, lửa tí tách, gió ----------
@@ -21302,17 +21311,25 @@ const HV2=(()=>{const T=()=>THREE,M=(c,o)=>new THREE.MeshStandardMaterial(Object
    Game gọi save() ở gần 300 chỗ (mỗi lần nhặt đồ, người làng cất đồ, xong một việc…); mỗi lần là đóng gói TOÀN BỘ ván chơi rồi ghi xuống máy hai lần.
    Giờ: save() chỉ đánh dấu "cần lưu"; việc ghi thật diễn ra tối đa 20 giây một lần. Ghi NGAY khi: rời trang / chuyển ứng dụng, đang mở Cài đặt,
    sắp đẩy bản lưu lên máy chủ, hoặc gọi saveNow(). Mất điện đột ngột thì mất tối đa 20 giây gần nhất. */
-const LTH2={t:0,pend:0,timer:null,GAP:20000,req:0,by:{},last:null};
+const LTH2={t:0,pend:0,timer:null,GAP:45000,req:0,by:{},last:null};
 {const _real=save;
   window.saveNow=function(){LTH2.pend=0;if(LTH2.timer){clearTimeout(LTH2.timer);LTH2.timer=null;}LTH2.t=performance.now();const t0=LTH2.t;try{return _real.apply(this,arguments);}finally{try{LTH2.last={ms:Math.round(performance.now()-t0),at:Date.now()};}catch(e){}}};
   save=function(){try{LTH2.req++;if(LTH2.req<=400){/* ghi lại ai gọi lưu nhiều nhất (xem ở Cài đặt → Đo giật) */const st=(new Error().stack||'').split('\n')[2]||'';const m=st.match(/at ([A-Za-z0-9_$.]+)/);const k=m?m[1]:'?';LTH2.by[k]=(LTH2.by[k]||0)+1;}}catch(e){}
-    const now=performance.now();if(typeof G==='undefined'||!G.on||G.panel==='settings'||now-LTH2.t>=LTH2.GAP)return saveNow();
+    const now=performance.now();if(typeof G==='undefined'||!G.on||G.panel==='settings')return saveNow();if(now-LTH2.t>=LTH2.GAP){LTH2.pend=1;if(!LTH2.timer)LTH2.timer=setTimeout(lth2Fire,0);return;}
     LTH2.pend=1;if(!LTH2.timer)LTH2.timer=setTimeout(lth2Fire,Math.max(200,LTH2.GAP-(now-LTH2.t)));};}
 /* tới hạn ghi: nếu nhân vật đang chạy/đi thì chờ lúc đứng yên, đang làm việc hoặc mở bảng (khựng lúc đó khó thấy hơn nhiều), tối đa chờ thêm 40 giây */
-function lth2Fire(){LTH2.timer=null;if(!LTH2.pend)return;try{const moving=typeof P!=='undefined'&&typeof G!=='undefined'&&G.on&&!G.panel&&!G.work&&!G.sit&&!G.sleeping&&(P.speed||0)>8;if(moving&&performance.now()-LTH2.t<LTH2.GAP+40000){LTH2.timer=setTimeout(lth2Fire,700);return;}}catch(e){}try{saveNow();}catch(e){}}
-if(typeof accPush==='function'){const _ap=accPush;accPush=function(){try{if(LTH2.pend)saveNow();}catch(e){}return _ap.apply(this,arguments);};}
-addEventListener('pagehide',()=>{try{if(LTH2.pend)saveNow();}catch(e){}},true);addEventListener('beforeunload',()=>{try{if(LTH2.pend)saveNow();}catch(e){}},true);
-document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState!=='visible'&&LTH2.pend)saveNow();}catch(e){}},true);
+/* Ghi GỌN cho lần ghi định kỳ: số đo trên máy người chơi cho thấy bản lưu chỉ 37 KB mà mỗi lần ghi mất 300-900 ms, tức thao tác ghi xuống máy rất chậm ở đó.
+   Bản ghi đầy đủ làm 4 thao tác với bộ nhớ máy (ghi bản chung, đọc lại, ghi bản của nhân vật, ghi danh sách nhân vật). Bản gọn chỉ ghi MỘT lần vào ngăn của nhân vật
+   (đủ để vào lại game và để đẩy lên máy chủ); bản chung và danh sách nhân vật được ghi khi rời trang, mở Cài đặt. Đo riêng thời gian đóng gói và thời gian ghi. */
+function lth2Lean(){try{if(typeof curSlot!=='function'||typeof ACC==='undefined')return false;const id=curSlot();if(!id||!S||!G.on||ACC.stop||G.ldLeaving===2)return false;
+    S.p.x=+P.x.toFixed(1);S.p.z=+P.z.toFixed(1);S.p.ry=+P.ry.toFixed(2);try{if(G.hoIn&&typeof hoS==='function')hoS().out=Date.now();}catch(e){}
+    const t0=performance.now(),raw=JSON.stringify(S,(k,v)=>k&&k[0]==='_'?undefined:v),t1=performance.now();localStorage.setItem(SKEY+'#'+id,raw);const t2=performance.now();
+    LTH2.pend=0;if(LTH2.timer){clearTimeout(LTH2.timer);LTH2.timer=null;}LTH2.t=t2;LTH2.last={ms:Math.round(t2-t0),goi:Math.round(t1-t0),dia:Math.round(t2-t1),gon:1,at:Date.now()};LTH2.plain=1;
+    if(ACC.db&&Date.now()-ACC.lastPush>60000)try{accPush(id);}catch(e){}return true;}catch(e){return false;}}
+function lth2Fire(){LTH2.timer=null;if(!LTH2.pend)return;try{const moving=typeof P!=='undefined'&&typeof G!=='undefined'&&G.on&&!G.panel&&!G.work&&!G.sit&&!G.sleeping&&(P.speed||0)>8;if(moving&&performance.now()-LTH2.t<LTH2.GAP+40000){LTH2.timer=setTimeout(lth2Fire,700);return;}}catch(e){}try{if(!lth2Lean())saveNow();}catch(e){}}
+if(typeof accPush==='function'){const _ap=accPush;accPush=function(){try{if(LTH2.pend&&!lth2Lean())saveNow();}catch(e){}return _ap.apply(this,arguments);};}
+addEventListener('pagehide',()=>{try{if(LTH2.pend||LTH2.plain){LTH2.plain=0;saveNow();}}catch(e){}},true);addEventListener('beforeunload',()=>{try{if(LTH2.pend||LTH2.plain){LTH2.plain=0;saveNow();}}catch(e){}},true);
+document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState!=='visible'&&(LTH2.pend||LTH2.plain)){LTH2.plain=0;saveNow();}}catch(e){}},true);
 // cho Cài đặt → Đo giật: bản lưu nặng bao nhiêu, phần nào chiếm chỗ, ai gọi lưu nhiều
 function ldLuu(){const o={goi:LTH2.req,lanCuoi:LTH2.last,nhieu:Object.entries(LTH2.by).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]+' ×'+e[1])};try{if(!LTH2.sz||Date.now()-LTH2.szT>60000){LTH2.szT=Date.now();const L=[];let tot=0;for(const k in S){if(k[0]==='_')continue;let n=0;try{n=JSON.stringify(S[k],(q,v)=>q&&q[0]==='_'?undefined:v).length;}catch(e){}tot+=n;L.push([k,n]);}L.sort((a,b)=>b[1]-a[1]);LTH2.sz={tong:tot,lon:L.slice(0,4).map(e=>e[0]+' '+Math.round(e[1]/1024)+'KB')};}o.co=LTH2.sz;}catch(e){}return o;}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
