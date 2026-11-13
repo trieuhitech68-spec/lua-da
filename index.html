@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113140644">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113142548">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -19903,6 +19903,11 @@ try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITE
       chuỗi việc khẩn kéo dài là nước tụt về 0 (chạy thử: rét ướt → về sưởi → buồn ngủ → về ngủ, nước 0). Giờ nước dưới 8 thì chen đi uống trước, trừ lúc đang chạy thú hoặc đánh nhau. */
 {const _sf=aqSafety;aqSafety=function(){const r=_sf.apply(this,arguments);try{if(!AQ.on||!AQ.jobs.length||G.sleeping||G.work)return r;const top=AQ.jobs[AQ.jobs.length-1];
     if(S.p.water<8&&top&&top.k!=='drink'&&!aqHasUrgent('drink')&&!aqHasUrgent('flee')&&!aqHasUrgent('fight')&&G.t-(AQ._kdT||-99)>40){AQ._kdT=G.t;aqPush({k:'drink',urgent:1,tries:0},top);aqSay('🤖 Khát quá: đi uống nước trước đã.','bad');}}catch(e){}return r;};}
+/* 10. Luôn giữ một món vũ khí tử tế: đi săn hay phóng giáo rồi mất, gãy; còn mỗi con dao thì gặp chiến binh thù địch là bị đánh gục (chạy thử: chết ở nhiệm vụ 36, trong túi chỉ có dao).
+       Mỗi phút xét một lần: trong túi không còn giáo, chùy, kiếm mà đủ vật liệu thì tự chế lại một cây giáo trước khi làm việc khác. */
+{const _sf=aqSafety;aqSafety=function(){const r=_sf.apply(this,arguments);try{if(!AQ.on||!AQ.jobs.length||G.sleeping||G.work||aqHasUrgent())return r;if(G.t-(AQ._wpT||-99)<60)return r;AQ._wpT=G.t;
+    if(hasTool('spear')||hasTool('club'))return r;if(AQ.jobs.some(j=>j.k==='craft'&&j._wp))return r;const rc=typeof aqRecipe==='function'?aqRecipe('spear'):null;if(!rc||!lvOk(rc.lv)||(rc.age&&(S.age||0)<rc.age)||!canPay(rc.in))return r;
+    const top=AQ.jobs[AQ.jobs.length-1];aqPush({k:'craft',r:rc,_wp:1,until:()=>invCount('spear')>0,lab:'Làm lại cây giáo phòng thân'},top);aqSay('🤖 Hết vũ khí tử tế: làm lại một cây giáo phòng thân.','');}catch(e){}return r;};}
 /* ===================== GIỮ MÀN HÌNH SÁNG KHI TỰ LÀM · TỰ LÀM TIẾP SAU KHI TRANG TẢI LẠI =====================
    Trên điện thoại, bật Tự làm rồi để yên thì: (1) không ai chạm nên máy tự tắt màn hình, game ngừng; (2) quay lại, trình duyệt / ứng dụng thường tải lại trang,
    mà chế độ Tự làm trước đây không được ghi nhớ nên phải bấm lại. Giờ:

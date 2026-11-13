@@ -50,3 +50,8 @@ try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITE
       chuỗi việc khẩn kéo dài là nước tụt về 0 (chạy thử: rét ướt → về sưởi → buồn ngủ → về ngủ, nước 0). Giờ nước dưới 8 thì chen đi uống trước, trừ lúc đang chạy thú hoặc đánh nhau. */
 {const _sf=aqSafety;aqSafety=function(){const r=_sf.apply(this,arguments);try{if(!AQ.on||!AQ.jobs.length||G.sleeping||G.work)return r;const top=AQ.jobs[AQ.jobs.length-1];
     if(S.p.water<8&&top&&top.k!=='drink'&&!aqHasUrgent('drink')&&!aqHasUrgent('flee')&&!aqHasUrgent('fight')&&G.t-(AQ._kdT||-99)>40){AQ._kdT=G.t;aqPush({k:'drink',urgent:1,tries:0},top);aqSay('🤖 Khát quá: đi uống nước trước đã.','bad');}}catch(e){}return r;};}
+/* 10. Luôn giữ một món vũ khí tử tế: đi săn hay phóng giáo rồi mất, gãy; còn mỗi con dao thì gặp chiến binh thù địch là bị đánh gục (chạy thử: chết ở nhiệm vụ 36, trong túi chỉ có dao).
+       Mỗi phút xét một lần: trong túi không còn giáo, chùy, kiếm mà đủ vật liệu thì tự chế lại một cây giáo trước khi làm việc khác. */
+{const _sf=aqSafety;aqSafety=function(){const r=_sf.apply(this,arguments);try{if(!AQ.on||!AQ.jobs.length||G.sleeping||G.work||aqHasUrgent())return r;if(G.t-(AQ._wpT||-99)<60)return r;AQ._wpT=G.t;
+    if(hasTool('spear')||hasTool('club'))return r;if(AQ.jobs.some(j=>j.k==='craft'&&j._wp))return r;const rc=typeof aqRecipe==='function'?aqRecipe('spear'):null;if(!rc||!lvOk(rc.lv)||(rc.age&&(S.age||0)<rc.age)||!canPay(rc.in))return r;
+    const top=AQ.jobs[AQ.jobs.length-1];aqPush({k:'craft',r:rc,_wp:1,until:()=>invCount('spear')>0,lab:'Làm lại cây giáo phòng thân'},top);aqSay('🤖 Hết vũ khí tử tế: làm lại một cây giáo phòng thân.','');}catch(e){}return r;};}
