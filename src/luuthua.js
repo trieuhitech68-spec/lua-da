@@ -8,7 +8,9 @@ const LTH2={t:0,pend:0,timer:null,GAP:20000,req:0,by:{},last:null};
   window.saveNow=function(){LTH2.pend=0;if(LTH2.timer){clearTimeout(LTH2.timer);LTH2.timer=null;}LTH2.t=performance.now();const t0=LTH2.t;try{return _real.apply(this,arguments);}finally{try{LTH2.last={ms:Math.round(performance.now()-t0),at:Date.now()};}catch(e){}}};
   save=function(){try{LTH2.req++;if(LTH2.req<=400){/* ghi lại ai gọi lưu nhiều nhất (xem ở Cài đặt → Đo giật) */const st=(new Error().stack||'').split('\n')[2]||'';const m=st.match(/at ([A-Za-z0-9_$.]+)/);const k=m?m[1]:'?';LTH2.by[k]=(LTH2.by[k]||0)+1;}}catch(e){}
     const now=performance.now();if(typeof G==='undefined'||!G.on||G.panel==='settings'||now-LTH2.t>=LTH2.GAP)return saveNow();
-    LTH2.pend=1;if(!LTH2.timer)LTH2.timer=setTimeout(()=>{LTH2.timer=null;if(LTH2.pend)try{saveNow();}catch(e){}},Math.max(200,LTH2.GAP-(now-LTH2.t)));};}
+    LTH2.pend=1;if(!LTH2.timer)LTH2.timer=setTimeout(lth2Fire,Math.max(200,LTH2.GAP-(now-LTH2.t)));};}
+/* tới hạn ghi: nếu nhân vật đang chạy/đi thì chờ lúc đứng yên, đang làm việc hoặc mở bảng (khựng lúc đó khó thấy hơn nhiều), tối đa chờ thêm 40 giây */
+function lth2Fire(){LTH2.timer=null;if(!LTH2.pend)return;try{const moving=typeof P!=='undefined'&&typeof G!=='undefined'&&G.on&&!G.panel&&!G.work&&!G.sit&&!G.sleeping&&(P.speed||0)>8;if(moving&&performance.now()-LTH2.t<LTH2.GAP+40000){LTH2.timer=setTimeout(lth2Fire,700);return;}}catch(e){}try{saveNow();}catch(e){}}
 if(typeof accPush==='function'){const _ap=accPush;accPush=function(){try{if(LTH2.pend)saveNow();}catch(e){}return _ap.apply(this,arguments);};}
 addEventListener('pagehide',()=>{try{if(LTH2.pend)saveNow();}catch(e){}},true);addEventListener('beforeunload',()=>{try{if(LTH2.pend)saveNow();}catch(e){}},true);
 document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState!=='visible'&&LTH2.pend)saveNow();}catch(e){}},true);
