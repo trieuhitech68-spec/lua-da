@@ -60,7 +60,7 @@ function petsTick(dt){if(!S.pets)return;for(const p of S.pets){if(!p._o)petSpawn
     let tx=p._tx,tz=p._tz,sp=0;const dP=Math.hypot(P.x-p.x,P.z-p.z);
     if(dog&&!p.stay){if(dP>50){tx=P.x-Math.sin(P.ry)*30;tz=P.z-Math.cos(P.ry)*30;sp=dP>200?170:110;}
       // chó sủa và cắn thú dữ lại gần
-      const foe=G.animals.find(a=>a.alive&&a.o.visible&&(a.state==='chase')&&Math.hypot(a.x-p.x,a.z-p.z)<160);if(foe){tx=foe.x;tz=foe.z;sp=170;if(Math.hypot(foe.x-p.x,foe.z-p.z)<foe.r+12&&G.t-(p._bite||0)>1.2){p._bite=G.t;animalDamage(foe,p.k==='dog'?1.5:0.5);sfx('hit');}if(G.t-(p._bark||0)>2){p._bark=G.t;sfx('bark');}}}
+      const foe=G.animals.find(a=>a.alive&&a.o.visible&&!(a.tame>0)&&(a.state==='chase')&&Math.hypot(a.x-p.x,a.z-p.z)<160);if(foe){tx=foe.x;tz=foe.z;sp=170;if(Math.hypot(foe.x-p.x,foe.z-p.z)<foe.r+12&&G.t-(p._bite||0)>1.2){p._bite=G.t;animalDamage(foe,p.k==='dog'?1.5:0.5);sfx('hit');}if(G.t-(p._bark||0)>2){p._bark=G.t;sfx('bark');}}}
     else{const cx=home?home.x:p.hx??p.x,cz=home?home.z:p.hz??p.z;if(p.hx==null){p.hx=p.x;p.hz=p.z;}p._t-=dt;if(p._t<=0||Math.hypot(p._tx-p.x,p._tz-p.z)<6){p._t=2+Math.random()*5;const a=Math.random()*6.283,r=Math.random()*(home?60:90);p._tx=cx+Math.cos(a)*r;p._tz=cz+Math.sin(a)*r;}tx=p._tx;tz=p._tz;sp=p._t>4?0:/^(chick|piglet|puppy)$/.test(p.k)?40:30;}
     const dx=tx-p.x,dz=tz-p.z,d=Math.hypot(dx,dz);if(d>3&&sp>0){p.x+=dx/d*Math.min(d,sp*dt);p.z+=dz/d*Math.min(d,sp*dt);p._ry=Math.atan2(dx,dz);}else sp=0;
     const y=hAt(p.x,p.z);o.position.set(p.x,Math.max(y,waterAt(p.x,p.z)),p.z);o.rotation.y=lerpAng(o.rotation.y,p._ry||0,Math.min(1,dt*6));

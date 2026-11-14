@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261114052217">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261114085836">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -5218,7 +5218,7 @@ function petsTick(dt){if(!S.pets)return;for(const p of S.pets){if(!p._o)petSpawn
     let tx=p._tx,tz=p._tz,sp=0;const dP=Math.hypot(P.x-p.x,P.z-p.z);
     if(dog&&!p.stay){if(dP>50){tx=P.x-Math.sin(P.ry)*30;tz=P.z-Math.cos(P.ry)*30;sp=dP>200?170:110;}
       // chó sủa và cắn thú dữ lại gần
-      const foe=G.animals.find(a=>a.alive&&a.o.visible&&(a.state==='chase')&&Math.hypot(a.x-p.x,a.z-p.z)<160);if(foe){tx=foe.x;tz=foe.z;sp=170;if(Math.hypot(foe.x-p.x,foe.z-p.z)<foe.r+12&&G.t-(p._bite||0)>1.2){p._bite=G.t;animalDamage(foe,p.k==='dog'?1.5:0.5);sfx('hit');}if(G.t-(p._bark||0)>2){p._bark=G.t;sfx('bark');}}}
+      const foe=G.animals.find(a=>a.alive&&a.o.visible&&!(a.tame>0)&&(a.state==='chase')&&Math.hypot(a.x-p.x,a.z-p.z)<160);if(foe){tx=foe.x;tz=foe.z;sp=170;if(Math.hypot(foe.x-p.x,foe.z-p.z)<foe.r+12&&G.t-(p._bite||0)>1.2){p._bite=G.t;animalDamage(foe,p.k==='dog'?1.5:0.5);sfx('hit');}if(G.t-(p._bark||0)>2){p._bark=G.t;sfx('bark');}}}
     else{const cx=home?home.x:p.hx??p.x,cz=home?home.z:p.hz??p.z;if(p.hx==null){p.hx=p.x;p.hz=p.z;}p._t-=dt;if(p._t<=0||Math.hypot(p._tx-p.x,p._tz-p.z)<6){p._t=2+Math.random()*5;const a=Math.random()*6.283,r=Math.random()*(home?60:90);p._tx=cx+Math.cos(a)*r;p._tz=cz+Math.sin(a)*r;}tx=p._tx;tz=p._tz;sp=p._t>4?0:/^(chick|piglet|puppy)$/.test(p.k)?40:30;}
     const dx=tx-p.x,dz=tz-p.z,d=Math.hypot(dx,dz);if(d>3&&sp>0){p.x+=dx/d*Math.min(d,sp*dt);p.z+=dz/d*Math.min(d,sp*dt);p._ry=Math.atan2(dx,dz);}else sp=0;
     const y=hAt(p.x,p.z);o.position.set(p.x,Math.max(y,waterAt(p.x,p.z)),p.z);o.rotation.y=lerpAng(o.rotation.y,p._ry||0,Math.min(1,dt*6));
@@ -7077,7 +7077,7 @@ function folkHome(f){return BYID.get(f.bed)||S.builds.find(b=>b.k==='campfire')|
 function storeNear(x,z){let best=null,bd=900;for(const b of S.builds){const d=pieceDef(b.k);if(!d||!d.store||b.prog!=null||b.k==='trough')continue;const st=S.store[b.id];if(!st||!st.some(s=>!s))continue;const dd=Math.hypot(b.x-x,b.z-z);if(dd<bd){bd=dd;best=b;}}return best;}
 function folkTick(dt){if(!S.folk)return;const night=S.hour>=20||S.hour<6;for(const f of S.folk){if(!f._o)folkSpawn(f);const home=folkHome(f);f._t-=dt;let pose='idle',tx=f._tx??f.x,tz=f._tz??f.z;
     if(night){tx=home.x;tz=home.z;pose=Math.hypot(home.x-f.x,home.z-f.z)<14?'sleep':'walk';f._st='sleep';}
-    else if(f.job==='guard'){const foe=G.animals.find(a=>a.alive&&a.o.visible&&a.state==='chase'&&Math.hypot(a.x-home.x,a.z-home.z)<260);if(foe){tx=foe.x;tz=foe.z;if(Math.hypot(foe.x-f.x,foe.z-f.z)<foe.r+14&&f._t<=0){f._t=1;animalDamage(foe,2);pose='chop';}}else{tx=home.x+Math.sin(G.t*0.1)*60;tz=home.z+Math.cos(G.t*0.1)*60;}}
+    else if(f.job==='guard'){const foe=G.animals.find(a=>a.alive&&a.o.visible&&!(a.tame>0)&&a.state==='chase'&&Math.hypot(a.x-home.x,a.z-home.z)<260);if(foe){tx=foe.x;tz=foe.z;if(Math.hypot(foe.x-f.x,foe.z-f.z)<foe.r+14&&f._t<=0){f._t=1;animalDamage(foe,2);pose='chop';}}else{tx=home.x+Math.sin(G.t*0.1)*60;tz=home.z+Math.cos(G.t*0.1)*60;}}
     else if(f.job==='idle'){if(f._t<=0){f._t=6;f._tx=home.x+(Math.random()-0.5)*80;f._tz=home.z+(Math.random()-0.5)*80;}pose='sit';}
     else if(f.job==='cook'){/* dò bếp, kho 2 giây một lần thay vì mỗi khung hình */if(!f._ck||G.t-f._ck.t>2||G.t<f._ck.t)f._ck={t:G.t,fire:S.builds.find(b=>b.k==='campfire'&&b.prog==null&&fireLit(b)&&Math.hypot(b.x-home.x,b.z-home.z)<500)||null,st:storeNear(home.x,home.z)};const fire=f._ck.fire&&BYID.has(f._ck.fire.id)?f._ck.fire:null,st=f._ck.st&&BYID.has(f._ck.st.id)?f._ck.st:null;if(fire){tx=fire.x+16;tz=fire.z;pose='cook';if(f._t<=0){f._t=12;const src=S.builds.find(b=>pieceDef(b.k)&&pieceDef(b.k).store&&(S.store[b.id]||[]).some(s=>s&&(s.id==='meat'||s.id==='fish')));if(src&&st){const arr=S.store[src.id],i=arr.findIndex(s=>s&&(s.id==='meat'||s.id==='fish'));const id=arr[i].id;arr[i].n--;if(arr[i].n<=0)arr[i]=null;slotsAdd(S.store[st.id],id==='meat'?'meatCooked':'fishCooked',1);addXp('cook',0.5);}}}}
     else{// đi lấy tài nguyên theo nghề rồi mang về kho
@@ -16466,7 +16466,7 @@ function danCapture(foe){const bed=freeBed();if(!bed)return false;slotsTake(S.in
     else if(f.loy<=0){S.folk=S.folk.filter(o=>o!==f);if(f._o)G.sc.remove(f._o);uiToast(`${f.n} bị bỏ đói, đã trốn về bộ lạc cũ.`,'bad');}}save();return r;};}
 /* ---------- làm việc theo cấp, sở trường · giữ cổng · làm lính ---------- */
 function danEnemy(ax,az,r){let best=null,bd=r;if(G.foes)for(const e of G.foes){if(!e.alive)continue;const d=Math.hypot(e.x-ax,e.z-az);if(d<bd){bd=d;best={e,foe:1};}}
-  for(const a of G.animals){if(!a.alive||a.state!=='chase'||!a.o||!a.o.visible)continue;const d=Math.hypot(a.x-ax,a.z-az);if(d<bd){bd=d;best={e:a,foe:0};}}return best;}
+  for(const a of G.animals){if(!a.alive||a.state!=='chase'||!a.o||!a.o.visible||a.tame>0)continue;const d=Math.hypot(a.x-ax,a.z-az);if(d<bd){bd=d;best={e:a,foe:0};}}return best;}
 function danGate(home){let best=null,bd=700;for(const b of S.builds){if(b.prog!=null||!/gate/i.test(b.k))continue;const d=Math.hypot(b.x-home.x,b.z-home.z);if(d<bd){bd=d;best=b;}}return best||home;}
 function danStrike(f,t){if(t.foe)foeDamage(t.e,danDmg(f));else animalDamage(t.e,danDmg(f));danXp(f,1);}
 function danPost(f,dt){if(!f._o)folkSpawn(f);const home=folkHome(f),sol=f.job==='soldier';let ax,az;if(sol){/* đội hình sau lưng người chơi: hàng ba, mỗi người một chỗ (trước lệch theo số ngẫu nhiên nên hay đứng chồng lên nhau) */const ix=f._ix|0,col=(ix%3)-1,row=Math.floor(ix/3),sn=Math.sin(P.ry||0),cs=Math.cos(P.ry||0),bk=44+row*24;ax=P.x-sn*bk+cs*col*20;az=P.z-cs*bk-sn*col*20;}else{/* tìm cổng 3 giây một lần thay vì dò mọi công trình mỗi khung hình */if(!f._gc||G.t-f._gc.t>3||G.t<f._gc.t)f._gc={t:G.t,g:danGate(home)};const g=f._gc.g,ix=f._ix|0,sd=(ix%2?-1:1)*(20+Math.floor(ix/2)*22);/* mỗi người một bên cổng, người sau đứng dịch ra xa hơn */if(g.r%2){ax=g.x+(Math.sign(home.x-g.x)||1)*18;az=g.z+sd;}else{ax=g.x+sd;az=g.z+(Math.sign(home.z-g.z)||1)*18;}}
@@ -16667,7 +16667,7 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 const U7={t:0,cap:null};
 /* ---------- tấn công ---------- */
 function u7Enemy(r){let best=null,bd=r;for(const f of (G.foes||[])){if(!f.alive)continue;const d=Math.hypot(f.x-P.x,f.z-P.z)-(f.r||9);if(d<bd){bd=d;best=f;}}
-  for(const a of (G.animals||[])){if(!a.alive||!a.o||!a.o.visible)continue;let d=Math.hypot(a.x-P.x,a.z-P.z)-(a.r||8);const D=ANIMALS[a.kind]||{};if(!a.angry&&D.aggro==='never')d+=120;/* ưu tiên thú dữ, kẻ địch hơn thú hiền */if(d<bd){bd=d;best=a;}}return best;}
+  for(const a of (G.animals||[])){if(!a.alive||!a.o||!a.o.visible||(a.tame>0&&!a.angry))continue;/* con đang thuần dở: nút Đánh không nhắm vào */let d=Math.hypot(a.x-P.x,a.z-P.z)-(a.r||8);const D=ANIMALS[a.kind]||{};if(!a.angry&&D.aggro==='never')d+=120;/* ưu tiên thú dữ, kẻ địch hơn thú hiền */if(d<bd){bd=d;best=a;}}return best;}
 function u7Attack(){if(!S||!G.on||G.sleeping)return;if(G.work){uiToast('Đang làm dở việc: đi chỗ khác hoặc làm xong đã.','');return;}if(G.sit&&typeof sitToggle==='function')sitToggle(false);
   const a=u7Enemy(400);if(!a){uiToast('Không có kẻ địch hay thú nào trong 20 m.','');sfx('no');return;}
   try{const w=typeof m3BestW==='function'?m3BestW():null;if(w&&ITEMS[w]&&ITEMS[w].tool)selectTool(ITEMS[w].tool);else{const k=hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe');if(k)selectTool(ITEMS[k].tool);}}catch(e){}
@@ -19791,8 +19791,8 @@ function cgTick(L,dt){const used=new Set();L.forEach((f,idx)=>{if(!f._o)folkSpaw
     const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(d>900){f.x=ax;f.z=az;}else if(d>5&&pose!=='chop'){f.x+=dx/d*Math.min(d,sp*dt);f.z+=dz/d*Math.min(d,sp*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*1.5;}else if(pose==='idle'){f._ry=Math.atan2(f.x-home.x,f.z-home.z)+Math.sin(G.t*0.25+idx)*0.9;/* quay mặt ra ngoài, đảo mắt quan sát */}
     const onTop=top!=null&&Math.hypot(f.x-ax,f.z-az)<8;f._o.position.set(f.x,onTop?top:groundY(f.x,f.z,(f._o.position.y||0)+10),f.z);f._o.rotation.y=lerpAng(f._o.rotation.y,f._ry||0,Math.min(1,dt*5));f._o.visible=true;f._st='guard';
     if(K3.char2Pose&&f._rig&&Math.hypot(P.x-f.x,P.z-f.z)<900){try{K3.char2Pose(f._rig,pose,pose==='walk'?f._g:G.t+f.seed,{});}catch(er){}}});}
-{const _ft=folkTick;folkTick=function(dt){if(!S||!S.folk||!S.folk.length)return _ft.apply(this,arguments);const all=S.folk,gd=all.filter(f=>f.job==='guard');if(!gd.length){for(const f of all)if(f._o&&f._o.userData.cgM)f._o.userData.cgM.visible=false;return _ft.apply(this,arguments);}
-    S.folk=all.filter(f=>f.job!=='guard');let r;try{r=_ft.apply(this,arguments);}finally{S.folk=all;}for(const f of all)if(f._o&&f._o.userData.cgM)f._o.userData.cgM.visible=f.job==='guard';try{cgTick(gd,dt);}catch(e){if(!G._cgE){G._cgE=1;console.warn('canh gác',e);}}return r;};}
+{const _ft=folkTick;folkTick=function(dt){if(!S||!S.folk||!S.folk.length)return _ft.apply(this,arguments);const all=S.folk,noGate=!S.builds.some(b=>b.prog==null&&!b.remote&&/gate/i.test(b.k)),isG=f=>f.job==='guard'||(noGate&&f.job==='gate'),gd=all.filter(isG);/* làng chưa có cổng thì người Giữ cổng cũng gác quanh nhà, không đứng dồn ở bếp lửa */if(!gd.length){for(const f of all)if(f._o&&f._o.userData.cgM)f._o.userData.cgM.visible=false;return _ft.apply(this,arguments);}
+    S.folk=all.filter(f=>!isG(f));let r;try{r=_ft.apply(this,arguments);}finally{S.folk=all;}for(const f of all)if(f._o&&f._o.userData.cgM)f._o.userData.cgM.visible=isG(f);try{cgTick(gd,dt);}catch(e){if(!G._cgE){G._cgE=1;console.warn('canh gác',e);}}return r;};}
 try{if(typeof JOBN==='object'&&JOBN.guard)JOBN.guard='Canh gác (chòi, cổng)';}catch(e){}
 /* ===================== THỔ DÂN ĐI LẺ =====================
    Ngoài các trại và toán canh mỏ (đông, hung dữ), rải quanh vùng có ~14 thổ dân đi một mình: thợ săn lạc, người hái lượm, thợ đá lang thang, tiều phu.
@@ -21232,18 +21232,24 @@ function anCrackle(){try{if(!AN.fire||!AU.on||!AU.ctx)return;const c=AU.ctx,t=c.
 setInterval(()=>{try{anTick();}catch(e){}},600);
 (function loop(){setTimeout(loop,90+Math.random()*320);if(Math.random()<0.8)anCrackle();})();
 /* ---------- NHIỆM VỤ HẰNG NGÀY ----------
-   Mỗi ngày (theo ngày thật) có 3 việc chọn từ danh sách hợp với thời đại đang chơi. Làm xong từng việc nhận thưởng; xong cả ba mở "Rương ngày".
+   Mỗi ngày (theo ngày thật) có 5 việc chọn từ danh sách hợp với thời đại đang chơi. Làm xong từng việc nhận thưởng; xong cả ba mở "Rương ngày".
    Làm đủ nhiều ngày liên tiếp thì thưởng rương tăng dần (tối đa 7 ngày). Xem ở bảng Nhật ký, phần đầu. */
 const NVN_P=[
  {id:'go',t:'Kiếm 30 gỗ',k:'get:wood',n:30,ic:'🪵'},{id:'da',t:'Kiếm 25 đá',k:'get:stone',n:25,ic:'🪨'},{id:'co',t:'Kiếm 30 sợi cỏ',k:'get:fiber',n:30,ic:'🌿'},
  {id:'san',t:'Săn 3 con thú',k:'cnt:hunt',n:3,ic:'🏹'},{id:'ca',t:'Bắt 4 con cá',k:'cnt:fish',n:4,ic:'🐟'},{id:'che',t:'Chế tạo 6 món',p:'craft:',n:6,ic:'🛠️'},
  {id:'xay',t:'Dựng xong 4 công trình',p:'build:',n:4,ic:'🏗️',age:1},{id:'trong',t:'Gieo trồng 6 lần',k:'cnt:plant',n:6,ic:'🌱',age:2},{id:'gat',t:'Thu hoạch 5 lần',k:'cnt:harvest',n:5,ic:'🌾',age:2},
- {id:'dich',t:'Hạ 3 kẻ địch',k:'cnt:foe',n:3,ic:'⚔️',age:1},{id:'doi',t:'Đổi đồ 2 lần với làng bên',k:'cnt:trade',n:2,ic:'🤝',age:1},{id:'dap',t:'Đập đồ 2 lần',k:'cnt:enhance',n:2,ic:'🔨',age:2}];
+ {id:'dich',t:'Hạ 3 kẻ địch',k:'cnt:foe',n:3,ic:'⚔️',age:1},{id:'doi',t:'Đổi đồ 2 lần với làng bên',k:'cnt:trade',n:2,ic:'🤝',age:1},{id:'dap',t:'Đập đồ 2 lần',k:'cnt:enhance',n:2,ic:'🔨',age:2},
+ {id:'hai',t:'Hái lượm 20 lần',k:'cnt:gather',n:20,ic:'🧺'},{id:'uong',t:'Uống nước 4 lần',k:'cnt:drink',n:4,ic:'💧'},{id:'lua',t:'Tiếp củi cho bếp 3 lần',k:'cnt:fuel',n:3,ic:'🔥'},{id:'ngu',t:'Ngủ một giấc qua đêm',k:'cnt:sleep',n:1,ic:'🛏️'},
+ {id:'dau',t:'Lần theo dấu thú 2 lần',k:'cnt:track',n:2,ic:'🐾'},{id:'mo',t:'Xẻ thịt 2 con thú',k:'cnt:butcher',n:2,ic:'🔪'},{id:'thuan',t:'Thuần 1 con thú',k:'cnt:tame',n:1,ic:'🐐',age:1},{id:'trung',t:'Nhặt trứng 2 lần',k:'cnt:eggs',n:2,ic:'🥚',age:1},
+ {id:'sua',t:'Sửa công trình 2 lần',k:'cnt:repair',n:2,ic:'🪚',age:1},{id:'te',t:'Dâng lễ tổ tiên 1 lần',k:'cnt:offer',n:1,ic:'🕯️',age:1},{id:'dan',t:'Thu phục 1 người',k:'cnt:capture',n:1,ic:'🧑‍🤝‍🧑',age:2},{id:'cay',t:'Cày ruộng 4 lần',k:'cnt:plough',n:4,ic:'🐃',age:3},
+ {id:'luoi',t:'Kéo lưới 2 mẻ cá',k:'cnt:netfish',n:2,ic:'🕸️',age:2},{id:'lua2',t:'Gặt 3 ruộng lúa',k:'cnt:riceHarvest',n:3,ic:'🌾',age:3}];
+const NVN_N=5;
 function nvnVal(q){if(q.k)return S.cnt[q.k]||0;let s=0;for(const k in S.cnt)if(k.indexOf(q.p)===0)s+=S.cnt[k];return s;}
 function nvnDay(){const d=new Date(typeof wcNow==='function'?wcNow():Date.now());return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
-function nvnS(){const day=nvnDay();let N=S.nvn;if(!N||N.d!==day){const age=S.age||0,pool=NVN_P.filter(q=>(q.age||0)<=age);let h=0;for(const ch of day+(S.seed||0))h=(h*31+ch.charCodeAt(0))>>>0;const pick=[];const L=pool.slice();while(pick.length<3&&L.length){h=(h*1103515245+12345)>>>0;pick.push(L.splice(h%L.length,1)[0]);}
+function nvnS(){const day=nvnDay();let N=S.nvn;if(!N||N.d!==day){const age=S.age||0,pool=NVN_P.filter(q=>(q.age||0)<=age);let h=0;for(const ch of day+(S.seed||0))h=(h*31+ch.charCodeAt(0))>>>0;const pick=[];const L=pool.slice();while(pick.length<NVN_N&&L.length){h=(h*1103515245+12345)>>>0;pick.push(L.splice(h%L.length,1)[0]);}
     const prev=N&&N.d,y=new Date(typeof wcNow==='function'?wcNow():Date.now());y.setDate(y.getDate()-1);const yd=y.getFullYear()+'-'+(y.getMonth()+1)+'-'+y.getDate();
     N=S.nvn={d:day,q:pick.map(q=>({id:q.id,b:nvnVal(q),c:0})),box:0,st:N&&N.box&&prev===yd?Math.min(7,(N.st||0)+1):0};}
+  else if(N.q.length<NVN_N&&!N.box){/* bản cũ chỉ có 3 việc: bù thêm cho đủ 5 ngay hôm nay */const age=S.age||0,L=NVN_P.filter(q=>(q.age||0)<=age&&!N.q.some(e=>e.id===q.id));let h=N.q.length*7919+(S.seed||0);while(N.q.length<NVN_N&&L.length){h=(h*1103515245+12345)>>>0;const q=L.splice(h%L.length,1)[0];N.q.push({id:q.id,b:nvnVal(q),c:0});}}
   return N;}
 function nvnProg(e){const q=NVN_P.find(x=>x.id===e.id);if(!q)return [0,1,null];return [Math.min(q.n,Math.max(0,nvnVal(q)-e.b)),q.n,q];}
 function nvnGift(big,st){const a=S.age||0,o=big?{rope:3+a,meatCooked:4}:{rope:1,meatCooked:2};if(big){if(ITEMS.dpStone)o.dpStone=1+(st>=3?1:0);if(a>=4&&ITEMS.bronze)o.bronze=1+(st>=5?1:0);else if(a>=2&&ITEMS.plank)o.plank=3+st;else o.flint=3+st;}else{if(a>=2&&ITEMS.clay)o.clay=2;else o.fiber=6;}for(const k in o)if(!ITEMS[k])delete o[k];return o;}
@@ -21259,7 +21265,7 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 setInterval(()=>{try{if(typeof G==='undefined'||!G.on||!S)return;const N=nvnS();N.q.forEach((e,i)=>{if(e.c||e.told)return;const [v,n,q]=nvnProg(e);if(q&&v>=n){e.told=1;uiToast(`📅 Xong việc hôm nay: ${q.t}. Mở Nhật ký để nhận thưởng.`,'gold');}});}catch(e){}},4000);
 {const st=document.createElement('style');st.textContent=`.nvn-box{grid-column:1/-1;margin:0 0 10px;padding:10px;border-radius:14px;border:1px solid rgba(242,197,90,.45);background:linear-gradient(170deg,rgba(242,197,90,.12),rgba(242,197,90,.03))}.nvn-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}.nvn-h b{color:#ffe2a8;font-size:15px;white-space:nowrap}
 .nvn-r{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid rgba(255,255,255,.07)}.nvn-r.done{opacity:.6}.nvn-ic{font-size:20px;width:28px;text-align:center}.nvn-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.nvn-m b{font-size:13.5px}.nvn-bar{height:5px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}.nvn-bar i{display:block;height:100%;background:#f2c55a}.nvn-n{font-size:12px;color:#d8c8a8;white-space:nowrap}.nvn-ok{color:#8ce07a;font-weight:800;width:44px;text-align:center}.nvn-r .btn{min-height:36px}`;document.head.appendChild(st);}
-if(typeof HD_L!=='undefined')HD_L.push({id:'nvngay',ic:'📅',t:'Nhiệm vụ hằng ngày',w:()=>G.panel==='journal',p:['Đầu bảng Nhật ký có <b>Nhiệm vụ hôm nay</b>: 3 việc đổi mới mỗi ngày, hợp với thời đại bạn đang chơi.','Xong việc nào bấm <b>Nhận</b> việc đó. Xong cả ba thì bấm <b>Mở</b> Rương ngày.','Làm đủ nhiều ngày liên tiếp, Rương ngày lớn dần (tối đa chuỗi 7 ngày).']});
+if(typeof HD_L!=='undefined')HD_L.push({id:'nvngay',ic:'📅',t:'Nhiệm vụ hằng ngày',w:()=>G.panel==='journal',p:['Đầu bảng Nhật ký có <b>Nhiệm vụ hôm nay</b>: 5 việc đổi mới mỗi ngày, hợp với thời đại bạn đang chơi.','Xong việc nào bấm <b>Nhận</b> việc đó. Xong cả năm thì bấm <b>Mở</b> Rương ngày.','Làm đủ nhiều ngày liên tiếp, Rương ngày lớn dần (tối đa chuỗi 7 ngày).']});
 /* ---------- BẢNG XẾP HẠNG THEO MÙA (thế giới chung) ----------
    Mỗi tháng là một mùa. Điểm mùa: xong việc hằng ngày +10, mở Rương ngày +30, công phá đất phe khác +20, hạ cờ +30, phá công trình địch +1, hạ kẻ địch/lính +2.
    Mỗi người gửi kèm players/<uid>.rk=[điểm, mã mùa]; bảng xếp hạng tính từ đó (10 người đứng đầu, 5 liên minh đứng đầu), xem ở bảng Liên minh. Sang mùa mới điểm về 0. */
@@ -21557,6 +21563,61 @@ if(typeof HD_L!=='undefined')HD_L.push({id:'channuoi',ic:'🐾',t:'Vật nuôi l
   p:['Có chuồng rồi thì cần con giống. <b>Cách 1, thuần thú rừng:</b> bấm nút lom khom, cầm thức ăn nó thích, lại gần bấm <b>Hành động</b> cho ăn 3 lần: gà rừng thành gà, lợn rừng thành lợn, thỏ rừng thành thỏ, dê núi thành dê, sói thành chó.',
    '<b>Cách 2, đổi con giống ở làng bên:</b> người hái lượm có gà giống, vịt giống, thỏ giống; thợ săn có lợn giống; già làng có dê giống; tù trưởng có nghé. Mở <b>Túi</b>, chọn lồng con giống, bấm <b>Thả ra</b> cạnh chuồng.',
    'Đứng cạnh chuồng bấm <b>Hành động</b> để cho ăn; chuồng chưa có con nào thì hiện cách kiếm đúng loài. Hai con no bụng ở gần nhau sẽ sinh con; con lớn (có dao) thì mổ thịt được.']});
+/* ===================== NGƯỜI LÀNG LÀM NHIỀU VIỆC HƠN + SỬA THUẦN THÚ BỊ ĐÁNH NHẦM =====================
+   Việc mới giao được cho người làng, tù binh đã quy phục (bấm vào người → Giao việc):
+     · THỢ XÂY  : tự tới các công trường đang dựng dở quanh nhà, làm nốt. Công đoạn nào cần vật liệu thì lấy trong giỏ, rương, chum của làng; thiếu thì sang công trường khác.
+     · CHĂN NUÔI: lấy rau, quả, củ, hạt trong kho cho vật nuôi đói ăn; nhặt trứng ở chuồng gà, chuồng vịt; vớt cá ở ao; mang về kho.
+     · ĐI SĂN   : rình thú hiền (thỏ, gà rừng, nai, dê núi, khỉ) quanh nhà, hạ rồi mang thịt, da, xương, lông về kho. Không đụng con đang được thuần.
+     · ĐÁNH CÁ  : ra bờ nước gần nhà câu cá, đủ 3 con thì mang về kho.
+   Đêm về chỗ ngủ như mọi người. Không có việc (hết công trường, không có nước…) thì ngồi nghỉ gần nhà.
+   THUẦN THÚ: trước, nút ghi "Cho ăn" nhưng nếu ô đang cầm không phải thức ăn (hoặc vừa cho ăn hết ô đó) thì bấm lần nữa lại thành ĐÁNH con thú.
+     Giờ đang lom khom hoặc con thú đang thuần dở: bấm Hành động luôn là cho ăn (lấy thức ăn ở bất kỳ ô nào trong túi); hết thức ăn thì báo, không đánh. */
+const VTH={J:{build:'Thợ xây',herd:'Chăn nuôi',hunt:'Đi săn',fish:'Đánh cá'},PREY:/^(rabbit|junglefowl|deer|goat|monkey)$/};
+Object.assign(JOBN,VTH.J);
+{const _as=actStart;actStart=function(t){try{if(t&&t.type==='animal'&&t.a&&t.a.alive&&!t.a._h3down&&!G.work&&TAME[t.a.kind]&&!t.a.boss){const a=t.a,doing=a.tame>0&&a.tame<0.99;
+      if((G.sneak||doing)&&!a.angry){if(tameFood(a.kind)){tameFeed(a);return;}if(doing){uiToast('Hết thức ăn nó thích rồi: cần '+TAME[a.kind].food.filter(f=>ITEMS[f]).slice(0,3).map(f=>ITEMS[f].n.toLowerCase()).join(' / ')+'. (Không đánh con đang thuần dở.)','bad');sfx('no');return;}}}}catch(e){}return _as.apply(this,arguments);};}
+{const _ti=targetInfo;targetInfo=function(t){try{if(t&&t.type==='animal'&&t.a&&t.a.alive&&!t.a._h3down&&TAME[t.a.kind]&&t.a.tame>0&&t.a.tame<0.99&&!t.a.angry){const r=tameInfo(t.a);if(r)return r;}}catch(e){}return _ti.apply(this,arguments);};}
+// kho của làng quanh nhà
+function vthStores(home){const L=[];for(const b of S.builds){const d=pieceDef(b.k);if(!d||!d.store||b.prog!=null||b.remote||b.k==='trough')continue;if(Math.hypot(b.x-home.x,b.z-home.z)<900&&S.store[b.id])L.push(S.store[b.id]);}return L;}
+function vthHave(L,id){let n=0;for(const st of L)for(const s of st)if(s&&s.id===id)n+=s.n;return n;}
+function vthTake(L,id,n){for(const st of L)for(let i=0;i<st.length&&n>0;i++){const s=st[i];if(!s||s.id!==id)continue;const k=Math.min(n,s.n);s.n-=k;n-=k;if(s.n<=0)st[i]=null;}return n<=0;}
+// thợ xây gõ một nhát vào công trường; trả false nếu chưa làm tiếp được (thiếu vật liệu trong kho)
+function vthHit(b,f,home){const d=pieceDef(b.k);if(!d||b.prog==null)return false;const add=0.5*(1+0.08*((typeof danLv==='function'?danLv(f):1)-1))/siteWork(b),st=typeof STG==='object'?STG[b.k]:null;
+  const done=()=>{delete b.prog;siteShow(b);const a=G.act;try{siteDone(b);}finally{G.act=a&&a.t&&a.t.b===b?null:a;}};
+  if(!st){b.prog=Math.min(1,(b.prog||0)+add);siteShow(b);if(b.prog>=1)done();return true;}
+  const s=b3stg(b),sg=s.s;if(s.paid<=s.i){const L=vthStores(home);for(const k in sg.c)if(vthHave(L,k)<sg.c[k])return false;for(const k in sg.c)vthTake(L,k,sg.c[k]);b.paid=s.i+1;}
+  const end=s.cum[s.i];b.prog=Math.min(end,(b.prog||0)+add);if(b.prog>=end-1e-9){if(s.i>=s.n-1){done();return true;}b.prog=end;}siteShow(b);return true;}
+function vthBank(home){for(let r=80;r<=620;r+=45)for(let k=0;k<16;k++){const a=k/16*6.283+r*0.01,x=home.x+Math.sin(a)*r,z=home.z+Math.cos(a)*r;if(wdAt(x,z)>0.3){for(let q=1;q<8;q++){const bx=home.x+Math.sin(a)*(r-q*10),bz=home.z+Math.cos(a)*(r-q*10);if(wdAt(bx,bz)<=0)return {x:bx,z:bz,wx:x,wz:z};}}}return null;}
+function vthTick(f,dt){if(!f._o)folkSpawn(f);if(!f._bag)f._bag={};const home=folkHome(f),night=S.hour>=20||S.hour<6;f._t=(f._t||0)-dt;let tx=f.x,tz=f.z,pose='idle',sp=60;const V=f._v||(f._v={});if(V.job!==f.job){f._v={job:f.job};return vthTick(f,dt);}
+  const near2=(x,z,r)=>Math.hypot(x-f.x,z-f.z)<r,bagN=()=>{let n=0;for(const k in f._bag)n+=f._bag[k];return n;},rest=s=>{V.rest=G.t+s;};
+  const goStore=()=>{const st=storeNear(f.x,f.z);if(!st){f._bag={};rest(10);V.back=0;return;}tx=st.x+8;tz=st.z+8;if(near2(tx,tz,10)){for(const k in f._bag)slotsAdd(S.store[st.id],k,f._bag[k]);f._bag={};V.back=0;if(typeof danXp==='function')danXp(f,1);save();}};
+  if(night){tx=home.x;tz=home.z;pose=near2(home.x,home.z,14)?'sleep':'walk';f._st='sleep';}
+  else if(V.back){f._st='back';goStore();}
+  else if(V.rest&&G.t<V.rest&&G.t>V.rest-60){f._st='rest';pose='sit';if(!near2(home.x,home.z,120)){tx=home.x+((f.seed%7)-3)*14;tz=home.z+((f.seed%5)-2)*14;}}
+  else if(f.job==='build'){f._st='work';let b=V.b&&BYID.get(V.b);if(!b||b.prog==null){b=null;V.b=0;if(!(G.t-(V.sT||-9)<3&&G.t>=(V.sT||0))){V.sT=G.t;let bd=750;for(const o of S.builds){if(o.prog==null||o.remote||(V.skip&&V.skip[o.id]>G.t))continue;const d=Math.hypot(o.x-home.x,o.z-home.z);if(d<bd){bd=d;b=o;}}if(b)V.b=b.id;else rest(8);}}
+    if(b){const dd=Math.hypot(b.x-f.x,b.z-f.z);if(dd>30){const k=24/Math.max(1,dd);tx=b.x+(f.x-b.x)*k;tz=b.z+(f.z-b.z)*k;V.arr=G.t;}else{pose='chop';f._ry=Math.atan2(b.x-f.x,b.z-f.z);if(f._t<=0){f._t=1.2;if(!vthHit(b,f,home)){(V.skip=V.skip||{})[b.id]=G.t+40;V.b=0;if(!V.told||G.t-V.told>120){V.told=G.t;uiToast(`🧱 ${f.n}: ${pieceDef(b.k).n} thiếu vật liệu trong kho làng, tạm sang việc khác.`,'');}}else if(typeof danXp==='function'&&Math.random()<0.2)danXp(f,1);}}}}
+  else if(f.job==='herd'){f._st='work';if(!V.go&&!(G.t-(V.sT||-9)<4&&G.t>=(V.sT||0))){V.sT=G.t;const day=TNOW(),L=vthStores(home);
+      const hungry=(S.pets||[]).filter(p=>day-(p.fed||0)>0.5&&Math.hypot(p.x-home.x,p.z-home.z)<800),feed=hungry.length?CNG.FEED.find(id=>ITEMS[id]&&vthHave(L,id)>0):null;
+      if(feed){const p=hungry[0];V.go={k:'feed',x:p.x,z:p.z,id:feed};}
+      else{let c=null;for(const b of S.builds){if(b.prog!=null||b.remote||Math.hypot(b.x-home.x,b.z-home.z)>800)continue;if(/^(coop|chickenCoop2|duckHouse|chickenRoost|fishPond)$/.test(b.k)&&Math.floor((S.tank&&S.tank[b.id])||0)>=1){c=b;break;}}
+        if(c)V.go={k:'take',x:c.x+14,z:c.z+14,b:c.id};else{const pt=(S.pets||[]).filter(p=>Math.hypot(p.x-home.x,p.z-home.z)<800);if(pt.length){const p=pt[Math.floor(G.t/20+f.seed)%pt.length];V.go={k:'look',x:p.x+12,z:p.z+12,t:G.t+10};}else rest(10);}}}
+    const g=V.go;if(g){tx=g.x;tz=g.z;if(near2(tx,tz,26)||(g.k==='look'&&G.t>g.t)){tx=f.x;tz=f.z;pose='gather';if(g.w==null){g.w=G.t+(g.k==='look'?4:2.5);}else if(G.t>g.w){const day=TNOW();
+          if(g.k==='feed'){const L=vthStores(home);let n=0;const hs=(S.pets||[]).filter(p=>day-(p.fed||0)>0.5&&Math.hypot(p.x-f.x,p.z-f.z)<260);while(n<hs.length&&vthTake(L,g.id,1)){for(let k=0;k<3&&n<hs.length;k++)hs[n++].fed=day;}if(n){puff(f.x,hAt(f.x,f.z)+8,f.z,'#ffd27a',3);if(typeof danXp==='function')danXp(f,1);}}
+          else if(g.k==='take'){const b=BYID.get(g.b),n=b?Math.floor((S.tank&&S.tank[b.id])||0):0;if(n){S.tank[b.id]-=n;const id=b.k==='fishPond'?'fish':'egg';f._bag[id]=(f._bag[id]||0)+n;V.back=1;}}
+          V.go=null;}}}}
+  else if(f.job==='hunt'){f._st='work';let a=V.a;if(a&&(!a.alive||a.tame>0||!a.o))a=V.a=null;if(!a&&!(G.t-(V.sT||-9)<4&&G.t>=(V.sT||0))){V.sT=G.t;let bd=850;for(const o of G.animals||[]){if(!o.alive||o.tame>0||o._h3down||!o.o||!VTH.PREY.test(o.kind)||(S.pets||[]).includes(o))continue;const d=Math.hypot(o.x-home.x,o.z-home.z);if(d<bd&&Math.hypot(o.x-P.x,o.z-P.z)>140){bd=d;a=o;}}V.a=a;V.aim=0;if(!a)rest(12);}
+    if(a){const dd=Math.hypot(a.x-f.x,a.z-f.z);if(dd>95){tx=a.x;tz=a.z;sp=85;V.aim=0;}else{pose='chop';f._ry=Math.atan2(a.x-f.x,a.z-f.z);V.aim=(V.aim||0)+dt;if(V.aim>2.6){const D=ANIMALS[a.kind];a.alive=false;a.o.visible=false;a.back=TNOW()+2;try{puff(a.x,(a.y||hAt(a.x,a.z))+8,a.z,'#c9b28a',5);}catch(e){}for(const k in D.drop)f._bag[k]=(f._bag[k]||0)+D.drop[k];V.a=null;V.back=1;V.rest=0;V.after=1;}}}}
+  else if(f.job==='fish'){f._st='work';if(!V.bk||G.t-V.bkT>60||G.t<V.bkT){V.bk=vthBank(home)||0;V.bkT=G.t;}const k=V.bk;if(!k){rest(15);if(!V.told||G.t-V.told>300){V.told=G.t;uiToast(`🎣 ${f.n}: gần nhà không có sông, hồ để đánh cá.`,'');}}
+    else{tx=k.x;tz=k.z;if(near2(tx,tz,8)){tx=f.x;tz=f.z;pose='gather';f._ry=Math.atan2(k.wx-f.x,k.wz-f.z);if(V.fT==null)V.fT=G.t+14+Math.random()*8;else if(G.t>V.fT){V.fT=null;f._bag.fish=(f._bag.fish||0)+1;try{puff(k.wx,2,k.wz,'#bfe3ff',4);}catch(e){}if(bagN()>=3)V.back=1;}}}}
+  f._gx=tx;f._gz=tz;const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(d>4&&pose!=='sleep'){f.x+=dx/d*Math.min(d,sp*dt);f.z+=dz/d*Math.min(d,sp*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*1.4;}
+  f._o.position.set(f.x,groundY(f.x,f.z,(f._o.position.y||0)+10),f.z);f._o.rotation.y=lerpAng(f._o.rotation.y,f._ry||0,Math.min(1,dt*6));f._o.visible=true;
+  if(K3.char2Pose&&f._rig&&Math.hypot(P.x-f.x,P.z-f.z)<800){try{K3.char2Pose(f._rig,pose,pose==='walk'?f._g:G.t+f.seed,{});}catch(e){}}}
+{const _ft=folkTick;folkTick=function(dt){if(!S||!S.folk||!S.folk.length)return _ft.apply(this,arguments);const all=S.folk,mine=all.filter(f=>VTH.J[f.job]);if(!mine.length)return _ft.apply(this,arguments);
+    S.folk=all.filter(f=>!VTH.J[f.job]);let r;try{r=_ft.apply(this,arguments);}finally{S.folk=all;}for(const f of mine){try{vthTick(f,dt);}catch(e){if(!G._vthE){G._vthE=1;console.warn('việc thêm',e);}}}return r;};}
+if(typeof HD_L!=='undefined')HD_L.push({id:'viecthem',ic:'🧑‍🌾',t:'Người làng làm nhiều việc hơn',w:()=>{try{return G.panel==='folk'||(G.panel&&/dan/.test(G.panel)&&S.folk&&S.folk.length>0);}catch(e){return false;}},
+  p:['Ngoài hái lượm, đốn gỗ, đào đá, giờ giao được: <b>Thợ xây</b> (tự làm nốt công trường dở, lấy vật liệu trong kho làng), <b>Chăn nuôi</b> (cho vật nuôi ăn, nhặt trứng, vớt cá ao), <b>Đi săn</b> (hạ thú hiền mang thịt da về), <b>Đánh cá</b> (câu ở bờ nước gần nhà).',
+   'Bấm vào người làng → <b>Giao việc</b> → chọn việc. Muốn thợ xây làm được thì cắm mốc công trình trước và để sẵn gỗ, đá, sợi cỏ trong giỏ, rương.',
+   'Đồ họ kiếm được đều mang về giỏ, rương, chum gần nhất. Đêm họ về chỗ ngủ, sáng lại đi làm.']});
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.

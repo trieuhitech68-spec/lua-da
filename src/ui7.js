@@ -8,7 +8,7 @@
 const U7={t:0,cap:null};
 /* ---------- tấn công ---------- */
 function u7Enemy(r){let best=null,bd=r;for(const f of (G.foes||[])){if(!f.alive)continue;const d=Math.hypot(f.x-P.x,f.z-P.z)-(f.r||9);if(d<bd){bd=d;best=f;}}
-  for(const a of (G.animals||[])){if(!a.alive||!a.o||!a.o.visible)continue;let d=Math.hypot(a.x-P.x,a.z-P.z)-(a.r||8);const D=ANIMALS[a.kind]||{};if(!a.angry&&D.aggro==='never')d+=120;/* ưu tiên thú dữ, kẻ địch hơn thú hiền */if(d<bd){bd=d;best=a;}}return best;}
+  for(const a of (G.animals||[])){if(!a.alive||!a.o||!a.o.visible||(a.tame>0&&!a.angry))continue;/* con đang thuần dở: nút Đánh không nhắm vào */let d=Math.hypot(a.x-P.x,a.z-P.z)-(a.r||8);const D=ANIMALS[a.kind]||{};if(!a.angry&&D.aggro==='never')d+=120;/* ưu tiên thú dữ, kẻ địch hơn thú hiền */if(d<bd){bd=d;best=a;}}return best;}
 function u7Attack(){if(!S||!G.on||G.sleeping)return;if(G.work){uiToast('Đang làm dở việc: đi chỗ khác hoặc làm xong đã.','');return;}if(G.sit&&typeof sitToggle==='function')sitToggle(false);
   const a=u7Enemy(400);if(!a){uiToast('Không có kẻ địch hay thú nào trong 20 m.','');sfx('no');return;}
   try{const w=typeof m3BestW==='function'?m3BestW():null;if(w&&ITEMS[w]&&ITEMS[w].tool)selectTool(ITEMS[w].tool);else{const k=hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe');if(k)selectTool(ITEMS[k].tool);}}catch(e){}
