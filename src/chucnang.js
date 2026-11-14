@@ -12,8 +12,11 @@ function cngProxy(b){let p=CNG.px.get(b);if(!p){const al=CNG.A[b.k];p=new Proxy(
 {const _ti=targetInfo;targetInfo=function(t){const r=_ti.apply(this,arguments);try{if(r&&t&&t.type==='build'&&t.b&&t.b._real){const d=pieceDef(t.b._real.k);if(d&&r.name){const base=pieceDef(t.b.k);if(base&&r.name.indexOf(base.n)===0)r.name=d.n+r.name.slice(base.n.length);else if(/^Chuồng gà/.test(r.name))r.name=d.n+r.name.slice(9);else if(/^Cột vật tổ/.test(r.name))r.name=d.n+r.name.slice(10);}}}catch(e){}return r;};}
 /* Bè, thuyền trong tầm với luôn được ưu tiên hơn "Uống nước", "Hái lượm", "Dấu vết": trước các mục tiêu này chen lên trước (bè thường nằm cách bờ 3-4 bước,
    còn nước, rau cỏ thì ngay dưới chân) nên có chỗ thả bè xong không cách nào bấm "Lên thuyền". */
-{const _ft=findTarget;findTarget=function(){const r=_ft.apply(this,arguments);try{if(!S||!S.boats||!S.boats.length||G.ride||G.work||G.sit||G.build)return r;if(r&&r.type!=='water'&&r.type!=='forage'&&r.type!=='track')return r;
-    let best=null,bd=REACH+40;for(const b of S.boats){const d=Math.hypot(b.x-P.x,b.z-P.z);if(d<bd){bd=d;best=b;}}if(best)return {type:'boat',b:best,d:bd};}catch(e){}return r;};}
+{const _ft=findTarget;findTarget=function(){const r=_ft.apply(this,arguments);try{if(!S||!S.boats||!S.boats.length||G.ride||G.work||G.sit||G.build)return r;if(r&&r.type!=='water'&&r.type!=='forage'&&r.type!=='track'&&r.type!=='res')return r;
+    let best=null,bd=REACH+40;for(const b of S.boats){const d=Math.hypot(b.x-P.x,b.z-P.z);if(d<bd){bd=d;best=b;}}if(!best)return r;
+    /* cây cỏ mọc sát mép nước (lau sậy, bèo, sen…) cũng hay chen trước: bè, thuyền đang ở PHÍA TRƯỚC MẶT (lệch dưới 60°) thì vẫn ưu tiên lên thuyền; quay mặt đi chỗ khác thì hái bình thường */
+    if(r&&r.type==='res'){const dx=best.x-P.x,dz=best.z-P.z,l=Math.hypot(dx,dz)||1;if((dx*Math.sin(P.ry)+dz*Math.cos(P.ry))/l<0.5)return r;}
+    return {type:'boat',b:best,d:bd};}catch(e){}return r;};}
 /* ---------- THÚ DỮ SỢ LỬA ----------
    Trước: hổ, sói, gấu vào tận nhà săn người dù bếp đang cháy (chạy thử: hổ quanh quẩn cạnh nhà, cắn chết nhân vật đang dựng rào).
    Giờ: người chơi đứng trong vòng 16 m quanh một bếp lửa / đống lửa ĐANG CHÁY thì thú dữ không chủ động lao vào tấn công.

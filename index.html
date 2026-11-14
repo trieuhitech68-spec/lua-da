@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261113150126">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261114024627">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -19908,6 +19908,14 @@ try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITE
 {const _sf=aqSafety;aqSafety=function(){const r=_sf.apply(this,arguments);try{if(!AQ.on||!AQ.jobs.length||G.sleeping||G.work||aqHasUrgent())return r;if(G.t-(AQ._wpT||-99)<60)return r;AQ._wpT=G.t;
     if(hasTool('spear')||hasTool('club'))return r;if(AQ.jobs.some(j=>j.k==='craft'&&j._wp))return r;const rc=typeof aqRecipe==='function'?aqRecipe('spear'):null;if(!rc||!lvOk(rc.lv)||(rc.age&&(S.age||0)<rc.age)||!canPay(rc.in))return r;
     const top=AQ.jobs[AQ.jobs.length-1];aqPush({k:'craft',r:rc,_wp:1,until:()=>invCount('spear')>0,lab:'Làm lại cây giáo phòng thân'},top);aqSay('🤖 Hết vũ khí tử tế: làm lại một cây giáo phòng thân.','');}catch(e){}return r;};}
+/* 11. Thú dữ bám theo: chạy về BẾP LỬA ĐANG CHÁY (thú dữ sợ lửa, không dám vào vòng 16 m), tiếp củi cho lửa, ngồi đó tới khi chúng bỏ đi.
+       Trước: né lung tung hoặc về giường rồi đứng chờ 20 giây; đêm rét ướt xa lửa thì bị bầy sói cắn gục (chạy thử: chết ở nhiệm vụ 42 dù có giáo, cung). */
+{const _c=AUJ.camp;AUJ.camp=function(j){try{if(!j.cf){const f=aqFire(true)||aqFire();if(f){if(j.w==null&&aqD(f.x,f.z)>70)return aqGoto(j,f.x,f.z,46,'Lánh thú dữ: về bên bếp lửa',{far:1});
+        if(!j.fed){j.fed=1;try{const fu=(S.fuel&&S.fuel[f.id])||0;if(fu<6){if(invCount('wood')>0)addFuel(f,'wood');else if(invCount('stick')>1){addFuel(f,'stick');addFuel(f,'stick');}}}catch(e){}}
+        if(j.w==null)j.w=G.t;j.lab='Ngồi bên lửa chờ thú dữ bỏ đi';const pred=aqPred().some(p=>Math.hypot(p.x-P.x,p.z-P.z)<450);return (G.t-j.w>20&&!pred)||G.t-j.w>90?AQ_DONE:AQ_RUN;}}}catch(e){}return _c.apply(this,arguments);};}
+{const _sf=aqSafety;aqSafety=function(){const r=_sf.apply(this,arguments);try{if(!AQ.on||AQ.jobs.length<2)return r;const top=AQ.jobs[AQ.jobs.length-1];if(top.k!=='flee'||top._nf)return r;top._nf=1;
+    const f=aqFire(true);if(!f)return r;const d=aqD(f.x,f.z);if(d<160||d>800)return r;/* gần lửa sẵn rồi, hoặc lửa xa quá thì cứ né như cũ */
+    AQ.jobs.pop();AQ.path=null;AQ.dir=null;const t2=AQ.jobs[AQ.jobs.length-1];if(t2&&!aqHasUrgent('camp')){aqPush({k:'camp',urgent:1},t2);aqSay('🤖 Thú dữ tới gần: chạy về bên bếp lửa, chúng sợ lửa.','bad');}}catch(e){}return r;};}
 /* ===================== GIỮ MÀN HÌNH SÁNG KHI TỰ LÀM · TỰ LÀM TIẾP SAU KHI TRANG TẢI LẠI =====================
    Trên điện thoại, bật Tự làm rồi để yên thì: (1) không ai chạm nên máy tự tắt màn hình, game ngừng; (2) quay lại, trình duyệt / ứng dụng thường tải lại trang,
    mà chế độ Tự làm trước đây không được ghi nhớ nên phải bấm lại. Giờ:
@@ -21377,8 +21385,11 @@ function cngProxy(b){let p=CNG.px.get(b);if(!p){const al=CNG.A[b.k];p=new Proxy(
 {const _ti=targetInfo;targetInfo=function(t){const r=_ti.apply(this,arguments);try{if(r&&t&&t.type==='build'&&t.b&&t.b._real){const d=pieceDef(t.b._real.k);if(d&&r.name){const base=pieceDef(t.b.k);if(base&&r.name.indexOf(base.n)===0)r.name=d.n+r.name.slice(base.n.length);else if(/^Chuồng gà/.test(r.name))r.name=d.n+r.name.slice(9);else if(/^Cột vật tổ/.test(r.name))r.name=d.n+r.name.slice(10);}}}catch(e){}return r;};}
 /* Bè, thuyền trong tầm với luôn được ưu tiên hơn "Uống nước", "Hái lượm", "Dấu vết": trước các mục tiêu này chen lên trước (bè thường nằm cách bờ 3-4 bước,
    còn nước, rau cỏ thì ngay dưới chân) nên có chỗ thả bè xong không cách nào bấm "Lên thuyền". */
-{const _ft=findTarget;findTarget=function(){const r=_ft.apply(this,arguments);try{if(!S||!S.boats||!S.boats.length||G.ride||G.work||G.sit||G.build)return r;if(r&&r.type!=='water'&&r.type!=='forage'&&r.type!=='track')return r;
-    let best=null,bd=REACH+40;for(const b of S.boats){const d=Math.hypot(b.x-P.x,b.z-P.z);if(d<bd){bd=d;best=b;}}if(best)return {type:'boat',b:best,d:bd};}catch(e){}return r;};}
+{const _ft=findTarget;findTarget=function(){const r=_ft.apply(this,arguments);try{if(!S||!S.boats||!S.boats.length||G.ride||G.work||G.sit||G.build)return r;if(r&&r.type!=='water'&&r.type!=='forage'&&r.type!=='track'&&r.type!=='res')return r;
+    let best=null,bd=REACH+40;for(const b of S.boats){const d=Math.hypot(b.x-P.x,b.z-P.z);if(d<bd){bd=d;best=b;}}if(!best)return r;
+    /* cây cỏ mọc sát mép nước (lau sậy, bèo, sen…) cũng hay chen trước: bè, thuyền đang ở PHÍA TRƯỚC MẶT (lệch dưới 60°) thì vẫn ưu tiên lên thuyền; quay mặt đi chỗ khác thì hái bình thường */
+    if(r&&r.type==='res'){const dx=best.x-P.x,dz=best.z-P.z,l=Math.hypot(dx,dz)||1;if((dx*Math.sin(P.ry)+dz*Math.cos(P.ry))/l<0.5)return r;}
+    return {type:'boat',b:best,d:bd};}catch(e){}return r;};}
 /* ---------- THÚ DỮ SỢ LỬA ----------
    Trước: hổ, sói, gấu vào tận nhà săn người dù bếp đang cháy (chạy thử: hổ quanh quẩn cạnh nhà, cắn chết nhân vật đang dựng rào).
    Giờ: người chơi đứng trong vòng 16 m quanh một bếp lửa / đống lửa ĐANG CHÁY thì thú dữ không chủ động lao vào tấn công.

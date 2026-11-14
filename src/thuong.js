@@ -55,3 +55,11 @@ try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITE
 {const _sf=aqSafety;aqSafety=function(){const r=_sf.apply(this,arguments);try{if(!AQ.on||!AQ.jobs.length||G.sleeping||G.work||aqHasUrgent())return r;if(G.t-(AQ._wpT||-99)<60)return r;AQ._wpT=G.t;
     if(hasTool('spear')||hasTool('club'))return r;if(AQ.jobs.some(j=>j.k==='craft'&&j._wp))return r;const rc=typeof aqRecipe==='function'?aqRecipe('spear'):null;if(!rc||!lvOk(rc.lv)||(rc.age&&(S.age||0)<rc.age)||!canPay(rc.in))return r;
     const top=AQ.jobs[AQ.jobs.length-1];aqPush({k:'craft',r:rc,_wp:1,until:()=>invCount('spear')>0,lab:'Làm lại cây giáo phòng thân'},top);aqSay('🤖 Hết vũ khí tử tế: làm lại một cây giáo phòng thân.','');}catch(e){}return r;};}
+/* 11. Thú dữ bám theo: chạy về BẾP LỬA ĐANG CHÁY (thú dữ sợ lửa, không dám vào vòng 16 m), tiếp củi cho lửa, ngồi đó tới khi chúng bỏ đi.
+       Trước: né lung tung hoặc về giường rồi đứng chờ 20 giây; đêm rét ướt xa lửa thì bị bầy sói cắn gục (chạy thử: chết ở nhiệm vụ 42 dù có giáo, cung). */
+{const _c=AUJ.camp;AUJ.camp=function(j){try{if(!j.cf){const f=aqFire(true)||aqFire();if(f){if(j.w==null&&aqD(f.x,f.z)>70)return aqGoto(j,f.x,f.z,46,'Lánh thú dữ: về bên bếp lửa',{far:1});
+        if(!j.fed){j.fed=1;try{const fu=(S.fuel&&S.fuel[f.id])||0;if(fu<6){if(invCount('wood')>0)addFuel(f,'wood');else if(invCount('stick')>1){addFuel(f,'stick');addFuel(f,'stick');}}}catch(e){}}
+        if(j.w==null)j.w=G.t;j.lab='Ngồi bên lửa chờ thú dữ bỏ đi';const pred=aqPred().some(p=>Math.hypot(p.x-P.x,p.z-P.z)<450);return (G.t-j.w>20&&!pred)||G.t-j.w>90?AQ_DONE:AQ_RUN;}}}catch(e){}return _c.apply(this,arguments);};}
+{const _sf=aqSafety;aqSafety=function(){const r=_sf.apply(this,arguments);try{if(!AQ.on||AQ.jobs.length<2)return r;const top=AQ.jobs[AQ.jobs.length-1];if(top.k!=='flee'||top._nf)return r;top._nf=1;
+    const f=aqFire(true);if(!f)return r;const d=aqD(f.x,f.z);if(d<160||d>800)return r;/* gần lửa sẵn rồi, hoặc lửa xa quá thì cứ né như cũ */
+    AQ.jobs.pop();AQ.path=null;AQ.dir=null;const t2=AQ.jobs[AQ.jobs.length-1];if(t2&&!aqHasUrgent('camp')){aqPush({k:'camp',urgent:1},t2);aqSay('🤖 Thú dữ tới gần: chạy về bên bếp lửa, chúng sợ lửa.','bad');}}catch(e){}return r;};}
