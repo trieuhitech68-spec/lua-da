@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261114101602">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261114103401">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -21697,6 +21697,19 @@ document.addEventListener('toggle',e=>{const t=e.target;if(t&&t.classList&&t.cla
 .dl-log{margin:8px 0 2px}.dl-log b{font-size:13px;color:#ffe2a8}.dl-log .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .dl-acts{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.dl-g2{flex-basis:100%;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#f2c55a;margin-top:4px}
 @media (max-width:520px){.dl-g{display:none}.dl-h small{display:block;margin:2px 0 0}.dl-grid{grid-template-columns:1fr 1fr}.dl-t{padding:5px 6px;gap:5px}.dl-ic{display:none}.dl-m .muted{display:none}.dl-b{width:34px;height:34px}}`;document.head.appendChild(st);}
+/* ---------- THÚ CÙNG LOÀI DÙNG CHUNG MỘT BỘ HÌNH ----------
+   Đo thấy: hơn 300 con thú trên bản đồ, mỗi con tự dựng riêng một bộ hình (đỉnh, tam giác) dù các con cùng loài giống hệt nhau từng điểm
+   → khoảng 65 MB bộ nhớ máy + chừng ấy nữa trên card hình, và vào game phải dựng hình hàng trăm lần.
+   Giờ mỗi loài chỉ dựng MỘT bộ hình mẫu; các con còn lại là bản sao khung xương dùng chung hình và chất liệu của mẫu (chất liệu vốn đã dùng chung từ trước).
+   Loài nào có dữ liệu riêng gắn vào hình mà không sao chép an toàn được (ví dụ khỉ có bộ dáng điệu riêng) thì vẫn dựng như cũ. */
+const CHH={proto:new Map(),bad:new Set(),n:0};
+function chhPlain(v,d){if(v==null)return true;const t=typeof v;if(t==='function')return false;if(t!=='object')return true;if(v.isObject3D)return true;if(d>3)return false;if(Array.isArray(v))return v.every(x=>chhPlain(x,d+1));if(typeof v.clone==='function'&&(v.isVector3||v.isVector2||v.isQuaternion||v.isEuler||v.isColor))return true;const p=Object.getPrototypeOf(v);if(p!==Object.prototype&&p!==null)return false;for(const k in v)if(!chhPlain(v[k],d+1))return false;return true;}
+function chhOk(src){let ok=true;src.traverse(o=>{if(!ok)return;if(o.isSkinnedMesh||o.isInstancedMesh||o.isBone){ok=false;return;}for(const k in o.userData)if(!chhPlain(o.userData[k],0)){ok=false;return;}});return ok;}
+function chhClone(src){const map=new Map(),rec=s=>{const ud=s.userData;s.userData={};let d;try{d=s.clone(false);}finally{s.userData=ud;}map.set(s,d);for(const c of s.children)d.add(rec(c));return d;},out=rec(src);
+  const re=(v,d)=>{if(v==null||typeof v!=='object')return v;if(v.isObject3D)return map.get(v)||v;if(Array.isArray(v))return v.map(x=>re(x,d+1));if(typeof v.clone==='function')return v.clone();const o={};for(const k in v)o[k]=re(v[k],d+1);return o;};
+  map.forEach((d,s)=>{for(const k in s.userData)d.userData[k]=re(s.userData[k],0);});return out;}
+{const _am=animalModel;animalModel=function(kind){if(arguments.length!==1||typeof kind!=='string'||CHH.bad.has(kind))return _am.apply(this,arguments);
+    try{let p=CHH.proto.get(kind);if(!p){p=_am.apply(this,arguments);if(!p||!p.isObject3D||!chhOk(p)){CHH.bad.add(kind);return p;}CHH.proto.set(kind,p);}CHH.n++;return chhClone(p);}catch(e){CHH.bad.add(kind);console.warn('chung hình',kind,e);return _am.apply(this,arguments);}};}
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.
