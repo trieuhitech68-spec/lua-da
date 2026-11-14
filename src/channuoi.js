@@ -62,7 +62,7 @@ function cnuDuck(young){const g=new THREE.Group(),M=c=>new THREE.MeshLambertMate
 {const _ti=targetInfo;targetInfo=function(t){const r=_ti.apply(this,arguments);try{if(t&&t.type==='cng'&&r&&CNG.SHED[t.b.k]&&!cngShedPets(t.b).length){r.verb='Chưa có vật nuôi · xem cách kiếm';r.ok=true;r.need=null;}}catch(e){}return r;};}
 {const _as=actStart;actStart=function(t){try{if(t&&t.type==='cng'&&!G.work&&CNG.SHED[t.b.k]&&!cngShedPets(t.b).length){uiToast(CNU.HINT[t.b.k]||CNU.HINT.coop,'');sfx('pick');return;}}catch(e){}return _as.apply(this,arguments);};}
 {const noFowl=b=>!(S.pets||[]).some(p=>/^(chicken|chick|duck|duckling)$/.test(p.k)&&Math.hypot(p.x-b.x,p.z-b.z)<420);
- const _ci=coopInfo;coopInfo=function(b){const r=_ci.apply(this,arguments);try{if(r&&!r.ok&&noFowl(b)){r.verb='Chưa có gà, vịt · xem cách kiếm';r.ok=true;}}catch(e){}return r;};
+ const _ci=coopInfo;coopInfo=function(b){const r=_ci.apply(this,arguments);try{if(r&&!r.ok&&noFowl(b)){r.verb='Chưa có trứng · xem cách kiếm gà, vịt';r.ok=true;}}catch(e){}return r;};
  const _cu=coopUse;coopUse=function(b){try{if(!Math.floor(S.tank[b.id]||0)&&noFowl(b)){uiToast(CNU.HINT.coop,'');sfx('pick');return;}}catch(e){}return _cu.apply(this,arguments);};}
 /* ---------- kiểu nhà mới trong Quy hoạch làng ---------- */
 {const bf=id=>{const b=B4BP.find(x=>x.id===id);return b?b.fn:null;},roofed=(A,w,h,fl,rf,wl,door,di)=>{for(let i=0;i<w;i++)for(let j=0;j<h;j++){A.F(i,j,fl);A.R(i,j,rf,0);}for(let i=0;i<w;i++){A.E(i,0,'n',wl);A.E(i,h-1,'s',i===di?door:wl);}for(let j=0;j<h;j++){A.E(0,j,'w',wl);A.E(w-1,j,'e',wl);}};
