@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261114042939">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261114045300">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -16469,13 +16469,13 @@ function danEnemy(ax,az,r){let best=null,bd=r;if(G.foes)for(const e of G.foes){i
   for(const a of G.animals){if(!a.alive||a.state!=='chase'||!a.o||!a.o.visible)continue;const d=Math.hypot(a.x-ax,a.z-az);if(d<bd){bd=d;best={e:a,foe:0};}}return best;}
 function danGate(home){let best=null,bd=700;for(const b of S.builds){if(b.prog!=null||!/gate/i.test(b.k))continue;const d=Math.hypot(b.x-home.x,b.z-home.z);if(d<bd){bd=d;best=b;}}return best||home;}
 function danStrike(f,t){if(t.foe)foeDamage(t.e,danDmg(f));else animalDamage(t.e,danDmg(f));danXp(f,1);}
-function danPost(f,dt){if(!f._o)folkSpawn(f);const home=folkHome(f),sol=f.job==='soldier';let ax,az;if(sol){ax=P.x-Math.sin(P.ry||0)*40+((f.seed%5)-2)*14;az=P.z-Math.cos(P.ry||0)*40+((f.seed%3)-1)*14;}else{/* tìm cổng 3 giây một lần thay vì dò mọi công trình mỗi khung hình */if(!f._gc||G.t-f._gc.t>3||G.t<f._gc.t)f._gc={t:G.t,g:danGate(home)};const g=f._gc.g;ax=g.x+((f.seed%3)-1)*18;az=g.z+18;}
+function danPost(f,dt){if(!f._o)folkSpawn(f);const home=folkHome(f),sol=f.job==='soldier';let ax,az;if(sol){/* đội hình sau lưng người chơi: hàng ba, mỗi người một chỗ (trước lệch theo số ngẫu nhiên nên hay đứng chồng lên nhau) */const ix=f._ix|0,col=(ix%3)-1,row=Math.floor(ix/3),sn=Math.sin(P.ry||0),cs=Math.cos(P.ry||0),bk=44+row*24;ax=P.x-sn*bk+cs*col*20;az=P.z-cs*bk-sn*col*20;}else{/* tìm cổng 3 giây một lần thay vì dò mọi công trình mỗi khung hình */if(!f._gc||G.t-f._gc.t>3||G.t<f._gc.t)f._gc={t:G.t,g:danGate(home)};const g=f._gc.g,ix=f._ix|0,sd=(ix%2?-1:1)*(20+Math.floor(ix/2)*22);/* mỗi người một bên cổng, người sau đứng dịch ra xa hơn */if(g.r%2){ax=g.x+(Math.sign(home.x-g.x)||1)*18;az=g.z+sd;}else{ax=g.x+sd;az=g.z+(Math.sign(home.z-g.z)||1)*18;}}
   let tx=ax,tz=az,pose='idle',sp=sol?150:70;f._t=(f._t||0)-dt;const t=danEnemy(sol?P.x:ax,sol?P.z:az,sol?260:240);
   if(t){tx=t.e.x;tz=t.e.z;sp=sol?150:110;if(Math.hypot(t.e.x-f.x,t.e.z-f.z)<(t.e.r||9)+16){tx=f.x;tz=f.z;pose='chop';f._ry=Math.atan2(t.e.x-f.x,t.e.z-f.z);if(f._t<=0){f._t=1.1;danStrike(f,t);}}}
   f._gx=tx;f._gz=tz;const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(sol&&d>1400){f.x=ax;f.z=az;}else if(d>6&&pose!=='chop'){f.x+=dx/d*Math.min(d,sp*dt);f.z+=dz/d*Math.min(d,sp*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*(sp>100?2:1.4);}
   f._o.position.set(f.x,groundY(f.x,f.z,(f._o.position.y||0)+10),f.z);f._o.rotation.y=lerpAng(f._o.rotation.y,f._ry||0,Math.min(1,dt*6));
   if(K3.char2Pose&&f._rig&&Math.hypot(P.x-f.x,P.z-f.z)<800){try{K3.char2Pose(f._rig,pose,pose==='walk'?f._g:G.t+f.seed,{});}catch(e){}}}
-{const _ft=folkTick;folkTick=function(dt){if(!S||!S.folk||!S.folk.length)return _ft.apply(this,arguments);const all=S.folk,cus=all.filter(danCustom);
+{const _ft=folkTick;folkTick=function(dt){if(!S||!S.folk||!S.folk.length)return _ft.apply(this,arguments);const all=S.folk,cus=all.filter(danCustom);{let ng=0,ns=0;for(const f of cus){if(f.job==='soldier')f._ix=ns++;else f._ix=ng++;}}
   if(cus.length){S.folk=all.filter(f=>!danCustom(f));try{_ft.apply(this,arguments);}finally{S.folk=all;}for(const f of cus){try{danPost(f,dt);}catch(e){}}}else _ft.apply(this,arguments);
   for(const f of all){if(danCustom(f))continue;const st=f._st;
     if(st==='work'&&f._t>0)f._t-=dt*(0.1*(danLv(f)-1)+(f.job===danSp(f)?0.4:0));
@@ -21335,6 +21335,32 @@ const HV2=(()=>{const T=()=>THREE,M=(c,o)=>new THREE.MeshStandardMaterial(Object
     fishNet:()=>net(),fishHook:()=>hook(),woodSpoon:()=>spoon(),sling:()=>{const g=G();add(g,sph(),'#8a5a34',0,-2,0,2.6,1,1.8);add(g,tor(4.4,0.25),'#c9b98a',0,2.2,0,0.5,1,1);add(g,sph(),'#77797c',0,-1.4,0,1.3);return g;},calf:()=>calf()};
   return S;})();
 {const _im=iconMake;iconMake=function(id){const r=_im.apply(this,arguments);try{if(!ICO.url[id]&&HV2[id]&&window.THREE&&G.on){if(!ICO.R)_im.call(this,'stick');const g=HV2[id]();g.rotation.y=-0.5;if(typeof hvShot==='function'&&ICO.R)hvShot(id,g);}}catch(e){if(!ICO.h2e){ICO.h2e=1;console.warn('hình vật phẩm 2',id,e);}}return r;};}
+/* ---------- LÍNH GÁC CHIA NHAU ĐỨNG GÁC ----------
+   Trước: có chòi thì mỗi chòi một người, còn lại dồn hết về một cổng (đứng chồng lên nhau) hoặc đi vòng quanh nhà sát nhau.
+   Giờ mỗi lính gác một VỊ TRÍ riêng, chia theo thứ tự:
+     1) mỗi chòi canh một người (đứng trên chòi);  2) mỗi cổng hai người, hai bên lối vào;
+     3) còn lại rải đều thành vòng quanh khu nhà (cách mép ngoài cùng của nhà cửa, hàng rào khoảng 3 m), quay mặt ra ngoài, thỉnh thoảng đi tuần một đoạn ngắn rồi về chỗ.
+   Thấy thú dữ, kẻ cướp trong tầm thì người gần nhất xông ra đánh rồi về lại vị trí. Người làng đứng gần nhau quá thì tự dạt ra, không đứng chồng lên nhau. */
+const CGX={c:null,t:-9};
+function cgxPosts(home,n){if(CGX.c&&G.t-CGX.t<3&&G.t>=CGX.t&&CGX.c.n===n&&CGX.c.hid===(home.id||0))return CGX.c.L;const tw=[],gt=[];let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,nb=0;
+  for(const b of S.builds){if(b.prog!=null||b.remote)continue;const d=Math.hypot(b.x-home.x,b.z-home.z);if(d>520)continue;if(b.k==='watchtower')tw.push(b);else if(/gate/i.test(b.k))gt.push(b);if(d<420){nb++;if(b.x<x0)x0=b.x;if(b.x>x1)x1=b.x;if(b.z<z0)z0=b.z;if(b.z>z1)z1=b.z;}}
+  const L=[];for(const t of tw)L.push({x:t.x,z:t.z,top:t.y+(typeof SOL_TW==='number'?SOL_TW:83),k:'tw'});
+  for(const g of gt){const sx=Math.sign(home.x-g.x)||1,sz=Math.sign(home.z-g.z)||1;for(const sd of [26,-26]){if(g.r%2)L.push({x:g.x+sx*16,z:g.z+sd,k:'gt'});else L.push({x:g.x+sd,z:g.z+sz*16,k:'gt'});}}
+  const rest=Math.max(0,n-L.length);if(rest>0){const cx=nb?(x0+x1)/2:home.x,cz=nb?(z0+z1)/2:home.z,R=clamp((nb?Math.hypot(x1-x0,z1-z0)/2:0)+70,120,440),K=Math.max(4,rest),a0=gt.length?Math.atan2(gt[0].x-cx,gt[0].z-cz)+Math.PI/K:0.4;
+    for(let i=0;i<K;i++){const a=a0+i/K*6.283;let x=cx+Math.sin(a)*R,z=cz+Math.cos(a)*R;for(let k=0;k<6&&(wdAt(x,z)>0.5);k++){x=cx+Math.sin(a)*(R-k*30);z=cz+Math.cos(a)*(R-k*30);}L.push({x,z,k:'ring',a,cx,cz});}}
+  CGX.c={L,n,hid:home.id||0};CGX.t=G.t;return L;}
+cgTick=function(L,dt){const G0=L.slice().sort((a,b)=>(a.seed||0)-(b.seed||0)||(a.n<b.n?-1:1));const home0=folkHome(G0[0]),posts=cgxPosts(home0,G0.length);
+  G0.forEach((f,idx)=>{if(!f._o)folkSpawn(f);cgMark(f._o);const home=home0,p=posts[idx%posts.length]||{x:home.x,z:home.z,k:'ring',a:idx,cx:home.x,cz:home.z};let ax=p.x,az=p.z,top=p.top!=null?p.top:null;
+    if(p.k==='ring'){/* đi tuần một đoạn ngắn dọc vòng gác rồi về chỗ */const w=Math.sin(G.t*0.05+idx*1.7);if(w>0.55){const tx=Math.cos(p.a),tz=-Math.sin(p.a),k=(w-0.55)/0.45*46;ax+=tx*k;az+=tz*k;}}
+    let tx=ax,tz=az,pose='idle',sp=75;f._t=(f._t||0)-dt;f._gx=ax;f._gz=az;const e=typeof danEnemy==='function'?danEnemy(ax,az,240):null;
+    if(e){top=null;tx=e.e.x;tz=e.e.z;sp=115;f._gx=tx;f._gz=tz;if(Math.hypot(e.e.x-f.x,e.e.z-f.z)<(e.e.r||9)+16){tx=f.x;tz=f.z;pose='chop';f._ry=Math.atan2(e.e.x-f.x,e.e.z-f.z);if(f._t<=0){f._t=1.1;danStrike(f,e);}}}
+    const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(d>900){f.x=ax;f.z=az;}else if(d>5&&pose!=='chop'){f.x+=dx/d*Math.min(d,sp*dt);f.z+=dz/d*Math.min(d,sp*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*1.5;}
+    else if(pose==='idle'){const ox=p.cx!=null?p.cx:home.x,oz=p.cz!=null?p.cz:home.z;f._ry=Math.atan2(f.x-ox,f.z-oz)+Math.sin(G.t*0.25+idx)*0.9;/* quay mặt ra ngoài, đảo mắt quan sát */}
+    const onTop=top!=null&&Math.hypot(f.x-ax,f.z-az)<8;f._o.position.set(f.x,onTop?top:groundY(f.x,f.z,(f._o.position.y||0)+10),f.z);f._o.rotation.y=lerpAng(f._o.rotation.y,f._ry||0,Math.min(1,dt*5));f._o.visible=true;f._st='guard';
+    if(K3.char2Pose&&f._rig&&Math.hypot(P.x-f.x,P.z-f.z)<900){try{K3.char2Pose(f._rig,pose,pose==='walk'?f._g:G.t+f.seed,{});}catch(er){}}});};
+// người làng không đứng chồng lên nhau: hai người cách nhau dưới 13 thì dạt ra (trừ lúc ngủ, lúc đang đứng trên chòi)
+{const _ft=folkTick;folkTick=function(dt){const r=_ft.apply(this,arguments);try{const F=S&&S.folk;if(F&&F.length>1&&G.on)for(let i=0;i<F.length;i++){const a=F[i];if(!a._o||a._st==='sleep')continue;for(let j=i+1;j<F.length;j++){const b=F[j];if(!b._o||b._st==='sleep')continue;const dx=b.x-a.x,dz=b.z-a.z;if(dx>13||dx<-13||dz>13||dz<-13)continue;if(Math.abs((a._o.position.y||0)-(b._o.position.y||0))>30)continue;let d=Math.sqrt(dx*dx+dz*dz);const ux=d>0.01?dx/d:Math.cos(i*2.4+j),uz=d>0.01?dz/d:Math.sin(i*2.4+j);if(d<13){const k=(13-d)*0.5*Math.min(1,dt*6);a.x-=ux*k;a.z-=uz*k;b.x+=ux*k;b.z+=uz*k;a._o.position.x=a.x;a._o.position.z=a.z;b._o.position.x=b.x;b._o.position.z=b.z;}}}}catch(e){}return r;};}
+try{if(typeof JOBN==='object'&&JOBN.guard)JOBN.guard='Canh gác (chòi, cổng, quanh nhà)';}catch(e){}
 /* ---------- HÀNG RÀO, TƯỜNG CHẶN CẢ NGƯỜI LÀNG, THỔ DÂN, KẺ ĐỊCH ----------
    Trước: chỉ người chơi và thú bị rào, tường chặn; người làng, lính, thổ dân làng bên, chiến binh địch đi xuyên qua rào như không có.
    Giờ: · Bước nào cắt qua rào, tường thì bị chặn lại. Cửa, cổng: người làng mình và thổ dân qua được; kẻ địch thì không (cổng coi như cài then).
@@ -21441,6 +21467,96 @@ if(typeof l3hostile==='function'){const _lh=l3hostile;l3hostile=function(a,D,d){
       if(G.sneak&&d<420&&typeof tameFood==='function'&&((typeof TAME==='object'&&TAME[a.kind])||a.kind==='horse')&&tameFood(a.kind)){if(d<300&&!CNG.tmTold){CNG.tmTold=1;uiToast('🤲 Lom khom và có thức ăn nó thích trong túi: con thú dè chừng, không lao vào. Lại gần bấm Hành động để cho ăn; đứng thẳng dậy là nó có thể tấn công.','');}return false;}}}catch(e){}return _lh.apply(this,arguments);};}
 /* Giá vũ khí: trước chỉ để ngắm; giờ là chỗ cất 6 món (giáo, cung, rìu, khiên…), đứng cạnh bấm Hành động để mở như giỏ, rương. */
 try{const d=pieceDef('weaponRack');if(d&&!d.store){d.store=6;d.d=(d.d||'')+' Cất được 6 món vũ khí, dụng cụ.';}}catch(e){}
+/* ===================== CHĂN NUÔI ĐỦ LOÀI + CÁC KIỂU NHÀ MỚI =====================
+   VẬT NUÔI LẤY Ở ĐÂU (trước: dựng chuồng xong không biết kiếm con gì bỏ vào):
+     · Thuần thú rừng: lom khom lại gần, cho ăn 3 lần → gà rừng → gà · lợn rừng → lợn · sói → chó · THỎ RỪNG → thỏ nhà · DÊ NÚI (loài mới ở vùng núi đá, bìa rừng) → dê nhà.
+     · Đổi CON GIỐNG ở làng (mỗi lồng 2 con để gây đàn): gà giống, vịt giống, thỏ giống (người hái lượm) · lợn giống (thợ săn) · dê giống (già làng) · nghé (tù trưởng).
+       Mở túi, chọn lồng, bấm "Thả ra" cạnh chuồng.
+     · Loài mới: dê (mổ được nhiều thịt, da), vịt (đẻ trứng ở chuồng vịt), thỏ (đẻ nhanh). Dê, vịt tự kiếm ăn ngoài đồng trừ mùa đông; con non 3 ngày thì lớn; hai con no bụng ở gần nhau thì sinh con.
+     · Đứng cạnh chuồng chưa có con nào, bấm Hành động: hiện cách kiếm đúng loài cho chuồng đó.
+   KIỂU NHÀ MỚI trong Xây → Quy hoạch làng: nhóm "Nhà ở kiểu khác" (chòi tròn, nhà sàn, nhà vuông mái bốn dốc, nhà nứa, nhà sàn mái lá, nhà sàn mái thuyền),
+     nhóm "Chăn nuôi" (chuồng gà, chuồng lợn, chuồng dê, chuồng trâu, ao vịt) và "Làng nghề" (lò gốm, nhà dệt, bến cá, kho thóc, sân giếng). */
+const CNU={GROW:{kid:'goat',duckling:'duck',bunny:'rabbit'},BREED:{goat:'kid',duck:'duckling',rabbit:'bunny'},
+  MEAT:{goat:{meat:5,hide:2,bone:2},rabbit:{meat:2,hide:1},duck:{meat:2,feather:3}},
+  SEED:{chickPair:'chick',pigletPair:'piglet',kidPair:'kid',ducklingPair:'duckling',bunnyPair:'bunny'},
+  HINT:{pigPen:'🐖 Chuồng lợn chưa có con nào. Cách kiếm: lom khom lại gần LỢN RỪNG, cho ăn quả mọng / nấm / chuối 3 lần là nó theo về; hoặc đổi "Lợn giống" ở thợ săn làng bên (4 thịt + 6 quả mọng).',
+    goatShed:'🐐 Chuồng dê chưa có con nào. Cách kiếm: tìm DÊ NÚI ở vùng núi đá, bìa rừng, lom khom cho ăn đọt dương xỉ / chuối / muối 3 lần; hoặc đổi "Dê giống" ở già làng (3 da + 2 muối).',
+    buffaloShed:'🐃 Chuồng trâu chưa có con nào. Cách kiếm: đổi "Nghé con" ở tù trưởng làng bên (6 thịt + 4 da), mở túi bấm Thả ra; ba ngày sau nghé lớn thành trâu kéo cày.',
+    coop:'🐔 Chưa có gà, vịt. Cách kiếm: lom khom lại gần GÀ RỪNG, cho ăn hạt / quả mọng 3 lần; hoặc đổi "Gà giống" (8 quả mọng), "Vịt giống" (4 cá) ở người hái lượm làng bên rồi thả cạnh chuồng.'}};
+Object.assign(PETN,{goat:'Dê nhà',kid:'Dê con',duck:'Vịt nhà',duckling:'Vịt con',rabbit:'Thỏ nhà',bunny:'Thỏ con'});
+Object.assign(ITEMS,{chickPair:{n:'Gà giống (2 con)',t:'pet',ds:'Lồng tre nhốt hai gà con đổi ở làng. Mở túi, bấm "Thả ra" cạnh chuồng gà: ba ngày sau lớn, đẻ trứng và sinh đàn.'},
+  pigletPair:{n:'Lợn giống (2 con)',t:'pet',ds:'Hai lợn con đổi ở làng. Thả cạnh chuồng lợn có máng ăn: ba ngày sau lớn.'},
+  kidPair:{n:'Dê giống (2 con)',t:'pet',ds:'Hai dê con đổi ở làng. Thả cạnh chuồng dê: dê tự gặm cỏ ngoài đồng, mùa đông cần bỏ cỏ vào máng.'},
+  ducklingPair:{n:'Vịt giống (2 con)',t:'pet',ds:'Hai vịt con đổi ở làng. Thả cạnh chuồng vịt bên ao: lớn lên đẻ trứng ở chuồng.'},
+  bunnyPair:{n:'Thỏ giống (2 con)',t:'pet',ds:'Hai thỏ con đổi ở làng. Thả cạnh máng ăn, cho ăn rau cỏ: thỏ đẻ rất nhanh.'}});
+if(typeof EMO==='object')Object.assign(EMO,{chickPair:'🐤',pigletPair:'🐖',kidPair:'🐐',ducklingPair:'🦆',bunnyPair:'🐇'});
+try{TRADES.gatherer.push([{berry:8},{chickPair:1}],[{fish:4},{ducklingPair:1}],[{fiber:10},{bunnyPair:1}]);TRADES.hunter.push([{meat:4,berry:6},{pigletPair:1}]);TRADES.elder.push([{hide:3,salt:2},{kidPair:1}]);}catch(e){}
+// thú rừng thuần được thêm: thỏ rừng, dê núi
+ANIMALS.goat={n:'Dê núi',hp:4,spd:170,r:10,flee:140,drop:{meat:3,hide:2,bone:1},bio:['rock','edge','meadow'],n0:0,aggro:'never',herd:3};
+try{if(typeof H3WT==='object')H3WT.goat=35;}catch(e){}
+{const ok=L=>L.filter(k=>ITEMS[k]);TAME.rabbit={to:'rabbit',food:ok(['fernShoot','centella','gourd','berry','banana']),n:'thỏ'};TAME.goat={to:'goat',food:ok(['fernShoot','banana','salt','gourd','berry']),n:'dê'};}
+{const _ai=animalsInit;animalsInit=function(){const r=_ai.apply(this,arguments);try{const R=rng((S.seed|0)+7373),D=ANIMALS.goat,N=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)?6:10;let n=0,tries=0;
+      while(n<N&&tries<2500){tries++;let x,z;const a=R()*6.283,rr=Math.sqrt(R())*WR*0.85;x=Math.cos(a)*rr;z=Math.sin(a)*rr;if(typeof V5!=='undefined'&&WV>=4&&R()<0.7){x=V5.box[0]+R()*V5.box[2];z=V5.box[1]+R()*V5.box[3];}
+        if(!wIn(x,z,0.95)||hAt(x,z)<3||wdAt(x,z)>0||!D.bio.includes(biome(x,z))||(tries<1500&&biome(x,z)==='meadow')||Math.hypot(x-SPAWN[0],z-SPAWN[1])<320)continue;
+        for(let k=0;k<3&&n<N;k++,n++){const g=animalNew('goat',x+(R()-0.5)*60,z+(R()-0.5)*60,R);if(k===2)try{g.o.scale.multiplyScalar(0.72);}catch(e){}G.animals.push(g);}}
+      try{seasonPatchAll();}catch(e){}}catch(e){console.warn('dê núi',e);}return r;};}
+// hình con vịt (chưa có sẵn): thân bầu, cổ cong, mỏ dẹt, chân màng
+function cnuDuck(young){const g=new THREE.Group(),M=c=>new THREE.MeshLambertMaterial({color:c}),wh=M(young?'#e8d27a':'#f1ede2'),or=M('#e08a2a'),dk=M('#2a2622');
+  const sp=new THREE.SphereGeometry(1,12,9),add=(geo,mt,x,y,z,sx,sy,sz,par)=>{const m=new THREE.Mesh(geo,mt);m.position.set(x,y,z);m.scale.set(sx,sy,sz);(par||g).add(m);return m;};
+  add(sp,wh,0,5.2,0,2.7,2.5,4.2);add(sp,wh,0,6.6,-3.6,1.5,1.3,1.9);/* đuôi vểnh */add(sp,wh,2.3,5.4,-0.3,0.7,1.7,3);add(sp,wh,-2.3,5.4,-0.3,0.7,1.7,3);
+  const head=new THREE.Group();head.position.set(0,7,3);g.add(head);add(sp,wh,0,1.6,0.4,1,2.2,1,head);add(sp,wh,0,3.8,0.9,1.5,1.4,1.6,head);add(sp,or,0,3.5,2.7,1,0.4,1.3,head);for(const x of [0.9,-0.9])add(sp,dk,x,4.2,1.7,0.3,0.3,0.3,head);
+  const leg=x=>{const L=new THREE.Group();L.position.set(x,3,0);g.add(L);add(new THREE.CylinderGeometry(0.3,0.3,3,5),or,0,-1.5,0,1,1,1,L);add(sp,or,0,-2.9,0.7,0.9,0.2,1.3,L);return L;};
+  g.userData.rig={head,legL:leg(1.1),legR:leg(-1.1)};g.scale.setScalar(young?0.55:1);return g;}
+{const _pm=petModel;petModel=function(k){try{if(k==='duck'||k==='duckling')return cnuDuck(k==='duckling');if(k==='kid'){const o=animalModel('goat');o.scale.multiplyScalar(0.5);return o;}if(k==='rabbit'||k==='bunny'){const o=animalModel('rabbit');if(k==='bunny')o.scale.multiplyScalar(0.6);return o;}if(k==='goat')return animalModel('goat');}catch(e){console.warn('hình vật nuôi',k,e);}return _pm.apply(this,arguments);};}
+// chỗ ở: dê về chuồng dê, vịt về chuồng vịt / ao, thỏ quanh máng ăn hoặc chuồng
+{const _hm=petHome;petHome=function(p){const k=p.k,rx=k==='goat'||k==='kid'?/^goatShed$/:k==='duck'||k==='duckling'?/^(duckHouse|fishPond)$/:k==='rabbit'||k==='bunny'?/^(trough|goatShed|pigPen|coop|chickenCoop2)$/:null;if(!rx)return _hm.apply(this,arguments);
+    let best=null,bd=420;for(const b of S.builds){if(b.prog!=null||b.remote||!rx.test(b.k))continue;const d=Math.hypot(b.x-p.x,b.z-p.z)-(b.k==='duckHouse'||b.k==='goatShed'?40:0);if(d<bd){bd=d;best=b;}}return best;};}
+// thả con giống từ túi
+{const _co=mxCalfOut;mxCalfOut=function(i){const s=S.inv[i],k=s&&CNU.SEED[s.id];if(!k)return _co.apply(this,arguments);if((S.pets||[]).length>=24){uiToast('Đàn vật nuôi đã đủ 24 con, chưa nuôi thêm được.','bad');sfx('no');return;}
+    s.n--;if(s.n<=0)S.inv[i]=null;S.pets=S.pets||[];for(let j=0;j<2;j++){const p={id:(S.pseq=(S.pseq||0)+1),k,x:P.x+Math.sin(P.ry)*30+(j?12:-12),z:P.z+Math.cos(P.ry)*30+(j?8:-8),born:TNOW(),fed:TNOW()};S.pets.push(p);petSpawn(p);}
+    uiClose();uiToast(`🐾 Đã thả hai ${PETN[k].toLowerCase()}. Chúng ở quanh chuồng, máng ăn gần nhất; ba ngày nữa lớn. Nhớ bỏ thức ăn vào máng hoặc cho ăn ở chuồng.`,'gold');cnt('cnt','tame');sfx('pick');uiHotbar();save();};}
+{const _bh=bagHtml;bagHtml=function(){let h=_bh.apply(this,arguments);try{const s=G.selSlot!=null&&S.inv[G.selSlot];if(s&&CNU.SEED[s.id])h=h.replace('🐃 Thả ra, dắt về nuôi','🐾 Thả ra cạnh chuồng');}catch(e){}return h;};}
+// mỗi giờ: tự kiếm ăn, lớn lên, vịt đẻ trứng, sinh con
+{const _ph=petsHourly;petsHourly=function(gh){try{if(S&&S.pets&&S.pets.length){const day=TNOW(),winter=seasonIdx()===3;let ch=0;
+      for(const p of S.pets){const k=p.k;if(!winter&&(k==='goat'||k==='kid'||((k==='duck'||k==='duckling')&&(wdAt(p.x,p.z)>0||nearWater(p.x,p.z,260)))))p.fed=day;
+        if(CNU.GROW[k]&&day-(p.born||0)>3){p.k=CNU.GROW[k];if(p._o)G.sc.remove(p._o);p._o=null;ch=1;}
+        if(p.k==='duck'&&day-(p.fed||0)<1.5){const h=petHome(p);if(h&&h.k==='duckHouse'&&Math.random()<(gh||1)/24*0.8){S.tank=S.tank||{};S.tank[h.id]=Math.min(8,(S.tank[h.id]||0)+1);}}}
+      for(const k in CNU.BREED){const L=S.pets.filter(p=>p.k===k&&day-(p.fed||0)<1);if(L.length>=2&&S.pets.length<24&&Math.random()<(gh||1)/24*(k==='rabbit'?0.6:0.3)){const a=L[0],b={id:(S.pseq=(S.pseq||0)+1),k:CNU.BREED[k],x:a.x+8,z:a.z+8,born:day,fed:day};S.pets.push(b);petSpawn(b);uiToast(`🐣 ${PETN[b.k]} vừa ra đời!`,'gold');ch=1;}}
+      if(ch)save();}}catch(e){console.warn('chăn nuôi',e);}return _ph.apply(this,arguments);};}
+// mổ thịt con đã lớn (cần dao)
+{const _pi=petInfo;petInfo=function(p){const m=CNU.MEAT[p.k];if(m||CNU.GROW[p.k]){const n=PETN[p.k],hungry=TNOW()-(p.fed||0)>1;if(m&&TNOW()-(p.born||0)>4&&hasTool('knife'))return {name:n,verb:'Mổ thịt',ok:true,icon:'meat'};return {name:n,verb:'Vuốt ve',ok:true,icon:'fernShoot',warn:hungry?'Đói: cho ăn ở chuồng hoặc bỏ thức ăn vào máng':null};}return _pi.apply(this,arguments);};}
+{const _pu=petUse;petUse=function(p){const m=CNU.MEAT[p.k];if(m&&TNOW()-(p.born||0)>4&&hasTool('knife')){S.pets=S.pets.filter(o=>o!==p);if(p._o)G.sc.remove(p._o);give(Object.assign({},m),[p.x,8,p.z]);addXp('hunt',4);sfx('thud');save();return;}
+    if(m||CNU.GROW[p.k]){sfx('eat');puff(p.x,8,p.z,'#ffd27a',3);uiToast(`${PETN[p.k]} quấn quanh chân bạn.`,'');return;}return _pu.apply(this,arguments);};}
+// chuồng chưa có con nào: bấm Hành động là được chỉ cách kiếm
+{const _ti=targetInfo;targetInfo=function(t){const r=_ti.apply(this,arguments);try{if(t&&t.type==='cng'&&r&&CNG.SHED[t.b.k]&&!cngShedPets(t.b).length){r.verb='Chưa có vật nuôi · xem cách kiếm';r.ok=true;r.need=null;}}catch(e){}return r;};}
+{const _as=actStart;actStart=function(t){try{if(t&&t.type==='cng'&&!G.work&&CNG.SHED[t.b.k]&&!cngShedPets(t.b).length){uiToast(CNU.HINT[t.b.k]||CNU.HINT.coop,'');sfx('pick');return;}}catch(e){}return _as.apply(this,arguments);};}
+{const noFowl=b=>!(S.pets||[]).some(p=>/^(chicken|chick|duck|duckling)$/.test(p.k)&&Math.hypot(p.x-b.x,p.z-b.z)<420);
+ const _ci=coopInfo;coopInfo=function(b){const r=_ci.apply(this,arguments);try{if(r&&!r.ok&&noFowl(b)){r.verb='Chưa có gà, vịt · xem cách kiếm';r.ok=true;}}catch(e){}return r;};
+ const _cu=coopUse;coopUse=function(b){try{if(!Math.floor(S.tank[b.id]||0)&&noFowl(b)){uiToast(CNU.HINT.coop,'');sfx('pick');return;}}catch(e){}return _cu.apply(this,arguments);};}
+/* ---------- kiểu nhà mới trong Quy hoạch làng ---------- */
+{const bf=id=>{const b=B4BP.find(x=>x.id===id);return b?b.fn:null;},roofed=(A,w,h,fl,rf,wl,door,di)=>{for(let i=0;i<w;i++)for(let j=0;j<h;j++){A.F(i,j,fl);A.R(i,j,rf,0);}for(let i=0;i<w;i++){A.E(i,0,'n',wl);A.E(i,h-1,'s',i===di?door:wl);}for(let j=0;j<h;j++){A.E(0,j,'w',wl);A.E(w-1,j,'e',wl);}};
+ const N=[
+  {id:'qh_tron',g:'Nhà ở kiểu khác',n:'Chòi tròn vách đất',ic:'🛖',fx:'Chỗ ngủ kín gió, rẻ vật liệu: hợp lúc mới lập trại',d:'Nền đất nện, bốn vách cong trát bùn, mái nón tranh, chiếu ngủ bên trong.',key:'roof',fn:bf('roundHut')},
+  {id:'qh_nua',g:'Nhà ở kiểu khác',n:'Nhà nứa mái lá',ic:'🏠',fx:'Nhà dài một gian, có bếp và chõng tre',d:'Nhà 1×4 ô vách nứa đan, mái lá hai dốc có chái hai đầu, bếp kiềng, chõng tre.',key:'roof',fn:bf('nuaLongHouse')},
+  {id:'qh_san',g:'Nhà ở kiểu khác',n:'Nhà sàn nhỏ',ic:'🎋',fx:'Ở trên cao: tránh thú dữ và ẩm ướt',d:'Nhà sàn tre 2×2 ô trên cột cao, hiên lan can, thang độc mộc, mái tranh, bếp đất và giường tre.',key:'roof',fn:bf('stiltSmall')},
+  {id:'qh_sanla',g:'Nhà ở kiểu khác',n:'Nhà sàn mái lá gồi',ic:'🌴',fx:'Nhà sàn rộng cho cả nhà, có gác bếp',d:'Nhà sàn 3×2 ô vách nứa, mái lá gồi hai dốc, hiên phên nứa, cầu thang tre, bếp kiềng.',key:'roof',fn:bf('stiltLeaf')},
+  {id:'qh_bondoc',g:'Nhà ở kiểu khác',n:'Nhà vuông mái bốn dốc',ic:'🏯',fx:'Nhà gỗ súc vững chãi, có hiên ngồi trước nhà',d:'Nhà 2×2 ô tường gỗ súc trên sàn ván, mái chái bốn góc, cửa hai cánh, hiên kê cột thấp.',key:'roof',fn:bf('hipHouse')},
+  {id:'qh_santhuyen',g:'Nhà ở kiểu khác',n:'Nhà sàn mái thuyền',ic:'⛵',fx:'Nhà sàn lớn kiểu Đông Sơn, có trống đồng giữa nhà',d:'Nhà sàn 3×2 ô, mái cong hình thuyền như trên trống đồng, hiên lan can, cầu thang gỗ, cột chạm.',key:'roof',fn:bf('stiltBoat')},
+  {id:'qh_ga',g:'Chăn nuôi',n:'Chuồng gà có rào',ic:'🐔',fx:'Gà đẻ trứng mỗi ngày · gà giống: thuần gà rừng hoặc đổi ở người hái lượm',d:'Chuồng gà trên cột, ổ đẻ, máng ăn, quây rào phên đan có cổng.',key:'chickenCoop2',fn:bf('chickenYard')},
+  {id:'qh_lon',g:'Chăn nuôi',n:'Chuồng lợn',ic:'🐖',fx:'Lợn lớn mổ được 6 thịt · lợn giống: thuần lợn rừng hoặc đổi ở thợ săn',d:'Chuồng lợn 2×2 mái lá, máng ăn bên cạnh.',key:'pigPen',fn:A=>{A.O(0,0,'pigPen');A.O(2,0,'trough');}},
+  {id:'qh_de',g:'Chăn nuôi',n:'Chuồng dê',ic:'🐐',fx:'Dê tự gặm cỏ, mổ được 5 thịt 2 da · dê giống: thuần dê núi hoặc đổi ở già làng',d:'Chuồng dê sàn tre 2×2, máng ăn bên cạnh.',key:'goatShed',fn:A=>{A.O(0,0,'goatShed');A.O(2,0,'trough');}},
+  {id:'qh_trau',g:'Chăn nuôi',n:'Chuồng trâu',ic:'🐃',fx:'Trâu kéo cày nhanh gấp nhiều lần cuốc tay · nghé: đổi ở tù trưởng',d:'Chuồng trâu 2×2 mái tranh bốn dốc, máng ăn bên cạnh.',key:'buffaloShed',fn:A=>{A.O(0,0,'buffaloShed');A.O(2,0,'trough');}},
+  {id:'qh_vit',g:'Chăn nuôi',n:'Ao vịt có chuồng',ic:'🦆',fx:'Vịt đẻ trứng ở chuồng, ao tự sinh cá · vịt giống: đổi ở người hái lượm',d:'Ao cá 2×2 kè đá, chuồng vịt bên bờ, giàn gà đậu, rào phên đan quanh có cổng.',key:'duckHouse',fn:bf('duckPond')},
+  {id:'qh_gom',g:'Làng nghề',n:'Lò gốm',ic:'🏺',fx:'Lò nung và chum vại dưới một mái: nung gốm không lo mưa',d:'Lán 2×1 ô mái lá ba mặt vách, có lò nung và chum vại.',key:'roof',fn:A=>{for(let i=0;i<2;i++){A.F(i,0,'floor');A.R(i,0,'roof',0);A.E(i,0,'n','wall');}A.E(0,0,'w','wall');A.E(1,0,'e','wall');A.O(0,0,'kiln');A.O(1,0,'pottery');}},
+  {id:'qh_det',g:'Làng nghề',n:'Nhà dệt',ic:'🧵',fx:'Khung dệt trong nhà kín: dệt vải, may áo quanh năm',d:'Nhà 2×2 ô có cửa và cửa sổ, khung dệt, giỏ đựng sợi.',key:'roof',fn:A=>{roofed(A,2,2,'floor','roof','wall','wallDoor',1);A.O(0,0,'loom');A.O(1,0,'basket');}},
+  {id:'qh_benca',g:'Làng nghề',n:'Bến cá',ic:'⚓',fx:'Cầu vươn ra nước, giàn phơi cá, đó bắt cá: đặt từ bờ ra sông, hồ',d:'Cầu ao ba nhịp có lan can, giàn phơi cá và đó bắt cá.',key:'fishRack',fn:bf('dock')},
+  {id:'qh_khothoc',g:'Làng nghề',n:'Kho thóc và sân phơi',ic:'🌾',fx:'Kho thóc trên cột chắn chuột, sân cuội phơi thóc, cối giã',d:'Kho thóc trên cột, sân lát cuội, cối giã chân và bồ thóc.',key:'granary',fn:bf('granaryYard')},
+  {id:'qh_san_gieng',g:'Làng nghề',n:'Sân giếng',ic:'🪣',fx:'Giếng khơi giữa sân lát cuội: lấy nước sạch ngay trong làng',d:'Sân lát cuội 3×3, giếng cần vọt, luống hoa, ghế băng, mâm gỗ, chum nước.',key:'wellStone',fn:bf('courtyard')}].filter(q=>typeof q.fn==='function');
+ for(const q of N){if(QH.some(x=>x.id===q.id))continue;q.bp=bpMake(q.id,q.n,q.ic,0,q.d,q.fn);QH.push(q);}}
+if(typeof HD_L!=='undefined')HD_L.push({id:'channuoi',ic:'🐾',t:'Vật nuôi lấy ở đâu?',w:()=>{try{return !!S&&S.builds.some(b=>b.prog==null&&!b.remote&&(CNG.SHED[b.k]||/^(coop|chickenCoop2|duckHouse|chickenRoost|trough)$/.test(b.k)));}catch(e){return false;}},
+  p:['Có chuồng rồi thì cần con giống. <b>Cách 1, thuần thú rừng:</b> bấm nút lom khom, cầm thức ăn nó thích, lại gần bấm <b>Hành động</b> cho ăn 3 lần: gà rừng thành gà, lợn rừng thành lợn, thỏ rừng thành thỏ, dê núi thành dê, sói thành chó.',
+   '<b>Cách 2, đổi con giống ở làng bên:</b> người hái lượm có gà giống, vịt giống, thỏ giống; thợ săn có lợn giống; già làng có dê giống; tù trưởng có nghé. Mở <b>Túi</b>, chọn lồng con giống, bấm <b>Thả ra</b> cạnh chuồng.',
+   'Đứng cạnh chuồng bấm <b>Hành động</b> để cho ăn; chuồng chưa có con nào thì hiện cách kiếm đúng loài. Hai con no bụng ở gần nhau sẽ sinh con; con lớn (có dao) thì mổ thịt được.']});
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.

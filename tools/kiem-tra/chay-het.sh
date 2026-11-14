@@ -78,4 +78,8 @@ echo "23. Vũ khí: cầm cung bấm Hành động / nút Đánh / giữ G đề
 OUT=$(timeout 400 node vu-khi.js 2>&1); echo "$OUT" | grep -q "^VK-DAT" && ok "vũ khí" || bad "vũ khí: $(echo "$OUT" | tail -1 | cut -c1-700)"
 echo "24. Thuần thú: lom khom có thức ăn thì thú không lao vào, cho ăn xong cả bầy không cắn, đánh nó thì mất tiến độ, cho ăn đủ thành vật nuôi"
 OUT=$(timeout 400 node thuan-thu.js 2>&1); echo "$OUT" | grep -q "^TH-DAT" && ok "thuần thú" || bad "thuần thú: $(echo "$OUT" | tail -1 | cut -c1-700)"
+echo "25. Lính gác chia vị trí: mỗi chòi một người, còn lại rải quanh nhà nhiều hướng, lính theo sau xếp hàng, không ai đứng chồng lên ai"
+OUT=$(timeout 400 node canh-gac.js 2>&1); echo "$OUT" | grep -q "^CG-DAT" && ok "lính gác chia vị trí" || bad "lính gác chia vị trí: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-700)"
+echo "26. Chăn nuôi: có dê núi, thuần dê và thỏ, thả con giống, lớn lên, sinh con, vịt đẻ trứng, mổ thịt, chuồng trống chỉ cách kiếm; 16 kiểu nhà mới có bản vẽ hợp lệ"
+OUT=$(timeout 400 node chan-nuoi.js 2>&1); echo "$OUT" | grep -q "^CNU-DAT" && ok "chăn nuôi, nhà mới" || bad "chăn nuôi, nhà mới: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
