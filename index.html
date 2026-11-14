@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261114024627">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261114034102">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -19914,6 +19914,8 @@ try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITE
         if(!j.fed){j.fed=1;try{const fu=(S.fuel&&S.fuel[f.id])||0;if(fu<6){if(invCount('wood')>0)addFuel(f,'wood');else if(invCount('stick')>1){addFuel(f,'stick');addFuel(f,'stick');}}}catch(e){}}
         if(j.w==null)j.w=G.t;j.lab='Ngồi bên lửa chờ thú dữ bỏ đi';const pred=aqPred().some(p=>Math.hypot(p.x-P.x,p.z-P.z)<450);return (G.t-j.w>20&&!pred)||G.t-j.w>90?AQ_DONE:AQ_RUN;}}}catch(e){}return _c.apply(this,arguments);};}
 {const _sf=aqSafety;aqSafety=function(){const r=_sf.apply(this,arguments);try{if(!AQ.on||AQ.jobs.length<2)return r;const top=AQ.jobs[AQ.jobs.length-1];if(top.k!=='flee'||top._nf)return r;top._nf=1;
+    /* chỉ bỏ việc chạy về lửa khi thật sự nguy: máu dưới 60, trời tối, hoặc đã phải né từ 3 lần trong 2 phút. Còn khoẻ giữa ban ngày thì né nhanh rồi làm tiếp (chạy về nhà mỗi lần thấy thú làm chậm hẳn tiến độ). */
+    const night=typeof isNight==='function'&&isNight(),dai=(AQ.fl3||[]).filter(t=>G.t-t<120).length>=3;if(!(S.p.hp<60||night||dai))return r;
     const f=aqFire(true);if(!f)return r;const d=aqD(f.x,f.z);if(d<160||d>800)return r;/* gần lửa sẵn rồi, hoặc lửa xa quá thì cứ né như cũ */
     AQ.jobs.pop();AQ.path=null;AQ.dir=null;const t2=AQ.jobs[AQ.jobs.length-1];if(t2&&!aqHasUrgent('camp')){aqPush({k:'camp',urgent:1},t2);aqSay('🤖 Thú dữ tới gần: chạy về bên bếp lửa, chúng sợ lửa.','bad');}}catch(e){}return r;};}
 /* ===================== GIỮ MÀN HÌNH SÁNG KHI TỰ LÀM · TỰ LÀM TIẾP SAU KHI TRANG TẢI LẠI =====================
@@ -21428,6 +21430,8 @@ if(typeof tameFeed==='function'){const _tf=tameFeed;tameFeed=function(a){const t
 if(typeof animalDamage==='function'){const _ad=animalDamage;animalDamage=function(a){try{if(a&&a._tfT!=null&&a.alive){a._tfT=null;if(a.tame>0&&a.tame<0.99){a.tame=0;if(G.t-(CNG.tbT||-99)>5){CNG.tbT=G.t;uiToast('Bạn đánh con thú đang thuần: nó hoảng, mất hết lòng tin.','bad');}}}}catch(e){}return _ad.apply(this,arguments);};}
 if(typeof l3hostile==='function'){const _lh=l3hostile;l3hostile=function(a,D,d){try{if(a&&!a.angry){if(a._tfT!=null&&G.t-a._tfT<180&&G.t>=a._tfT)return false;
       if(G.sneak&&d<420&&typeof tameFood==='function'&&((typeof TAME==='object'&&TAME[a.kind])||a.kind==='horse')&&tameFood(a.kind)){if(d<300&&!CNG.tmTold){CNG.tmTold=1;uiToast('🤲 Lom khom và có thức ăn nó thích trong túi: con thú dè chừng, không lao vào. Lại gần bấm Hành động để cho ăn; đứng thẳng dậy là nó có thể tấn công.','');}return false;}}}catch(e){}return _lh.apply(this,arguments);};}
+/* Giá vũ khí: trước chỉ để ngắm; giờ là chỗ cất 6 món (giáo, cung, rìu, khiên…), đứng cạnh bấm Hành động để mở như giỏ, rương. */
+try{const d=pieceDef('weaponRack');if(d&&!d.store){d.store=6;d.d=(d.d||'')+' Cất được 6 món vũ khí, dụng cụ.';}}catch(e){}
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.

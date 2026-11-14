@@ -61,5 +61,7 @@ try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITE
         if(!j.fed){j.fed=1;try{const fu=(S.fuel&&S.fuel[f.id])||0;if(fu<6){if(invCount('wood')>0)addFuel(f,'wood');else if(invCount('stick')>1){addFuel(f,'stick');addFuel(f,'stick');}}}catch(e){}}
         if(j.w==null)j.w=G.t;j.lab='Ngồi bên lửa chờ thú dữ bỏ đi';const pred=aqPred().some(p=>Math.hypot(p.x-P.x,p.z-P.z)<450);return (G.t-j.w>20&&!pred)||G.t-j.w>90?AQ_DONE:AQ_RUN;}}}catch(e){}return _c.apply(this,arguments);};}
 {const _sf=aqSafety;aqSafety=function(){const r=_sf.apply(this,arguments);try{if(!AQ.on||AQ.jobs.length<2)return r;const top=AQ.jobs[AQ.jobs.length-1];if(top.k!=='flee'||top._nf)return r;top._nf=1;
+    /* chỉ bỏ việc chạy về lửa khi thật sự nguy: máu dưới 60, trời tối, hoặc đã phải né từ 3 lần trong 2 phút. Còn khoẻ giữa ban ngày thì né nhanh rồi làm tiếp (chạy về nhà mỗi lần thấy thú làm chậm hẳn tiến độ). */
+    const night=typeof isNight==='function'&&isNight(),dai=(AQ.fl3||[]).filter(t=>G.t-t<120).length>=3;if(!(S.p.hp<60||night||dai))return r;
     const f=aqFire(true);if(!f)return r;const d=aqD(f.x,f.z);if(d<160||d>800)return r;/* gần lửa sẵn rồi, hoặc lửa xa quá thì cứ né như cũ */
     AQ.jobs.pop();AQ.path=null;AQ.dir=null;const t2=AQ.jobs[AQ.jobs.length-1];if(t2&&!aqHasUrgent('camp')){aqPush({k:'camp',urgent:1},t2);aqSay('🤖 Thú dữ tới gần: chạy về bên bếp lửa, chúng sợ lửa.','bad');}}catch(e){}return r;};}
