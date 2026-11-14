@@ -84,4 +84,6 @@ echo "26. Chăn nuôi: có dê núi, thuần dê và thỏ, thả con giống, l
 OUT=$(timeout 400 node chan-nuoi.js 2>&1); echo "$OUT" | grep -q "^CNU-DAT" && ok "chăn nuôi, nhà mới" || bad "chăn nuôi, nhà mới: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo "27. Thuần thú không bị đánh nhầm (cầm rìu vẫn cho ăn, hết thức ăn không đánh); Giữ cổng khi chưa có cổng không dồn ở bếp; việc mới: thợ xây, chăn nuôi, đi săn, đánh cá; nhiệm vụ ngày 5 việc"
 OUT=$(timeout 500 node viec-them.js 2>&1); echo "$OUT" | grep -q "^VT-DAT" && ok "việc mới của người làng, thuần thú" || bad "việc mới, thuần thú: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
+echo "28. Người nấu ăn: một hay hai người bên bếp đều đứng yên, mỗi người một chỗ, không giật qua lại"
+OUT=$(timeout 400 node nau-an.js 2>&1); echo "$OUT" | grep -q "^NA-DAT" && ok "người nấu ăn đứng yên" || bad "người nấu ăn: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-700)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
