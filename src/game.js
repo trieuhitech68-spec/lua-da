@@ -108,12 +108,20 @@ function stubModel(spec){const K=K3,k=spec[0],a=spec[1];
 const RI=new Map();
 // tài nguyên vẽ hàng loạt: vật nhỏ chia ô 700 du (chỉ vẽ gần), cây lớn chia ô 1800 du, cây xa dùng mô hình giản lược
 const RCH=1150,BIGRX=/^(tree|bamboo|palm|banyan|savannaTree|boulder\|3)/;
+// nhóm hình chỉ dựng thật khi lần đầu có phần tử cần hiện (xem resInstances)
+function resLazy(mk){let real=null;const dummy={visible:true},get=()=>{if(!real){real=mk();real.G.visible=dummy.visible;}return real;};
+  return {get G(){return real?real.G:dummy;},get nOn(){return real?real.nOn:0;},get ims(){return real?real.ims:[];},get cap(){return real?real.cap:0;},set(){const a=get();return a.set.apply(a,arguments);},setM(){const a=get();return a.setM.apply(a,arguments);},hide(i){if(real)real.hide(i);},flush(){if(real)real.flush();},dispose(){if(real)real.dispose();}};}
 function resInstances(){const groups=new Map(),protos=new Map();const lazyLo=!G.impDone&&!!(window.SBM&&SBM.v6bake&&SBM.treeLo);G.loQ=[];const ck=(x,z,c)=>Math.floor((x+WSIZE/2)/c)+','+Math.floor((z+WOZ)/c);
-  const use=(spec,q)=>{const sk=spec.join('|'),big=BIGRX.test(sk),k=sk+'@'+ck(q.x,q.z,big?1800:700);let e=groups.get(k);if(!e){e={sk,spec,qs:[],big};groups.set(k,e);}e.qs.push(q);return k;};
-  RES.forEach(q=>{const D=RT[q.t];q.y=q.wy!=null?q.wy:hAt(q.x,q.z)-1.2;q.gk=use(D.m,q);if(D.stump)q.sk=use(D.stump,q);if(D.empty)q.ek=use(D.empty,q);});
+  const use=(spec,q,main)=>{const sk=spec.join('|'),big=BIGRX.test(sk),k=sk+'@'+ck(q.x,q.z,big?1800:700);let e=groups.get(k);if(!e){e={sk,spec,qs:[],big,main:0};groups.set(k,e);}if(main)e.main=1;e.qs.push(q);return k;};
+  RES.forEach(q=>{const D=RT[q.t];q.y=q.wy!=null?q.wy:hAt(q.x,q.z)-1.2;q.gk=use(D.m,q,1);if(D.stump)q.sk=use(D.stump,q,0);if(D.empty)q.ek=use(D.empty,q,0);});
   const proto=(sk,lo)=>{const key=sk+(lo?'#lo':'');let pr=protos.get(key);if(pr)return pr;const spec=sk.split('|').map(v=>/^\d+$/.test(v)?+v:v);let lg=null;if(lo&&window.SBM&&SBM.treeLo&&spec[0]==='tree'){try{lg=SBM.treeLo(spec[1],1,spec[2]);}catch(e){}}let parts=protoParts(lo?(lg||stubModel(spec)):model(spec));if(!lo&&(BIGRX.test(sk)||/^banana/.test(sk)))parts.forEach(pt=>pt.mat=occMat(pt.mat));
     let mr=8;parts.forEach(pt=>{const bs=pt.geo.boundingSphere;if(bs)mr=Math.max(mr,bs.center.length()+bs.radius);});pr={parts,mr};protos.set(key,pr);return pr;};
-  groups.forEach((e,k)=>{const pr=proto(e.sk,false);let cx=0,cy=0,cz=0,ms=1;e.qs.forEach(q=>{cx+=q.x;cy+=q.y;cz+=q.z;ms=Math.max(ms,q.s);});cx/=e.qs.length;cy/=e.qs.length;cz/=e.qs.length;let r=0;e.qs.forEach(q=>{r=Math.max(r,Math.hypot(q.x-cx,q.y-cy,q.z-cz));});
+  groups.forEach((e,k)=>{
+    /* TIẾT KIỆM BỘ NHỚ: nhóm hình "gốc cây sau khi chặt", "bụi đã hái hết" trước được dựng sẵn cho MỌI cây, bụi trên cả bản đồ dù chưa ai đụng tới
+       (quá nửa số nhóm hình, hàng chục MB). Giờ chỉ dựng khi lần đầu có cây bị chặt / bụi bị hái ở khu đó. */
+    if(!e.main){let cx=0,cy=0,cz=0,ms=1;e.qs.forEach(q=>{cx+=q.x;cy+=q.y;cz+=q.z;ms=Math.max(ms,q.s);});cx/=e.qs.length;cy/=e.qs.length;cz/=e.qs.length;let r=0;e.qs.forEach(q=>{r=Math.max(r,Math.hypot(q.x-cx,q.y-cy,q.z-cz));});
+      const sph={x:cx,y:cy,z:cz,r:r+60*ms+10},n=e.qs.length,sk=e.sk;RI.set(k,{api:resLazy(()=>{const pr=proto(sk,false);sph.r=r+pr.mr*ms+10;const a=instGroup(pr.parts,n,{shadow:false,sphere:sph});G.sc.add(a.G);try{seasonPatchAll(a.G);}catch(er){}return a;}),n:0,sph,small:true});return;}
+    const pr=proto(e.sk,false);let cx=0,cy=0,cz=0,ms=1;e.qs.forEach(q=>{cx+=q.x;cy+=q.y;cz+=q.z;ms=Math.max(ms,q.s);});cx/=e.qs.length;cy/=e.qs.length;cz/=e.qs.length;let r=0;e.qs.forEach(q=>{r=Math.max(r,Math.hypot(q.x-cx,q.y-cy,q.z-cz));});
     const sph={x:cx,y:cy,z:cz,r:r+pr.mr*ms+10},small=!e.big;let api=instGroup(pr.parts,e.qs.length,{shadow:!small,sphere:sph});G.sc.add(api.G);
     if(e.big&&/^tree/.test(e.sk)&&lazyLo)G.loQ.push({k,sk:e.sk,n:e.qs.length,sph,hi:api});
     else if(e.big&&/^tree/.test(e.sk)){const lo=instGroup(proto(e.sk,true).parts,e.qs.length,{shadow:false,sphere:sph});lo.G.visible=false;G.sc.add(lo.G);const hi=api;

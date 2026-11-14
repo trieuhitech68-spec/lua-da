@@ -234,7 +234,7 @@ async function spAct(a,t){switch(a){
   case 'app':{if(SP.bip){try{SP.bip.prompt();const r=await SP.bip.userChoice;if(r&&r.outcome==='accepted')SP.bip=null;}catch(er){}}else{const b=document.querySelector('.ld-app');if(b)b.click();}break;}}}
 /* ---------- xuất / nhập bản lưu ---------- */
 const spSlug=s=>String(s||'nhan-vat').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[đĐ]/g,'d').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'').toLowerCase().slice(0,24)||'nhan-vat';
-function spExportData(){try{save();}catch(e){}const raw=spLS(SKEY);if(!raw)return null;let s;try{s=JSON.parse(raw);}catch(e){return null;}const id=typeof curSlot==='function'?curSlot():null;
+function spExportData(){try{(typeof saveNow==='function'?saveNow:save)();}catch(e){}const raw=spLS(SKEY);if(!raw)return null;let s;try{s=JSON.parse(raw);}catch(e){return null;}const id=typeof curSlot==='function'?curSlot():null;
   return {app:'lua-da-tay-trang',kind:'save',fmt:1,ver:SET_VER,at:new Date().toISOString(),id,meta:id&&typeof slotsLocal==='function'?slotsLocal()[id]||null:null,save:s};}
 async function spExport(){const o=spExportData();if(!o){spMsg('Chưa có gì để lưu.','bad');return;}const txt=JSON.stringify(o),fn=`lua-da-${spSlug(o.save.name)}-ngay-${o.save.day||1}.json`;SP.lastExport={fn,len:txt.length};
   if(spClaude()&&window.claude&&window.claude.use){let dl=null;try{dl=await Promise.race([window.claude.use('downloads'),new Promise(r=>setTimeout(()=>r(null),4000))]);}catch(e){dl=null;}

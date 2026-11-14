@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261114034102">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261114042939">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -2179,12 +2179,20 @@ function stubModel(spec){const K=K3,k=spec[0],a=spec[1];
 const RI=new Map();
 // tài nguyên vẽ hàng loạt: vật nhỏ chia ô 700 du (chỉ vẽ gần), cây lớn chia ô 1800 du, cây xa dùng mô hình giản lược
 const RCH=1150,BIGRX=/^(tree|bamboo|palm|banyan|savannaTree|boulder\|3)/;
+// nhóm hình chỉ dựng thật khi lần đầu có phần tử cần hiện (xem resInstances)
+function resLazy(mk){let real=null;const dummy={visible:true},get=()=>{if(!real){real=mk();real.G.visible=dummy.visible;}return real;};
+  return {get G(){return real?real.G:dummy;},get nOn(){return real?real.nOn:0;},get ims(){return real?real.ims:[];},get cap(){return real?real.cap:0;},set(){const a=get();return a.set.apply(a,arguments);},setM(){const a=get();return a.setM.apply(a,arguments);},hide(i){if(real)real.hide(i);},flush(){if(real)real.flush();},dispose(){if(real)real.dispose();}};}
 function resInstances(){const groups=new Map(),protos=new Map();const lazyLo=!G.impDone&&!!(window.SBM&&SBM.v6bake&&SBM.treeLo);G.loQ=[];const ck=(x,z,c)=>Math.floor((x+WSIZE/2)/c)+','+Math.floor((z+WOZ)/c);
-  const use=(spec,q)=>{const sk=spec.join('|'),big=BIGRX.test(sk),k=sk+'@'+ck(q.x,q.z,big?1800:700);let e=groups.get(k);if(!e){e={sk,spec,qs:[],big};groups.set(k,e);}e.qs.push(q);return k;};
-  RES.forEach(q=>{const D=RT[q.t];q.y=q.wy!=null?q.wy:hAt(q.x,q.z)-1.2;q.gk=use(D.m,q);if(D.stump)q.sk=use(D.stump,q);if(D.empty)q.ek=use(D.empty,q);});
+  const use=(spec,q,main)=>{const sk=spec.join('|'),big=BIGRX.test(sk),k=sk+'@'+ck(q.x,q.z,big?1800:700);let e=groups.get(k);if(!e){e={sk,spec,qs:[],big,main:0};groups.set(k,e);}if(main)e.main=1;e.qs.push(q);return k;};
+  RES.forEach(q=>{const D=RT[q.t];q.y=q.wy!=null?q.wy:hAt(q.x,q.z)-1.2;q.gk=use(D.m,q,1);if(D.stump)q.sk=use(D.stump,q,0);if(D.empty)q.ek=use(D.empty,q,0);});
   const proto=(sk,lo)=>{const key=sk+(lo?'#lo':'');let pr=protos.get(key);if(pr)return pr;const spec=sk.split('|').map(v=>/^\d+$/.test(v)?+v:v);let lg=null;if(lo&&window.SBM&&SBM.treeLo&&spec[0]==='tree'){try{lg=SBM.treeLo(spec[1],1,spec[2]);}catch(e){}}let parts=protoParts(lo?(lg||stubModel(spec)):model(spec));if(!lo&&(BIGRX.test(sk)||/^banana/.test(sk)))parts.forEach(pt=>pt.mat=occMat(pt.mat));
     let mr=8;parts.forEach(pt=>{const bs=pt.geo.boundingSphere;if(bs)mr=Math.max(mr,bs.center.length()+bs.radius);});pr={parts,mr};protos.set(key,pr);return pr;};
-  groups.forEach((e,k)=>{const pr=proto(e.sk,false);let cx=0,cy=0,cz=0,ms=1;e.qs.forEach(q=>{cx+=q.x;cy+=q.y;cz+=q.z;ms=Math.max(ms,q.s);});cx/=e.qs.length;cy/=e.qs.length;cz/=e.qs.length;let r=0;e.qs.forEach(q=>{r=Math.max(r,Math.hypot(q.x-cx,q.y-cy,q.z-cz));});
+  groups.forEach((e,k)=>{
+    /* TIẾT KIỆM BỘ NHỚ: nhóm hình "gốc cây sau khi chặt", "bụi đã hái hết" trước được dựng sẵn cho MỌI cây, bụi trên cả bản đồ dù chưa ai đụng tới
+       (quá nửa số nhóm hình, hàng chục MB). Giờ chỉ dựng khi lần đầu có cây bị chặt / bụi bị hái ở khu đó. */
+    if(!e.main){let cx=0,cy=0,cz=0,ms=1;e.qs.forEach(q=>{cx+=q.x;cy+=q.y;cz+=q.z;ms=Math.max(ms,q.s);});cx/=e.qs.length;cy/=e.qs.length;cz/=e.qs.length;let r=0;e.qs.forEach(q=>{r=Math.max(r,Math.hypot(q.x-cx,q.y-cy,q.z-cz));});
+      const sph={x:cx,y:cy,z:cz,r:r+60*ms+10},n=e.qs.length,sk=e.sk;RI.set(k,{api:resLazy(()=>{const pr=proto(sk,false);sph.r=r+pr.mr*ms+10;const a=instGroup(pr.parts,n,{shadow:false,sphere:sph});G.sc.add(a.G);try{seasonPatchAll(a.G);}catch(er){}return a;}),n:0,sph,small:true});return;}
+    const pr=proto(e.sk,false);let cx=0,cy=0,cz=0,ms=1;e.qs.forEach(q=>{cx+=q.x;cy+=q.y;cz+=q.z;ms=Math.max(ms,q.s);});cx/=e.qs.length;cy/=e.qs.length;cz/=e.qs.length;let r=0;e.qs.forEach(q=>{r=Math.max(r,Math.hypot(q.x-cx,q.y-cy,q.z-cz));});
     const sph={x:cx,y:cy,z:cz,r:r+pr.mr*ms+10},small=!e.big;let api=instGroup(pr.parts,e.qs.length,{shadow:!small,sphere:sph});G.sc.add(api.G);
     if(e.big&&/^tree/.test(e.sk)&&lazyLo)G.loQ.push({k,sk:e.sk,n:e.qs.length,sph,hi:api});
     else if(e.big&&/^tree/.test(e.sk)){const lo=instGroup(proto(e.sk,true).parts,e.qs.length,{shadow:false,sphere:sph});lo.G.visible=false;G.sc.add(lo.G);const hi=api;
@@ -4708,7 +4716,7 @@ function collide(nx,nz){const pr=7,py=P.y,noB=OCC.edge.size===0&&OCC.cell.size==
     if(noB)continue;
     const ci=Math.floor(nx/CELL),cj=Math.floor(nz/CELL);
     for(let L=0;L<=LVMAX;L++)for(let i=ci-1;i<=ci+1;i++)for(let j=cj-1;j<=cj+1;j++){const K=colKey(i,j,L);
-      for(let r=0;r<2;r++){const id=OCC.edge.get(r?K.v:K.h);if(!id)continue;const b=BYID.get(id);if(!b)continue;if(b.prog!=null&&b.prog<0.6)continue;const def=pieceDef(b.k);if(!def)continue;if(py+30<b.y||py>(def.low?Math.max(b.y,hAt(b.x,b.z))+(P.air?11:26):b.y+46))continue;/* rào, vách lửng cao ~1 m: chỉ khi ĐANG NHẢY và đã cao hơn mặt đất chỗ rào 11 đơn vị mới qua; đi bộ thì luôn bị chặn, kể cả trên dốc (trước so với chân rào nên đứng phía cao của dốc là đi xuyên) */if(/ladder/i.test(b.k))continue;
+      for(let r=0;r<2;r++){const id=OCC.edge.get(r?K.v:K.h);if(!id)continue;const b=BYID.get(id);if(!b)continue;if(b.br&&b.prog!=null)continue;/* chỉ đoạn rào, tường vừa bị kẻ địch PHÁ THỦNG mới đi lọt; đang xây dở vẫn là vật cản (các lớp va chạm khác vẫn chặn, coi là lọt thì đường đi vạch xuyên qua rồi kẹt) */const def=pieceDef(b.k);if(!def)continue;if(py+30<b.y||py>(def.low?Math.max(b.y,hAt(b.x,b.z))+(P.air?11:26):b.y+46))continue;/* rào, vách lửng cao ~1 m: chỉ khi ĐANG NHẢY và đã cao hơn mặt đất chỗ rào 11 đơn vị mới qua; đi bộ thì luôn bị chặn, kể cả trên dốc (trước so với chân rào nên đứng phía cao của dốc là đi xuyên) */if(/ladder/i.test(b.k))continue;
         const ax=r?b.x:b.x-20,az=r?b.z-20:b.z,bx=r?b.x:b.x+20,bz=r?b.z+20:b.z;const segs=def.door&&(typeof solDoorOpen!=='function'||solDoorOpen(b))?COL_SD:COL_SF;/* lối cửa rộng 26: người (bán kính 9) đi lọt */
         for(let q=0;q<segs.length;q+=2){const s0=segs[q],s1=segs[q+1],x0=ax+(bx-ax)*s0,z0=az+(bz-az)*s0,x1=ax+(bx-ax)*s1,z1=az+(bz-az)*s1;const dx=x1-x0,dz=z1-z0,l2=dx*dx+dz*dz;let t=((nx-x0)*dx+(nz-z0)*dz)/l2;t=clamp(t,0,1);const qx=x0+dx*t,qz=z0+dz*t,ex=nx-qx,ez=nz-qz,d=Math.sqrt(ex*ex+ez*ez),rr=pr+2;if(d<rr&&d>0.001){nx=qx+ex/d*rr;nz=qz+ez/d*rr;}}}
       const pid=OCC.edge.get(K.c);if(pid){const b=BYID.get(pid);if(b&&py+30>=b.y&&py<=b.y+LVH){const dx=nx-b.x,dz=nz-b.z,d=Math.sqrt(dx*dx+dz*dz),rr=pr+3;if(d<rr&&d>0.01){nx=b.x+dx/d*rr;nz=b.z+dz/d*rr;}}}
@@ -18065,7 +18073,7 @@ async function spAct(a,t){switch(a){
   case 'app':{if(SP.bip){try{SP.bip.prompt();const r=await SP.bip.userChoice;if(r&&r.outcome==='accepted')SP.bip=null;}catch(er){}}else{const b=document.querySelector('.ld-app');if(b)b.click();}break;}}}
 /* ---------- xuất / nhập bản lưu ---------- */
 const spSlug=s=>String(s||'nhan-vat').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[đĐ]/g,'d').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'').toLowerCase().slice(0,24)||'nhan-vat';
-function spExportData(){try{save();}catch(e){}const raw=spLS(SKEY);if(!raw)return null;let s;try{s=JSON.parse(raw);}catch(e){return null;}const id=typeof curSlot==='function'?curSlot():null;
+function spExportData(){try{(typeof saveNow==='function'?saveNow:save)();}catch(e){}const raw=spLS(SKEY);if(!raw)return null;let s;try{s=JSON.parse(raw);}catch(e){return null;}const id=typeof curSlot==='function'?curSlot():null;
   return {app:'lua-da-tay-trang',kind:'save',fmt:1,ver:SET_VER,at:new Date().toISOString(),id,meta:id&&typeof slotsLocal==='function'?slotsLocal()[id]||null:null,save:s};}
 async function spExport(){const o=spExportData();if(!o){spMsg('Chưa có gì để lưu.','bad');return;}const txt=JSON.stringify(o),fn=`lua-da-${spSlug(o.save.name)}-ngay-${o.save.day||1}.json`;SP.lastExport={fn,len:txt.length};
   if(spClaude()&&window.claude&&window.claude.use){let dl=null;try{dl=await Promise.race([window.claude.use('downloads'),new Promise(r=>setTimeout(()=>r(null),4000))]);}catch(e){dl=null;}
@@ -18960,7 +18968,7 @@ function solRects(x,z,py){if(OCC.cell.size===0)return SOL_E;const out=[],ci=Math
     for(let L=0;L<=LVMAX;L++){const id=c[slotN('obj',L)];if(!id||seen.has(id))continue;seen.add(id);const b=BYID.get(id);if(!b||Math.abs(b.y-py)>40||py>=b.y+SOL_HUT-4)continue;/* đang đứng trên nóc thì không bị đẩy */const r=solRectOf(b);if(r)out.push(r);}}return out;}
 // các đoạn tường (đã trừ lối cửa) + cột quanh một vùng
 function solSegs(x0,z0,x1,z1,py){if(OCC.edge.size===0&&OCC.cell.size===0)return SOL_E;const out=[],i0=Math.floor(Math.min(x0,x1)/CELL)-1,i1=Math.floor(Math.max(x0,x1)/CELL)+1,j0=Math.floor(Math.min(z0,z1)/CELL)-1,j1=Math.floor(Math.max(z0,z1)/CELL)+1;if((i1-i0)*(j1-j0)>400)return out;
-  if(OCC.edge.size)for(let L=0;L<=LVMAX;L++)for(let i=i0;i<=i1+1;i++)for(let j=j0;j<=j1+1;j++){const K=colKey(i,j,L);for(let r=0;r<2;r++){const id=OCC.edge.get(r?K.v:K.h);if(!id)continue;const b=BYID.get(id);if(!b)continue;if(b.prog!=null&&b.prog<0.6)continue;/* rào, tường đang dựng dở dưới 60% hoặc vừa bị phá thủng: chưa chắn được ai */const def=pieceDef(b.k);if(!def||/ladder/i.test(b.k))continue;
+  if(OCC.edge.size)for(let L=0;L<=LVMAX;L++)for(let i=i0;i<=i1+1;i++)for(let j=j0;j<=j1+1;j++){const K=colKey(i,j,L);for(let r=0;r<2;r++){const id=OCC.edge.get(r?K.v:K.h);if(!id)continue;const b=BYID.get(id);if(!b)continue;if(b.br&&b.prog!=null)continue;/* chỉ đoạn rào, tường vừa bị kẻ địch PHÁ THỦNG mới đi lọt; đang xây dở vẫn là vật cản (các lớp va chạm khác vẫn chặn, coi là lọt thì đường đi vạch xuyên qua rồi kẹt) */const def=pieceDef(b.k);if(!def||/ladder/i.test(b.k))continue;
       if(py+30<b.y||py>(def.low?Math.max(b.y,hAt(b.x,b.z))+(P.air?11:26):b.y+46))continue;const ax=r?b.x:b.x-20,az=r?b.z-20:b.z,bx=r?b.x:b.x+20,bz=r?b.z+20:b.z,sg=def.door&&!solSegs.shut&&solDoorOpen(b)?SOL_SGD:SOL_SGF;/* solSegs.shut=1: coi mọi cửa, cổng là đóng (dùng cho kẻ địch) */for(let q=0;q<sg.length;q+=2){const s0=sg[q],s1=sg[q+1];out.push([ax+(bx-ax)*s0,az+(bz-az)*s0,ax+(bx-ax)*s1,az+(bz-az)*s1]);}/* dài thêm mỗi đầu 3 đơn vị: bịt khe ở góc nhà */}}
   try{let seen=null;if(OCC.cell.size)for(let i=i0-1;i<=i1+1;i++)for(let j=j0-1;j<=j1+1;j++){const c=OCC.cell.get(colKey(i,j,0).cell);if(!c)continue;const id=c[slotN('obj',0)];if(!id)continue;if(!seen)seen=new Set();if(seen.has(id))continue;seen.add(id);const b=BYID.get(id);if(b&&SOL_SH[b.k]&&Math.abs(b.y-py)<40)solShSegs(b,out);}}catch(e){}
   return out;}
@@ -21185,19 +21193,20 @@ function dnFireflies(){const T=THREE,N=(G.q|0)>0?70:40,pos=new Float32Array(N*3)
 const DG={acc:{},ev:[],last:0,on:1,N:{animTick:'chuyển động, chơi chung',mpTick:'chơi chung',ldbEmit:'nhận dữ liệu máy chủ',foesTick:'kẻ địch, lính',folkTick:'người làng',skyTick:'trời, nước',grassTick:'cỏ',cullTick:'ẩn hiện cây cối',save:'ghi bản lưu',uiHud:'bảng chỉ số',miniTick:'bản đồ nhỏ',dayTick:'ngày đêm',aqTick:'Tự làm',animalsTick:'thú',cropsTick:'cây trồng',rlTick:'lãnh địa',rlMpCalc:'tính giữ đất',mpRemoteApply:'công trình hàng xóm',pvpIn:'biên bản cướp phá',perfTick:'cân chỉnh độ nét',ve:'vẽ hình (card đồ hoạ)'}};
 (function(){for(const n of Object.keys(DG.N)){if(n==='ve')continue;try{const f=(0,eval)(n);if(typeof f!=='function')continue;window.__dgw=function(){const t=performance.now();try{return f.apply(this,arguments);}finally{DG.acc[n]=(DG.acc[n]||0)+performance.now()-t;}};(0,eval)(n+'=__dgw');}catch(e){}}try{delete window.__dgw;}catch(e){}
   try{const lf=loop;loop=function(){const t=performance.now();try{return lf.apply(this,arguments);}finally{DG.acc.__loop=(DG.acc.__loop||0)+performance.now()-t;}};}catch(e){}
+  try{if(window.PerformanceObserver){DG.lt=[];new PerformanceObserver(L=>{for(const e of L.getEntries()){DG.lt.push([e.startTime,e.duration]);if(DG.lt.length>80)DG.lt.splice(0,30);}}).observe({entryTypes:['longtask']});}}catch(e){DG.lt=null;}
   const fr=()=>{requestAnimationFrame(fr);const now=performance.now();try{
       if(typeof G!=='undefined'&&G.on&&G.R&&!G.R.__dg){G.R.__dg=1;const r=G.R.render;G.R.render=function(){const t=performance.now();try{return r.apply(this,arguments);}finally{DG.acc.ve=(DG.acc.ve||0)+performance.now()-t;}};}
       const d=now-DG.last;if(DG.last&&d>50&&d<3000&&typeof G!=='undefined'&&G.on&&!G.paused&&!document.hidden&&G.t>15){let bk='',bv=0,sum=0;for(const k in DG.acc){const v=DG.acc[k];if(k==='animTick'||k==='__loop')continue;sum+=v;if(v>bv){bv=v;bk=k;}}
         /* phần đo được chiếm dưới 35% thời gian khung: việc nằm ngoài mã game (trình duyệt dọn bộ nhớ, card đồ hoạ, máy bận việc khác) */
-        const lp=DG.acc.__loop||0;DG.ev.push([Date.now(),Math.round(d),bv>d*0.35?bk:(lp>d*0.55?'nhieu':'ngoai'),Math.round(bv)]);if(DG.ev.length>400)DG.ev.splice(0,100);}
+        const lp=DG.acc.__loop||0;let cat=bv>d*0.35?bk:(lp>d*0.55?'nhieu':'ngoai');if(cat==='ngoai'&&DG.lt){/* phân biệt: trong khoảng khựng có "việc dài" chạy trong trang (dọn bộ nhớ, tiện ích mở rộng, mã khác) hay trang hoàn toàn rảnh mà hình vẫn không lên (card đồ hoạ, máy bận) */let js=0;for(let q=DG.lt.length-1;q>=0;q--){const e=DG.lt[q];if(e[0]+e[1]<DG.last)break;js+=Math.min(e[0]+e[1],now)-Math.max(e[0],DG.last);}cat=js>d*0.5?'ngoaijs':'ngoaigpu';}DG.ev.push([Date.now(),Math.round(d),cat,Math.round(bv)]);if(DG.ev.length>400)DG.ev.splice(0,100);}
     }catch(e){}DG.acc={};DG.last=now;};requestAnimationFrame(fr);
   document.addEventListener('visibilitychange',()=>{DG.last=0;});})();
 function ldGiat(){const now=Date.now(),E=DG.ev.filter(e=>now-e[0]<300000),by={};for(const e of E){const a=by[e[2]]||(by[e[2]]={n:0,max:0});a.n++;a.max=Math.max(a.max,e[1]);}
-  const L=Object.entries(by).sort((a,b)=>b[1].n-a[1].n).map(([k,a])=>(k==='ngoai'?'ngoài mã game (trình duyệt dọn bộ nhớ, card đồ hoạ)':k==='nhieu'?'mã game, nhiều phần nhỏ cộng lại':DG.N[k]||k)+': '+a.n+' lần, nặng nhất '+a.max+' ms');
+  const L=Object.entries(by).sort((a,b)=>b[1].n-a[1].n).map(([k,a])=>(k==='ngoai'?'ngoài mã game (trình duyệt dọn bộ nhớ, card đồ hoạ)':k==='ngoaijs'?'trình duyệt bận việc trong trang (dọn bộ nhớ, tiện ích mở rộng)':k==='ngoaigpu'?'trang rảnh mà hình không lên (card đồ hoạ, máy đang bận việc khác)':k==='nhieu'?'mã game, nhiều phần nhỏ cộng lại':DG.N[k]||k)+': '+a.n+' lần, nặng nhất '+a.max+' ms');
   let nhip=0;if(E.length>2){const g=[];for(let i=1;i<E.length;i++)g.push((E[i][0]-E[i-1][0])/1000);g.sort((a,b)=>a-b);nhip=+g[Math.floor(g.length/2)].toFixed(1);}let bo=0;try{bo=Math.round(performance.memory.usedJSHeapSize/1e6);}catch(e){}
   return {lan:E.length,nangNhat:E.reduce((m,e)=>Math.max(m,e[1]),0),theo:L,nhip,boNho:bo};}
 setInterval(()=>{try{if(typeof G==='undefined'||!G.on||G.panel!=='settings')return;const bd=document.querySelector('#panel .p-body');if(!bd)return;let el=bd.querySelector('.dg-b');const r=ldGiat();
-    const h=`<b>📈 Đo giật (5 phút gần nhất)</b><span class="small muted">${r.lan?`Khựng <b>${r.lan}</b> lần, nặng nhất <b>${r.nangNhat} ms</b>${r.nhip?`, thường cách nhau <b>${r.nhip} giây</b>`:''}${r.boNho?` · bộ nhớ ${r.boNho} MB`:''}.<br>${r.theo.slice(0,4).map(esc).join('<br>')}`:'Chưa ghi nhận lần khựng nào.'}${(()=>{try{const u=ldLuu();return `<br>Bản lưu: ${u.co?Math.round(u.co.tong/1024)+' KB ('+u.co.lon.join(', ')+')':'?'}${u.lanCuoi?' · lần ghi gần nhất '+u.lanCuoi.ms+' ms'+(u.lanCuoi.gon?' (đóng gói '+u.lanCuoi.goi+', ghi xuống máy '+u.lanCuoi.dia+')':''):''} · yêu cầu lưu ${u.goi} lần${u.nhieu.length?' ('+u.nhieu.join(', ')+')':''}`;}catch(e){return '';}})()}</span>`;
+    const h=`<b>📈 Đo giật (5 phút gần nhất)</b><span class="small muted">${r.lan?`Khựng <b>${r.lan}</b> lần, nặng nhất <b>${r.nangNhat} ms</b>${r.nhip?`, thường cách nhau <b>${r.nhip} giây</b>`:''}${r.boNho?` · bộ nhớ ${r.boNho} MB`:''}.<br>${r.theo.slice(0,4).map(esc).join('<br>')}`:'Chưa ghi nhận lần khựng nào.'}${(()=>{try{const u=ldLuu();return `<br>Bản lưu: ${u.co?Math.round(u.co.tong/1024)+' KB ('+u.co.lon.join(', ')+')':'?'}${u.lanCuoi?' · lần ghi gần nhất '+u.lanCuoi.ms+' ms'+(u.lanCuoi.gon?' (đóng gói '+u.lanCuoi.goi+', '+(u.lanCuoi.nen?'ghi nền ':'ghi xuống máy ')+u.lanCuoi.dia+')':' (ghi kiểu cũ)'):''} · yêu cầu lưu ${u.goi} lần${u.nhieu.length?' ('+u.nhieu.join(', ')+')':''}`;}catch(e){return '';}})()}</span>`;
     if(!el){el=document.createElement('div');el.className='dg-b';const hn=bd.querySelector('.hn-b');if(hn)hn.after(el);else bd.prepend(el);}if(el.innerHTML!==h)el.innerHTML=h;}catch(e){}},1500);
 {const s=document.createElement('style');s.textContent='#game .panel .dg-b{display:flex;flex-direction:column;gap:3px;padding:9px 11px;margin-bottom:10px;border-radius:12px;background:rgba(120,160,230,.08);border:1px solid rgba(120,160,230,.35);font-size:14px}';document.head.appendChild(s);}
 /* ---------- ÂM THANH NỀN: suối chảy, lửa tí tách, gió ----------
@@ -21371,7 +21380,7 @@ function rcBreak(f,dt){const sg=RAO.seg;if(!sg)return;const mx=(sg[0]+sg[2])/2,m
   if(!b)return;const def=pieceDef(b.k);if(b._hp==null){let c=0;for(const k in def.cost||{})c+=def.cost[k];b._hp=clamp(4+c*1.4,10,60);b._hp0=b._hp;}
   b._hp-=dt;f._ry=Math.atan2(b.x-f.x,b.z-f.z);f._hitT=(f._hitT||0)-dt;if(f._hitT<=0){f._hitT=1.3;try{puff(b.x,(b.y||hAt(b.x,b.z))+18,b.z,'#a88a62',5);if(Math.hypot(b.x-P.x,b.z-P.z)<500)sfx('thud');}catch(e){}
     if(G.t-(RAO.bw||-999)>25&&Math.hypot(b.x-P.x,b.z-P.z)<900){RAO.bw=G.t;uiToast('⚠️ Kẻ địch đang phá '+def.n.toLowerCase()+'! Ra đánh đuổi trước khi rào thủng.','bad');}}
-  if(b._hp<=0){b._hp=null;b.prog=0.45;if(typeof STG!=='undefined'&&STG[b.k])b.paid=STG[b.k].length;if(b.cond!=null)b.cond=60;try{siteShow(b);}catch(e){}try{puff(b.x,(b.y||hAt(b.x,b.z))+14,b.z,'#8a6a42',16);sfx('fall');}catch(e){}
+  if(b._hp<=0){b._hp=null;b.br=1;b.prog=0.45;if(typeof STG!=='undefined'&&STG[b.k])b.paid=STG[b.k].length;if(b.cond!=null)b.cond=60;try{siteShow(b);}catch(e){}try{puff(b.x,(b.y||hAt(b.x,b.z))+14,b.z,'#8a6a42',16);sfx('fall');}catch(e){}
     uiToast('💥 Kẻ địch đã phá thủng '+def.n.toLowerCase()+'! Tới cạnh bấm Hành động để dựng lại.','bad');f._bt=null;try{cnt('cnt','breach');}catch(e){}save();}}
 /* ---------- CÔNG TRÌNH KIỂU MỚI CÓ ĐÚNG CHỨC NĂNG CỦA MÓN CÙNG LOẠI ----------
    Giếng khơi cần vọt, chuồng gà trên cột, chuồng vịt, giàn gà đậu, giá trống đồng, giá cồng chiêng, cột vật tổ chim / rồng trước chỉ để ngắm:
@@ -21489,9 +21498,9 @@ setInterval(()=>{try{if(typeof G==='undefined'||!G.on)return;const tb=document.q
    sắp đẩy bản lưu lên máy chủ, hoặc gọi saveNow(). Mất điện đột ngột thì mất tối đa 20 giây gần nhất. */
 const LTH2={t:0,pend:0,timer:null,GAP:45000,req:0,by:{},last:null};
 {const _real=save;
-  window.saveNow=function(){LTH2.pend=0;if(LTH2.timer){clearTimeout(LTH2.timer);LTH2.timer=null;}LTH2.t=performance.now();const t0=LTH2.t;try{return _real.apply(this,arguments);}finally{try{LTH2.last={ms:Math.round(performance.now()-t0),at:Date.now()};}catch(e){}}};
+  window.saveNow=function(){LTH2.pend=0;if(LTH2.timer){clearTimeout(LTH2.timer);LTH2.timer=null;}LTH2.t=performance.now();const t0=LTH2.t;try{return _real.apply(this,arguments);}finally{try{LTH2.last={ms:Math.round(performance.now()-t0),at:Date.now()};LTH2.raw=null;}catch(e){}}};
   save=function(){try{LTH2.req++;if(LTH2.req<=400){/* ghi lại ai gọi lưu nhiều nhất (xem ở Cài đặt → Đo giật) */const st=(new Error().stack||'').split('\n')[2]||'';const m=st.match(/at ([A-Za-z0-9_$.]+)/);const k=m?m[1]:'?';LTH2.by[k]=(LTH2.by[k]||0)+1;}}catch(e){}
-    const now=performance.now();if(typeof G==='undefined'||!G.on||G.panel==='settings')return saveNow();if(now-LTH2.t>=LTH2.GAP){LTH2.pend=1;if(!LTH2.timer)LTH2.timer=setTimeout(lth2Fire,0);return;}
+    const now=performance.now();if(typeof G==='undefined'||!G.on)return saveNow();/* (đã bỏ quy tắc "đang mở Cài đặt thì ghi ngay": người làng gọi lưu liên tục nên mở Cài đặt là ghi dồn dập, mỗi lần đứng hình cả giây trên máy ghi chậm) */if(now-LTH2.t>=LTH2.GAP){LTH2.pend=1;if(!LTH2.timer)LTH2.timer=setTimeout(lth2Fire,0);return;}
     LTH2.pend=1;if(!LTH2.timer)LTH2.timer=setTimeout(lth2Fire,Math.max(200,LTH2.GAP-(now-LTH2.t)));};}
 /* tới hạn ghi: nếu nhân vật đang chạy/đi thì chờ lúc đứng yên, đang làm việc hoặc mở bảng (khựng lúc đó khó thấy hơn nhiều), tối đa chờ thêm 40 giây */
 /* Ghi GỌN cho lần ghi định kỳ: số đo trên máy người chơi cho thấy bản lưu chỉ 37 KB mà mỗi lần ghi mất 300-900 ms, tức thao tác ghi xuống máy rất chậm ở đó.
@@ -21499,8 +21508,8 @@ const LTH2={t:0,pend:0,timer:null,GAP:45000,req:0,by:{},last:null};
    (đủ để vào lại game và để đẩy lên máy chủ); bản chung và danh sách nhân vật được ghi khi rời trang, mở Cài đặt. Đo riêng thời gian đóng gói và thời gian ghi. */
 function lth2Lean(){try{if(typeof curSlot!=='function'||typeof ACC==='undefined')return false;const id=curSlot();if(!id||!S||!G.on||ACC.stop||G.ldLeaving===2)return false;
     S.p.x=+P.x.toFixed(1);S.p.z=+P.z.toFixed(1);S.p.ry=+P.ry.toFixed(2);try{if(G.hoIn&&typeof hoS==='function')hoS().out=Date.now();}catch(e){}
-    const t0=performance.now(),raw=JSON.stringify(S,(k,v)=>k&&k[0]==='_'?undefined:v),t1=performance.now();localStorage.setItem(SKEY+'#'+id,raw);const t2=performance.now();
-    LTH2.pend=0;if(LTH2.timer){clearTimeout(LTH2.timer);LTH2.timer=null;}LTH2.t=t2;LTH2.last={ms:Math.round(t2-t0),goi:Math.round(t1-t0),dia:Math.round(t2-t1),gon:1,at:Date.now()};LTH2.plain=1;
+    const t0=performance.now(),raw=JSON.stringify(S,(k,v)=>k&&k[0]==='_'?undefined:v),t1=performance.now();let nen=0;if(lidbPut(SKEY+'#'+id,{raw,ts:Date.now()})){nen=1;LTH2.raw=raw;LTH2.rawId=id;}else localStorage.setItem(SKEY+'#'+id,raw);const t2=performance.now();
+    LTH2.pend=0;if(LTH2.timer){clearTimeout(LTH2.timer);LTH2.timer=null;}LTH2.t=t2;LTH2.last={ms:Math.round(t2-t0),goi:Math.round(t1-t0),dia:Math.round(t2-t1),gon:1,nen,at:Date.now()};LTH2.plain=1;
     if(ACC.db&&Date.now()-ACC.lastPush>60000)try{accPush(id);}catch(e){}return true;}catch(e){return false;}}
 function lth2Fire(){LTH2.timer=null;if(!LTH2.pend)return;try{const moving=typeof P!=='undefined'&&typeof G!=='undefined'&&G.on&&!G.panel&&!G.work&&!G.sit&&!G.sleeping&&(P.speed||0)>8;if(moving&&performance.now()-LTH2.t<LTH2.GAP+40000){LTH2.timer=setTimeout(lth2Fire,700);return;}}catch(e){}try{if(!lth2Lean())saveNow();}catch(e){}}
 if(typeof accPush==='function'){const _ap=accPush;accPush=function(){try{if(LTH2.pend&&!lth2Lean())saveNow();}catch(e){}return _ap.apply(this,arguments);};}
@@ -21508,6 +21517,25 @@ addEventListener('pagehide',()=>{try{if(LTH2.pend||LTH2.plain){LTH2.plain=0;save
 document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState!=='visible'&&(LTH2.pend||LTH2.plain)){LTH2.plain=0;saveNow();}}catch(e){}},true);
 // cho Cài đặt → Đo giật: bản lưu nặng bao nhiêu, phần nào chiếm chỗ, ai gọi lưu nhiều
 function ldLuu(){const o={goi:LTH2.req,lanCuoi:LTH2.last,nhieu:Object.entries(LTH2.by).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]+' ×'+e[1])};try{if(!LTH2.sz||Date.now()-LTH2.szT>60000){LTH2.szT=Date.now();const L=[];let tot=0;for(const k in S){if(k[0]==='_')continue;let n=0;try{n=JSON.stringify(S[k],(q,v)=>q&&q[0]==='_'?undefined:v).length;}catch(e){}tot+=n;L.push([k,n]);}L.sort((a,b)=>b[1]-a[1]);LTH2.sz={tong:tot,lon:L.slice(0,4).map(e=>e[0]+' '+Math.round(e[1]/1024)+'KB')};}o.co=LTH2.sz;}catch(e){}return o;}
+
+/* ---------- GHI NỀN (IndexedDB) ----------
+   Số đo trên máy người chơi: bản lưu chỉ 44 KB mà mỗi lần ghi xuống bộ nhớ trình duyệt kiểu cũ (localStorage) mất 0,9-1,1 giây → đứng hình.
+   localStorage ghi kiểu CHẶN: trang phải chờ xong mới chạy tiếp. IndexedDB ghi NỀN: trang chạy tiếp ngay, trình duyệt tự ghi phía sau.
+   · Trong lúc chơi: bản lưu định kỳ ghi nền vào IndexedDB (kèm một bản nhớ tạm trong máy để đẩy lên máy chủ).
+   · Rời trang / chuyển ứng dụng / đổi nhân vật / xuất tệp: vẫn ghi kiểu cũ một lần cho chắc.
+   · Mở game lại mà bản ghi nền mới hơn bản kiểu cũ (trang bị đóng đột ngột): tự chép bản ghi nền sang trước khi vào chơi. */
+const LIDB={db:null,ok:false};
+function lidbPut(k,v){if(!LIDB.ok)return false;try{LIDB.db.transaction('s','readwrite').objectStore('s').put(v,k);return true;}catch(e){return false;}}
+function lidbDel(k){if(!LIDB.ok)return;try{LIDB.db.transaction('s','readwrite').objectStore('s').delete(k);}catch(e){}}
+function lidbRecover(){try{if(typeof G!=='undefined'&&G.on)return;const rq=LIDB.db.transaction('s','readonly').objectStore('s').openCursor();rq.onsuccess=()=>{const c=rq.result;if(!c)return;try{const k=String(c.key),v=c.value;
+        if(!(typeof G!=='undefined'&&G.on)&&k.indexOf(SKEY+'#')===0&&v&&typeof v.raw==='string'&&v.ts>(+(localStorage.getItem('ld-lsT'+k.slice(SKEY.length))||0))&&localStorage.getItem(k)!=null){localStorage.setItem(k,v.raw);localStorage.setItem('ld-lsT'+k.slice(SKEY.length),String(v.ts));
+          try{if(typeof curSlot==='function'&&k===SKEY+'#'+curSlot())localStorage.setItem(SKEY,v.raw);}catch(e){}LIDB.rec=(LIDB.rec|0)+1;}}catch(e){}c.continue();};}catch(e){}}
+(function(){try{if(!window.indexedDB)return;const rq=indexedDB.open('lua-da-luu',1);rq.onupgradeneeded=()=>{try{rq.result.createObjectStore('s');}catch(e){}};rq.onsuccess=()=>{LIDB.db=rq.result;LIDB.ok=true;lidbRecover();};rq.onerror=()=>{};}catch(e){}})();
+/* mọi lần ghi/đọc ngăn của nhân vật qua accLS: ghi → nhớ giờ ghi (để biết bản nào mới hơn) và bỏ bản nhớ tạm; xoá → xoá cả bản ghi nền; đọc → ưu tiên bản nhớ tạm mới nhất */
+if(typeof accLS==='function'){const _al=accLS;accLS=function(k,v){try{if(typeof k==='string'&&k.indexOf(SKEY+'#')===0){const id=k.slice(SKEY.length+1);
+      if(v===undefined){if(LTH2.raw&&LTH2.rawId===id)return LTH2.raw;}
+      else if(v===null){lidbDel(k);if(LTH2.rawId===id)LTH2.raw=null;try{localStorage.removeItem('ld-lsT#'+id);}catch(e){}}
+      else{if(LTH2.rawId===id)LTH2.raw=null;try{localStorage.setItem('ld-lsT#'+id,String(Date.now()));}catch(e){}}}}catch(e){}return _al.apply(this,arguments);};}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.

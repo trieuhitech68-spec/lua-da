@@ -43,5 +43,5 @@ function rcBreak(f,dt){const sg=RAO.seg;if(!sg)return;const mx=(sg[0]+sg[2])/2,m
   if(!b)return;const def=pieceDef(b.k);if(b._hp==null){let c=0;for(const k in def.cost||{})c+=def.cost[k];b._hp=clamp(4+c*1.4,10,60);b._hp0=b._hp;}
   b._hp-=dt;f._ry=Math.atan2(b.x-f.x,b.z-f.z);f._hitT=(f._hitT||0)-dt;if(f._hitT<=0){f._hitT=1.3;try{puff(b.x,(b.y||hAt(b.x,b.z))+18,b.z,'#a88a62',5);if(Math.hypot(b.x-P.x,b.z-P.z)<500)sfx('thud');}catch(e){}
     if(G.t-(RAO.bw||-999)>25&&Math.hypot(b.x-P.x,b.z-P.z)<900){RAO.bw=G.t;uiToast('⚠️ Kẻ địch đang phá '+def.n.toLowerCase()+'! Ra đánh đuổi trước khi rào thủng.','bad');}}
-  if(b._hp<=0){b._hp=null;b.prog=0.45;if(typeof STG!=='undefined'&&STG[b.k])b.paid=STG[b.k].length;if(b.cond!=null)b.cond=60;try{siteShow(b);}catch(e){}try{puff(b.x,(b.y||hAt(b.x,b.z))+14,b.z,'#8a6a42',16);sfx('fall');}catch(e){}
+  if(b._hp<=0){b._hp=null;b.br=1;b.prog=0.45;if(typeof STG!=='undefined'&&STG[b.k])b.paid=STG[b.k].length;if(b.cond!=null)b.cond=60;try{siteShow(b);}catch(e){}try{puff(b.x,(b.y||hAt(b.x,b.z))+14,b.z,'#8a6a42',16);sfx('fall');}catch(e){}
     uiToast('💥 Kẻ địch đã phá thủng '+def.n.toLowerCase()+'! Tới cạnh bấm Hành động để dựng lại.','bad');f._bt=null;try{cnt('cnt','breach');}catch(e){}save();}}
