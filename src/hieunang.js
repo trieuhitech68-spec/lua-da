@@ -30,3 +30,13 @@ setInterval(()=>{try{if(typeof G==='undefined'||!G.on||!G.R||!G.sc||!G.cam||G.t<
 
 /* người chơi tự chọn mức cao hơn mức game vừa tự hạ: tôn trọng, không tự hạ nữa */
 document.addEventListener('click',e=>{try{const b=e.target&&e.target.closest&&e.target.closest('[data-a="q"]');if(b&&HNG.qAuto!=null&&+b.dataset.v>HNG.qAuto)HNG.qStop=1;}catch(er){}},true);
+
+/* ---------- MÁT MÁY: máy không giữ nổi 60 khung/giây thì chạy đều 30 ----------
+   Trước: máy chỉ đạt 38-46 khung/giây vẫn bị coi là "ổn" nên game cứ vắt hết sức máy: nóng, quạt kêu, khung hình lúc nhanh lúc chậm trông như giật.
+   Giờ: · ngưỡng hạ độ nét sớm hơn (dưới ~46 khung/giây đã hạ, trước là dưới 37);
+        · độ nét đã hạ tới 70% mà suốt 16 giây vẫn không đạt 46 khung/giây (và người chơi chưa tự chọn giới hạn khung hình) thì tự đặt giới hạn 30 khung/giây:
+          hình chạy ĐỀU hơn và máy chỉ làm một nửa việc nên mát hẳn. Đổi lại ở Cài đặt → Đồ họa → Giới hạn khung hình (chọn rồi thì game không tự đổi nữa). */
+{const _pt=perfTick;let n=0,t0=0;perfTick=function(dt){const r=_pt.apply(this,arguments);try{if(typeof SET==='undefined'||SET.fpsCap===30||!G.on||G.paused)return r;if(G.t-t0<2&&G.t>=t0)return r;t0=G.t;
+      let user=0;try{user=localStorage.getItem('ld-cap-user')==='1';}catch(e){}if(user||(G.pfWarm||0)<8){n=0;return r;}
+      if((G.prK||1)<=0.71&&(G.ft||0)>0.0215){if(++n>=8){n=0;SET.fpsCap=30;try{setSave();}catch(e){}uiToast('🌡️ Máy đang phải gắng sức: game chuyển sang chạy đều 30 khung/giây cho mát máy, đỡ giật. Đổi lại ở Cài đặt → Đồ họa → Giới hạn khung hình.','');try{if(G.panel==='settings')uiOpenRefresh();}catch(e){}}}else n=0;}catch(e){}return r;};}
+document.addEventListener('click',e=>{try{const b=e.target&&e.target.closest&&e.target.closest('[data-spc="fpsCap"]');if(b)localStorage.setItem('ld-cap-user','1');}catch(er){}},true);
