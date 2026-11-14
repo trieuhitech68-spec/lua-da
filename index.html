@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261114094402">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261114095041">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -21568,11 +21568,12 @@ if(typeof HD_L!=='undefined')HD_L.push({id:'channuoi',ic:'🐾',t:'Vật nuôi l
      · THỢ XÂY  : tự tới các công trường đang dựng dở quanh nhà, làm nốt. Công đoạn nào cần vật liệu thì lấy trong giỏ, rương, chum của làng; thiếu thì sang công trường khác.
      · CHĂN NUÔI: lấy rau, quả, củ, hạt trong kho cho vật nuôi đói ăn; nhặt trứng ở chuồng gà, chuồng vịt; vớt cá ở ao; mang về kho.
      · ĐI SĂN   : rình thú hiền (thỏ, gà rừng, nai, dê núi, khỉ) quanh nhà, hạ rồi mang thịt, da, xương, lông về kho. Không đụng con đang được thuần.
+     · LÀM RUỘNG: luống đất chín thì gặt mang về kho; luống trống thì lấy hạt giống trong kho ra gieo (ruộng lúa nước vẫn do bạn cấy gặt).
      · ĐÁNH CÁ  : ra bờ nước gần nhà câu cá, đủ 3 con thì mang về kho.
    Đêm về chỗ ngủ như mọi người. Không có việc (hết công trường, không có nước…) thì ngồi nghỉ gần nhà.
    THUẦN THÚ: trước, nút ghi "Cho ăn" nhưng nếu ô đang cầm không phải thức ăn (hoặc vừa cho ăn hết ô đó) thì bấm lần nữa lại thành ĐÁNH con thú.
      Giờ đang lom khom hoặc con thú đang thuần dở: bấm Hành động luôn là cho ăn (lấy thức ăn ở bất kỳ ô nào trong túi); hết thức ăn thì báo, không đánh. */
-const VTH={J:{build:'Thợ xây',herd:'Chăn nuôi',hunt:'Đi săn',fish:'Đánh cá'},PREY:/^(rabbit|junglefowl|deer|goat|monkey)$/};
+const VTH={J:{farm:'Làm ruộng',build:'Thợ xây',herd:'Chăn nuôi',hunt:'Đi săn',fish:'Đánh cá'},PREY:/^(rabbit|junglefowl|deer|goat|monkey)$/};
 Object.assign(JOBN,VTH.J);
 {const _as=actStart;actStart=function(t){try{if(t&&t.type==='animal'&&t.a&&t.a.alive&&!t.a._h3down&&!G.work&&TAME[t.a.kind]&&!t.a.boss){const a=t.a,doing=a.tame>0&&a.tame<0.99;
       if((G.sneak||doing)&&!a.angry){if(tameFood(a.kind)){tameFeed(a);return;}if(doing){uiToast('Hết thức ăn nó thích rồi: cần '+TAME[a.kind].food.filter(f=>ITEMS[f]).slice(0,3).map(f=>ITEMS[f].n.toLowerCase()).join(' / ')+'. (Không đánh con đang thuần dở.)','bad');sfx('no');return;}}}}catch(e){}return _as.apply(this,arguments);};}
@@ -21607,6 +21608,13 @@ function vthTick(f,dt){if(!f._o)folkSpawn(f);if(!f._bag)f._bag={};const home=fol
           V.go=null;}}}}
   else if(f.job==='hunt'){f._st='work';let a=V.a;if(a&&(!a.alive||a.tame>0||!a.o))a=V.a=null;if(!a&&!(G.t-(V.sT||-9)<4&&G.t>=(V.sT||0))){V.sT=G.t;let bd=850;for(const o of G.animals||[]){if(!o.alive||o.tame>0||o._h3down||!o.o||!VTH.PREY.test(o.kind)||(S.pets||[]).includes(o))continue;const d=Math.hypot(o.x-home.x,o.z-home.z);if(d<bd&&Math.hypot(o.x-P.x,o.z-P.z)>140){bd=d;a=o;}}V.a=a;V.aim=0;if(!a)rest(12);}
     if(a){const dd=Math.hypot(a.x-f.x,a.z-f.z);if(dd>95){tx=a.x;tz=a.z;sp=85;V.aim=0;}else{pose='chop';f._ry=Math.atan2(a.x-f.x,a.z-f.z);V.aim=(V.aim||0)+dt;if(V.aim>2.6){const D=ANIMALS[a.kind];a.alive=false;a.o.visible=false;a.back=TNOW()+2;try{puff(a.x,(a.y||hAt(a.x,a.z))+8,a.z,'#c9b28a',5);}catch(e){}for(const k in D.drop)f._bag[k]=(f._bag[k]||0)+D.drop[k];V.a=null;V.back=1;V.rest=0;V.after=1;}}}}
+  else if(f.job==='farm'){/* làm ruộng: luống chín thì gặt mang về kho; luống trống thì lấy hạt giống trong kho ra gieo */f._st='work';if(!V.go&&!(G.t-(V.sT||-9)<4&&G.t>=(V.sT||0))){V.sT=G.t;const L=vthStores(home);let ripe=null,empty=null;
+      for(const b of S.builds){const d=pieceDef(b.k);if(!d||!d.farm||b.prog!=null||b.remote||Math.hypot(b.x-home.x,b.z-home.z)>800)continue;const c=S.crops[b.id];if(c){if(!ripe&&cropStage(c)>=3)ripe=b;}else if(!empty)empty=b;}
+      const seed=empty?['seedGrain','seedGourd','seedFlax'].find(id=>ITEMS[id]&&ITEMS[id].crop&&vthHave(L,id)>0):null;if(ripe)V.go={k:'reap',x:ripe.x+12,z:ripe.z+12,b:ripe.id};else if(seed)V.go={k:'sow',x:empty.x+12,z:empty.z+12,b:empty.id,id:seed};else rest(10);}
+    const g=V.go;if(g){tx=g.x;tz=g.z;if(near2(tx,tz,10)){tx=f.x;tz=f.z;pose='gather';const b=BYID.get(g.b);if(b)f._ry=Math.atan2(b.x-f.x,b.z-f.z);if(g.w==null)g.w=G.t+3;else if(G.t>g.w){const c=b&&S.crops[b.id];
+          if(g.k==='reap'&&c&&cropStage(c)>=3){const out=c.k==='grain'?{grain:3+Math.floor(Math.random()*3),seedGrain:1+Math.floor(Math.random()*2)}:c.k==='gourd'?{gourd:2,seedGourd:1+Math.floor(Math.random()*2)}:{fiber:5,seedFlax:1};for(const k in out)f._bag[k]=(f._bag[k]||0)+out[k];delete S.crops[b.id];cropShow(b);V.back=1;}
+          else if(g.k==='sow'&&b&&!c&&vthTake(vthStores(home),g.id,1)){S.crops[b.id]={k:ITEMS[g.id].crop,p:0};cropShow(b);if(typeof danXp==='function')danXp(f,1);save();}
+          V.go=null;}}}}
   else if(f.job==='fish'){f._st='work';if(!V.bk||G.t-V.bkT>60||G.t<V.bkT){V.bk=vthBank(home)||0;V.bkT=G.t;}const k=V.bk;if(!k){rest(15);if(!V.told||G.t-V.told>300){V.told=G.t;uiToast(`🎣 ${f.n}: gần nhà không có sông, hồ để đánh cá.`,'');}}
     else{tx=k.x;tz=k.z;if(near2(tx,tz,8)){tx=f.x;tz=f.z;pose='gather';f._ry=Math.atan2(k.wx-f.x,k.wz-f.z);if(V.fT==null)V.fT=G.t+14+Math.random()*8;else if(G.t>V.fT){V.fT=null;f._bag.fish=(f._bag.fish||0)+1;try{puff(k.wx,2,k.wz,'#bfe3ff',4);}catch(e){}if(bagN()>=3)V.back=1;}}}}
   f._gx=tx;f._gz=tz;const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(d>4&&pose!=='sleep'){f.x+=dx/d*Math.min(d,sp*dt);f.z+=dz/d*Math.min(d,sp*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*1.4;}
@@ -21618,6 +21626,53 @@ if(typeof HD_L!=='undefined')HD_L.push({id:'viecthem',ic:'🧑‍🌾',t:'Ngư�
   p:['Ngoài hái lượm, đốn gỗ, đào đá, giờ giao được: <b>Thợ xây</b> (tự làm nốt công trường dở, lấy vật liệu trong kho làng), <b>Chăn nuôi</b> (cho vật nuôi ăn, nhặt trứng, vớt cá ao), <b>Đi săn</b> (hạ thú hiền mang thịt da về), <b>Đánh cá</b> (câu ở bờ nước gần nhà).',
    'Bấm vào người làng → <b>Giao việc</b> → chọn việc. Muốn thợ xây làm được thì cắm mốc công trình trước và để sẵn gỗ, đá, sợi cỏ trong giỏ, rương.',
    'Đồ họ kiếm được đều mang về giỏ, rương, chum gần nhất. Đêm họ về chỗ ngủ, sáng lại đi làm.']});
+/* ===================== BẢNG DÂN LÀNG GỌN: PHÂN CÔNG THEO VIỆC =====================
+   Trước: mỗi người một dòng dài kèm cả hàng nút việc → làng đông là bảng kéo rất dài, lại thiếu việc Làm ruộng.
+   Giờ: · Phần trên là BẢNG PHÂN CÔNG: mỗi VIỆC một ô (đủ 13 việc trong game), ghi đang có mấy người, bấm + / − để thêm bớt người.
+          Bấm + thì lấy người đang rảnh, ưu tiên đúng sở trường và cấp cao; bấm − thì người đó về nghỉ. Ô nào thiếu điều kiện (chưa có luống đất, chưa có cổng…) có dòng nhắc.
+        · Phần dưới là DANH SÁCH gom theo việc: người cùng việc nằm chung một nhóm, mỗi người một thẻ nhỏ (tên, cấp, tù binh, đang đói). Bấm thẻ để xem riêng và giao việc cho đúng người đó. */
+const DL_J=[['gather','🧺','Hái lượm','quả, sợi cỏ, nấm, cành khô','Kiếm vật liệu'],['wood','🪓','Đốn gỗ','chặt cây mang gỗ về kho','Kiếm vật liệu'],['stone','⛏️','Đào đá','đá, sỏi, đá lửa','Kiếm vật liệu'],
+ ['farm','🌱','Làm ruộng','gieo hạt, gặt luống chín','Lương thực'],['herd','🐔','Chăn nuôi','cho ăn, nhặt trứng, vớt cá ao','Lương thực'],['hunt','🏹','Đi săn','thỏ, gà rừng, nai, dê núi','Lương thực'],['fish','🎣','Đánh cá','câu ở bờ nước gần nhà','Lương thực'],['cook','🍲','Nấu ăn','nướng thịt, cá trong kho','Lương thực'],
+ ['build','🔨','Thợ xây','làm nốt công trường dở','Xây dựng'],
+ ['guard','🛡️','Canh gác','chòi, cổng, quanh nhà','Bảo vệ'],['gate','🚪','Giữ cổng','đứng hai bên cổng','Bảo vệ'],['soldier','⚔️','Lính theo bạn','đi cùng, đánh giúp','Bảo vệ'],
+ ['idle','💤','Nghỉ ngơi','người rảnh, chờ giao việc','']];
+const dlName=j=>{const r=DL_J.find(x=>x[0]===j);return r?r[1]+' '+r[2]:(JOBN[j]||j);};
+function dlWarn(j){try{const B=S.builds,has=f=>B.some(b=>b.prog==null&&!b.remote&&f(b));
+    if(j==='farm'&&!has(b=>pieceDef(b.k)&&pieceDef(b.k).farm))return 'Chưa có luống đất';if(j==='herd'&&!(S.pets||[]).length)return 'Chưa có vật nuôi';if(j==='build'&&!B.some(b=>b.prog!=null&&!b.remote))return 'Không có công trường dở';
+    if(j==='gate'&&!has(b=>/gate/i.test(b.k)))return 'Chưa có cổng: sẽ gác quanh nhà';if(j==='cook'&&!has(b=>b.k==='campfire'))return 'Chưa có bếp lửa';
+    if(j!=='idle'&&j!=='guard'&&j!=='gate'&&j!=='soldier'&&!has(b=>pieceDef(b.k)&&pieceDef(b.k).store&&b.k!=='trough'))return 'Chưa có giỏ, rương để cất đồ';}catch(e){}return '';}
+function dlMove(j,d){const L=S.folk||[];if(d>0){const pool=L.filter(f=>(f.job||'idle')==='idle');if(!pool.length){uiToast('Không còn ai rảnh. Bấm − ở việc khác để rút người ra trước.','bad');sfx('no');return;}
+    pool.sort((a,b)=>((danSp(b)===j)-(danSp(a)===j))||(danLv(b)-danLv(a)));const f=pool[0];f.job=j;f._st='idle';}
+  else{const cur=L.filter(f=>f.job===j);if(!cur.length)return;cur.sort((a,b)=>((danSp(a)===j)-(danSp(b)===j))||(danLv(a)-danLv(b)));const f=cur[0];f.job='idle';f._st='idle';}
+  sfx('pick');save();uiOpenRefresh();}
+danHtml=function(){const L=S.folk||[],D=danS(),beds=S.builds.filter(b=>{const d=pieceDef(b.k);return d&&d.bed&&b.prog==null;}).length,day=TNOW();
+  for(const f of L)if(!f.job||!DL_J.some(x=>x[0]===f.job))f.job='idle';const cnt=j=>L.filter(f=>f.job===j).length,free=cnt('idle');
+  let tiles='',g0=null;for(const [j,ic,n,ds,g] of DL_J){if(j==='idle')continue;if(g!==g0){g0=g;tiles+=`<div class="dl-g">${g}</div>`;}const c=cnt(j),w=c?dlWarn(j):'';
+    tiles+=`<div class="dl-t${c?' on':''}"><span class="dl-ic">${ic}</span><div class="dl-m"><b>${n}</b><span class="small muted">${ds}</span>${w?`<span class="small warn">⚠ ${w}</span>`:''}</div><div class="dl-pm"><button class="dl-b" data-a="dljob" data-j="${j}" data-d="-1"${c?'':' disabled'} aria-label="Bớt người ${n}">−</button><em>${c}</em><button class="dl-b" data-a="dljob" data-j="${j}" data-d="1"${free?'':' disabled'} aria-label="Thêm người ${n}">+</button></div></div>`;}
+  let list='';for(const [j,ic,n] of DL_J){const P_=L.map((f,i)=>[f,i]).filter(([f])=>f.job===j);if(!P_.length)continue;P_.sort((a,b)=>danLv(b[0])-danLv(a[0]));
+    list+=`<div class="dl-grp"><b>${ic} ${n} · ${P_.length}</b><div class="dl-ps">${P_.map(([f,i])=>{const hungry=day-(f.fed||0)>1;return `<button class="dl-p${f.cap?' cap':''}${hungry?' hun':''}" data-a="dlwho" data-i="${i}" title="${esc(DAN_SP[danSp(f)][1])}">${DAN_SP[danSp(f)][0]} ${esc(f.n)} <em>c${danLv(f)}</em>${f.cap?` <i>🪢${Math.round(f.loy||0)}</i>`:''}${hungry?' <i>🍖!</i>':''}</button>`;}).join('')}</div></div>`;}
+  return `<div class="landbox dl-top"><div class="dl-sum"><b>👥 ${L.length} người</b><span>💤 rảnh ${free}</span><span>🛏️ giường ${L.length}/${beds}</span><span>🪢 dây ${invCount('rope')}</span></div>
+    <div class="row"><button class="btn sm${D.on?'':' ghost'}" data-a="dantog">${D.on?'✔ Đang bật bắt sống':'Bắt sống đang tắt: hạ gục là giết'}</button></div>
+    <span class="small muted">Bật bắt sống + có dây thừng + còn giường trống: hạ gục chiến binh sẽ trói đem về (tốn 1 dây).</span></div>
+  ${L.length?`<h3 class="dl-h">Phân công việc <small class="muted">bấm + để thêm người rảnh, − để rút ra</small></h3><div class="dl-grid">${tiles}</div>
+   <details class="dl-list"${L.length<=8||G.dlOpen?' open':''}><summary><b>Danh sách theo việc</b> <span class="small muted">bấm vào tên để xem riêng, giao việc đúng người đó</span></summary>${list}<p class="small muted">Đúng sở trường (biểu tượng trước tên) làm nhanh hơn 40%. 🪢 = tù binh và mức trung thành; 🍖! = đang đói, hãy để thức ăn trong giỏ, rương.</p></details>`
+   :'<p class="small muted">Chưa có ai ở cùng. Mời dân Làng Suối Tây (tình thân từ 40) hoặc bắt sống chiến binh các bộ lạc.</p>'}`;};
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="dljob"],[data-a="dlwho"],[data-a="dlback"]');if(!b||!S)return;e.stopImmediatePropagation();
+  if(b.dataset.a==='dljob')dlMove(b.dataset.j,+b.dataset.d);else if(b.dataset.a==='dlback'){uiOpen('dan',{});}else{const f=(S.folk||[])[+b.dataset.i];if(f){G.folkCur=f;G.dlFrom=1;uiOpen('folk',{});}}},true);
+document.addEventListener('toggle',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('dl-list'))G.dlOpen=t.open?1:0;},true);
+// bảng riêng từng người: nút việc gom theo nhóm, đủ mọi việc, có nút quay lại bảng Dân làng
+{const _fh=folkHtml;folkHtml=function(){let h=_fh.apply(this,arguments);try{const f=G.folkCur;if(f){const a=h.indexOf('<div class="npc-acts">'),b=a>=0?h.indexOf('</div>',a):-1;if(a>=0&&b>a){let g0=null,x='';for(const [j,ic,n,ds,g] of DL_J){if(g!==g0){g0=g;x+=`<span class="dl-g2">${g||'Khác'}</span>`;}x+=`<button class="tb sm${f.job===j?' on':''}" data-a="job" data-j="${j}">${ic} ${n}</button>`;}h=h.slice(0,a)+'<div class="npc-acts dl-acts">'+x+h.slice(b);}
+      if(G.dlFrom)h=`<div class="row"><button class="btn sm ghost" data-a="dlback">‹ Về bảng Dân làng</button></div>`+h;}}catch(e){}return h;};}
+{const _uo=uiOpen;uiOpen=function(k){if(k!=='folk')G.dlFrom=0;return _uo.apply(this,arguments);};}
+{const st=document.createElement('style');st.textContent=`.dl-sum{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;font-size:13px}.dl-sum b{font-size:15px;color:#ffe2a8}.dl-h{margin:10px 0 6px;font-size:15px}.dl-h small{font-weight:400;font-size:11.5px;margin-left:6px}
+.dl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px}.dl-g{grid-column:1/-1;margin-top:2px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#f2c55a}
+.dl-t{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:12px;background:rgba(20,13,8,.72);border:1px solid rgba(255,255,255,.1)}.dl-t.on{border-color:rgba(242,197,90,.6)}.dl-ic{font-size:20px;width:26px;text-align:center;flex:none}
+.dl-m{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}.dl-m b{font-size:13.5px}.dl-m .small{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dl-m .warn{color:#ffb86a;white-space:normal}
+.dl-pm{display:flex;align-items:center;gap:4px;flex:none}.dl-pm em{font-style:normal;font-weight:800;min-width:20px;text-align:center;font-size:15px}.dl-b{width:36px;height:36px;border-radius:10px;border:1px solid rgba(242,197,90,.5);background:rgba(242,197,90,.14);color:#ffe2a8;font-size:20px;font-weight:800;line-height:1;cursor:pointer}.dl-b[disabled]{opacity:.3}
+.dl-list{margin-top:10px;border-radius:12px;border:1px solid rgba(255,255,255,.12);padding:8px 10px}.dl-list summary{cursor:pointer}.dl-grp{margin-top:8px}.dl-grp>b{font-size:13px;color:#ffe2a8}.dl-ps{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.dl-p{padding:5px 8px;min-height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:inherit;font-size:12.5px;cursor:pointer}.dl-p em{font-style:normal;color:#f2c55a;font-weight:700}.dl-p i{font-style:normal;font-size:11px}.dl-p.cap{border-color:rgba(255,184,106,.55)}.dl-p.hun{border-color:rgba(255,120,90,.7)}
+.dl-acts{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.dl-g2{flex-basis:100%;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#f2c55a;margin-top:4px}
+@media (max-width:520px){.dl-g{display:none}.dl-h small{display:block;margin:2px 0 0}.dl-grid{grid-template-columns:1fr 1fr}.dl-t{padding:5px 6px;gap:5px}.dl-ic{display:none}.dl-m .muted{display:none}.dl-b{width:34px;height:34px}}`;document.head.appendChild(st);}
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.
