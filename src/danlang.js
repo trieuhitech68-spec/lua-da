@@ -17,6 +17,7 @@ function dlMove(j,d){const L=S.folk||[];if(d>0){const pool=L.filter(f=>(f.job||'
     pool.sort((a,b)=>((danSp(b)===j)-(danSp(a)===j))||(danLv(b)-danLv(a)));const f=pool[0];f.job=j;f._st='idle';}
   else{const cur=L.filter(f=>f.job===j);if(!cur.length)return;cur.sort((a,b)=>((danSp(a)===j)-(danSp(b)===j))||(danLv(a)-danLv(b)));const f=cur[0];f.job='idle';f._st='idle';}
   sfx('pick');save();uiOpenRefresh();}
+function dlLogHtml(){try{const m=vthLog().m,E=Object.entries(m).sort((a,b)=>b[1]-a[1]);if(!E.length)return (S.folk||[]).length?'<p class="small muted dl-log">📒 Hôm nay người làng chưa mang gì về kho.</p>':'';return `<div class="dl-log"><b>📒 Hôm nay người làng mang về kho</b><div class="chips">${E.slice(0,12).map(([k,v])=>`<span class="chip">${icon(k)}${v}</span>`).join('')}</div></div>`;}catch(e){return '';}}
 danHtml=function(){const L=S.folk||[],D=danS(),beds=S.builds.filter(b=>{const d=pieceDef(b.k);return d&&d.bed&&b.prog==null;}).length,day=TNOW();
   for(const f of L)if(!f.job||!DL_J.some(x=>x[0]===f.job))f.job='idle';const cnt=j=>L.filter(f=>f.job===j).length,free=cnt('idle');
   let tiles='',g0=null;for(const [j,ic,n,ds,g] of DL_J){if(j==='idle')continue;if(g!==g0){g0=g;tiles+=`<div class="dl-g">${g}</div>`;}const c=cnt(j),w=c?dlWarn(j):'';
@@ -26,6 +27,7 @@ danHtml=function(){const L=S.folk||[],D=danS(),beds=S.builds.filter(b=>{const d=
   return `<div class="landbox dl-top"><div class="dl-sum"><b>👥 ${L.length} người</b><span>💤 rảnh ${free}</span><span>🛏️ giường ${L.length}/${beds}</span><span>🪢 dây ${invCount('rope')}</span></div>
     <div class="row"><button class="btn sm${D.on?'':' ghost'}" data-a="dantog">${D.on?'✔ Đang bật bắt sống':'Bắt sống đang tắt: hạ gục là giết'}</button></div>
     <span class="small muted">Bật bắt sống + có dây thừng + còn giường trống: hạ gục chiến binh sẽ trói đem về (tốn 1 dây).</span></div>
+  ${dlLogHtml()}
   ${L.length?`<h3 class="dl-h">Phân công việc <small class="muted">bấm + để thêm người rảnh, − để rút ra</small></h3><div class="dl-grid">${tiles}</div>
    <details class="dl-list"${L.length<=8||G.dlOpen?' open':''}><summary><b>Danh sách theo việc</b> <span class="small muted">bấm vào tên để xem riêng, giao việc đúng người đó</span></summary>${list}<p class="small muted">Đúng sở trường (biểu tượng trước tên) làm nhanh hơn 40%. 🪢 = tù binh và mức trung thành; 🍖! = đang đói, hãy để thức ăn trong giỏ, rương.</p></details>`
    :'<p class="small muted">Chưa có ai ở cùng. Mời dân Làng Suối Tây (tình thân từ 40) hoặc bắt sống chiến binh các bộ lạc.</p>'}`;};
@@ -43,5 +45,6 @@ document.addEventListener('toggle',e=>{const t=e.target;if(t&&t.classList&&t.cla
 .dl-pm{display:flex;align-items:center;gap:4px;flex:none}.dl-pm em{font-style:normal;font-weight:800;min-width:20px;text-align:center;font-size:15px}.dl-b{width:36px;height:36px;border-radius:10px;border:1px solid rgba(242,197,90,.5);background:rgba(242,197,90,.14);color:#ffe2a8;font-size:20px;font-weight:800;line-height:1;cursor:pointer}.dl-b[disabled]{opacity:.3}
 .dl-list{margin-top:10px;border-radius:12px;border:1px solid rgba(255,255,255,.12);padding:8px 10px}.dl-list summary{cursor:pointer}.dl-grp{margin-top:8px}.dl-grp>b{font-size:13px;color:#ffe2a8}.dl-ps{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .dl-p{padding:5px 8px;min-height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:inherit;font-size:12.5px;cursor:pointer}.dl-p em{font-style:normal;color:#f2c55a;font-weight:700}.dl-p i{font-style:normal;font-size:11px}.dl-p.cap{border-color:rgba(255,184,106,.55)}.dl-p.hun{border-color:rgba(255,120,90,.7)}
+.dl-log{margin:8px 0 2px}.dl-log b{font-size:13px;color:#ffe2a8}.dl-log .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .dl-acts{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.dl-g2{flex-basis:100%;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#f2c55a;margin-top:4px}
 @media (max-width:520px){.dl-g{display:none}.dl-h small{display:block;margin:2px 0 0}.dl-grid{grid-template-columns:1fr 1fr}.dl-t{padding:5px 6px;gap:5px}.dl-ic{display:none}.dl-m .muted{display:none}.dl-b{width:34px;height:34px}}`;document.head.appendChild(st);}

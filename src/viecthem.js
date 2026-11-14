@@ -3,7 +3,7 @@
      · THỢ XÂY  : tự tới các công trường đang dựng dở quanh nhà, làm nốt. Công đoạn nào cần vật liệu thì lấy trong giỏ, rương, chum của làng; thiếu thì sang công trường khác.
      · CHĂN NUÔI: lấy rau, quả, củ, hạt trong kho cho vật nuôi đói ăn; nhặt trứng ở chuồng gà, chuồng vịt; vớt cá ở ao; mang về kho.
      · ĐI SĂN   : rình thú hiền (thỏ, gà rừng, nai, dê núi, khỉ) quanh nhà, hạ rồi mang thịt, da, xương, lông về kho. Không đụng con đang được thuần.
-     · LÀM RUỘNG: luống đất chín thì gặt mang về kho; luống trống thì lấy hạt giống trong kho ra gieo (ruộng lúa nước vẫn do bạn cấy gặt).
+     · LÀM RUỘNG: luống đất chín thì gặt mang về kho; luống trống thì lấy hạt giống trong kho ra gieo kể cả ruộng lúa nước: khơi nước, gieo mạ, cấy, làm cỏ, gặt.
      · ĐÁNH CÁ  : ra bờ nước gần nhà câu cá, đủ 3 con thì mang về kho.
    Đêm về chỗ ngủ như mọi người. Không có việc (hết công trường, không có nước…) thì ngồi nghỉ gần nhà.
    THUẦN THÚ: trước, nút ghi "Cho ăn" nhưng nếu ô đang cầm không phải thức ăn (hoặc vừa cho ăn hết ô đó) thì bấm lần nữa lại thành ĐÁNH con thú.
@@ -23,6 +23,8 @@ function vthHit(b,f,home){const d=pieceDef(b.k);if(!d||b.prog==null)return false
   if(!st){b.prog=Math.min(1,(b.prog||0)+add);siteShow(b);if(b.prog>=1)done();return true;}
   const s=b3stg(b),sg=s.s;if(s.paid<=s.i){const L=vthStores(home);for(const k in sg.c)if(vthHave(L,k)<sg.c[k])return false;for(const k in sg.c)vthTake(L,k,sg.c[k]);b.paid=s.i+1;}
   const end=s.cum[s.i];b.prog=Math.min(end,(b.prog||0)+add);if(b.prog>=end-1e-9){if(s.i>=s.n-1){done();return true;}b.prog=end;}siteShow(b);return true;}
+// việc cần làm ở một ruộng lúa nước (null = chưa có gì để làm)
+function vthPadOp(b,L){const F=l4Pad(b),src=l4PadSrc(b);if((F.st===0||F.st===3)&&F.w<0.3)return src?'water':null;if(F.st===0)return vthHave(L,'seedRice')>=2&&SEASONS[seasonIdx()].grow>0?'sow':null;if(F.st===2)return 'plant';if(F.st===3&&F.weed>0.45)return 'weed';if(F.st===4)return 'reap';return null;}
 function vthBank(home){for(let r=80;r<=620;r+=45)for(let k=0;k<16;k++){const a=k/16*6.283+r*0.01,x=home.x+Math.sin(a)*r,z=home.z+Math.cos(a)*r;if(wdAt(x,z)>0.3){for(let q=1;q<8;q++){const bx=home.x+Math.sin(a)*(r-q*10),bz=home.z+Math.cos(a)*(r-q*10);if(wdAt(bx,bz)<=0)return {x:bx,z:bz,wx:x,wz:z};}}}return null;}
 function vthTick(f,dt){if(!f._o)folkSpawn(f);if(!f._bag)f._bag={};const home=folkHome(f),night=S.hour>=20||S.hour<6;f._t=(f._t||0)-dt;let tx=f.x,tz=f.z,pose='idle',sp=60;const V=f._v||(f._v={});if(V.job!==f.job){f._v={job:f.job};return vthTick(f,dt);}
   const near2=(x,z,r)=>Math.hypot(x-f.x,z-f.z)<r,bagN=()=>{let n=0;for(const k in f._bag)n+=f._bag[k];return n;},rest=s=>{V.rest=G.t+s;};
@@ -45,10 +47,12 @@ function vthTick(f,dt){if(!f._o)folkSpawn(f);if(!f._bag)f._bag={};const home=fol
     if(a){const dd=Math.hypot(a.x-f.x,a.z-f.z);if(dd>95){tx=a.x;tz=a.z;sp=85;V.aim=0;}else{pose='chop';f._ry=Math.atan2(a.x-f.x,a.z-f.z);V.aim=(V.aim||0)+dt;if(V.aim>2.6){const D=ANIMALS[a.kind];a.alive=false;a.o.visible=false;a.back=TNOW()+2;try{puff(a.x,(a.y||hAt(a.x,a.z))+8,a.z,'#c9b28a',5);}catch(e){}for(const k in D.drop)f._bag[k]=(f._bag[k]||0)+D.drop[k];V.a=null;V.back=1;V.rest=0;V.after=1;}}}}
   else if(f.job==='farm'){/* làm ruộng: luống chín thì gặt mang về kho; luống trống thì lấy hạt giống trong kho ra gieo */f._st='work';if(!V.go&&!(G.t-(V.sT||-9)<4&&G.t>=(V.sT||0))){V.sT=G.t;const L=vthStores(home);let ripe=null,empty=null;
       for(const b of S.builds){const d=pieceDef(b.k);if(!d||!d.farm||b.prog!=null||b.remote||Math.hypot(b.x-home.x,b.z-home.z)>800)continue;const c=S.crops[b.id];if(c){if(!ripe&&cropStage(c)>=3)ripe=b;}else if(!empty)empty=b;}
-      const seed=empty?['seedGrain','seedGourd','seedFlax'].find(id=>ITEMS[id]&&ITEMS[id].crop&&vthHave(L,id)>0):null;if(ripe)V.go={k:'reap',x:ripe.x+12,z:ripe.z+12,b:ripe.id};else if(seed)V.go={k:'sow',x:empty.x+12,z:empty.z+12,b:empty.id,id:seed};else rest(10);}
+      const seed=empty?['seedGrain','seedGourd','seedFlax'].find(id=>ITEMS[id]&&ITEMS[id].crop&&vthHave(L,id)>0):null;if(ripe)V.go={k:'reap',x:ripe.x+12,z:ripe.z+12,b:ripe.id};else if(seed)V.go={k:'sow',x:empty.x+12,z:empty.z+12,b:empty.id,id:seed};
+      else{/* ruộng lúa nước: khơi nước, gieo mạ (2 thóc giống trong kho), cấy, làm cỏ, gặt */let pd=null;if(typeof l4Pad==='function')for(const b of S.builds){if(b.k!=='paddy'||b.prog!=null||b.remote||Math.hypot(b.x-home.x,b.z-home.z)>800)continue;const op=vthPadOp(b,L);if(op){pd={k:'pad',x:b.x+44,z:b.z+44,b:b.id,op};break;}}if(pd)V.go=pd;else rest(10);}}
     const g=V.go;if(g){tx=g.x;tz=g.z;if(near2(tx,tz,10)){tx=f.x;tz=f.z;pose='gather';const b=BYID.get(g.b);if(b)f._ry=Math.atan2(b.x-f.x,b.z-f.z);if(g.w==null)g.w=G.t+3;else if(G.t>g.w){const c=b&&S.crops[b.id];
           if(g.k==='reap'&&c&&cropStage(c)>=3){const out=c.k==='grain'?{grain:3+Math.floor(Math.random()*3),seedGrain:1+Math.floor(Math.random()*2)}:c.k==='gourd'?{gourd:2,seedGourd:1+Math.floor(Math.random()*2)}:{fiber:5,seedFlax:1};for(const k in out)f._bag[k]=(f._bag[k]||0)+out[k];delete S.crops[b.id];cropShow(b);V.back=1;}
           else if(g.k==='sow'&&b&&!c&&vthTake(vthStores(home),g.id,1)){S.crops[b.id]={k:ITEMS[g.id].crop,p:0};cropShow(b);if(typeof danXp==='function')danXp(f,1);save();}
+          else if(g.k==='pad'&&b&&b.k==='paddy'){const op=vthPadOp(b,vthStores(home)),F=l4Pad(b);if(op===g.op){if(op==='water')F.w=1;else if(op==='sow'){if(vthTake(vthStores(home),'seedRice',2)){F.st=1;F.p=0;}}else if(op==='plant'){F.st=3;F.p=0;F.weed=0;}else if(op==='weed')F.weed=0;else if(op==='reap'){F.st=0;F.p=0;F.weed=0;f._bag.riceSheaf=(f._bag.riceSheaf||0)+4;f._bag.seedRice=(f._bag.seedRice||0)+1;V.back=1;}try{l4PadShow(b);}catch(e){}if(typeof danXp==='function')danXp(f,1);save();}}
           V.go=null;}}}}
   else if(f.job==='fish'){f._st='work';if(!V.bk||G.t-V.bkT>60||G.t<V.bkT){V.bk=vthBank(home)||0;V.bkT=G.t;}const k=V.bk;if(!k){rest(15);if(!V.told||G.t-V.told>300){V.told=G.t;uiToast(`🎣 ${f.n}: gần nhà không có sông, hồ để đánh cá.`,'');}}
     else{tx=k.x;tz=k.z;if(near2(tx,tz,8)){tx=f.x;tz=f.z;pose='gather';f._ry=Math.atan2(k.wx-f.x,k.wz-f.z);if(V.fT==null)V.fT=G.t+14+Math.random()*8;else if(G.t>V.fT){V.fT=null;f._bag.fish=(f._bag.fish||0)+1;try{puff(k.wx,2,k.wz,'#bfe3ff',4);}catch(e){}if(bagN()>=3)V.back=1;}}}}
@@ -57,6 +61,13 @@ function vthTick(f,dt){if(!f._o)folkSpawn(f);if(!f._bag)f._bag={};const home=fol
   if(K3.char2Pose&&f._rig&&Math.hypot(P.x-f.x,P.z-f.z)<800){try{K3.char2Pose(f._rig,pose,pose==='walk'?f._g:G.t+f.seed,{});}catch(e){}}}
 {const _ft=folkTick;folkTick=function(dt){if(!S||!S.folk||!S.folk.length)return _ft.apply(this,arguments);const all=S.folk,mine=all.filter(f=>VTH.J[f.job]);if(!mine.length)return _ft.apply(this,arguments);
     S.folk=all.filter(f=>!VTH.J[f.job]);let r;try{r=_ft.apply(this,arguments);}finally{S.folk=all;}for(const f of mine){try{vthTick(f,dt);}catch(e){if(!G._vthE){G._vthE=1;console.warn('việc thêm',e);}}}return r;};}
+/* SỔ LÀNG: ghi lại hôm nay người làng mang về kho những gì (xem ở đầu bảng Dân làng) */
+function vthLog(){const d=Math.floor(TNOW());if(!S.vlog||S.vlog.d!==d)S.vlog={d,m:{}};return S.vlog;}
+{const _sa=slotsAdd;slotsAdd=function(arr,id,n){const left=_sa.apply(this,arguments);try{if(VTH.dep&&S&&ITEMS[id]){const got=n-(left||0);if(got>0){const m=vthLog().m;m[id]=(m[id]||0)+got;}}}catch(e){}return left;};}
+{const _ft=folkTick;folkTick=function(){VTH.dep=1;try{return _ft.apply(this,arguments);}finally{VTH.dep=0;}};}
+/* NGƯỜI NẤU ĂN GIỮ LỬA: mỗi giờ, bếp đang cháy gần nhà mà còn dưới 4 giờ củi thì lấy gỗ / cành khô trong kho làng tiếp vào (không tự nhóm lại bếp đã tắt) */
+{const _fh=folkHourly;folkHourly=function(gh){try{const ck=(S.folk||[]).find(f=>f.job==='cook');if(ck){const home=folkHome(ck),L=vthStores(home);let ch=0;for(const b of S.builds){const d=pieceDef(b.k);if(!d||!d.fuel||b.prog!=null||b.remote||Math.hypot(b.x-home.x,b.z-home.z)>500)continue;const h=S.fuel[b.id]||0;if(h<=0||h>=4)continue;
+          if(vthTake(L,'wood',1)){S.fuel[b.id]=Math.min(24,h+4);ch=1;}else if(vthTake(L,'stick',2)){S.fuel[b.id]=Math.min(24,h+2);ch=1;}}if(ch)try{flameSync();}catch(e){}}}catch(e){}return _fh.apply(this,arguments);};}
 if(typeof HD_L!=='undefined')HD_L.push({id:'viecthem',ic:'🧑‍🌾',t:'Người làng làm nhiều việc hơn',w:()=>{try{return G.panel==='folk'||(G.panel&&/dan/.test(G.panel)&&S.folk&&S.folk.length>0);}catch(e){return false;}},
   p:['Ngoài hái lượm, đốn gỗ, đào đá, giờ giao được: <b>Thợ xây</b> (tự làm nốt công trường dở, lấy vật liệu trong kho làng), <b>Chăn nuôi</b> (cho vật nuôi ăn, nhặt trứng, vớt cá ao), <b>Đi săn</b> (hạ thú hiền mang thịt da về), <b>Đánh cá</b> (câu ở bờ nước gần nhà).',
    'Bấm vào người làng → <b>Giao việc</b> → chọn việc. Muốn thợ xây làm được thì cắm mốc công trình trước và để sẵn gỗ, đá, sợi cỏ trong giỏ, rương.',

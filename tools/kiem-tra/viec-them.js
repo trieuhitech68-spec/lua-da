@@ -25,9 +25,14 @@ const r=await p.evaluate(()=>{const o={};let n=9800;const mk=(k,dx,dz,prog)=>{co
   const rb=G.animals.find(x=>x.kind==='rabbit'&&x.alive);rb.x=P.x+260;rb.z=P.z+200;rb.home={x:rb.x,z:rb.z};S.folk=[F('hunt',4)];run(120);o.meat=vthHave([S.store[bk.id]],'meat');
   // 6) đánh cá (chỉ kiểm không lỗi; có nước gần thì phải có cá)
   S.folk=[F('fish',5)];o.bank=!!vthBank(folkHome(S.folk[0]));run(150);o.fish=vthHave([S.store[bk.id]],'fish');
+  // 6b) ruộng lúa nước: gieo mạ → cấy → gặt; sổ làng; người nấu tiếp củi
+  S.store[bk.id].fill(null);S.store[bk.id][0]={id:'seedRice',n:2};S.store[bk.id][1]={id:'wood',n:3};const pd=mk('paddy',-140,-140);const PF=l4Pad(pd);PF.st=0;PF.w=1;const _si=seasonIdx;seasonIdx=()=>0;
+  S.folk=[F('farm',8)];run(60);o.padSow=PF.st;PF.st=2;run(60);o.padPlant=PF.st;PF.st=4;run(90);o.padReap=PF.st===0&&vthHave([S.store[bk.id]],'riceSheaf');seasonIdx=_si;
+  o.log=Object.keys(vthLog().m).length>0&&(vthLog().m.riceSheaf||0)>=4;S.folk=[F('cook',9)];S.fuel[fire.id]=1.5;folkHourly(1);o.fuel=S.fuel[fire.id]>=5&&vthHave([S.store[bk.id]],'wood')===2;
+  uiOpen('dan',{});o.logHtml=/mang về kho/.test(document.querySelector('#panel').innerText);uiClose();
   // 7) đêm về ngủ
   S.hour=23;S.folk=[F('build',6),F('hunt',7)];S.folk.forEach(f=>{f.x+=200;});run(30);o.sleep=S.folk.every(f=>f._st==='sleep');S.hour=10;
   o.jobs=['build','herd','hunt','fish'].every(j=>JOBN[j]);o.nvn=nvnS().q.length;return o;});
 console.log(JSON.stringify(r));
-const ok=r.afterTwo.tame>0.5&&r.afterTwo.hp&&r.afterTwo.food===0&&/Cần|Cho ăn/.test(r.verb)&&r.noFood.hp&&r.noFood.act&&r.pet&&r.gateFar.every(d=>d>60)&&r.gateApart>40&&r.built[0]&&r.built[1]&&r.matLeft===0&&r.fed&&r.eggs===3&&r.tank===0&&r.meat>=1&&(!r.bank||r.fish>=3)&&r.sleep&&r.jobs&&r.nvn===5&&!logs.length;
+const ok=r.afterTwo.tame>0.5&&r.afterTwo.hp&&r.afterTwo.food===0&&/Cần|Cho ăn/.test(r.verb)&&r.noFood.hp&&r.noFood.act&&r.pet&&r.gateFar.every(d=>d>60)&&r.gateApart>40&&r.built[0]&&r.built[1]&&r.matLeft===0&&r.fed&&r.eggs===3&&r.tank===0&&r.meat>=1&&(!r.bank||r.fish>=3)&&r.padSow===1&&r.padPlant===3&&r.padReap>=4&&r.log&&r.fuel&&r.logHtml&&r.sleep&&r.jobs&&r.nvn===5&&!logs.length;
 console.log(ok?'VT-DAT':'VT-HONG '+logs.join('|'));await b.close();})();
