@@ -69,8 +69,8 @@ function fpArmTick(dt){const r=G.fpRig;if(!r)return;const on=isFP()&&!G.panel;fp
 function fpCam(dt){const c=G.cam;if(c.near!==1.5){c.near=1.5;resize();}
   const mv=P.speed>8&&!P.air&&!G.swim,f=P.speed/112*10.5,bob=mv?Math.sin(G.t*f)*(G.running?1.5:0.9):0;G.bobPh=(G.bobPh||0);
   if(mv&&Math.sin(G.t*f)<-0.95&&!G.stepD){G.stepD=1;sfx('step');}else if(Math.sin(G.t*f)>0)G.stepD=0;
-  const eh=G.ride?21:G.swim?14:G.sit?19:G.sneak?23:EYE;G.eyeH=(G.eyeH||eh)+(eh-(G.eyeH||eh))*Math.min(1,dt*8);const ey=P.y+G.eyeH+Math.abs(bob)*0.9+(G.swim?Math.sin(G.t*1.7)*1.2:0);
-  const fx=Math.sin(P.ry),fz=Math.cos(P.ry);c.position.set(P.x+fx*2.5,ey,P.z+fz*2.5);const cp=Math.cos(G.fpitch||0);
+  const eh=G.mnt?(typeof MT==='object'&&MT.sy?MT.sy:22)+31:G.ride?21:G.swim?14:G.sit?19:G.sneak?23:EYE;/* cưỡi ngựa: mắt ở đầu người ngồi trên yên (trước nằm ngang cổ ngựa, bị che kín) */G.eyeH=(G.eyeH||eh)+(eh-(G.eyeH||eh))*Math.min(1,dt*8);const ey=P.y+G.eyeH+Math.abs(bob)*0.9+(G.swim?Math.sin(G.t*1.7)*1.2:0);
+  const fx=Math.sin(P.ry),fz=Math.cos(P.ry);{const fo=G.mnt?-4:2.5;c.position.set(P.x+fx*fo,ey,P.z+fz*fo);}const cp=Math.cos(G.fpitch||0);
   c.lookAt(c.position.x+fx*cp*100,ey+Math.sin(G.fpitch||0)*100,c.position.z+fz*cp*100);if(mv)c.rotateZ(Math.sin(G.t*f*0.5)*0.006);
   P.blob.visible=false;}
 function viewApply(){const fp=isFP();if(P.model)P.model.traverse(o=>o.layers.set(fp?1:0));if(G.L&&G.L.sun)G.L.sun.shadow.camera.layers.enable(1);if(!fp){G.cam.near=4;P.blob.visible=true;}

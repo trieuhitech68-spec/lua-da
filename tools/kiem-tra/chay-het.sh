@@ -88,4 +88,6 @@ echo "28. Người nấu ăn: một hay hai người bên bếp đều đứng y
 OUT=$(timeout 400 node nau-an.js 2>&1); echo "$OUT" | grep -q "^NA-DAT" && ok "người nấu ăn đứng yên" || bad "người nấu ăn: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-700)"
 echo "29. Bảng Dân làng gọn trên điện thoại: đủ 12 việc + nghỉ, bấm +/- chuyển người, danh sách gom theo việc, không tràn ngang; việc Làm ruộng gặt và gieo được"
 OUT=$(timeout 500 node dan-lang.js 2>&1); echo "$OUT" | grep -q "^DL-DAT" && ok "bảng dân làng, làm ruộng" || bad "bảng dân làng: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
+echo "30. Rà soát: ruộng đè lên cây thì cây bị dọn hẳn; vật nuôi có Cho ăn / Xem tình trạng; người nấu nấu đủ món; ngựa lội suối, góc nhìn thứ nhất khi cưỡi cao hơn lưng ngựa; ô Đo giật đã gỡ"
+OUT=$(timeout 400 node ra-soat.js 2>&1); echo "$OUT" | grep -q "^RS-DAT" && ok "đợt rà soát" || bad "đợt rà soát: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

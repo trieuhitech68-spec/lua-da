@@ -6,7 +6,7 @@
 const LTH2={t:0,pend:0,timer:null,GAP:45000,req:0,by:{},last:null};
 {const _real=save;
   window.saveNow=function(){LTH2.pend=0;if(LTH2.timer){clearTimeout(LTH2.timer);LTH2.timer=null;}LTH2.t=performance.now();const t0=LTH2.t;try{return _real.apply(this,arguments);}finally{try{LTH2.last={ms:Math.round(performance.now()-t0),at:Date.now()};LTH2.raw=null;}catch(e){}}};
-  save=function(){try{LTH2.req++;if(LTH2.req<=400){/* ghi lại ai gọi lưu nhiều nhất (xem ở Cài đặt → Đo giật) */const st=(new Error().stack||'').split('\n')[2]||'';const m=st.match(/at ([A-Za-z0-9_$.]+)/);const k=m?m[1]:'?';LTH2.by[k]=(LTH2.by[k]||0)+1;}}catch(e){}
+  save=function(){try{LTH2.req++;}catch(e){}
     const now=performance.now();if(typeof G==='undefined'||!G.on)return saveNow();/* (đã bỏ quy tắc "đang mở Cài đặt thì ghi ngay": người làng gọi lưu liên tục nên mở Cài đặt là ghi dồn dập, mỗi lần đứng hình cả giây trên máy ghi chậm) */if(now-LTH2.t>=LTH2.GAP){LTH2.pend=1;if(!LTH2.timer)LTH2.timer=setTimeout(lth2Fire,0);return;}
     LTH2.pend=1;if(!LTH2.timer)LTH2.timer=setTimeout(lth2Fire,Math.max(200,LTH2.GAP-(now-LTH2.t)));};}
 /* tới hạn ghi: nếu nhân vật đang chạy/đi thì chờ lúc đứng yên, đang làm việc hoặc mở bảng (khựng lúc đó khó thấy hơn nhiều), tối đa chờ thêm 40 giây */

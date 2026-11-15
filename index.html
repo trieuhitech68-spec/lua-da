@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261115134108">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261115135907">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -2985,8 +2985,8 @@ function fpArmTick(dt){const r=G.fpRig;if(!r)return;const on=isFP()&&!G.panel;fp
 function fpCam(dt){const c=G.cam;if(c.near!==1.5){c.near=1.5;resize();}
   const mv=P.speed>8&&!P.air&&!G.swim,f=P.speed/112*10.5,bob=mv?Math.sin(G.t*f)*(G.running?1.5:0.9):0;G.bobPh=(G.bobPh||0);
   if(mv&&Math.sin(G.t*f)<-0.95&&!G.stepD){G.stepD=1;sfx('step');}else if(Math.sin(G.t*f)>0)G.stepD=0;
-  const eh=G.ride?21:G.swim?14:G.sit?19:G.sneak?23:EYE;G.eyeH=(G.eyeH||eh)+(eh-(G.eyeH||eh))*Math.min(1,dt*8);const ey=P.y+G.eyeH+Math.abs(bob)*0.9+(G.swim?Math.sin(G.t*1.7)*1.2:0);
-  const fx=Math.sin(P.ry),fz=Math.cos(P.ry);c.position.set(P.x+fx*2.5,ey,P.z+fz*2.5);const cp=Math.cos(G.fpitch||0);
+  const eh=G.mnt?(typeof MT==='object'&&MT.sy?MT.sy:22)+31:G.ride?21:G.swim?14:G.sit?19:G.sneak?23:EYE;/* cưỡi ngựa: mắt ở đầu người ngồi trên yên (trước nằm ngang cổ ngựa, bị che kín) */G.eyeH=(G.eyeH||eh)+(eh-(G.eyeH||eh))*Math.min(1,dt*8);const ey=P.y+G.eyeH+Math.abs(bob)*0.9+(G.swim?Math.sin(G.t*1.7)*1.2:0);
+  const fx=Math.sin(P.ry),fz=Math.cos(P.ry);{const fo=G.mnt?-4:2.5;c.position.set(P.x+fx*fo,ey,P.z+fz*fo);}const cp=Math.cos(G.fpitch||0);
   c.lookAt(c.position.x+fx*cp*100,ey+Math.sin(G.fpitch||0)*100,c.position.z+fz*cp*100);if(mv)c.rotateZ(Math.sin(G.t*f*0.5)*0.006);
   P.blob.visible=false;}
 function viewApply(){const fp=isFP();if(P.model)P.model.traverse(o=>o.layers.set(fp?1:0));if(G.L&&G.L.sun)G.L.sun.shadow.camera.layers.enable(1);if(!fp){G.cam.near=4;P.blob.visible=true;}
@@ -20081,12 +20081,12 @@ function mtOff(q){const m=G.mnt;if(!m)return;m.x=+P.x.toFixed(1);m.z=+P.z.toFixe
 {const _ft=findTarget;findTarget=function(){if(G.mnt&&S)return {type:'mount',m:G.mnt,off:1,d:0,b:{x:P.x,y:P.y+20,z:P.z}};const r=_ft.apply(this,arguments);if(!S||G.work||G.sit||G.ride)return r;if(r&&(r.type==='animal'||r.type==='foe'||r.type==='npc'))return r;let best=null,bd=REACH+16;for(const m of mtList()){const d=Math.hypot(m.x-P.x,m.z-P.z);if(d<bd){bd=d;best=m;}}return best?{type:'mount',m:best,d:bd,b:{x:best.x,y:hAt(best.x,best.z)+24,z:best.z}}:r;};}
 {const _ti=targetInfo;targetInfo=function(t){if(t&&t.type==='mount')return {name:t.m.n||'Ngựa',verb:t.off?'Xuống ngựa':'Cưỡi ngựa',ok:true,icon:'rope'};return _ti.apply(this,arguments);};}
 {const _as=actStart;actStart=function(t){if(t&&t.type==='mount'){if(t.off)mtOff();else mtRide(t.m);return;}if(G.mnt&&t&&t.type!=='animal'&&t.type!=='foe')mtOff(1);return _as.apply(this,arguments);};}
-{const _mv=move;move=function(dx,dz,m,dt,run){if(!G.mnt)return _mv.apply(this,arguments);const k=(run?2.9:1.9)*(1+0.04*(((G.mnt.lv|0)||1)-1)),nx=P.x+dx*112*m*k*dt*1.5,nz=P.z+dz*112*m*k*dt*1.5;if(wdAt(nx,nz)>6){if(G.t-(G._mtW||0)>4){G._mtW=G.t;uiToast('🐎 Ngựa không lội nước sâu. Xuống ngựa hoặc tìm chỗ cạn.','');}P.speed=0;return;}
+{const _mv=move;move=function(dx,dz,m,dt,run){if(!G.mnt)return _mv.apply(this,arguments);const k=(run?2.9:1.9)*(1+0.04*(((G.mnt.lv|0)||1)-1)),nx=P.x+dx*112*m*k*dt*1.5,nz=P.z+dz*112*m*k*dt*1.5;/* ngựa lội được suối, chỗ nước tới ngực (sâu ≤ 34), đi chậm lại; chỉ dừng ở chỗ sâu hẳn (trước nước sâu quá 6 là đứng lại: suối nhỏ cũng không qua được) */const wd=wdAt(nx,nz);if(wd>34){if(G.t-(G._mtW||0)>4){G._mtW=G.t;uiToast('🐎 Chỗ này nước quá sâu, ngựa không lội được. Tìm chỗ cạn hơn hoặc xuống ngựa.','');}P.speed=0;return;}
     const st=S.p.stam;const r=_mv.call(this,dx,dz,m,dt*k,false);S.p.stam=Math.max(st,S.p.stam);G.running=!!run;return r;};}
 // tư thế ngồi trên lưng, ngựa chạy theo người
 {const _at=animTick;animTick=function(dt){if(!G.mnt)return _at.apply(this,arguments);const r=_at.apply(this,arguments);
     try{const o=MT.o.get(G.mnt.id);if(o&&P.model){const gy=groundY(P.x,P.z),mv=P.speed>8;MT.ph=(MT.ph||0)+dt*(mv?(G.running?13:8):0);const bob=mv?Math.abs(Math.sin(MT.ph))*(G.running?1.6:0.7):0;
-        o.position.set(P.x,gy+bob,P.z);o.rotation.y=P.ry||0;P.model.position.set(P.x,gy+bob+17*MT.sc-6,P.z);P.model.rotation.y=P.ry||0;
+        o.position.set(P.x,gy+bob,P.z);o.rotation.y=P.ry||0;/* chỗ ngồi nâng lên ngang lưng ngựa (trước thấp hơn: mông lún vào thân ngựa) */MT.sy=17*MT.sc-2;P.model.position.set(P.x,gy+bob+MT.sy,P.z);P.model.rotation.y=P.ry||0;
         /* tư thế cưỡi: hai chân kẹp hai bên sườn ngựa, người hơi ngả trước, tay đưa ra nắm bờm */const R=P.rig;if(R&&R.legL&&R.legR){R.legL.rotation.set(0,0,1.28);R.legR.rotation.set(0,0,-1.28);/* gối gập, cẳng chân buông xuôi hai bên sườn (trước duỗi thẳng, bàn chân thò ra trước ngực ngựa) */if(R.shinL)R.shinL.rotation.set(0.25,0,-0.7);if(R.shinR)R.shinR.rotation.set(0.25,0,0.7);if(R.torso)R.torso.rotation.x=0.12+(mv?Math.sin(MT.ph*2)*0.04:0);if(R.armL)R.armL.rotation.set(-0.85,0,0.18);if(R.armR)R.armR.rotation.set(-0.85,0,-0.18);}
         const rg=o.userData.rig||{},a=mv?(G.running?0.7:0.45):0;if(rg.legFL){if(mv&&G.running){/* phi nước đại: hai chân trước cùng vươn, hai chân sau cùng đạp, thân chồm lên xuống theo nhịp */const p=MT.ph;rg.legFL.rotation.x=Math.sin(p)*0.9;rg.legFR.rotation.x=Math.sin(p+0.4)*0.9;rg.legBL.rotation.x=Math.sin(p+Math.PI)*0.95;rg.legBR.rotation.x=Math.sin(p+Math.PI+0.4)*0.95;if(rg.body)rg.body.rotation.x=Math.sin(p+0.6)*0.07;}else{rg.legFL.rotation.x=Math.sin(MT.ph)*a;rg.legFR.rotation.x=Math.sin(MT.ph+Math.PI)*a;rg.legBL.rotation.x=Math.sin(MT.ph+Math.PI+0.5)*a;rg.legBR.rotation.x=Math.sin(MT.ph+0.5)*a;if(rg.body)rg.body.rotation.x=0;}}if(rg.head)rg.head.rotation.x=mv?Math.sin(MT.ph*2)*0.06:Math.sin(G.t*0.8)*0.04;if(rg.tail)rg.tail.rotation.z=Math.sin(G.t*2.2)*0.25;}}catch(e){}return r;};}
 // ngồi / ngủ / bơi / chết: xuống ngựa
@@ -20105,6 +20105,8 @@ AUJ.tameh=function(j){if(gC('cnt:horse')>(j.c0==null?(j.c0=gC('cnt:horse')):j.c0
 AUJ.ridehorse=function(j){if(gC('cnt:mount')>0)return AQ_DONE;if(j.cf)return aqFail(j.cf);const m=mtList()[0];if(!m)return aqFail('Ngựa của bạn không ở vùng này.');if(aqD(m.x,m.z)>REACH+10)return aqGoto(j,m.x,m.z,REACH,'Tới chỗ ngựa',{far:1});mtRide(m);setTimeout(()=>{try{if(G.mnt&&AQ.on)mtOff(1);}catch(e){}},1500);return AQ_RUN;};
 {const _i=aqInit;aqInit=function(j){_i(j);if(j.k==='tameh'&&j.g==null)j.g=0;};}
 if(typeof HD_L!=='undefined')HD_L.push({id:'ngua',ic:'🐎',t:'Thuần ngựa, cưỡi ngựa',w:()=>(Array.isArray(S.mounts)&&S.mounts.length>0)||(GOALS[S.goal]&&GOALS[S.goal].t==='Thuần ngựa và cưỡi'),p:['<b>Ngựa rừng</b> sống thành đàn ở đồng cỏ, bìa rừng. Cầm hạt kê, chuối hoặc quả mọng, <b>lom khom</b> lại gần và cho ăn 4–6 lần là thuần.','Lại gần ngựa của mình, bấm <b>Hành động</b> để cưỡi. Đi nhanh gần gấp đôi, giữ <b>Chạy</b> để phi gần gấp ba, không tốn thể lực. Bấm Hành động lần nữa để xuống.','Trên lưng ngựa không chặt cây, xây dựng được. Ngựa không lội nước sâu. Xuống ngựa ở đâu, nó đứng chờ ở đó; qua cổng sang vùng khác thì ngựa đi theo.']});
+// đang cưỡi ngựa lội suối thì người không chuyển sang bơi (trước cứ nước sâu quá 11 là bị coi là bơi và tự xuống ngựa giữa dòng)
+{const _sc=swimCheck;swimCheck=function(){if(G.mnt&&wdAt(P.x,P.z)<=36){if(G.swim)G.swim=false;return false;}return _sc.apply(this,arguments);};}
 /* ===================== SỦNG THÚ (thú chiến đi theo) · THÚ CƯỠI NÂNG CẤP · MÁY QUAY CẬN CẢNH KHI THAO TÁC · HÀO QUANG DANH HIỆU · XẾP HẠNG LỰC CHIẾN =====================
    SỦNG THÚ: thuần khỉ (chuối, quả mọng), gấu (mật ong, cá, thịt), hổ / báo (thịt) bằng cách cho ăn như thuần gà. Thuần xong nó thành sủng thú:
      - Một con "xuất chiến" đi theo bạn, tự lao vào cắn thú dữ / kẻ địch đang đánh bạn hoặc con bạn đang đánh. Đánh là lên kinh nghiệm, lên cấp (tối đa 30, mỗi cấp +12% đòn).
@@ -21210,29 +21212,6 @@ function dnFireflies(){const T=THREE,N=(G.q|0)>0?70:40,pos=new Float32Array(N*3)
     fragmentShader:'uniform float uK;varying float vA;void main(){float d=length(gl_PointCoord-0.5);float a=smoothstep(0.5,0.0,d);gl_FragColor=vec4(vec3(0.85,1.0,0.35)*a*vA*uK*1.6,a*vA*uK);}'});
   const f=new T.Points(g,m);f.frustumCulled=false;f.position.set(1e9,0,1e9);G.sc.add(f);DN.ff=f;}
 {const _st=skyTick;skyTick=function(){_st.apply(this,arguments);try{dnTick();}catch(e){if(!DN.err){DN.err=1;console.warn('đêm, nước',e);}}};}
-/* ---------- MÁY ĐO GIẬT ----------
-   Game tự ghi mỗi lần khựng (một khung hình lâu hơn 50 ms) và phần nào chiếm nhiều thời gian nhất trong khung đó.
-   Xem ở Cài đặt → "Đo giật": số lần trong 5 phút gần nhất, lần nặng nhất, do phần nào. Chụp màn hình gửi người làm game là biết chỗ sửa.
-   Gọi ldGiat() trong bảng điều khiển để xem chi tiết. Chi phí đo: vài phép đọc đồng hồ mỗi khung hình. */
-const DG={acc:{},ev:[],last:0,on:1,N:{animTick:'chuyển động, chơi chung',mpTick:'chơi chung',ldbEmit:'nhận dữ liệu máy chủ',foesTick:'kẻ địch, lính',folkTick:'người làng',skyTick:'trời, nước',grassTick:'cỏ',cullTick:'ẩn hiện cây cối',save:'ghi bản lưu',uiHud:'bảng chỉ số',miniTick:'bản đồ nhỏ',dayTick:'ngày đêm',aqTick:'Tự làm',animalsTick:'thú',cropsTick:'cây trồng',rlTick:'lãnh địa',rlMpCalc:'tính giữ đất',mpRemoteApply:'công trình hàng xóm',pvpIn:'biên bản cướp phá',perfTick:'cân chỉnh độ nét',ve:'vẽ hình (card đồ hoạ)'}};
-(function(){for(const n of Object.keys(DG.N)){if(n==='ve')continue;try{const f=(0,eval)(n);if(typeof f!=='function')continue;window.__dgw=function(){const t=performance.now();try{return f.apply(this,arguments);}finally{DG.acc[n]=(DG.acc[n]||0)+performance.now()-t;}};(0,eval)(n+'=__dgw');}catch(e){}}try{delete window.__dgw;}catch(e){}
-  try{const lf=loop;loop=function(){const t=performance.now();try{return lf.apply(this,arguments);}finally{DG.acc.__loop=(DG.acc.__loop||0)+performance.now()-t;}};}catch(e){}
-  try{if(window.PerformanceObserver){DG.lt=[];new PerformanceObserver(L=>{for(const e of L.getEntries()){DG.lt.push([e.startTime,e.duration]);if(DG.lt.length>80)DG.lt.splice(0,30);}}).observe({entryTypes:['longtask']});}}catch(e){DG.lt=null;}
-  const fr=()=>{requestAnimationFrame(fr);const now=performance.now();try{
-      if(typeof G!=='undefined'&&G.on&&G.R&&!G.R.__dg){G.R.__dg=1;const r=G.R.render;G.R.render=function(){const t=performance.now();try{return r.apply(this,arguments);}finally{DG.acc.ve=(DG.acc.ve||0)+performance.now()-t;}};}
-      const d=now-DG.last;if(DG.last&&d>50&&d<3000&&typeof G!=='undefined'&&G.on&&!G.paused&&!document.hidden&&G.t>15){let bk='',bv=0,sum=0;for(const k in DG.acc){const v=DG.acc[k];if(k==='animTick'||k==='__loop')continue;sum+=v;if(v>bv){bv=v;bk=k;}}
-        /* phần đo được chiếm dưới 35% thời gian khung: việc nằm ngoài mã game (trình duyệt dọn bộ nhớ, card đồ hoạ, máy bận việc khác) */
-        const lp=DG.acc.__loop||0;let cat=bv>d*0.35?bk:(lp>d*0.55?'nhieu':'ngoai');if(cat==='ngoai'&&DG.lt){/* phân biệt: trong khoảng khựng có "việc dài" chạy trong trang (dọn bộ nhớ, tiện ích mở rộng, mã khác) hay trang hoàn toàn rảnh mà hình vẫn không lên (card đồ hoạ, máy bận) */let js=0;for(let q=DG.lt.length-1;q>=0;q--){const e=DG.lt[q];if(e[0]+e[1]<DG.last)break;js+=Math.min(e[0]+e[1],now)-Math.max(e[0],DG.last);}cat=js>d*0.5?'ngoaijs':'ngoaigpu';}DG.ev.push([Date.now(),Math.round(d),cat,Math.round(bv)]);if(DG.ev.length>400)DG.ev.splice(0,100);}
-    }catch(e){}DG.acc={};DG.last=now;};requestAnimationFrame(fr);
-  document.addEventListener('visibilitychange',()=>{DG.last=0;});})();
-function ldGiat(){const now=Date.now(),E=DG.ev.filter(e=>now-e[0]<300000),by={};for(const e of E){const a=by[e[2]]||(by[e[2]]={n:0,max:0});a.n++;a.max=Math.max(a.max,e[1]);}
-  const L=Object.entries(by).sort((a,b)=>b[1].n-a[1].n).map(([k,a])=>(k==='ngoai'?'ngoài mã game (trình duyệt dọn bộ nhớ, card đồ hoạ)':k==='ngoaijs'?'trình duyệt bận việc trong trang (dọn bộ nhớ, tiện ích mở rộng)':k==='ngoaigpu'?'trang rảnh mà hình không lên (card đồ hoạ, máy đang bận việc khác)':k==='nhieu'?'mã game, nhiều phần nhỏ cộng lại':DG.N[k]||k)+': '+a.n+' lần, nặng nhất '+a.max+' ms');
-  let nhip=0;if(E.length>2){const g=[];for(let i=1;i<E.length;i++)g.push((E[i][0]-E[i-1][0])/1000);g.sort((a,b)=>a-b);nhip=+g[Math.floor(g.length/2)].toFixed(1);}let bo=0;try{bo=Math.round(performance.memory.usedJSHeapSize/1e6);}catch(e){}
-  return {lan:E.length,nangNhat:E.reduce((m,e)=>Math.max(m,e[1]),0),theo:L,nhip,boNho:bo};}
-setInterval(()=>{try{if(typeof G==='undefined'||!G.on||G.panel!=='settings')return;const bd=document.querySelector('#panel .p-body');if(!bd)return;let el=bd.querySelector('.dg-b');const r=ldGiat();
-    const h=`<b>📈 Đo giật (5 phút gần nhất)</b><span class="small muted">${r.lan?`Khựng <b>${r.lan}</b> lần, nặng nhất <b>${r.nangNhat} ms</b>${r.nhip?`, thường cách nhau <b>${r.nhip} giây</b>`:''}${r.boNho?` · bộ nhớ ${r.boNho} MB`:''}.<br>${r.theo.slice(0,4).map(esc).join('<br>')}`:'Chưa ghi nhận lần khựng nào.'}${(()=>{try{const u=ldLuu();return `<br>Bản lưu: ${u.co?Math.round(u.co.tong/1024)+' KB ('+u.co.lon.join(', ')+')':'?'}${u.lanCuoi?' · lần ghi gần nhất '+u.lanCuoi.ms+' ms'+(u.lanCuoi.gon?' (đóng gói '+u.lanCuoi.goi+', '+(u.lanCuoi.nen?'ghi nền ':'ghi xuống máy ')+u.lanCuoi.dia+')':' (ghi kiểu cũ)'):''} · yêu cầu lưu ${u.goi} lần${u.nhieu.length?' ('+u.nhieu.join(', ')+')':''}`;}catch(e){return '';}})()}</span>`;
-    if(!el){el=document.createElement('div');el.className='dg-b';const hn=bd.querySelector('.hn-b');if(hn)hn.after(el);else bd.prepend(el);}if(el.innerHTML!==h)el.innerHTML=h;}catch(e){}},1500);
-{const s=document.createElement('style');s.textContent='#game .panel .dg-b{display:flex;flex-direction:column;gap:3px;padding:9px 11px;margin-bottom:10px;border-radius:12px;background:rgba(120,160,230,.08);border:1px solid rgba(120,160,230,.35);font-size:14px}';document.head.appendChild(s);}
 /* ---------- ÂM THANH NỀN: suối chảy, lửa tí tách, gió ----------
    - Tới gần sông suối nghe tiếng nước chảy, càng gần càng rõ.
    - Đứng cạnh bếp lửa, đuốc đang cháy nghe tiếng củi nổ tí tách.
@@ -21724,6 +21703,27 @@ function chhClone(src){const map=new Map(),rec=s=>{const ud=s.userData;s.userDat
   map.forEach((d,s)=>{for(const k in s.userData)d.userData[k]=re(s.userData[k],0);});return out;}
 {const _am=animalModel;animalModel=function(kind){if(arguments.length!==1||typeof kind!=='string'||CHH.bad.has(kind))return _am.apply(this,arguments);
     try{let p=CHH.proto.get(kind);if(!p){p=_am.apply(this,arguments);if(!p||!p.isObject3D||!chhOk(p)){CHH.bad.add(kind);return p;}CHH.proto.set(kind,p);}CHH.n++;return chhClone(p);}catch(e){CHH.bad.add(kind);console.warn('chung hình',kind,e);return _am.apply(this,arguments);}};}
+/* ===================== ĐỢT RÀ SOÁT: RUỘNG DÍNH CÂY · VẬT NUÔI "VUỐT VE" · NGƯỜI NẤU ĂN NẤU ĐỦ MÓN =====================
+   1) RUỘNG, NỀN NHÀ, AO, CHUỒNG… ĐÈ LÊN CÂY: trước đặt công trình lên chỗ có cây, bụi, đá thì chúng vẫn mọc xuyên qua (ruộng có cả cây).
+      Giờ công trình nào chiếm ô đất (nền, ruộng, ao, chuồng, đồ đặt) thì cây, bụi, đá trong ô đó bị dọn hẳn (không còn gốc, không mọc lại). Áp dụng cả cho công trình đã dựng từ trước.
+      Trừ công trình gắn với cây (sàn nhà trên cây, thang dây…).
+   2) VẬT NUÔI: bấm Hành động vào lợn, gà… trước chỉ có "Vuốt ve". Giờ: con đang đói mà túi có rau, quả, củ, hạt thì là "Cho ăn"; không thì "Xem tình trạng"
+      (no hay đói, mấy ngày tuổi, bao giờ lớn, bao giờ mổ thịt được, cần gì để sinh con). Chó vẫn là gọi theo / bảo ở yên; con lớn có dao vẫn là mổ thịt.
+   3) NGƯỜI NẤU ĂN: trước chỉ nướng thịt, cá. Giờ nấu mọi món sống trong kho có bản chín (củ, trứng, thịt các loại…). */
+function sl2Clear(q){if(q.st===2)return;q.st=2;q.hp=0;S.res[q.i]=[2,0];resShow(q);}
+{const _rs=resShow;resShow=function(q){if(q.st===2){try{RI.get(q.gk).api.hide(q.gi);if(q.sk)RI.get(q.sk).api.hide(q.si);if(q.ek)RI.get(q.ek).api.hide(q.ei);}catch(e){}return;}return _rs.apply(this,arguments);};}
+function sl2Sweep(b){try{const d=pieceDef(b.k);if(!d||b.remote||b.tree!=null||/tree|ropeLadder|bridge|jetty|steppingStones|Path$|gardenBorder/i.test(b.k))return 0;if(d.kind!=='floor'&&d.kind!=='obj')return 0;if(d.kind==='floor'&&(b.lv|0)>0)return 0;
+    if(typeof RES==='undefined'||!RES.length)return 0;let n=0;const cs=cellsOf(d,b.x,b.z,b.r||0);for(const [i,j] of cs){const cx=(i+0.5)*CELL,cz=(j+0.5)*CELL;for(const ri of near(cx,cz,CELL)){const q=RES[ri];if(!q||q.st===2||q.lock)continue;const m=CELL/2+(RT[q.t]&&/tree|pine|oak|birch|bamboo|palm|banyan|savanna/i.test(q.t)?5:1);if(Math.abs(q.x-cx)<=m&&Math.abs(q.z-cz)<=m){sl2Clear(q);n++;}}}return n;}catch(e){return 0;}}
+{const _sa=structAdd;structAdd=function(b,quiet){const r=_sa.apply(this,arguments);try{if(sl2Sweep(b)&&!quiet)RI.forEach(v=>{try{v.api.flush();}catch(e){}});}catch(e){}return r;};}
+// vật nuôi: cho ăn / xem tình trạng thay cho "vuốt ve"
+function sl2PetTxt(p){const day=TNOW(),age=day-(p.born||0),hungry=day-(p.fed||0)>1,n=PETN[p.k]||'Vật nuôi',young=/^(chick|piglet|puppy|kid|duckling|bunny|calfB)$/.test(p.k);let s=`${n}: ${hungry?'đang ĐÓI (bỏ thức ăn vào máng hoặc cho ăn ở chuồng)':'no bụng'} · ${Math.max(0,Math.floor(age))} ngày tuổi.`;
+  if(young)s+=` Còn khoảng ${Math.max(1,Math.ceil(3-age))} ngày nữa thì lớn.`;else if(p.k==='pig'||(typeof CNU==='object'&&CNU.MEAT[p.k]))s+=age>4?' Đã đủ lớn: cầm dao lại gần để mổ thịt.':` Còn khoảng ${Math.max(1,Math.ceil(4-age))} ngày nữa mổ thịt được (cần dao).`;
+  if(p.k==='chicken'||p.k==='duck')s+=' Ở gần chuồng thì đẻ trứng, ra chuồng nhặt.';if(!young&&p.k!=='buffalo')s+=' Hai con cùng loài no bụng ở gần nhau sẽ sinh con.';return s;}
+{const _pi=petInfo;petInfo=function(p){const r=_pi.apply(this,arguments);try{if(r&&r.verb==='Vuốt ve'){const hungry=TNOW()-(p.fed||0)>1,f=hungry&&typeof cngFeedItem==='function'?cngFeedItem():null;if(f){r.verb='Cho ăn ('+ITEMS[f].n.toLowerCase()+')';r.icon=f;r.warn=null;r._feed=f;}else r.verb='Xem tình trạng';}}catch(e){}return r;};
+ const _pu=petUse;petUse=function(p){try{const inf=petInfo(p);if(inf&&inf._feed&&invTake(inf._feed,1)){p.fed=TNOW();sfx('eat');puff(p.x,8,p.z,'#ffd27a',4);uiToast(`🌾 ${PETN[p.k]||'Con vật'} ăn ngon lành.`,'good');try{uiHotbar();}catch(e){}save();return;}if(inf&&inf.verb==='Xem tình trạng'){uiToast('🐾 '+sl2PetTxt(p),'');sfx('pick');return;}}catch(e){}return _pu.apply(this,arguments);};}
+// người nấu ăn nấu đủ món có bản chín
+function sl2Cooked(id){if(id==='meat')return 'meatCooked';if(id==='fish')return 'fishCooked';const c=id+'Cooked';return ITEMS[c]?c:null;}
+{const _fh=folkHourly;folkHourly=function(gh){try{const ck=(S.folk||[]).filter(f=>f.job==='cook');if(ck.length){const home=folkHome(ck[0]),fire=S.builds.find(b=>b.k==='campfire'&&b.prog==null&&!b.remote&&fireLit(b)&&Math.hypot(b.x-home.x,b.z-home.z)<500);if(fire){const L=vthStores(home);let left=ck.length*3;VTH.dep=1;try{for(const st of L)for(let i=0;i<st.length&&left>0;i++){const s=st[i];if(!s||s.id==='meat'||s.id==='fish')continue;const c=sl2Cooked(s.id);if(!c||ITEMS[s.id].poison)continue;const k=Math.min(left,s.n);s.n-=k;if(s.n<=0)st[i]=null;const rest=slotsAdd(st,c,k);if(rest>0){/* kho đầy: trả lại */if(st[i])st[i].n+=rest;else st[i]={id:s.id,n:rest};}left-=k-(rest||0);}}finally{VTH.dep=0;}}}}catch(e){}return _fh.apply(this,arguments);};}
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.
@@ -21782,7 +21782,7 @@ setInterval(()=>{try{if(typeof G==='undefined'||!G.on)return;const tb=document.q
 const LTH2={t:0,pend:0,timer:null,GAP:45000,req:0,by:{},last:null};
 {const _real=save;
   window.saveNow=function(){LTH2.pend=0;if(LTH2.timer){clearTimeout(LTH2.timer);LTH2.timer=null;}LTH2.t=performance.now();const t0=LTH2.t;try{return _real.apply(this,arguments);}finally{try{LTH2.last={ms:Math.round(performance.now()-t0),at:Date.now()};LTH2.raw=null;}catch(e){}}};
-  save=function(){try{LTH2.req++;if(LTH2.req<=400){/* ghi lại ai gọi lưu nhiều nhất (xem ở Cài đặt → Đo giật) */const st=(new Error().stack||'').split('\n')[2]||'';const m=st.match(/at ([A-Za-z0-9_$.]+)/);const k=m?m[1]:'?';LTH2.by[k]=(LTH2.by[k]||0)+1;}}catch(e){}
+  save=function(){try{LTH2.req++;}catch(e){}
     const now=performance.now();if(typeof G==='undefined'||!G.on)return saveNow();/* (đã bỏ quy tắc "đang mở Cài đặt thì ghi ngay": người làng gọi lưu liên tục nên mở Cài đặt là ghi dồn dập, mỗi lần đứng hình cả giây trên máy ghi chậm) */if(now-LTH2.t>=LTH2.GAP){LTH2.pend=1;if(!LTH2.timer)LTH2.timer=setTimeout(lth2Fire,0);return;}
     LTH2.pend=1;if(!LTH2.timer)LTH2.timer=setTimeout(lth2Fire,Math.max(200,LTH2.GAP-(now-LTH2.t)));};}
 /* tới hạn ghi: nếu nhân vật đang chạy/đi thì chờ lúc đứng yên, đang làm việc hoặc mở bảng (khựng lúc đó khó thấy hơn nhiều), tối đa chờ thêm 40 giây */
