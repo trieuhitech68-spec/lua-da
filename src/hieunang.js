@@ -40,3 +40,7 @@ document.addEventListener('click',e=>{try{const b=e.target&&e.target.closest&&e.
       let user=0;try{user=localStorage.getItem('ld-cap-user')==='1';}catch(e){}if(user||(G.pfWarm||0)<8){n=0;return r;}
       if((G.prK||1)<=0.71&&(G.ft||0)>0.0215){if(++n>=8){n=0;SET.fpsCap=30;try{setSave();}catch(e){}uiToast('🌡️ Máy đang phải gắng sức: game chuyển sang chạy đều 30 khung/giây cho mát máy, đỡ giật. Đổi lại ở Cài đặt → Đồ họa → Giới hạn khung hình.','');try{if(G.panel==='settings')uiOpenRefresh();}catch(e){}}}else n=0;}catch(e){}return r;};}
 document.addEventListener('click',e=>{try{const b=e.target&&e.target.closest&&e.target.closest('[data-spc="fpsCap"]');if(b)localStorage.setItem('ld-cap-user','1');}catch(er){}},true);
+/* ---------- BÓNG NẮNG VẼ CÁCH KHUNG ----------
+   Đo thấy lượt vẽ bóng nắng chiếm gần 40% số tam giác mỗi khung (vẽ lại toàn bộ cây, nhà từ hướng mặt trời). Bóng đổi rất chậm nên chỉ cần vẽ lại bản đồ bóng
+   mỗi 2 khung hình; khung ở giữa dùng lại bản cũ (bóng người đi trễ một khung, mắt thường không nhận ra). */
+{const _pt=perfTick;perfTick=function(){try{const sm=G.R&&G.R.shadowMap;if(sm){if(sm.autoUpdate){sm.autoUpdate=false;sm.needsUpdate=true;}HNG.sf=(HNG.sf|0)+1;if(HNG.sf%2===0)sm.needsUpdate=true;}}catch(e){}return _pt.apply(this,arguments);};}
