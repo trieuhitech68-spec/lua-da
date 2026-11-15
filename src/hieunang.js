@@ -44,3 +44,8 @@ document.addEventListener('click',e=>{try{const b=e.target&&e.target.closest&&e.
    Đo thấy lượt vẽ bóng nắng chiếm gần 40% số tam giác mỗi khung (vẽ lại toàn bộ cây, nhà từ hướng mặt trời). Bóng đổi rất chậm nên chỉ cần vẽ lại bản đồ bóng
    mỗi 2 khung hình; khung ở giữa dùng lại bản cũ (bóng người đi trễ một khung, mắt thường không nhận ra). */
 {const _pt=perfTick;perfTick=function(){try{const sm=G.R&&G.R.shadowMap;if(sm){if(sm.autoUpdate){sm.autoUpdate=false;sm.needsUpdate=true;}HNG.sf=(HNG.sf|0)+1;if(HNG.sf%2===0)sm.needsUpdate=true;}}catch(e){}return _pt.apply(this,arguments);};}
+
+/* ---------- KHỬ RĂNG CƯA THEO MỨC ĐỒ HOẠ ----------
+   Bộ đệm hậu kỳ trước luôn khử răng cưa 4 mẫu trên máy tính (mỗi điểm ảnh lưu 4 lần, màu 16 bit): rất tốn băng thông card hình, nhất là card tích hợp.
+   Giờ chỉ mức "Đẹp" dùng 4 mẫu; "Vừa" dùng 2 mẫu (mắt thường khó thấy khác). Kiểm tra 2 giây một lần vì bộ đệm chỉ được tạo ở khung vẽ đầu tiên. */
+setInterval(()=>{try{if(typeof G==='undefined'||!G.on||!G.R||!K3.fx||!K3.fx.posts)return;const Pp=K3.fx.posts.get(G.R);if(!Pp||!Pp.main)return;const want=(G.q|0)>=2&&G.R.getPixelRatio()<1.5?4:2;if(Pp.main.samples!==want){Pp.main.samples=want;Pp.main.dispose();}}catch(e){}},2000);

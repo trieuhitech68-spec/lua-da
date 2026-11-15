@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261115054241">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261115134108">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -2113,7 +2113,9 @@ function unlockCheck(){if(!S)return;const fresh=[];RECIPES.forEach(r=>{if(!S.kno
 /* ---------- cảnh 3D ---------- */
 const P={x:0,z:0,y:0,vy:0,air:false,ry:0,speed:0,model:null,rig:null,tool:null,toolId:null,anim:'idle',hurtT:0};
 function sceneInit(){const T=THREE,cv=document.createElement('canvas');cv.id='gl';$('#game').prepend(cv);const mob=Math.min(innerWidth,innerHeight)<600;
-  startQ();const R=new T.WebGLRenderer({canvas:cv,antialias:(devicePixelRatio||1)<1.5&&G.q>0,powerPreference:'high-performance'});R.outputEncoding=T.sRGBEncoding;R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;G.R=R;
+  startQ();/* Khử răng cưa của khung vẽ chính: khi có lớp hậu kỳ (hầu hết máy) cảnh được vẽ vào bộ đệm riêng đã tự khử răng cưa, nên khử thêm ở khung chính là làm hai lần, tốn sức card hình mà hình không đổi. Chỉ bật khi máy không có hậu kỳ hoặc người chơi tắt hậu kỳ. */
+  let postOk=false;try{const c2=document.createElement('canvas'),g2=c2.getContext('webgl2');postOk=!!(g2&&g2.getExtension('EXT_color_buffer_float'));const lc=g2&&g2.getExtension('WEBGL_lose_context');if(lc)lc.loseContext();}catch(e){}let postOff=false;try{postOff=typeof SET!=='undefined'&&SET.post==='off';}catch(e){}
+  const R=new T.WebGLRenderer({canvas:cv,antialias:(devicePixelRatio||1)<1.5&&G.q>0&&(!postOk||postOff),powerPreference:'high-performance'});R.outputEncoding=T.sRGBEncoding;R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;G.R=R;
   cv.addEventListener('webglcontextlost',e=>{e.preventDefault();G.lost=true;try{localStorage.setItem('ldtt-lost',String((+localStorage.getItem('ldtt-lost')||0)+1));}catch(_){}save();uiError('Thiết bị tạm dừng đồ họa. Tải lại trang để chơi tiếp (đã lưu).');},false);
   const sc=new T.Scene();G.sc=sc;G.L=K3.lights(sc,0,R,{size:mob?380:520,fogNear:1500,fogFar:4400,shadowMap:mob?1536:2048,sky:true});G.sky=sc.children.find(o=>o.userData&&o.userData.sky);
   const sh=G.L.sun.shadow.camera;sh.near=10;sh.far=2600;G.moon=new T.DirectionalLight(0x8aa6ff,0);sc.add(G.moon);sc.add(G.moon.target);
@@ -20914,6 +20916,11 @@ document.addEventListener('click',e=>{try{const b=e.target&&e.target.closest&&e.
    Đo thấy lượt vẽ bóng nắng chiếm gần 40% số tam giác mỗi khung (vẽ lại toàn bộ cây, nhà từ hướng mặt trời). Bóng đổi rất chậm nên chỉ cần vẽ lại bản đồ bóng
    mỗi 2 khung hình; khung ở giữa dùng lại bản cũ (bóng người đi trễ một khung, mắt thường không nhận ra). */
 {const _pt=perfTick;perfTick=function(){try{const sm=G.R&&G.R.shadowMap;if(sm){if(sm.autoUpdate){sm.autoUpdate=false;sm.needsUpdate=true;}HNG.sf=(HNG.sf|0)+1;if(HNG.sf%2===0)sm.needsUpdate=true;}}catch(e){}return _pt.apply(this,arguments);};}
+
+/* ---------- KHỬ RĂNG CƯA THEO MỨC ĐỒ HOẠ ----------
+   Bộ đệm hậu kỳ trước luôn khử răng cưa 4 mẫu trên máy tính (mỗi điểm ảnh lưu 4 lần, màu 16 bit): rất tốn băng thông card hình, nhất là card tích hợp.
+   Giờ chỉ mức "Đẹp" dùng 4 mẫu; "Vừa" dùng 2 mẫu (mắt thường khó thấy khác). Kiểm tra 2 giây một lần vì bộ đệm chỉ được tạo ở khung vẽ đầu tiên. */
+setInterval(()=>{try{if(typeof G==='undefined'||!G.on||!G.R||!K3.fx||!K3.fx.posts)return;const Pp=K3.fx.posts.get(G.R);if(!Pp||!Pp.main)return;const want=(G.q|0)>=2&&G.R.getPixelRatio()<1.5?4:2;if(Pp.main.samples!==want){Pp.main.samples=want;Pp.main.dispose();}}catch(e){}},2000);
 /* ===================== HÌNH VẬT PHẨM ĐÚNG VỚI MÓN ĐỒ =====================
    Trước: món nào chưa có mô hình riêng thì hiện biểu tượng cảm xúc thay thế (liềm là mặt trăng, giáo là đinh ba, mũ đồng là mũ cứu hộ, giáp da là áo phản quang…).
    Giờ: · Vũ khí, dụng cụ: chụp đúng mô hình mà nhân vật cầm trên tay.
