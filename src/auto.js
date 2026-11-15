@@ -31,6 +31,8 @@ function aqCost(x,z,ctx){if(!wIn(x,z,1.02))return Infinity;const wd=wdAt(x,z);le
     for(const b of ctx.bad){const dx=x-b.x,dz=z-b.z;if(dx*dx+dz*dz<34*34)c+=16;}}
   const oc=typeof cellAt==='function'?cellAt(x,z):null;if(oc&&oc.obj){const b=BYID.get(oc.obj),d=b&&pieceDef(b.k);if(d&&!d.bed&&!d.farm&&!d.shelter)c+=3;}
   return c;}
+/* chỗ có thú dữ đứng gần (trong 520) hoặc nằm trong vùng đã đánh dấu "thú dữ giữ vùng": tự làm không săn, không xẻ thịt ở đó (trước: săn thỏ ngay trong vùng hổ chúa rồi bị vồ chết lúc đang xẻ thịt) */
+function aqDangerAt(x,z){try{if(!AQ._dg||G.t-AQ._dgT>1||G.t<AQ._dgT){AQ._dg=aqPred();AQ._dgT=G.t;}for(const p of AQ._dg)if(Math.hypot(p.x-x,p.z-z)<520)return true;for(const b of AQ.bad||[])if(b.t>G.t&&Math.hypot(b.x-x,b.z-z)<420)return true;}catch(e){}return false;}
 function aqPred(){const out=[];for(const a of G.animals||[]){if(!a.alive||a.tame)continue;const D=ANIMALS[a.kind]||{};if(a.angry||(D.aggro&&D.aggro!=='never'&&D.aggro!=='defend'&&(D.dmg||0)>=9))out.push({x:a.x,z:a.z,a});}
   if(G.foes)for(const f of G.foes)if(f.alive)out.push({x:f.x,z:f.z,a:f});return out;}
 function aqCtx(x0,z0,x1,z1,swim){const col=[];for(const s of (typeof SCOL!=='undefined'?SCOL:[])){if(s.x+s.r<x0||s.x-s.r>x1||s.z+s.r<z0||s.z-s.r>z1)continue;col.push(s);}
@@ -218,7 +220,7 @@ const AUJ={
     j.lab='Đổi đồ với '+n.def.n;if(bd>REACH+6)return aqGoto(j,n.x,n.z,REACH,j.lab,{far:1});G.npcCur=n;const c0=gC('cnt:trade');npcAction('trade',i);if(gC('cnt:trade')>c0){uiToast('🤝 Đổi xong với '+n.def.n+'.','good');j.st='done';return AQ_RUN;}return aqFail('Không đổi được.');},
   hunt(j){if(j.cf){const m=j.cf;j.cf=null;if(j.a)j.skip.add(j.a);j.a=null;if(++j.miss>4)return aqFail(m);}if(j.until())return AQ_DONE;j.skip=j.skip||new Set();
     if(j.st==='wait'){if(aqBusy()&&G.t-j.t0<20)return AQ_RUN;j.st=null;}
-    const ok=a=>a.alive&&!a.tame&&!j.skip.has(a)&&ANIMALS[a.kind]&&(ANIMALS[a.kind].aggro==='never'||a._h3down)&&!(S.pets||[]).includes(a);
+    const ok=a=>a.alive&&!a.tame&&!j.skip.has(a)&&ANIMALS[a.kind]&&(ANIMALS[a.kind].aggro==='never'||a._h3down)&&!(S.pets||[]).includes(a)&&!aqDangerAt(a.x,a.z);
     if(!j.a||!ok(j.a)){let best=null,bd=aqCfg().max;for(const a of G.animals||[]){if(!ok(a))continue;const d=aqD(a.x,a.z);if(d<bd){bd=d;best=a;}}if(!best){if(++j.miss>4)return aqFail('Không thấy con mồi hiền nào gần đây.');return {wait:'Tìm con mồi…'};}j.a=best;j.at=G.t;}
     const a=j.a,d=aqD(a.x,a.z)-a.r;j.lab='Săn '+a.n.toLowerCase();if(G.t-j.at>70){j.skip.add(a);j.a=null;if(++j.miss>4)return aqFail('Thú chạy mất cả. Săn bắn cần khéo tay: thử tự ngắm ném giáo nhé.');return AQ_RUN;}
     if(j.throw&&hasTool('spear')&&d<110&&d>30&&!a._h3down){aqSel('spear');aqFace(a.x,a.z);if(!G.h3aim){if(typeof h3aimStart==='function'&&h3aimStart()){j.aimT=G.t;}}else if(G.t-(j.aimT||0)>0.55){G.h3aim.yaw=Math.atan2(a.x-P.x,a.z-P.z);h3release();j.st='wait';j.t0=G.t;}return AQ_RUN;}
@@ -227,7 +229,7 @@ const AUJ={
     return aqGoto(j,a.x,a.z,200,j.lab);},
   butcher(j){if(j.cf)return aqFail(j.cf);if(j.st==='wait'){if(G.work)return AQ_RUN;j.st=null;if(gC('cnt:butcher')+gC('cnt:scavenge')>j.c0)return AQ_DONE;}
     if(G.h3carry){const f=aqFire();if(!f)return aqFail('Đang vác xác thú: cần bếp lửa hoặc dao để xẻ.');if(aqD(f.x,f.z)>120)return aqGoto(j,f.x,f.z,90,'Vác về bếp');j.c0=gC('cnt:butcher')+gC('cnt:scavenge');actStart(findTarget());j.st='wait';return AQ_RUN;}
-    let best=null,bd=aqCfg().max;for(const a of G.animals||[]){if(a.alive||!a._carc)continue;const d=aqD(a.x,a.z);if(d<bd){bd=d;best=a;}}
+    let best=null,bd=aqCfg().max;for(const a of G.animals||[]){if(a.alive||!a._carc||aqDangerAt(a.x,a.z))continue;const d=aqD(a.x,a.z);if(d<bd){bd=d;best=a;}}
     if(!best){if(j.hunted)return aqFail('Không có xác thú để xẻ.');j.hunted=1;aqPush({k:'hunt',until:()=>(G.animals||[]).some(a=>!a.alive&&a._carc&&aqD(a.x,a.z)<600)},j);return AQ_RUN;}
     j.lab='Xẻ thịt '+best.n.toLowerCase();if(aqD(best.x,best.z)-best.r>REACH*0.7)return aqGoto(j,best.x,best.z,best.r+REACH*0.6,j.lab);
     j.c0=gC('cnt:butcher')+gC('cnt:scavenge');aqFace(best.x,best.z);actStart({type:'carcass',a:best,d:4});j.st='wait';return AQ_RUN;},
