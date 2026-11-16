@@ -108,4 +108,6 @@ echo "38. Nhân vật → 🐾 Thú của bạn: ba thẻ Chiến thú / Thú c�
 OUT=$(timeout 400 node thu-cua-ban.js 2>&1); echo "$OUT" | grep -q "^TCB-DAT" && ok "thú của bạn" || bad "thú của bạn: $(echo "$OUT" | grep "^{\|TCB" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo "39. Tự dựng chọn đất có tính toán (không sát vách, cửa quay vào làng, chuồng trại xa hơn nhà ở) + gợi ý nên xây, nên chế gì tiếp"
 OUT=$(timeout 400 node chon-dat.js 2>&1); echo "$OUT" | grep -q "^CD-DAT" && ok "chọn đất, gợi ý" || bad "chọn đất, gợi ý: $(echo "$OUT" | grep "^{\|CD-" | tail -2 | tr '\n' ';' | cut -c1-900)"
+echo "40. Ảnh biểu tượng dựng một lần, nhớ sang lần chơi sau (không dựng lại, hết khựng khi gặp món mới)"
+OUT=$(timeout 500 node nho-hinh.js 2>&1); echo "$OUT" | grep -q "^NH-DAT" && ok "nhớ ảnh biểu tượng" || bad "nhớ ảnh biểu tượng: $(echo "$OUT" | grep "^\[\|NH-" | tail -2 | tr '\n' ';' | cut -c1-600)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
