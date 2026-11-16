@@ -57,3 +57,10 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 document.addEventListener('input',e=>{try{if(e.target&&e.target.id==='b4q')setTimeout(sxBuild,0);}catch(er){}},true);
 {const st=document.createElement('style');st.textContent=`#game .panel .sx-nav{margin:6px 0}#game .panel .sx-nav .tb{font-weight:800}#game .panel .sx-nav .tb small{opacity:.7;margin-left:4px;font-size:10.5px}
 #game .panel .sx-h{grid-column:1/-1;margin:8px 0 0;padding:4px 2px 2px;border-bottom:1px solid rgba(242,197,90,.3);font-size:13.5px;color:#ffe2a8}#game .panel .sx-h small{font-weight:700;color:#b8e07a;margin-left:6px;font-size:11.5px}`;document.head.appendChild(st);}
+/* ---------- KHÔNG ĐỂ THANH NÚT TRÊN CÙNG ĐÈ LÊN LA BÀN, THÔNG BÁO, SỐ KHUNG HÌNH ----------
+   Trên máy tính thanh nút (Túi, Chế tạo, Xây… ) ngày càng dài, nằm đè lên la bàn, và các dòng thông báo hiện chồng lên mép dưới của nó.
+   Giờ hễ thanh nút nằm trên cùng và trùng bề ngang với các khối đó thì đẩy chúng xuống ngay dưới thanh nút. Trên điện thoại (thanh nút ở đáy) giữ nguyên. */
+function sxHud(){try{if(typeof G==='undefined'||!G.on)return;const m=document.getElementById('menu');if(!m)return;const r=m.getBoundingClientRect(),bar=r.top<40&&r.width>360&&r.height<100&&r.width>0;
+    const fix=(e,gap)=>{if(!e)return;if(!bar){if(e._sxT){e._sxT=0;e.style.top='';}return;}if(!e._sxT){const q=e.getBoundingClientRect();if(!(q.width>0&&q.left<r.right&&q.right>r.left&&q.top<r.bottom))return;}const v=Math.round(r.bottom+gap)+'px';if(e.style.top!==v){e.style.top=v;e._sxT=1;}};
+    fix(document.getElementById('compass'),6);fix(document.getElementById('toasts'),34);fix(document.querySelector('[id^="spfp"]'),6);fix(document.getElementById('regban'),38);}catch(e){}}
+setInterval(sxHud,1200);
