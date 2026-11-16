@@ -24,7 +24,7 @@ function aqSay(m,k){if(G.t-(AQ['_s'+m]||-99)<6)return;AQ['_s'+m]=G.t;uiToast(m,k
 // giá đi qua một điểm (nhân với quãng đường). Vô cực = không đi được.
 function aqCost(x,z,ctx){if(!wIn(x,z,1.02))return Infinity;const wd=wdAt(x,z);let c=1;
   if(wd>9){if(!ctx||!ctx.swim)return Infinity;c=14;}else if(wd>3)c=6;else if(wd>0.6)c=2.2;
-  const sl=slopeAt(x,z);if(sl>1.2)return Infinity;if(sl>0.65)c+=(sl-0.65)*8;
+  const sl=slopeAt(x,z);if(sl>1.2){/* lối dự phòng: đang đứng kẹt giữa một túi đất dốc (mọi ô quanh đều bị coi là vách) thì cho phép vạch đường qua chỗ dốc trong vòng 240 quanh chỗ đứng để thoát ra (chạy thử: kẹt ở đó 989 lần "không tìm được đường" tới đói khát cạn) */if(!(AQ.lax&&AQ.laxAt&&Math.hypot(x-AQ.laxAt.x,z-AQ.laxAt.z)<240))return Infinity;c+=12;}else if(sl>0.65)c+=(sl-0.65)*8;
   if(trailAt(x,z)>0.4)c*=0.72;
   if(ctx){for(const s of ctx.col){const dx=x-s.x,dz=z-s.z;if(dx*dx+dz*dz<(s.r+8)*(s.r+8))return Infinity;}
     for(const p of ctx.pred){const dx=x-p.x,dz=z-p.z;if(dx*dx+dz*dz<170*170)c+=9;}
@@ -62,7 +62,7 @@ function aqPlanStep(pl,budget){if(pl.ok||pl.fail)return;const {W,H,C,x0,z0,gx,gz
     if(Math.hypot(gx-x,gz-z)<=lim&&!aqSegCut(pl.ctx,x,z,gx,gz)){pl.ok=true;const pts=[];let k=i;while(k>=0){pts.push([x0+(k%W)*C,z0+((k/W)|0)*C]);k=pl.par[k];}pts.reverse();pts[0]=[pl.sx,pl.sz];pl.pts=pts;return;}
     for(const [di,dj] of AQ_NB){const ni=ci+di,nj=cj+dj;if(ni<0||nj<0||ni>=W||nj>=H)continue;const n=nj*W+ni;if(pl.cl[n])continue;const nx=x0+ni*C,nz=z0+nj*C;
       let c=pl.cost[n];if(c<0){c=aqCost(nx,nz,pl.ctx);pl.cost[n]=c;pl.hh[n]=hAt(nx,nz);}if(!isFinite(c))continue;
-      const L=(di&&dj)?C*1.4142:C;if(Math.abs(pl.hh[n]-pl.hh[i])/L>0.95&&pl.exp>10)continue;// vách dốc / mép vực
+      const L=(di&&dj)?C*1.4142:C;if(Math.abs(pl.hh[n]-pl.hh[i])/L>0.95&&pl.exp>(AQ.lax?700:10))continue;// vách dốc / mép vực
       if(pl.ctx.bk.size&&aqWall(pl.ctx,i===pl.s?pl.sx:x,i===pl.s?pl.sz:z,nx,nz))continue;// tường, lều chắn giữa hai ô (ô xuất phát: xét từ ĐÚNG chỗ đang đứng, vì điểm mốc gần nhất có thể rơi lên chính bức rào đang chắn)
       const g=pl.g[i]+L*(pl.cost[i]+c)*0.5;if(g<pl.g[n]){pl.g[n]=g;pl.par[n]=i;aqHPush(pl,n,g+Math.hypot(gx-nx,gz-nz)*0.75);}}}}
 // đoạn thẳng có đi được không (không qua nước sâu, vách dốc, vật cản)
@@ -168,7 +168,7 @@ const AUJ={
   goto(j){const d=aqD(j.x,j.z);if(d<=j.r){AQ.path=null;return AQ_DONE;}
     if(!j.far&&d>aqCfg().max*2.4)return aqFail('Xa quá (vượt tầm xa đã đặt).');
     if(M3&&(M3.st==='climb'||M3.st==='hang')){/* tự làm mà lỡ bám vào vách/mép đá: tự buông hoặc đu lên rồi đi tiếp, không bỏ nhiệm vụ */AQ.bad.push({x:P.x,z:P.z,t:G.t+90});try{if(P.y-hAt(P.x,P.z)>=80&&M3.st==='hang'&&typeof m3hangUp==='function')m3hangUp();if((M3.st==='climb'||M3.st==='hang')&&typeof m3drop==='function')m3drop();}catch(e){}if(M3.st==='climb'||M3.st==='hang')return aqFail('Đang bám vách: bạn tự leo xuống nhé.');}
-    if(!j.pts){if(!j.pl){j.pl=aqPlanStart(P.x,P.z,j.x,j.z,j.r,j.swim);}AQ.lax=j._lax?1:0;try{aqPlanStep(j.pl,650);}finally{AQ.lax=0;}
+    if(!j.pts){if(!j.pl){j.pl=aqPlanStart(P.x,P.z,j.x,j.z,j.r,j.swim);}AQ.lax=j._lax?1:0;if(AQ.lax&&!j._laxAt)j._laxAt={x:P.x,z:P.z};AQ.laxAt=j._laxAt||null;try{aqPlanStep(j.pl,650);}finally{AQ.lax=0;}
       if(j.pl.fail){j.pl=null;if(!j.swim){j.swim=1;return AQ_RUN;}/* lối dự phòng: thử lại, bỏ quy tắc cấm điểm mốc trùng rào (thà đi sát rào còn hơn đứng chết một chỗ) *//* rào của mình quây kín không có cổng: mở một cổng trên đường đi rồi tìm đường lại (làm TRƯỚC lối dự phòng, kẻo lối dự phòng vạch đường sát rào rồi nhân vật đâm vào rào) */try{if(typeof rcOpenGate==='function'&&(j._og|0)<2&&rcOpenGate(j)){j._og=(j._og|0)+1;j.swim=0;return AQ_RUN;}}catch(e){}if(!j._lax){j._lax=1;j.swim=0;try{aqPfLog(j);}catch(e){}return AQ_RUN;}try{aqPfLog(j);}catch(e){}return aqFail('Không tìm được đường tới đó (nước sâu, vách đá).');}
       if(!j.pl.ok)return AQ_RUN;j.pts=aqSmooth(j.pl.pts,j.pl.ctx);j.ctx=j.pl.ctx;j.pl=null;j.wi=1;j.lp=[P.x,P.z];j.lt=G.t;j.best=d;AQ.path=j.pts.concat([[j.x,j.z]]);}
     // bám theo đường
