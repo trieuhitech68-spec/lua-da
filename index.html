@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261116061100">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261116061331">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -21943,6 +21943,11 @@ document.addEventListener('toggle',e=>{const t=e.target;if(!t||!t.classList)retu
 .qh-deco{margin:0 10px 10px;border-radius:12px;border:1px dashed rgba(255,255,255,.22);padding:8px 10px}.qh-deco summary{cursor:pointer;list-style:none}.qh-deco summary::-webkit-details-marker{display:none}.qh-deco summary b{font-size:13.5px;color:#e8d8b8}.qh-deco summary b:after{content:' ▸'}.qh-deco[open] summary b:after{content:' ▾'}.qh-deco .qh-list{padding:8px 0 0}`;document.head.appendChild(st);}
 if(typeof HD_L!=='undefined')HD_L.push({id:'quansu',ic:'🗡️',t:'Nhà quân sự',w:()=>{try{return G.panel==='build'&&typeof qdSol==='function'&&qdSol().length>0;}catch(e){return false;}},
   p:['Trong <b>Xây</b>, khung <b>Nhà có công năng</b> → mục <b>Quân sự</b> có đủ nhà cho đạo quân: <b>Trại lính</b>, <b>Kho vũ khí</b>, <b>Trường bắn</b>, <b>Chuồng ngựa chiến</b>, <b>Nhà chỉ huy</b>, <b>Vọng gác</b>.','Mỗi nhà dựng xong là có tác dụng ngay (ghi bằng chữ xanh trên thẻ): lính đánh mạnh hơn, cung thủ bắn mạnh hơn, kỵ binh và tượng binh mạnh hơn…','Các kiểu nhà chỉ để ở, trang trí nằm gọn trong mục <b>Kiểu nhà khác</b> ở cuối khung.']});
+/* ---------- TRẬN LỚN: đạo quân càng đông, kẻ cướp kéo tới càng đông ----------
+   Trước: mỗi lần cướp phá chỉ 2-4 tên dù bạn đã có cả chục lính, đánh không ra trận.
+   Giờ: bạn có từ 6 lính trở lên thì mỗi đợt cướp thêm 1 tên cho mỗi 2 lính (tối đa thêm 10), báo trước số quân địch. Chế độ thư thả (cozy) không tăng. */
+if(typeof raidTick==='function'){const _rt=raidTick;raidTick=function(){const n0=G.foes?G.foes.length:0;const r=_rt.apply(this,arguments);try{if(G.foes&&G.foes.length>n0&&S.mode!=='cozy'&&G.camp){const nw=G.foes.slice(n0).filter(f=>f.mode==='raid').length,sol=typeof qdSol==='function'?qdSol().length:0;
+        if(nw>0&&sol>=6){const ex=Math.min(10,Math.floor(sol/2));for(let i=0;i<ex;i++)foeSpawn(G.camp.x+(Math.random()-0.5)*90,G.camp.z+(Math.random()-0.5)*90,'raid');uiToast(`⚔️ Nghe tin bạn có đạo quân, Bộ lạc Núi Đá kéo tới ${nw+ex} tên! Dàn đội hình, cho cung thủ lên chòi, giữ cổng!`,'bad');}}}catch(e){}return r;};}
 /* ===================== BẢNG CHẾ TẠO XẾP LẠI CHO GỌN =====================
    Trước: mở Chế tạo là một danh sách phẳng cả trăm công thức (trên điện thoại dài hơn 20 màn hình), hai hàng nút lọc chiếm 5-6 dòng.
    Giờ, khi chưa lọc gì (nhóm "Tất cả", nơi làm "Tất cả", ô tìm trống):
