@@ -5,12 +5,12 @@
         · Phần dưới là DANH SÁCH gom theo việc: người cùng việc nằm chung một nhóm, mỗi người một thẻ nhỏ (tên, cấp, tù binh, đang đói). Bấm thẻ để xem riêng và giao việc cho đúng người đó. */
 const DL_J=[['gather','🧺','Hái lượm','quả, sợi cỏ, nấm, cành khô','Kiếm vật liệu'],['wood','🪓','Đốn gỗ','chặt cây mang gỗ về kho','Kiếm vật liệu'],['stone','⛏️','Đào đá','đá, sỏi, đá lửa','Kiếm vật liệu'],
  ['farm','🌱','Làm ruộng','gieo hạt, gặt luống chín','Lương thực'],['herd','🐔','Chăn nuôi','cho ăn, nhặt trứng, vớt cá ao','Lương thực'],['hunt','🏹','Đi săn','thỏ, gà rừng, nai, dê núi','Lương thực'],['fish','🎣','Đánh cá','câu ở bờ nước gần nhà','Lương thực'],['cook','🍲','Nấu ăn','nướng thịt, cá trong kho','Lương thực'],
- ['build','🔨','Thợ xây','làm nốt công trường dở','Xây dựng'],
+ ['build','🔨','Thợ xây','xây dở, sửa chữa, bảo dưỡng','Xây dựng'],
  ['guard','🛡️','Canh gác','chòi, cổng, quanh nhà','Bảo vệ'],['gate','🚪','Giữ cổng','đứng hai bên cổng','Bảo vệ'],['soldier','⚔️','Lính theo bạn','đi cùng, đánh giúp','Bảo vệ'],
  ['idle','💤','Nghỉ ngơi','người rảnh, chờ giao việc','']];
 const dlName=j=>{const r=DL_J.find(x=>x[0]===j);return r?r[1]+' '+r[2]:(JOBN[j]||j);};
 function dlWarn(j){try{const B=S.builds,has=f=>B.some(b=>b.prog==null&&!b.remote&&f(b));
-    if(j==='farm'&&!has(b=>pieceDef(b.k)&&pieceDef(b.k).farm))return 'Chưa có luống đất';if(j==='herd'&&!(S.pets||[]).length)return 'Chưa có vật nuôi';if(j==='build'&&!B.some(b=>b.prog!=null&&!b.remote))return 'Không có công trường dở';
+    if(j==='farm'&&!has(b=>pieceDef(b.k)&&pieceDef(b.k).farm))return 'Chưa có luống đất';if(j==='herd'&&!(S.pets||[]).length)return 'Chưa có vật nuôi';if(j==='build'&&!B.some(b=>!b.remote&&(b.prog!=null||(b.cond!=null&&b.cond<85))))return 'Hiện chưa có gì cần xây hay sửa';
     if(j==='gate'&&!has(b=>/gate/i.test(b.k)))return 'Chưa có cổng: sẽ gác quanh nhà';if(j==='cook'&&!has(b=>b.k==='campfire'))return 'Chưa có bếp lửa';
     if(j!=='idle'&&j!=='guard'&&j!=='gate'&&j!=='soldier'&&!has(b=>pieceDef(b.k)&&pieceDef(b.k).store&&b.k!=='trough'))return 'Chưa có giỏ, rương để cất đồ';}catch(e){}return '';}
 function dlMove(j,d){const L=S.folk||[];if(d>0){const pool=L.filter(f=>(f.job||'idle')==='idle');if(!pool.length){uiToast('Không còn ai rảnh. Bấm − ở việc khác để rút người ra trước.','bad');sfx('no');return;}

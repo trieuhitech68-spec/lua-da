@@ -18,6 +18,9 @@ const r=await p.evaluate(()=>{const o={};let n=9800;const mk=(k,dx,dz,prog)=>{co
   // 3) thợ xây: một công trường thường và một công trường nhiều công đoạn (vật liệu trong giỏ)
   const s1=mk('fence',100,40,0);const stId=Object.keys(STG).find(k=>pieceDef(k)&&pieceDef(k).kind==='obj'&&STG[k].length>=2);const s2=mk(stId,-90,60,0);s2.paid=0;const need={};for(const sg of STG[stId])for(const k in sg.c)need[k]=(need[k]||0)+sg.c[k];let si=0;for(const k in need)S.store[bk.id][si++]={id:k,n:need[k]};
   S.folk=[F('build',2)];run(240);o.built=[s1.prog==null,s2.prog==null];o.stg=stId;o.matLeft=S.store[bk.id].filter(Boolean).reduce((x,s)=>x+s.n,0);
+  // 3b) thợ xây bảo dưỡng: mái lá bền 40% + vật liệu trong giỏ → sửa về 100%; thiếu vật liệu thì báo
+  const rf=mk('roof',140,-80);rf.cond=40;S.store[bk.id].fill(null);S.folk=[F('build',12)];let msgR='';const _tR=uiToast;uiToast=function(m){msgR+=String(m)+'|';return _tR.apply(this,arguments);};run(60);o.repNoMat=rf.cond===40&&/kho làng thiếu/.test(msgR);uiToast=_tR;
+  const WR=B3W.roof.rep;let ri=0;for(const k in WR)S.store[bk.id][ri++]={id:k,n:WR[k]};S.folk=[F('build',13)];run(120);o.repaired=rf.cond===100;o.repLeft=S.store[bk.id].filter(Boolean).length;
   // 4) chăn nuôi: cho ăn + nhặt trứng
   S.store[bk.id].fill(null);S.store[bk.id][0]={id:'berry',n:6};const coop=mk('coop',-60,-60);S.tank[coop.id]=3;S.pets=[{id:1,k:'chicken',x:coop.x+10,z:coop.z,born:TNOW()-9,fed:TNOW()-0.8},{id:2,k:'chicken',x:coop.x-10,z:coop.z,born:TNOW()-9,fed:TNOW()-0.8}];
   S.folk=[F('herd',3)];run(150);o.fed=S.pets.every(q=>TNOW()-q.fed<0.5);o.eggs=vthHave([S.store[bk.id]],'egg');o.tank=Math.floor(S.tank[coop.id]||0);
@@ -34,5 +37,5 @@ const r=await p.evaluate(()=>{const o={};let n=9800;const mk=(k,dx,dz,prog)=>{co
   S.hour=23;S.folk=[F('build',6),F('hunt',7)];S.folk.forEach(f=>{f.x+=200;});run(30);o.sleep=S.folk.every(f=>f._st==='sleep');S.hour=10;
   o.jobs=['build','herd','hunt','fish'].every(j=>JOBN[j]);o.nvn=nvnS().q.length;return o;});
 console.log(JSON.stringify(r));
-const ok=r.afterTwo.tame>0.5&&r.afterTwo.hp&&r.afterTwo.food===0&&/Cần|Cho ăn/.test(r.verb)&&r.noFood.hp&&r.noFood.act&&r.pet&&r.gateFar.every(d=>d>60)&&r.gateApart>40&&r.built[0]&&r.built[1]&&r.matLeft===0&&r.fed&&r.eggs===3&&r.tank===0&&r.meat>=1&&(!r.bank||r.fish>=3)&&r.padSow===1&&r.padPlant===3&&r.padReap>=4&&r.log&&r.fuel&&r.logHtml&&r.sleep&&r.jobs&&r.nvn===5&&!logs.length;
+const ok=r.afterTwo.tame>0.5&&r.afterTwo.hp&&r.afterTwo.food===0&&/Cần|Cho ăn/.test(r.verb)&&r.noFood.hp&&r.noFood.act&&r.pet&&r.gateFar.every(d=>d>60)&&r.gateApart>40&&r.built[0]&&r.built[1]&&r.matLeft===0&&r.repNoMat&&r.repaired&&r.repLeft===0&&r.fed&&r.eggs===3&&r.tank===0&&r.meat>=1&&(!r.bank||r.fish>=3)&&r.padSow===1&&r.padPlant===3&&r.padReap>=4&&r.log&&r.fuel&&r.logHtml&&r.sleep&&r.jobs&&r.nvn===5&&!logs.length;
 console.log(ok?'VT-DAT':'VT-HONG '+logs.join('|'));await b.close();})();
