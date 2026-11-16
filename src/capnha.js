@@ -18,7 +18,7 @@ const CN_T=[null,
   {id:'qh_da',g:'Nhà chính',n:'Nhà đá · cấp 4',ic:'🪨',fx:'+22 thể lực tối đa · ở trong làng bớt 10% đòn đánh',d:'Nhà 3×2 ô tường đá hộc trát đất sét, sàn trải chiếu, cửa hai cánh: nhà làng định cư thời Phùng Nguyên, chịu lửa.',key:'roof',
    fn:A=>{box(A,3,2,'matFloor','bambooTileRoof','stoneWallFull','logWindowWall','plankDoubleDoor',1);A.O(0,0,'bambooBed');A.O(2,0,'storageJar');A.O(2,1,'oilLamp');A.O(1,0,'lowTable');}},
   {id:'qh_thuyen',g:'Nhà chính',n:'Nhà mái thuyền · cấp 5',ic:'⛵',fx:'+30 thể lực tối đa · ở trong làng bớt 15% đòn đánh',d:'Nhà lớn 4×2 ô mái cong hình thuyền như khắc trên trống đồng, tường gỗ, hai giường, giá vũ khí: nhà thủ lĩnh thời Đông Sơn.',key:'roof',
-   fn:A=>{box(A,4,2,'plankFloor','boatRoof','logWall','logWindowWall','plankDoubleDoor',1);A.O(0,0,'bambooBed');A.O(3,0,'bambooBed');A.O(2,0,'lowTable');A.O(1,0,'storageJar');A.O(2,1,'oilLamp');A.O(0,1,'weaponRack');}}];
+   fn:A=>{box(A,4,2,'plankFloor','boatRoof','logWall','logWindowWall','plankDoubleDoor',1);A.O(0,0,'bambooBed');A.O(3,0,'bambooBed');A.O(2,0,'lowTable');A.O(1,0,'storageJar');A.O(2,1,'weaponRack');/* (soát bản vẽ thấy giá vũ khí trước đặt trùng ô với chân giường: dời sang ô trống, bỏ cây đèn) */}}];
  for(const q of N)q.bp=bpMake(q.id,q.n,q.ic,0,q.d,q.fn);
  const i0=QH.findIndex(x=>x.id==='qh_chinh');QH.splice(i0,0,N[0]);let i1=-1;QH.forEach((x,i)=>{if(x.g==='Nhà chính')i1=i;});QH.splice(i1+1,0,N[1],N[2],N[3]);
  const c=QH.find(x=>x.id==='qh_chinh');if(c){c.n='Nhà chính · cấp 2';c.fx='+10 thể lực tối đa · giỏ cất đồ';}}

@@ -100,4 +100,6 @@ echo "34. Bảng Xây, bộ phận rời xếp theo công năng: 4 thẻ lớn, 
 OUT=$(timeout 400 node xay-xep.js 2>&1); echo "$OUT" | grep -q "^XX-DAT" && ok "bảng xây xếp theo công năng" || bad "bảng xây: $(echo "$OUT" | grep "^{\|XX" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo "35. Không dựng đè lên rào: nhà trọn bộ / công trình nhiều ô không đặt được khi có rào chạy giữa các ô; rào không xuyên giữa công trình nhiều ô; chỗ trống vẫn đặt được"
 OUT=$(timeout 400 node de-rao.js 2>&1); echo "$OUT" | grep -q "^DR-DAT" && ok "không dựng đè lên rào" || bad "dựng đè rào: $(echo "$OUT" | grep "^{\|DR" | tail -2 | tr '\n' ';' | cut -c1-900)"
+echo "36. Soát bản vẽ: 56+ nhà trọn bộ và bản mẫu không tự chồng lấn (hai món cùng ô, hai cạnh trùng, rào xuyên giữa món nhiều ô)"
+OUT=$(timeout 200 node ban-ve.js 2>&1); echo "$OUT" | grep -q "^BV-DAT" && ok "bản vẽ không chồng lấn" || bad "bản vẽ chồng lấn: $(echo "$OUT" | tail -4 | tr '\n' ';' | cut -c1-900)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

@@ -1,0 +1,9 @@
+// Soát mọi bản vẽ nhà trọn bộ và bản mẫu: không có hai món trùng ô, hai cạnh trùng nhau, hay rào/tường xuyên giữa một món nhiều ô.
+const {chromium}=require('playwright');(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});const p=await b.newPage();await p.goto('file://'+(process.argv[2]||require('path').resolve(__dirname,'../../index.html')));await p.waitForTimeout(9000);
+console.log(await p.evaluate(()=>{const out=[];const all=[...QH.map(q=>({id:q.id,n:q.n,parts:qhParts(q)})),...B4BP.map(bp=>({id:'bp:'+bp.id,n:bp.n,parts:b4BpParts(bp)}))];
+  for(const X of all){const cell=new Map(),edge=new Map(),objCells=[];const bad=[];for(const p of X.parts){const d=pieceDef(p[0]);if(!d){bad.push('thiếu '+p[0]);continue;}const x=p[1]+4000,z=p[2]+4000,r=p[4],L=p[5]||0;
+      if(d.kind==='edge'){const k=edgeKey(x,z,r,L);if(edge.has(k))bad.push('2 cạnh trùng: '+edge.get(k)+'+'+p[0]);edge.set(k,p[0]);}
+      else if(d.kind==='floor'||d.kind==='obj'||d.kind==='roof'){const slot=(d.kind)+'@'+L;for(const [i,j] of cellsOf(d,x,z,r)){const k=i+','+j+'|'+slot;if(cell.has(k))bad.push('2 món cùng ô: '+cell.get(k)+'+'+p[0]);cell.set(k,p[0]);}if(d.kind==='obj'&&L===0){const cs=cellsOf(d,x,z,r);if(cs.length>1)objCells.push([p[0],cs]);}}}
+    for(const [nm,cs] of objCells){const set=new Set(cs.map(c=>c[0]+','+c[1]));for(const [i,j] of cs){if(set.has((i+1)+','+j)&&edge.has('v:'+(i+1)+','+j))bad.push('cạnh '+edge.get('v:'+(i+1)+','+j)+' xuyên giữa '+nm);if(set.has(i+','+(j+1))&&edge.has('h:'+i+','+(j+1)))bad.push('cạnh '+edge.get('h:'+i+','+(j+1))+' xuyên giữa '+nm);}}
+    if(bad.length)out.push(X.id+' ('+X.n+'): '+[...new Set(bad)].join('; '));}
+  return 'đã soát '+all.length+' bản vẽ\n'+(out.length?out.join('\n')+'\nBV-HONG':'BV-DAT');}));await b.close()})();
