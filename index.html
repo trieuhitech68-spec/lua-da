@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261116082752">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261116085654">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -21775,6 +21775,21 @@ function sl2PetTxt(p){const day=TNOW(),age=day-(p.born||0),hungry=day-(p.fed||0)
 // người nấu ăn nấu đủ món có bản chín
 function sl2Cooked(id){if(id==='meat')return 'meatCooked';if(id==='fish')return 'fishCooked';const c=id+'Cooked';return ITEMS[c]?c:null;}
 {const _fh=folkHourly;folkHourly=function(gh){try{const ck=(S.folk||[]).filter(f=>f.job==='cook');if(ck.length){const home=folkHome(ck[0]),fire=S.builds.find(b=>b.k==='campfire'&&b.prog==null&&!b.remote&&fireLit(b)&&Math.hypot(b.x-home.x,b.z-home.z)<500);if(fire){const L=vthStores(home);let left=ck.length*3;VTH.dep=1;try{for(const st of L)for(let i=0;i<st.length&&left>0;i++){const s=st[i];if(!s||s.id==='meat'||s.id==='fish')continue;const c=sl2Cooked(s.id);if(!c||ITEMS[s.id].poison)continue;const k=Math.min(left,s.n);s.n-=k;if(s.n<=0)st[i]=null;const rest=slotsAdd(st,c,k);if(rest>0){/* kho đầy: trả lại */if(st[i])st[i].n+=rest;else st[i]={id:s.id,n:rest};}left-=k-(rest||0);}}finally{VTH.dep=0;}}}}catch(e){}return _fh.apply(this,arguments);};}
+/* ---------- KHÔNG DỰNG ĐÈ LÊN RÀO, TƯỜNG ĐÃ CÓ ----------
+   Người chơi báo: dựng nhà trọn bộ / công trình nhiều ô ngay trên chỗ đã có hàng rào thì game vẫn cho, nhà đè lên rào, nhiều thứ chồng lên nhau.
+   Nguyên do: rào, tường nằm trên CẠNH ô, còn nhà chiếm Ô; game chỉ xét "ô đã có đồ chưa" và "cạnh đã có rào chưa" riêng rẽ,
+   nên một đoạn rào chạy ngang GIỮA hai ô của căn nhà không bị coi là vướng.
+   Giờ: · nhà trọn bộ, bản mẫu, công trình nhiều ô: có rào/tường cũ chạy giữa các ô của nó thì báo vướng, không cho đặt;
+        · dựng rào, tường: không cho xuyên qua giữa một công trình nhiều ô (chuồng, ao, kho lớn…). */
+function sl2Inner(cells){const set=new Set(cells.map(c=>c[0]+','+c[1])),out=[];for(const [i,j] of cells){if(set.has((i+1)+','+j))out.push('v:'+(i+1)+','+j);if(set.has(i+','+(j+1)))out.push('h:'+i+','+(j+1));}return out;}
+function sl2EdgeName(k){try{const o=BYID.get(OCC.edge.get(k));return o&&pieceDef(o.k)?pieceDef(o.k).n.toLowerCase():'rào, tường';}catch(e){return 'rào, tường';}}
+if(typeof b4BpPlan==='function'){const _bp=b4BpPlan;b4BpPlan=function(){const r=_bp.apply(this,arguments);try{if(r&&!r.why&&r.plan){const cells=[],own=new Set();for(const p of r.plan){if((p.lv||0)!==0)continue;if(p.d.kind==='edge')own.add(edgeKey(p.x,p.z,p.r,0));else if(p.d.kind==='floor'||p.d.kind==='obj')for(const c of cellsOf(p.d,p.x,p.z,p.r))cells.push(c);}
+        for(const k of sl2Inner(cells))if(OCC.edge.has(k)&&!own.has(k)){r.why='Chỗ này có '+sl2EdgeName(k)+' chạy ngang giữa nhà: dời sang chỗ khác, hoặc dỡ đoạn đó trước.';break;}}}catch(e){}return r;};}
+{const _bu=buildUpdate;buildUpdate=function(){const r=_bu.apply(this,arguments);try{const B=G.build;if(B&&B.pos&&!B.rm&&!B.bp&&!B.why&&(B.lv||0)===0&&B.def){const d=B.def,{x,z}=B.pos,rr=B.pos.r||0;let why='';
+        if(d.kind==='obj'){const cs=cellsOf(d,x,z,rr);if(cs.length>1)for(const k of sl2Inner(cs))if(OCC.edge.has(k)){why='Vướng '+sl2EdgeName(k)+' chạy ngang giữa chỗ này: dời đi hoặc dỡ đoạn đó trước.';break;}}
+        else if(d.kind==='edge'){const v=rr%2!==0,a=v?[Math.round(x/CELL)-1,Math.floor(z/CELL)]:[Math.floor(x/CELL),Math.round(z/CELL)-1],b=v?[Math.round(x/CELL),Math.floor(z/CELL)]:[Math.floor(x/CELL),Math.round(z/CELL)],sl=slotN('obj',0),ia=(OCC.cell.get(a[0]+','+a[1])||{})[sl],ib=(OCC.cell.get(b[0]+','+b[1])||{})[sl];
+          if(ia!=null&&ia===ib){const o=BYID.get(ia);why='Không dựng xuyên qua giữa '+(o&&pieceDef(o.k)?pieceDef(o.k).n.toLowerCase():'công trình')+'.';}}
+        if(why){B.why=why;B.ok=false;try{B.mat.color.set(0xff6a5a);}catch(e){}if(G.t-(B._slT||0)>0.25){B._slT=G.t;try{uiBuildBar(true,d,why);}catch(e){}}}}}catch(e){}return r;};}
 /* ===================== ĐẠO QUÂN: ĐỘI HÌNH · MỆNH LỆNH · BINH CHỦNG · KỴ BINH =====================
    Trước: người được giao "Lính theo bạn" chỉ lẽo đẽo sau lưng, ai cũng như ai.
    Giờ (bảng 👥 Dân làng → khung "Đạo quân", hiện khi có ít nhất 1 lính):
@@ -21864,6 +21879,17 @@ if(typeof HD_L!=='undefined')HD_L.push({id:'quandoan',ic:'⚔️',t:'Đạo quâ
   p:['Có lính rồi thì đầu bảng Dân làng hiện khung <b>Đạo quân</b>. Chọn <b>Mệnh lệnh</b>: Theo tôi, Giữ chỗ (đứng nguyên nơi bạn ra lệnh), Xung phong (tự tìm đánh), Về trại.',
    'Chọn <b>Đội hình</b>: Hàng ngang, Cột dọc, Mũi nhọn, Vòng tròn. Lính khiên tự đứng trước, lính giáo ở giữa, cung thủ phía sau, kỵ binh hai cánh.',
    'Mục <b>Binh chủng</b>: bấm <b>+</b> để chuyển một lính sang lính giáo, cung thủ (bắn xa) hoặc lính khiên (đứng gần giúp bạn bớt đòn). <b>Kỵ binh</b> cần ngựa bạn đã thuần: bấm + để cấp ngựa, − để thu lại.']});
+/* ---------- THANH LỆNH NHANH NGOÀI MÀN HÌNH ----------
+   Có lính thì góc phải màn hình (dưới bản đồ nhỏ) hiện một cột nút nhỏ: số lính, Theo tôi / Giữ chỗ / Xung phong: ra lệnh ngay giữa trận, không phải mở bảng.
+   Khi có kẻ địch hoặc thú dữ đang lao tới trong tầm 600 thì hiện thêm dòng "ta N · địch M". Ẩn khi đang mở bảng, đang xây, đang ngủ. */
+function qdBar(){try{let el=document.getElementById('qdBar');const L=(typeof G!=='undefined'&&G.on&&S)?qdSol():[];const show=L.length>0&&!G.panel&&!G.build&&!G.sleeping&&!G.paused;
+    if(!show){if(el)el.hidden=true;return;}if(!el){el=document.createElement('div');el.id='qdBar';el.innerHTML=`<span class="qb-n"></span>${['follow','hold','charge'].map(k=>`<button data-a="qdcmd" data-v="${k}" aria-label="${QD.CMD[k][1]}" title="${QD.CMD[k][1]}">${QD.CMD[k][0]}</button>`).join('')}<span class="qb-e" hidden></span>`;(document.getElementById('game')||document.body).appendChild(el);}
+    el.hidden=false;/* đặt ngay dưới bản đồ nhỏ, không đè lên nó */try{const mn=document.getElementById('mini')||document.querySelector('.mini');if(mn&&mn.offsetParent){const r=mn.getBoundingClientRect();if(r.right>innerWidth*0.6){const t=Math.round(r.bottom+8);if(el._t!==t){el._t=t;el.style.top=t+'px';}}}}catch(e){}const A=qdS();el.querySelector('.qb-n').textContent='⚔️'+L.length;el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===A.cmd));
+    let en=0;if(G.foes)for(const f of G.foes)if(f.alive&&Math.hypot(f.x-P.x,f.z-P.z)<600)en++;for(const a of G.animals||[])if(a.alive&&a.state==='chase'&&!(a.tame>0)&&Math.hypot(a.x-P.x,a.z-P.z)<600)en++;const e=el.querySelector('.qb-e');e.hidden=!en;if(en)e.textContent='địch '+en;}catch(er){}}
+setInterval(qdBar,600);
+{const st=document.createElement('style');st.textContent=`#qdBar{position:fixed;right:max(8px,env(safe-area-inset-right));top:calc(env(safe-area-inset-top) + 168px);z-index:6;display:flex;flex-direction:column;align-items:center;gap:5px;padding:5px;border-radius:14px;background:rgba(20,13,8,.62);border:1px solid rgba(220,120,90,.45);backdrop-filter:blur(4px)}#qdBar[hidden]{display:none}
+#qdBar .qb-n{font-size:12px;font-weight:800;color:#ffd9c2}#qdBar .qb-e{font-size:11px;font-weight:800;color:#ff9a8a;white-space:nowrap}#qdBar button{width:40px;height:40px;border-radius:11px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);font-size:19px;line-height:1;cursor:pointer;padding:0}#qdBar button.on{border-color:#f2c55a;background:rgba(242,197,90,.22)}
+@media (max-height:520px){#qdBar{top:calc(env(safe-area-inset-top) + 96px);flex-direction:row}}`;document.head.appendChild(st);}
 /* ===================== VOI RỪNG · VOI NHÀ · TƯỢNG BINH =====================
    · VOI RỪNG sống theo đàn 3 con ở trảng cỏ, bìa rừng xa chỗ khởi đầu: rất khoẻ (40 máu), hiền nếu không bị đánh, bị đánh thì húc rất đau.
    · THUẦN VOI: lom khom lại gần, cho ăn chuối / bầu / mía… nhiều lần (mỗi lần ~12%, lâu hơn thuần ngựa) → thành VOI CỦA BẠN (nằm chung danh sách với ngựa).

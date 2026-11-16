@@ -19,3 +19,18 @@ function sl2PetTxt(p){const day=TNOW(),age=day-(p.born||0),hungry=day-(p.fed||0)
 // người nấu ăn nấu đủ món có bản chín
 function sl2Cooked(id){if(id==='meat')return 'meatCooked';if(id==='fish')return 'fishCooked';const c=id+'Cooked';return ITEMS[c]?c:null;}
 {const _fh=folkHourly;folkHourly=function(gh){try{const ck=(S.folk||[]).filter(f=>f.job==='cook');if(ck.length){const home=folkHome(ck[0]),fire=S.builds.find(b=>b.k==='campfire'&&b.prog==null&&!b.remote&&fireLit(b)&&Math.hypot(b.x-home.x,b.z-home.z)<500);if(fire){const L=vthStores(home);let left=ck.length*3;VTH.dep=1;try{for(const st of L)for(let i=0;i<st.length&&left>0;i++){const s=st[i];if(!s||s.id==='meat'||s.id==='fish')continue;const c=sl2Cooked(s.id);if(!c||ITEMS[s.id].poison)continue;const k=Math.min(left,s.n);s.n-=k;if(s.n<=0)st[i]=null;const rest=slotsAdd(st,c,k);if(rest>0){/* kho đầy: trả lại */if(st[i])st[i].n+=rest;else st[i]={id:s.id,n:rest};}left-=k-(rest||0);}}finally{VTH.dep=0;}}}}catch(e){}return _fh.apply(this,arguments);};}
+/* ---------- KHÔNG DỰNG ĐÈ LÊN RÀO, TƯỜNG ĐÃ CÓ ----------
+   Người chơi báo: dựng nhà trọn bộ / công trình nhiều ô ngay trên chỗ đã có hàng rào thì game vẫn cho, nhà đè lên rào, nhiều thứ chồng lên nhau.
+   Nguyên do: rào, tường nằm trên CẠNH ô, còn nhà chiếm Ô; game chỉ xét "ô đã có đồ chưa" và "cạnh đã có rào chưa" riêng rẽ,
+   nên một đoạn rào chạy ngang GIỮA hai ô của căn nhà không bị coi là vướng.
+   Giờ: · nhà trọn bộ, bản mẫu, công trình nhiều ô: có rào/tường cũ chạy giữa các ô của nó thì báo vướng, không cho đặt;
+        · dựng rào, tường: không cho xuyên qua giữa một công trình nhiều ô (chuồng, ao, kho lớn…). */
+function sl2Inner(cells){const set=new Set(cells.map(c=>c[0]+','+c[1])),out=[];for(const [i,j] of cells){if(set.has((i+1)+','+j))out.push('v:'+(i+1)+','+j);if(set.has(i+','+(j+1)))out.push('h:'+i+','+(j+1));}return out;}
+function sl2EdgeName(k){try{const o=BYID.get(OCC.edge.get(k));return o&&pieceDef(o.k)?pieceDef(o.k).n.toLowerCase():'rào, tường';}catch(e){return 'rào, tường';}}
+if(typeof b4BpPlan==='function'){const _bp=b4BpPlan;b4BpPlan=function(){const r=_bp.apply(this,arguments);try{if(r&&!r.why&&r.plan){const cells=[],own=new Set();for(const p of r.plan){if((p.lv||0)!==0)continue;if(p.d.kind==='edge')own.add(edgeKey(p.x,p.z,p.r,0));else if(p.d.kind==='floor'||p.d.kind==='obj')for(const c of cellsOf(p.d,p.x,p.z,p.r))cells.push(c);}
+        for(const k of sl2Inner(cells))if(OCC.edge.has(k)&&!own.has(k)){r.why='Chỗ này có '+sl2EdgeName(k)+' chạy ngang giữa nhà: dời sang chỗ khác, hoặc dỡ đoạn đó trước.';break;}}}catch(e){}return r;};}
+{const _bu=buildUpdate;buildUpdate=function(){const r=_bu.apply(this,arguments);try{const B=G.build;if(B&&B.pos&&!B.rm&&!B.bp&&!B.why&&(B.lv||0)===0&&B.def){const d=B.def,{x,z}=B.pos,rr=B.pos.r||0;let why='';
+        if(d.kind==='obj'){const cs=cellsOf(d,x,z,rr);if(cs.length>1)for(const k of sl2Inner(cs))if(OCC.edge.has(k)){why='Vướng '+sl2EdgeName(k)+' chạy ngang giữa chỗ này: dời đi hoặc dỡ đoạn đó trước.';break;}}
+        else if(d.kind==='edge'){const v=rr%2!==0,a=v?[Math.round(x/CELL)-1,Math.floor(z/CELL)]:[Math.floor(x/CELL),Math.round(z/CELL)-1],b=v?[Math.round(x/CELL),Math.floor(z/CELL)]:[Math.floor(x/CELL),Math.round(z/CELL)],sl=slotN('obj',0),ia=(OCC.cell.get(a[0]+','+a[1])||{})[sl],ib=(OCC.cell.get(b[0]+','+b[1])||{})[sl];
+          if(ia!=null&&ia===ib){const o=BYID.get(ia);why='Không dựng xuyên qua giữa '+(o&&pieceDef(o.k)?pieceDef(o.k).n.toLowerCase():'công trình')+'.';}}
+        if(why){B.why=why;B.ok=false;try{B.mat.color.set(0xff6a5a);}catch(e){}if(G.t-(B._slT||0)>0.25){B._slT=G.t;try{uiBuildBar(true,d,why);}catch(e){}}}}}catch(e){}return r;};}
