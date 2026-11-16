@@ -14,7 +14,11 @@ const r=await p.evaluate(async()=>{const o={};const W=ms=>new Promise(r=>setTime
   const res={};for(const id of ['qh_chinh','qh_kho','qh_lon','qh_linh']){const q=QH.find(x=>x.id===id),sp=qhSpot(qhParts(q),q.g);res[id]=sp?{d:sp.dC,tight:sp.tight,door:sp.door,trees:sp.trees}:null;}o.res=res;
   // 3) cắm thật Nhà chính ở chỗ được chọn, rồi xin chỗ cho Nhà kho: không được sát vách
   {const q=QH.find(x=>x.id==='qh_chinh'),parts=qhParts(q),sp=qhSpot(parts,q.g);const pl=b4BpPlan(parts,sp.x,sp.z,sp.q);for(const pp of pl.plan){if(pp.d.kind==='floor'||pp.d.kind==='obj'||pp.d.kind==='edge'){mk(pp.k,pp.x,pp.z,pp.r);}}const q2=QH.find(x=>x.id==='qh_kho'),sp2=qhSpot(qhParts(q2),q2.g);o.second=sp2?{tight:sp2.tight,d:sp2.dC}:null;}
+  // 4) tự đặt từng món: luống mới kề luống cũ; chuồng không sát chỗ ngủ
+  {const fd=BUILD.find(d=>d.kind==='obj'&&d.farm&&sxPurpose(d)==='trong'),nd=BUILD.find(d=>d.kind==='obj'&&sxPurpose(d)==='nuoi');o.fd=fd&&fd.id;o.nd=nd&&nd.id;
+   if(fd){let s0=aq2Spots(fd)[0];if(s0){const f=mk(fd.id,s0.x,s0.z);const s1=aq2Spots(fd)[0];o.farmAdj=s1?Math.round(Math.hypot(s1.x-f.x,s1.z-f.z)):-1;}else o.farmAdj=-2;}
+   if(nd){const s=aq2Spots(nd)[0],beds=S.builds.filter(b=>pieceDef(b.k)&&pieceDef(b.k).bed);o.penBed=s?Math.round(Math.min(...beds.map(b=>Math.hypot(b.x-s.x,b.z-s.z)))):-1;}}
   if(G.panel)uiClose();uiOpen('craft',{});await W(900);o.craftBox=!!document.querySelector('#panel .cd-box');o.craftN=document.querySelectorAll('#panel .cd-box .cd-r').length;return o;});
 console.log(JSON.stringify(r));if(SHOT){await p.evaluate(()=>{if(G.panel)uiClose();uiOpen('build',{});});await p.waitForTimeout(1500);await p.screenshot({path:SHOT});}
-const R=r.res||{};const ok=r.box&&r.btn&&r.build&&R.qh_chinh&&R.qh_kho&&R.qh_lon&&R.qh_linh&&['qh_chinh','qh_kho','qh_lon','qh_linh'].every(k=>R[k].tight===0)&&R.qh_chinh.d<R.qh_lon.d&&R.qh_chinh.door&&r.second&&r.second.tight===0&&r.craftBox&&r.craftN>=1&&!logs.length;
+const R=r.res||{};const ok=r.box&&r.btn&&r.build&&R.qh_chinh&&R.qh_kho&&R.qh_lon&&R.qh_linh&&['qh_chinh','qh_kho','qh_lon','qh_linh'].every(k=>R[k].tight===0)&&R.qh_chinh.d<R.qh_lon.d&&R.qh_chinh.door&&r.second&&r.second.tight===0&&(!r.fd||r.farmAdj===40)&&(!r.nd||r.penBed>=150)&&r.craftBox&&r.craftN>=1&&!logs.length;
 console.log(ok?'CD-DAT':'CD-HONG '+logs.join('|'));await b.close();})();
