@@ -92,4 +92,6 @@ echo "30. Rà soát: ruộng đè lên cây thì cây bị dọn hẳn; vật nu
 OUT=$(timeout 400 node ra-soat.js 2>&1); echo "$OUT" | grep -q "^RS-DAT" && ok "đợt rà soát" || bad "đợt rà soát: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo "31. Đạo quân: 4 đội hình không ai chồng lên ai, Giữ chỗ / Theo tôi, cung thủ bắn từ xa, đổi binh chủng, kỵ binh dùng ngựa đã thuần và trả ngựa khi lính đổi việc"
 OUT=$(timeout 400 node quan-doan.js 2>&1); echo "$OUT" | grep -q "^QD-DAT" && ok "đạo quân" || bad "đạo quân: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
+echo "32. Voi: có voi rừng, thuần được, cưỡi ngồi cao trên lưng, cấp cho lính thành tượng binh đánh mạnh hơn"
+OUT=$(timeout 400 node voi-chien.js 2>&1); echo "$OUT" | grep -q "^VOI-DAT" && ok "voi rừng, tượng binh" || bad "voi: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-700)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
