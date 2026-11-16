@@ -94,4 +94,6 @@ echo "31. Đạo quân: 4 đội hình không ai chồng lên ai, Giữ chỗ / 
 OUT=$(timeout 400 node quan-doan.js 2>&1); echo "$OUT" | grep -q "^QD-DAT" && ok "đạo quân" || bad "đạo quân: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo "32. Voi: có voi rừng, thuần được, cưỡi ngồi cao trên lưng, cấp cho lính thành tượng binh đánh mạnh hơn"
 OUT=$(timeout 400 node voi-chien.js 2>&1); echo "$OUT" | grep -q "^VOI-DAT" && ok "voi rừng, tượng binh" || bad "voi: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-700)"
+echo "33. Bảng Chế tạo xếp gọn: mục Làm được ngay + mỗi nhóm một mục gập, không mất công thức, lọc / tìm thì về danh sách phẳng, nút Làm vẫn chạy"
+OUT=$(timeout 400 node che-tao-xep.js 2>&1); echo "$OUT" | grep -q "^CTX-DAT" && ok "bảng chế tạo xếp gọn" || bad "bảng chế tạo: $(echo "$OUT" | grep "^{\|CTX" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
