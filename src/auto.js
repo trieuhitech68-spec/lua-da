@@ -196,8 +196,11 @@ const AUJ={
     if(f)return AQ_DONE;const raw=['meat','fish','birdRaw','yam'].find(k=>invCount(k)>0);
     if(raw&&aqFire()){const r=RECIPES.find(r=>r.in&&r.in[raw]&&Object.keys(r.in).length===1&&(r.st==='campfire'));if(r){aqPush({k:'craft',r},j);return AQ_RUN;}}
     if(++j.tries>3)return aqFail('Không kiếm được gì ăn.');
-    const ids=AQ_FOODSRC(),types=[...new Set(ids.flatMap(aqSrc))];const q=aqFindRes(types.filter(t=>!RT[t].tool||hasTool(RT[t].tool)),{k:'food'});if(!q)return aqFail('Không thấy quả, nấm, chuối nào gần đây.');
-    const id=Object.keys(RT[q.t].yield).find(k=>ids.includes(k))||ids[0];aqPush({k:'harvest',id,until:()=>!!aqFood(false),lab0:'Hái '+RT[q.t].n.toLowerCase()+' để ăn'},j);return AQ_RUN;},
+    /* mùa đông bụi quả không ra quả: trước cứ đứng hái mãi tới đói lả (chạy thử: no 0 suốt cả nghìn giây). Giờ hái tối đa 2,5 phút; không được thì đi săn, xẻ thịt rồi nướng ăn. */
+    const ids=AQ_FOODSRC(),types=[...new Set(ids.flatMap(aqSrc))];const q=j.hv?null:aqFindRes(types.filter(t=>!RT[t].tool||hasTool(RT[t].tool)),{k:'food'});
+    if(q){j.hv=1;const T0=G.t;const id=Object.keys(RT[q.t].yield).find(k=>ids.includes(k))||ids[0];aqPush({k:'harvest',id,until:()=>!!aqFood(false)||G.t-T0>150,lab0:'Hái '+RT[q.t].n.toLowerCase()+' để ăn'},j);return AQ_RUN;}
+    if(!j.hunted){j.hunted=1;j.lab='Đi săn kiếm thịt ăn';aqPush({k:'butcher'},j);return AQ_RUN;}
+    return aqFail('Không kiếm được gì ăn quanh đây.');},
   light(j){const b=j.b;if(!BYID.has(b.id))return aqFail('Bếp không còn.');if(fireLit(b)&&!j.force)return AQ_DONE;if(j.cf)return aqFail(j.cf);j.lab='Nhóm lửa';
     if(j.st==='wait'){if(G.work)return AQ_RUN;j.st=null;if(fireLit(b))return AQ_DONE;if(++j.fl>2)return aqFail('Không nhóm được lửa.');}
     if(fireLit(b)){if(j.force&&gC('cnt:fire')<1)return {wait:1};return AQ_DONE;}
