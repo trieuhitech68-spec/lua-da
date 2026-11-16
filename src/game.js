@@ -4,7 +4,7 @@ let S=null;const G={on:false,t:0,keys:{},joy:{x:0,y:0,on:false},yaw:0.6,pitch:0.
 const $=s=>document.querySelector(s);const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const TNOW=()=>S.tn!=null?S.tn:S.day+S.hour/24;// S.tn: đồng hồ sinh hoạt riêng (clock.js), luôn chỉ tăng
 /* ---------- lưu / tải ---------- */
-function save(){if(!S||!G.on&&!S._new)return;try{if(G.on){S.p.x=+P.x.toFixed(1);S.p.z=+P.z.toFixed(1);S.p.ry=+P.ry.toFixed(2);}localStorage.setItem(SKEY,JSON.stringify(S,(k,v)=>k&&k[0]==='_'?undefined:v));}catch(e){}}
+function save(){if(!S||!G.on&&!S._new)return;try{if(G.on){S.p.x=+P.x.toFixed(1);S.p.z=+P.z.toFixed(1);S.p.ry=+P.ry.toFixed(2);}localStorage.setItem(SKEY,typeof ldPack==='function'?ldPack(S):JSON.stringify(S,(k,v)=>k&&k[0]==='_'?undefined:v));}catch(e){}}
 function loadSave(){try{const t=localStorage.getItem(SKEY);if(!t)return null;const o=JSON.parse(t);if(!o||o.v!==1)return null;return fixSave(o);}catch(e){return null;}}
 function fixSave(o){o.p=Object.assign({hp:100,food:75,water:80,stam:100,warm:70,wet:0},o.p||{});['res','cnt','seen','sk','store','crops','st','wear','known','buff','fuel','tank'].forEach(k=>{if(!o[k]||typeof o[k]!=='object')o[k]={};});
   if(!Array.isArray(o.inv))o.inv=Array(INVN).fill(null);while(o.inv.length<INVN)o.inv.push(null);if(!Array.isArray(o.builds))o.builds=[];o.age=o.age||0;if(o.wv!==2){o.res={};o.wv=2;}return o;}

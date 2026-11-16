@@ -102,4 +102,6 @@ echo "35. Không dựng đè lên rào: nhà trọn bộ / công trình nhiều 
 OUT=$(timeout 400 node de-rao.js 2>&1); echo "$OUT" | grep -q "^DR-DAT" && ok "không dựng đè lên rào" || bad "dựng đè rào: $(echo "$OUT" | grep "^{\|DR" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo "36. Soát bản vẽ: 56+ nhà trọn bộ và bản mẫu không tự chồng lấn (hai món cùng ô, hai cạnh trùng, rào xuyên giữa món nhiều ô)"
 OUT=$(timeout 200 node ban-ve.js 2>&1); echo "$OUT" | grep -q "^BV-DAT" && ok "bản vẽ không chồng lấn" || bad "bản vẽ chồng lấn: $(echo "$OUT" | tail -4 | tr '\n' ';' | cut -c1-900)"
+echo "37. Đóng gói bản lưu: giống hệt cách cũ từng ký tự trên làng có người, vật nuôi, lính, ngựa; dưới 60 ms (cách cũ ~800 ms); đọc lại đúng"
+OUT=$(timeout 300 node dong-goi.js 2>&1); echo "$OUT" | grep -q "^DG-DAT" && ok "đóng gói bản lưu nhanh, đúng" || bad "đóng gói bản lưu: $(echo "$OUT" | grep "^{\|DG" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
