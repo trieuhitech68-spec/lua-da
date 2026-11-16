@@ -19,7 +19,7 @@ const r=await p.evaluate(()=>{const o={};let n=9800;const mk=(k,dx,dz)=>{const b
   let i=0;for(const id in CNU.SEED){S.inv[i]={id,n:1};G.panel='bag';mxCalfOut(i);i++;}o.released=S.pets.map(p=>p.k).join(',');o.invLeft=S.inv.slice(0,5).filter(Boolean).length;
   for(let k=0;k<600;k++){G.t+=1/60;petsTick(1/60);}o.models=S.pets.every(p=>p._o&&p._o.parent);
   // 4) lớn lên, vịt đẻ trứng, sinh con
-  for(const q of S.pets){q.born=TNOW()-3.5;q.fed=TNOW();}petsHourly(1);o.grown=[...new Set(S.pets.map(p=>p.k))].sort().join(',');
+  for(const q of S.pets){q.born=TNOW()-3.5;q.fed=TNOW();}{const _r0=Math.random;Math.random=()=>0.99;/* không để ngẫu nhiên sinh con non đúng lúc đang kiểm việc lớn lên */try{petsHourly(1);}finally{Math.random=_r0;}}o.grown=[...new Set(S.pets.map(p=>p.k))].sort().join(',');
   for(const q of S.pets)if(q.k==='duck'){q.x=dh.x+20;q.z=dh.z;}const n0=S.pets.length;const _r=Math.random;Math.random=()=>0.01;for(let k=0;k<3;k++){for(const q of S.pets)q.fed=TNOW();petsHourly(1);}Math.random=_r;o.born=S.pets.length-n0;o.eggs=Math.floor(S.tank[dh.id]||0);
   for(let k=0;k<300;k++){G.t+=1/60;petsTick(1/60);}
   // 5) mổ thịt dê (cần dao)
