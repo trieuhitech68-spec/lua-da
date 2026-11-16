@@ -106,4 +106,6 @@ echo "37. Đóng gói bản lưu: giống hệt cách cũ từng ký tự trên 
 OUT=$(timeout 300 node dong-goi.js 2>&1); echo "$OUT" | grep -q "^DG-DAT" && ok "đóng gói bản lưu nhanh, đúng" || bad "đóng gói bản lưu: $(echo "$OUT" | grep "^{\|DG" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo "38. Nhân vật → 🐾 Thú của bạn: ba thẻ Chiến thú / Thú cưỡi / Vật nuôi; vật nuôi gom theo loài, báo đói, cho cả đàn ăn; thú cưỡi ghi cấp cho lính nào, thu lại được"
 OUT=$(timeout 400 node thu-cua-ban.js 2>&1); echo "$OUT" | grep -q "^TCB-DAT" && ok "thú của bạn" || bad "thú của bạn: $(echo "$OUT" | grep "^{\|TCB" | tail -2 | tr '\n' ';' | cut -c1-900)"
+echo "39. Tự dựng chọn đất có tính toán (không sát vách, cửa quay vào làng, chuồng trại xa hơn nhà ở) + gợi ý nên xây, nên chế gì tiếp"
+OUT=$(timeout 400 node chon-dat.js 2>&1); echo "$OUT" | grep -q "^CD-DAT" && ok "chọn đất, gợi ý" || bad "chọn đất, gợi ý: $(echo "$OUT" | grep "^{\|CD-" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
