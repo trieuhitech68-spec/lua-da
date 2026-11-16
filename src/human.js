@@ -25,6 +25,14 @@
      (grip at origin, handle +Y, blade +Z) sits in the fist with tool.position=(0,−1.75,0), tool.rotation=(π/2,0,0): handle → hand +Z, blade → hand −Y.
      The legacy equip() offset (0,−1.5,1.5)+rot x π/2+0.25 also lands inside the fist. Work poses aim the hand assuming the char2Grip rotation.
 */
+/* Làm mịn bề mặt: thân người dựng bằng các tam giác rời nên trước đây mỗi mặt một hướng sáng, nhìn ra khối góc cạnh.
+   Giờ các mặt liền nhau lệch dưới ~62° dùng chung hướng sáng (da, vải trông tròn mịn); cạnh gắt hơn thì vẫn giữ sắc nét.
+   Không thêm tam giác nào, chỉ tính lại hướng sáng lúc dựng hình. */
+function ldSmoothN(g,deg){try{const pa=g.attributes.position;if(g.index||!pa||pa.count%3||pa.count>60000){g.computeVertexNormals();return;}const P=pa.array,N=pa.count,F=new Float32Array(N*3),U=new Float32Array(N*3),out=new Float32Array(N*3),cs=Math.cos((deg||62)*Math.PI/180),map=new Map();
+  for(let i=0;i<N;i+=3){const a=i*3,ux=P[a+3]-P[a],uy=P[a+4]-P[a+1],uz=P[a+5]-P[a+2],vx=P[a+6]-P[a],vy=P[a+7]-P[a+1],vz=P[a+8]-P[a+2];let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;const l=Math.hypot(nx,ny,nz)||1;
+    for(let k=0;k<3;k++){const o=(i+k)*3;F[o]=nx;F[o+1]=ny;F[o+2]=nz;U[o]=nx/l;U[o+1]=ny/l;U[o+2]=nz/l;const key=Math.round(P[o]*200)+'_'+Math.round(P[o+1]*200)+'_'+Math.round(P[o+2]*200);const L=map.get(key);if(L)L.push(i+k);else map.set(key,[i+k]);}}
+  map.forEach(L=>{for(const i of L){const a=i*3;let x=0,y=0,z=0;for(const j of L){const b=j*3;if(U[a]*U[b]+U[a+1]*U[b+1]+U[a+2]*U[b+2]>=cs){x+=F[b];y+=F[b+1];z+=F[b+2];}}const l=Math.hypot(x,y,z)||1;out[a]=x/l;out[a+1]=y/l;out[a+2]=z/l;}});
+  g.setAttribute('normal',new THREE.BufferAttribute(out,3));}catch(e){try{g.computeVertexNormals();}catch(e2){}}}
 function K3char2Init(){const K=(typeof K3!=='undefined')?K3:window.K3;if(!K||!K.ok||K.char2)return;const T=K.T,PI=Math.PI,TAU=PI*2;
   const clamp=(v,a,b)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t,ss=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
   const hsh=n=>{const s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s);};
@@ -38,7 +46,7 @@ function K3char2Init(){const K=(typeof K3!=='undefined')?K3:window.K3;if(!K||!K.
       if(ref){const d=nx*((a[0]+b[0]+c[0])/3-ref[0])+ny*((a[1]+b[1]+c[1])/3-ref[1])+nz*((a[2]+b[2]+c[2])/3-ref[2]);if((d<0)!==!!toward){const s=b;b=c;c=s;}}
       (this.m[k]||(this.m[k]=[])).push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2]);return this;}
     q(k,a,b,c,d,ref,tw){this.t(k,a,b,c,ref,tw);return this.t(k,a,c,d,ref,tw);}
-    to(grp,MAT){for(const k in this.m){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(this.m[k],3));g.computeVertexNormals();
+    to(grp,MAT){for(const k in this.m){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(this.m[k],3));ldSmoothN(g);
       const me=new T.Mesh(g,MAT(k));me.castShadow=true;me.receiveShadow=true;me.userData.part=k;grp.add(me);}this.m={};return grp;}}
   const RG=(y,hx,zf,zb,o)=>Object.assign({y,xn:hx,xp:hx,zf,zb,cx:0,cz:0,p:2.4},o||{});
   const rp=(r,u)=>{const s=Math.sin(u),c=Math.cos(u);return [r.cx+(s>=0?r.xp:r.xn)*sp(s,r.p),r.y,r.cz+(c>=0?r.zf:r.zb)*sp(c,r.p)];};

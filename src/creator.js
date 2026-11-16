@@ -421,7 +421,7 @@ function crHQ(G,R,a){const T=THREE,head=R.head,fem=!!a.f,U=G.userData;const sk0=
   R._crHQ=1;U.crHQ=1;}
 function crLashLen(R,a){let m=null;R.head.traverse(o=>{if(o.isMesh&&o.userData.part==='lash')m=o;});if(!m)return;const pa=m.geometry.attributes.position,k=1+0.4*a.ls,P=i=>[pa.getX(i),pa.getY(i),pa.getZ(i)];
   for(let g=0;g+5<pa.count;g+=6){const A=P(g),Bv=P(g+1);[[2,Bv],[4,Bv],[5,A]].forEach(([j,o])=>{const q=v3add(o,v3sub(P(g+j),o),k);pa.setXYZ(g+j,q[0],q[1],q[2]);});}pa.needsUpdate=true;}
-function crNormals(g){g.computeVertexNormals();const na=g.attributes.normal;(g.userData.crSeams||[]).forEach(([a,b])=>{const n=v3nrm([na.getX(a)+na.getX(b),na.getY(a)+na.getY(b),na.getZ(a)+na.getZ(b)]);na.setXYZ(a,n[0],n[1],n[2]);na.setXYZ(b,n[0],n[1],n[2]);});
+function crNormals(g){if(typeof ldSmoothN==='function')ldSmoothN(g);else g.computeVertexNormals();const na=g.attributes.normal;(g.userData.crSeams||[]).forEach(([a,b])=>{const n=v3nrm([na.getX(a)+na.getX(b),na.getY(a)+na.getY(b),na.getZ(a)+na.getZ(b)]);na.setXYZ(a,n[0],n[1],n[2]);na.setXYZ(b,n[0],n[1],n[2]);});
   const pl=g.userData.crPoles;if(pl){na.setXYZ(pl[0],0,1,0);na.setXYZ(pl[1],0,-0.7,-0.7);}na.needsUpdate=true;}
 /* ---------- bọc bộ dựng K3.char2 ---------- */
 function crInstall(){if(typeof K3==='undefined'||!K3.char2||K3.char2._cr)return;const base=K3.char2;const w=function(o){o=o||{};const a=o.app?crSan(o.app):null;if(!a)return base(o);
