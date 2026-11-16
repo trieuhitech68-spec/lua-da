@@ -17,11 +17,17 @@ function qdSlot(form,i,n){if(form==='col')return [((i%2)-0.5)*20,44+Math.floor(i
   if(form==='circle'){const a=i/Math.max(1,n)*6.283,R=Math.max(46,n*20/6.283);return [Math.sin(a)*R,-Math.cos(a)*R,a];}const W=Math.min(n,8),row=Math.floor(i/8),inRow=row===Math.floor((n-1)/8)?n-row*8:8;return [((i%8)-(inRow-1)/2)*20,44+row*22];}
 function qdAnchor(A,home){if(A.cmd==='hold'&&A.hx!=null)return [A.hx,A.hz,A.hry||0];if(A.cmd==='back')return [home.x,home.z+60,0];return [P.x,P.z,P.ry||0];}
 function qdShot(f,e){try{const T=THREE,g=new T.BufferGeometry().setFromPoints([new T.Vector3(f.x,(f._o.position.y||0)+26,f.z),new T.Vector3(e.x,(e.y||hAt(e.x,e.z))+14,e.z)]),l=new T.Line(g,new T.LineBasicMaterial({color:0xe8d8a8,transparent:true,opacity:0.9}));G.sc.add(l);QD.fx.push({o:l,t:G.t+0.18});}catch(er){}}
+// vũ khí và màu áo theo binh chủng (gắn một lần, đổi binh chủng / nhận ngựa thì gắn lại)
+function qdGear(f){try{const arm=qdArm(f),key=arm;if(!f._o||f._gear===key||!f._rig)return;const R=f._rig;if(f._wp)for(const o of f._wp)try{o.parent&&o.parent.remove(o);}catch(e){}f._wp=[];f._gear=key;
+    const hR=R.handR||R.armR,hL=R.handL||R.armL;if(!hR)return;const put=(id,hand)=>{let g=null;try{g=model(['tool',id]);}catch(e){}if(!g)return;g.traverse(o=>{if(o.isMesh)o.castShadow=false;});g.rotation.set(id==='spear'?Math.PI/2-0.35:Math.PI/2+0.25,0,0);g.position.set(0,-1.5,1.5);g.scale.setScalar(0.9);hand.add(g);f._wp.push(g);};
+    if(arm==='bow')put('bow',hL||hR);else put('spear',hR);
+    if(arm==='shield'&&hL){const T=THREE,sh=new T.Mesh(new T.CylinderGeometry(7.5,7.5,1.2,12),new T.MeshLambertMaterial({color:'#7a4a26'})),boss=new T.Mesh(new T.SphereGeometry(2,8,6),new T.MeshLambertMaterial({color:'#c9a24a'}));sh.rotation.set(Math.PI/2,0,0);boss.position.y=0.9;sh.add(boss);sh.position.set(-2.2,-2,2);hL.add(sh);f._wp.push(sh);}
+    /* màu áo: giáo đỏ đất, cung xanh rêu, khiên nâu sẫm (chỉ đổi khi áo là chất liệu riêng của người đó) */const top=R.top;if(top&&top.color&&!top._qdShared){if(!f._top0)f._top0=top.color.getHex();top.color.set({spear:'#a8442e',bow:'#4f7a3a',shield:'#5a4632'}[arm]);}}catch(e){}}
 function qdTick(L,dt){const A=qdS(),home=folkHome(L[0]),anc=qdAnchor(A,home),sn=Math.sin(anc[2]),cs=Math.cos(anc[2]);
   for(let i=QD.fx.length-1;i>=0;i--)if(G.t>QD.fx[i].t||G.t<QD.fx[i].t-1){try{G.sc.remove(QD.fx[i].o);QD.fx[i].o.geometry.dispose();QD.fx[i].o.material.dispose();}catch(e){}QD.fx.splice(i,1);}
   const foot=L.filter(f=>!qdHorse(f)).sort((a,b)=>QD.ORD[qdArm(a)]-QD.ORD[qdArm(b)]||(a.seed-b.seed)),cav=L.filter(f=>qdHorse(f)).sort((a,b)=>a.seed-b.seed);
   const width=A.form==='col'?40:A.form==='circle'?0:Math.min(foot.length,8)*20+30;
-  const place=(f,idx,isCav)=>{if(!f._o)folkSpawn(f);const arm=qdArm(f),hs=isCav?qdHorse(f):null;let lx,lb,face=anc[2];
+  const place=(f,idx,isCav)=>{if(!f._o)folkSpawn(f);qdGear(f);const arm=qdArm(f),hs=isCav?qdHorse(f):null;let lx,lb,face=anc[2];
     if(isCav){const side=idx%2?1:-1,k=Math.floor(idx/2);lx=side*(width/2+26+k*26);lb=44+k*8;}else{const s=qdSlot(A.form,idx,foot.length);lx=s[0];lb=s[1];if(s[2]!=null)face=anc[2]+s[2];}
     const ax=anc[0]+cs*lx-sn*lb,az=anc[1]-sn*lx-cs*lb;let tx=ax,tz=az,pose='idle',sp=hs?(hs.k==='elephant'?135:230):150;f._t=(f._t||0)-dt;
     const R=A.cmd==='charge'?540:A.cmd==='hold'?250:A.cmd==='back'?200:270,cx=A.cmd==='follow'||A.cmd==='charge'?P.x:ax,cz=A.cmd==='follow'||A.cmd==='charge'?P.z:az,t=danEnemy(cx,cz,R);
@@ -37,6 +43,7 @@ function qdTick(L,dt){const A=qdS(),home=folkHome(L[0]),anc=qdAnchor(A,home),sn=
   foot.forEach((f,i)=>{try{place(f,i,false);}catch(e){if(!QD.err){QD.err=1;console.warn('đạo quân',e);}}});cav.forEach((f,i)=>{try{place(f,i,true);}catch(e){if(!QD.err){QD.err=1;console.warn('đạo quân',e);}}});}
 {const _ft=folkTick;folkTick=function(dt){if(!S||!S.folk||!S.folk.length)return _ft.apply(this,arguments);const all=S.folk,sol=all.filter(f=>f.job==='soldier');
     /* ngựa đã cấp mà lính không còn là lính nữa (đổi việc, bỏ đi): trả ngựa */try{if(Array.isArray(S.mounts)&&(G.t-(QD.chk||-9)>3||G.t<(QD.chk||0))){QD.chk=G.t;for(const m of S.mounts)if(m.sol!=null&&!sol.some(f=>f.seed===m.sol))delete m.sol;}}catch(e){}
+    for(const f of all)if(f.job!=='soldier'&&f._gear){try{if(f._wp)for(const o of f._wp)o.parent&&o.parent.remove(o);f._wp=null;f._gear=null;if(f._top0!=null&&f._rig&&f._rig.top&&f._rig.top.color)f._rig.top.color.setHex(f._top0);}catch(e){}}
     if(!sol.length)return _ft.apply(this,arguments);S.folk=all.filter(f=>f.job!=='soldier');let r;try{r=_ft.apply(this,arguments);}finally{S.folk=all;}try{qdTick(sol,dt);}catch(e){if(!QD.err){QD.err=1;console.warn('đạo quân',e);}}return r;};}
 // ngựa đã cấp cho lính thì người chơi không cưỡi được
 if(typeof mtRide==='function'){const _mr=mtRide;mtRide=function(m){if(m&&m.sol!=null){uiToast('🐎 Con ngựa này đang cấp cho kỵ binh. Muốn cưỡi: mở Dân làng → Đạo quân → bớt một kỵ binh.','');return;}return _mr.apply(this,arguments);};}

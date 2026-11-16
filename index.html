@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261116042014">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261116044431">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -21796,11 +21796,17 @@ function qdSlot(form,i,n){if(form==='col')return [((i%2)-0.5)*20,44+Math.floor(i
   if(form==='circle'){const a=i/Math.max(1,n)*6.283,R=Math.max(46,n*20/6.283);return [Math.sin(a)*R,-Math.cos(a)*R,a];}const W=Math.min(n,8),row=Math.floor(i/8),inRow=row===Math.floor((n-1)/8)?n-row*8:8;return [((i%8)-(inRow-1)/2)*20,44+row*22];}
 function qdAnchor(A,home){if(A.cmd==='hold'&&A.hx!=null)return [A.hx,A.hz,A.hry||0];if(A.cmd==='back')return [home.x,home.z+60,0];return [P.x,P.z,P.ry||0];}
 function qdShot(f,e){try{const T=THREE,g=new T.BufferGeometry().setFromPoints([new T.Vector3(f.x,(f._o.position.y||0)+26,f.z),new T.Vector3(e.x,(e.y||hAt(e.x,e.z))+14,e.z)]),l=new T.Line(g,new T.LineBasicMaterial({color:0xe8d8a8,transparent:true,opacity:0.9}));G.sc.add(l);QD.fx.push({o:l,t:G.t+0.18});}catch(er){}}
+// vũ khí và màu áo theo binh chủng (gắn một lần, đổi binh chủng / nhận ngựa thì gắn lại)
+function qdGear(f){try{const arm=qdArm(f),key=arm;if(!f._o||f._gear===key||!f._rig)return;const R=f._rig;if(f._wp)for(const o of f._wp)try{o.parent&&o.parent.remove(o);}catch(e){}f._wp=[];f._gear=key;
+    const hR=R.handR||R.armR,hL=R.handL||R.armL;if(!hR)return;const put=(id,hand)=>{let g=null;try{g=model(['tool',id]);}catch(e){}if(!g)return;g.traverse(o=>{if(o.isMesh)o.castShadow=false;});g.rotation.set(id==='spear'?Math.PI/2-0.35:Math.PI/2+0.25,0,0);g.position.set(0,-1.5,1.5);g.scale.setScalar(0.9);hand.add(g);f._wp.push(g);};
+    if(arm==='bow')put('bow',hL||hR);else put('spear',hR);
+    if(arm==='shield'&&hL){const T=THREE,sh=new T.Mesh(new T.CylinderGeometry(7.5,7.5,1.2,12),new T.MeshLambertMaterial({color:'#7a4a26'})),boss=new T.Mesh(new T.SphereGeometry(2,8,6),new T.MeshLambertMaterial({color:'#c9a24a'}));sh.rotation.set(Math.PI/2,0,0);boss.position.y=0.9;sh.add(boss);sh.position.set(-2.2,-2,2);hL.add(sh);f._wp.push(sh);}
+    /* màu áo: giáo đỏ đất, cung xanh rêu, khiên nâu sẫm (chỉ đổi khi áo là chất liệu riêng của người đó) */const top=R.top;if(top&&top.color&&!top._qdShared){if(!f._top0)f._top0=top.color.getHex();top.color.set({spear:'#a8442e',bow:'#4f7a3a',shield:'#5a4632'}[arm]);}}catch(e){}}
 function qdTick(L,dt){const A=qdS(),home=folkHome(L[0]),anc=qdAnchor(A,home),sn=Math.sin(anc[2]),cs=Math.cos(anc[2]);
   for(let i=QD.fx.length-1;i>=0;i--)if(G.t>QD.fx[i].t||G.t<QD.fx[i].t-1){try{G.sc.remove(QD.fx[i].o);QD.fx[i].o.geometry.dispose();QD.fx[i].o.material.dispose();}catch(e){}QD.fx.splice(i,1);}
   const foot=L.filter(f=>!qdHorse(f)).sort((a,b)=>QD.ORD[qdArm(a)]-QD.ORD[qdArm(b)]||(a.seed-b.seed)),cav=L.filter(f=>qdHorse(f)).sort((a,b)=>a.seed-b.seed);
   const width=A.form==='col'?40:A.form==='circle'?0:Math.min(foot.length,8)*20+30;
-  const place=(f,idx,isCav)=>{if(!f._o)folkSpawn(f);const arm=qdArm(f),hs=isCav?qdHorse(f):null;let lx,lb,face=anc[2];
+  const place=(f,idx,isCav)=>{if(!f._o)folkSpawn(f);qdGear(f);const arm=qdArm(f),hs=isCav?qdHorse(f):null;let lx,lb,face=anc[2];
     if(isCav){const side=idx%2?1:-1,k=Math.floor(idx/2);lx=side*(width/2+26+k*26);lb=44+k*8;}else{const s=qdSlot(A.form,idx,foot.length);lx=s[0];lb=s[1];if(s[2]!=null)face=anc[2]+s[2];}
     const ax=anc[0]+cs*lx-sn*lb,az=anc[1]-sn*lx-cs*lb;let tx=ax,tz=az,pose='idle',sp=hs?(hs.k==='elephant'?135:230):150;f._t=(f._t||0)-dt;
     const R=A.cmd==='charge'?540:A.cmd==='hold'?250:A.cmd==='back'?200:270,cx=A.cmd==='follow'||A.cmd==='charge'?P.x:ax,cz=A.cmd==='follow'||A.cmd==='charge'?P.z:az,t=danEnemy(cx,cz,R);
@@ -21816,6 +21822,7 @@ function qdTick(L,dt){const A=qdS(),home=folkHome(L[0]),anc=qdAnchor(A,home),sn=
   foot.forEach((f,i)=>{try{place(f,i,false);}catch(e){if(!QD.err){QD.err=1;console.warn('đạo quân',e);}}});cav.forEach((f,i)=>{try{place(f,i,true);}catch(e){if(!QD.err){QD.err=1;console.warn('đạo quân',e);}}});}
 {const _ft=folkTick;folkTick=function(dt){if(!S||!S.folk||!S.folk.length)return _ft.apply(this,arguments);const all=S.folk,sol=all.filter(f=>f.job==='soldier');
     /* ngựa đã cấp mà lính không còn là lính nữa (đổi việc, bỏ đi): trả ngựa */try{if(Array.isArray(S.mounts)&&(G.t-(QD.chk||-9)>3||G.t<(QD.chk||0))){QD.chk=G.t;for(const m of S.mounts)if(m.sol!=null&&!sol.some(f=>f.seed===m.sol))delete m.sol;}}catch(e){}
+    for(const f of all)if(f.job!=='soldier'&&f._gear){try{if(f._wp)for(const o of f._wp)o.parent&&o.parent.remove(o);f._wp=null;f._gear=null;if(f._top0!=null&&f._rig&&f._rig.top&&f._rig.top.color)f._rig.top.color.setHex(f._top0);}catch(e){}}
     if(!sol.length)return _ft.apply(this,arguments);S.folk=all.filter(f=>f.job!=='soldier');let r;try{r=_ft.apply(this,arguments);}finally{S.folk=all;}try{qdTick(sol,dt);}catch(e){if(!QD.err){QD.err=1;console.warn('đạo quân',e);}}return r;};}
 // ngựa đã cấp cho lính thì người chơi không cưỡi được
 if(typeof mtRide==='function'){const _mr=mtRide;mtRide=function(m){if(m&&m.sol!=null){uiToast('🐎 Con ngựa này đang cấp cho kỵ binh. Muốn cưỡi: mở Dân làng → Đạo quân → bớt một kỵ binh.','');return;}return _mr.apply(this,arguments);};}
@@ -21886,6 +21893,45 @@ if(typeof QD==='object'){const _tk=qdTick;qdTick=function(L,dt){const r=_tk.appl
   const _dd=danDmg;danDmg=function(f){const v=_dd.apply(this,arguments);try{if(f&&f.job==='soldier'){const hs=qdHorse(f);if(hs&&hs.k==='elephant')return v*1.7;/* cộng với hệ số kỵ binh 1,5 thành ~2,5 lần */}}catch(e){}return v;};}
 if(typeof HD_L!=='undefined')HD_L.push({id:'voichien',ic:'🐘',t:'Voi rừng và tượng binh',w:()=>{try{return (G.animals||[]).some(a=>a.alive&&a.kind==='elephant'&&a.o&&a.o.visible&&Math.hypot(a.x-P.x,a.z-P.z)<700);}catch(e){return false;}},
   p:['<b>Voi rừng</b> hiền nếu không bị đánh, nhưng húc rất đau: đừng đánh khi chưa đủ lính.','Muốn <b>thuần voi</b>: bấm nút lom khom, mang chuối / bầu / củ, lại gần bấm <b>Hành động</b> cho ăn nhiều lần (lâu hơn thuần ngựa).','Voi đã thuần thì <b>cưỡi</b> được như ngựa, hoặc mở <b>Dân làng → Đạo quân → + Kỵ binh</b> để cấp cho lính làm <b>tượng binh</b>: đòn mạnh gấp 2,5 lần.']});
+/* ===================== NHÀ QUÂN SỰ CÓ CÔNG NĂNG + BẢNG XÂY XẾP LẠI THEO CÔNG NĂNG =====================
+   NHÀ QUÂN SỰ MỚI (Xây → Quy hoạch làng → Quân sự), dựng xong là có tác dụng:
+     · Trại lính (có sẵn)      : lính và người giữ cổng đánh mạnh hơn 20%.
+     · Kho vũ khí              : mọi lính, lính gác, người giữ cổng đánh mạnh thêm 15%.
+     · Trường bắn              : cung thủ bắn mạnh hơn 25%.
+     · Chuồng ngựa chiến       : kỵ binh và tượng binh đánh mạnh hơn 20%.
+     · Nhà chỉ huy             : cả đạo quân đánh mạnh thêm 10%; lính khiên che cho bạn tới 30% (thay vì 20%).
+     · Vọng gác (có sẵn)       : chòi canh + cổng cọc.
+   BẢNG XÂY: khung "Quy hoạch làng" mở sẵn và chia rõ: các NHÀ CÓ CÔNG NĂNG (Nhà chính, Quân sự, Sản xuất, Chăn nuôi, Làng nghề, Học hỏi) ở trên;
+     các kiểu nhà chỉ để ở, trang trí (không có tác dụng riêng) gom vào MỘT mục gập lại ở cuối. */
+{const house=(A,w,h,door)=>{for(let i=0;i<w;i++)for(let j=0;j<h;j++){A.F(i,j,'floor');A.R(i,j,'roof',0);}for(let i=0;i<w;i++){A.E(i,0,'n','wall');A.E(i,h-1,'s',i===door?'wallDoor':'wall');}for(let j=0;j<h;j++){A.E(0,j,'w','wall');A.E(w-1,j,'e',j===0?'wallWindow':'wall');}};
+ const N=[
+  {id:'qh_vukhi',g:'Quân sự',n:'Kho vũ khí',ic:'🗡️',fx:'Mọi lính, lính gác, người giữ cổng đánh mạnh thêm 15%',d:'Nhà 2×2 ô kín, hai giá vũ khí và kệ: nơi cất giáo, cung, khiên của cả làng.',key:'roof',fn:A=>{house(A,2,2,1);A.O(0,0,'weaponRack');A.O(1,0,'weaponRack');A.O(0,1,'shelf');}},
+  {id:'qh_truongban',g:'Quân sự',n:'Trường bắn',ic:'🎯',fx:'Cung thủ bắn mạnh hơn 25%',d:'Bãi tập 3×1 ô quây rào ba mặt, hai bia rơm và giá vũ khí.',key:'weaponRack',fn:A=>{A.O(0,0,'hayPile');A.O(2,0,'hayPile');A.O(1,0,'weaponRack');for(let i=0;i<3;i++)A.E(i,0,'n','fence');A.E(0,0,'w','fence');A.E(2,0,'e','fence');}},
+  {id:'qh_chuongngua',g:'Quân sự',n:'Chuồng ngựa chiến',ic:'🐎',fx:'Kỵ binh và tượng binh đánh mạnh hơn 20%',d:'Chuồng 3×1 ô mái lá, ba mặt vách, mặt trước để trống, có máng ăn và đống rơm.',key:'roof',fn:A=>{for(let i=0;i<3;i++){A.F(i,0,'floor');A.R(i,0,'roof',0);A.E(i,0,'n','wall');}A.E(0,0,'w','wall');A.E(2,0,'e','wall');A.O(0,0,'trough');A.O(2,0,'hayPile');}},
+  {id:'qh_chihuy',g:'Quân sự',n:'Nhà chỉ huy',ic:'🚩',fx:'Cả đạo quân đánh mạnh thêm 10% · lính khiên che cho bạn tới 30%',d:'Nhà 3×2 ô có mâm bàn việc quân, giá vũ khí, trống trận và cột cờ trước cửa.',key:'roof',fn:A=>{house(A,3,2,1);A.O(1,0,'lowTable');A.O(0,0,'weaponRack');A.O(2,0,'drum');A.O(1,2,'flagPole');}}].filter(q=>{try{const bp=bpMake(q.id,q.n,q.ic,0,q.d,q.fn);return b4BpParts(bp).every(p=>pieceDef(p[0]));}catch(e){return false;}});
+ for(const q of N){if(QH.some(x=>x.id===q.id))continue;q.bp=bpMake(q.id,q.n,q.ic,0,q.d,q.fn);QH.push(q);}}
+const QS={t:-9,c:{}};
+function qsHas(id){try{if(G.t-QS.t>2||G.t<QS.t){QS.t=G.t;QS.c={};}if(QS.c[id]==null)QS.c[id]=qhHas(id)?1:0;return QS.c[id];}catch(e){return 0;}}
+{const _dd=danDmg;danDmg=function(f){let v=_dd.apply(this,arguments);try{if(f&&(f.job==='soldier'||f.job==='guard'||f.job==='gate')){if(qsHas('qh_vukhi'))v*=1.15;if(f.job==='soldier'){if(qsHas('qh_chihuy'))v*=1.1;if(f.arm==='bow'&&qsHas('qh_truongban'))v*=1.25;if(typeof qdHorse==='function'&&qdHorse(f)&&qsHas('qh_chuongngua'))v*=1.2;}}}catch(e){}return v;};}
+if(typeof heroDef==='function'){const _hd=heroDef;heroDef=function(){const v=_hd.apply(this,arguments);try{if(typeof QD==='object'&&QD.shN>5&&qsHas('qh_chihuy'))return Math.min(0.8,v+Math.min(0.1,(QD.shN-5)*0.04));}catch(e){}return v;};}
+/* ---------- bảng Xây: nhà có công năng ở trên, kiểu nhà trang trí gom một chỗ ---------- */
+qhHtml=function(){const ORD=['Nhà chính','Quân sự','Sản xuất','Chăn nuôi','Làng nghề','Học hỏi'];
+  const card=q=>{const parts=qhParts(q),cost=b4BpCost(parts),miss=b4BpMissing(parts),have=qhCount(q.id),ok=!miss.length,pay=canPay(cost);
+    return `<div class="qh-c${have?' has':''}"><span class="qh-ic">${q.ic}</span><div class="qh-m"><b>${esc(q.n)}${have?` <em>đã có ${have}</em>`:''}</b><span class="qh-fx">${esc(q.fx)}</span><span class="small muted">${esc(q.d)}</span>
+      <div class="chips">${Object.entries(cost).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([k,v])=>`<span class="chip${haveCount(k)<v?' lack':''}">${icon(k)}${Math.min(haveCount(k),v)}/${v}</span>`).join('')}</div>
+      ${ok?'':`<span class="small warn">Chưa biết làm: ${esc(miss.slice(0,4).map(k=>pieceDef(k)?pieceDef(k).n:k).join(', '))}</span>`}
+      <div class="row"><button class="btn sm${ok?'':' ghost'}" data-a="qhgo" data-k="${q.id}">📐 Cắm mốc</button>${ok?`<button class="btn sm aq-need" data-a="qhauto" data-k="${q.id}">🤖 Tự dựng</button>`:''}${ok&&!pay?`<button class="btn sm aq-need" data-a="qhget" data-k="${q.id}">🤖 Gom vật liệu</button>`:''}</div></div></div>`;};
+  let h='';for(const g of ORD){const L=QH.filter(q=>q.g===g);if(!L.length)continue;const done=L.filter(q=>qhCount(q.id)>0).length;const op=G.qhG&&G.qhG[g];h+=`<details class="qh-grp" data-g="${esc(g)}"${op?' open':''}><summary><b>${esc(g)}</b> <small>${done}/${L.length} đã dựng</small><span class="small muted">${esc(L.map(q=>q.n.replace(/ · cấp \d/,'')).slice(0,6).join(' · '))}</span></summary><div class="qh-list">${L.map(card).join('')}</div></details>`;}
+  const deco=QH.filter(q=>!ORD.includes(q.g));
+  return `<details class="qh-box"${G.qhOpen===0?'':' open'}><summary><b>🏘️ Nhà có công năng: dựng xong là có tác dụng</b><span class="small muted">Nhà chính, quân sự, sản xuất, chăn nuôi, làng nghề, học hỏi. Chọn nhà → cắm mốc cả căn → làm dần từng phần.</span></summary><div class="qh-grps">${h}</div>
+    ${deco.length?`<details class="qh-deco"${G.qhDeco===1?' open':''}><summary><b>🎨 Kiểu nhà khác: chỉ để ở, trang trí (${deco.length} kiểu)</b> <span class="small muted">không có tác dụng riêng</span></summary><div class="qh-list">${deco.map(card).join('')}</div></details>`:''}</details>
+   <div class="qh-sub">🧩 Bộ phận rời <span class="small muted">(sàn, vách, mái, đồ dùng…: tự thiết kế hoặc nới thêm. Món chỉ để trang trí nằm ở thẻ «Trang trí».)</span></div>`;};
+document.addEventListener('toggle',e=>{const t=e.target;if(!t||!t.classList)return;if(t.classList.contains('qh-deco'))G.qhDeco=t.open?1:0;else if(t.classList.contains('qh-grp')){G.qhG=G.qhG||{};G.qhG[t.dataset.g]=t.open?1:0;}},true);
+{const st=document.createElement('style');st.textContent=`.qh-g small{font-weight:600;letter-spacing:0;text-transform:none;color:#b8e07a;margin-left:6px}.qh-grps{display:flex;flex-direction:column;gap:6px;padding:0 10px 10px}.qh-grp{border-radius:12px;border:1px solid rgba(242,197,90,.35);background:rgba(20,13,8,.45)}.qh-grp>summary{cursor:pointer;list-style:none;padding:9px 11px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px}.qh-grp>summary::-webkit-details-marker{display:none}.qh-grp>summary b{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#f2c55a}.qh-grp>summary b:before{content:'▸ '}.qh-grp[open]>summary b:before{content:'▾ '}.qh-grp>summary small{color:#b8e07a;font-weight:700;font-size:12px}.qh-grp>summary .muted{flex-basis:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qh-grp .qh-list{padding:0 8px 8px}
+.qh-box .qh-grp>summary b:after{content:none}.qh-c .row .btn{flex:1 1 auto}@media (max-width:520px){.qh-c{padding:8px;gap:8px}.qh-ic{width:38px;height:38px;font-size:21px}.qh-m>.small.muted{display:none}.qh-c .row .btn{min-height:36px;padding:6px 8px;font-size:12.5px}}
+.qh-deco{margin:0 10px 10px;border-radius:12px;border:1px dashed rgba(255,255,255,.22);padding:8px 10px}.qh-deco summary{cursor:pointer;list-style:none}.qh-deco summary::-webkit-details-marker{display:none}.qh-deco summary b{font-size:13.5px;color:#e8d8b8}.qh-deco summary b:after{content:' ▸'}.qh-deco[open] summary b:after{content:' ▾'}.qh-deco .qh-list{padding:8px 0 0}`;document.head.appendChild(st);}
+if(typeof HD_L!=='undefined')HD_L.push({id:'quansu',ic:'🗡️',t:'Nhà quân sự',w:()=>{try{return G.panel==='build'&&typeof qdSol==='function'&&qdSol().length>0;}catch(e){return false;}},
+  p:['Trong <b>Xây</b>, khung <b>Nhà có công năng</b> → mục <b>Quân sự</b> có đủ nhà cho đạo quân: <b>Trại lính</b>, <b>Kho vũ khí</b>, <b>Trường bắn</b>, <b>Chuồng ngựa chiến</b>, <b>Nhà chỉ huy</b>, <b>Vọng gác</b>.','Mỗi nhà dựng xong là có tác dụng ngay (ghi bằng chữ xanh trên thẻ): lính đánh mạnh hơn, cung thủ bắn mạnh hơn, kỵ binh và tượng binh mạnh hơn…','Các kiểu nhà chỉ để ở, trang trí nằm gọn trong mục <b>Kiểu nhà khác</b> ở cuối khung.']});
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.

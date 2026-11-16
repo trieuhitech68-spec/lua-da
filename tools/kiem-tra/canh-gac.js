@@ -11,7 +11,7 @@ const r=await p.evaluate(()=>{const o={};let n=9800;const mk=(k,dx,dz)=>{const b
   S.folk=[0,1,2,3,4,5].map(i=>F('guard',i)).concat([6,7,8].map(i=>F('soldier',i)),[F('wood',9),F('gather',10)]);for(const f of S.folk)try{folkSpawn(f)}catch(e){o.e=String(e)}
   const run=s=>{for(let i=0;i<60*s;i++){G.t+=1/60;folkTick(1/60);}};const minD=L=>{let m=1e9;for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){if(Math.abs(L[i]._o.position.y-L[j]._o.position.y)>30)continue;m=Math.min(m,Math.hypot(L[i].x-L[j].x,L[i].z-L[j].z));}return +m.toFixed(1);};
   run(90);const gd=S.folk.filter(f=>f.job==='guard'),so=S.folk.filter(f=>f.job==='soldier');
-  o.onTower=gd.filter(f=>Math.hypot(f.x-tw.x,f.z-tw.z)<8&&f._o.position.y>tw.y+50).length;o.minGuard=minD(gd);o.minSoldier=minD(so);o.minAll=minD(S.folk);
+  o.onTower=gd.filter(f=>Math.hypot(f.x-tw.x,f.z-tw.z)<8&&f._o.position.y>tw.y+50).length;o.minGuard=minD(gd);o.minSoldier=minD(so);o.minAll=minD(S.folk.filter(f=>f.job!=='soldier'));/* lính theo đội hình riêng, đi ngang qua người làng là bình thường */
   o.spread=+Math.max(...gd.map(f=>Math.hypot(f.x-bed.x,f.z-bed.z))).toFixed(0);
   // góc quanh nhà: lính dưới đất phải toả ít nhất 3 hướng khác nhau
   o.dirs=new Set(gd.filter(f=>f._o.position.y<tw.y+50).map(f=>Math.round(Math.atan2(f.x-bed.x,f.z-bed.z)/1.2))).size;
