@@ -5,7 +5,7 @@ await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-c');loc
 await p.goto('file://'+require('path').resolve(__dirname,'../../index.html'));await p.waitForTimeout(5000);
 const click=async t=>{await p.evaluate(t=>{const b=[...document.querySelectorAll('button')].filter(b=>b.offsetParent).find(b=>b.innerText.includes(t));b&&b.click()},t);await p.waitForTimeout(1500)};
 await click('Tạo nhân vật mới');await click('Bắt đầu');await p.waitForFunction(()=>typeof G==='object'&&G.on&&G.animals&&G.animals.length&&P.model,null,{timeout:240000});await p.waitForTimeout(9000);
-const run=async(f)=>{const r=await p.evaluate(f);await p.waitForTimeout(1700);return r;};
+const run=async(f)=>{const r=await p.evaluate(f);await p.waitForTimeout(1700);/* máy chủ trả lời chậm thì chờ thêm, không đọc kết quả lúc còn đang đập */try{await p.waitForFunction(()=>typeof DPU==='undefined'||!DPU.busy,null,{timeout:20000});}catch(e){}await p.waitForTimeout(150);return r;};
 const o={};
 o.a=await run(()=>{try{const y0=hAt(P.x+40,P.z);const b={id:9700,k:'workbench',x:P.x+40,y:y0,z:P.z,r:0,lv:0};S.builds.push(b);structAdd(b,true);give({stone:60,flint:30,hide:20,fiber:40,bone:10});give({bronze:20,iron:10,charcoal:12});S.wear=Object.assign({},S.wear,{head:'leafHat',body:'barkTunic'});equip('axe');
    h4Open&&h4Open();return 'opened'}catch(e){return String(e)}});
