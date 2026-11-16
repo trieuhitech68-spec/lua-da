@@ -18,5 +18,5 @@ const r=await p.evaluate(()=>{const o={};let n=9800;const mk=(k,dx,dz)=>{const b
   const f1=mk('farm',100,60),f2=mk('farm',140,60);S.crops[f1.id]={k:'grain',p:1};S.store[bk.id][0]={id:'seedGrain',n:2};const keep=S.folk;S.folk=[F('farm',20)];for(let i=0;i<60*150;i++){G.t+=1/60;folkTick(1/60);}
   o.grain=vthHave([S.store[bk.id]],'grain');o.sown=!!S.crops[f2.id]&&!!S.crops[f1.id];S.folk=keep;uiOpen('dan',{});return o;});
 console.log(JSON.stringify(r));if(SHOT){await p.waitForTimeout(800);await p.screenshot({path:SHOT});}
-const ok=r.tiles===12&&r.jobs.split(',').length===12&&r.people===18&&!r.overflowX&&r.smallBtn===0&&r.plus.join()==='1,1,2'&&r.minus===3&&r.who===13&&r.back&&r.grain>=3&&r.sown&&r.gridH<560&&!logs.length;
+const ok=r.tiles===13&&r.jobs.split(',').length===13&&r.people===18&&!r.overflowX&&r.smallBtn===0&&r.plus.join()==='1,1,2'&&r.minus===3&&r.who===14&&r.back&&r.grain>=3&&r.sown&&r.gridH<560&&!logs.length;
 console.log(ok?'DL-DAT':'DL-HONG '+logs.join('|'));await b.close();})();

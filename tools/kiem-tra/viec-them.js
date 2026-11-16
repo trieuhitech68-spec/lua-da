@@ -33,9 +33,11 @@ const r=await p.evaluate(()=>{const o={};let n=9800;const mk=(k,dx,dz,prog)=>{co
   S.folk=[F('farm',8)];run(60);o.padSow=PF.st;PF.st=2;run(60);o.padPlant=PF.st;PF.st=4;run(90);o.padReap=PF.st===0&&vthHave([S.store[bk.id]],'riceSheaf');SG.grow=_g;
   o.log=Object.keys(vthLog().m).length>0&&(vthLog().m.riceSheaf||0)>=4;S.folk=[F('cook',9)];S.fuel[fire.id]=1.5;folkHourly(1);o.fuel=S.fuel[fire.id]>=5&&vthHave([S.store[bk.id]],'wood')===2;
   uiOpen('dan',{});o.logHtml=/mang về kho/.test(document.querySelector('#panel').innerText);uiClose();
+  // 6c) thợ thủ công: có bàn chế tác + 22 sợi cỏ trong giỏ → bện dây thừng, luôn chừa lại ít nhất 6 sợi
+  S.store[bk.id].fill(null);S.store[bk.id][0]={id:'fiber',n:22};S.known['r:rope']=1;mk('workbench',90,-40);S.folk=[F('craft',14)];run(260);o.rope=vthHave([S.store[bk.id]],'rope');o.fiberLeft=vthHave([S.store[bk.id]],'fiber');
   // 7) đêm về ngủ
   S.hour=23;S.folk=[F('build',6),F('hunt',7)];S.folk.forEach(f=>{f.x+=200;});run(30);o.sleep=S.folk.every(f=>f._st==='sleep');S.hour=10;
-  o.jobs=['build','herd','hunt','fish'].every(j=>JOBN[j]);o.nvn=nvnS().q.length;return o;});
+  o.jobs=['build','herd','hunt','fish','craft','farm'].every(j=>JOBN[j]);o.nvn=nvnS().q.length;return o;});
 console.log(JSON.stringify(r));
-const ok=r.afterTwo.tame>0.5&&r.afterTwo.hp&&r.afterTwo.food===0&&/Cần|Cho ăn/.test(r.verb)&&r.noFood.hp&&r.noFood.act&&r.pet&&r.gateFar.every(d=>d>60)&&r.gateApart>40&&r.built[0]&&r.built[1]&&r.matLeft===0&&r.repNoMat&&r.repaired&&r.repLeft===0&&r.fed&&r.eggs===3&&r.tank===0&&r.meat>=1&&(!r.bank||r.fish>=3)&&r.padSow===1&&r.padPlant===3&&r.padReap>=4&&r.log&&r.fuel&&r.logHtml&&r.sleep&&r.jobs&&r.nvn===5&&!logs.length;
+const ok=r.afterTwo.tame>0.5&&r.afterTwo.hp&&r.afterTwo.food===0&&/Cần|Cho ăn/.test(r.verb)&&r.noFood.hp&&r.noFood.act&&r.pet&&r.gateFar.every(d=>d>60)&&r.gateApart>40&&r.built[0]&&r.built[1]&&r.matLeft===0&&r.repNoMat&&r.repaired&&r.repLeft===0&&r.fed&&r.eggs===3&&r.tank===0&&r.meat>=1&&(!r.bank||r.fish>=3)&&r.padSow===1&&r.padPlant===3&&r.padReap>=4&&r.log&&r.fuel&&r.logHtml&&r.rope>=2&&r.fiberLeft>=6&&r.fiberLeft<=14&&r.sleep&&r.jobs&&r.nvn===5&&!logs.length;
 console.log(ok?'VT-DAT':'VT-HONG '+logs.join('|'));await b.close();})();

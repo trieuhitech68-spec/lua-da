@@ -4,11 +4,12 @@
      · CHĂN NUÔI: lấy rau, quả, củ, hạt trong kho cho vật nuôi đói ăn; nhặt trứng ở chuồng gà, chuồng vịt; vớt cá ở ao; mang về kho.
      · ĐI SĂN   : rình thú hiền (thỏ, gà rừng, nai, dê núi, khỉ) quanh nhà, hạ rồi mang thịt, da, xương, lông về kho. Không đụng con đang được thuần.
      · LÀM RUỘNG: luống đất chín thì gặt mang về kho; luống trống thì lấy hạt giống trong kho ra gieo kể cả ruộng lúa nước: khơi nước, gieo mạ, cấy, làm cỏ, gặt.
+     · THỢ THỦ CÔNG: ngồi ở bàn chế tác làm dây thừng, ván, mũi tên, giáo, đuốc, băng, da thuộc, gạch, than từ vật liệu trong kho làng (chừa lại 6 đơn vị mỗi loại nguyên liệu, mỗi món tối đa 24 cái trong kho).
      · ĐÁNH CÁ  : ra bờ nước gần nhà câu cá, đủ 3 con thì mang về kho.
    Đêm về chỗ ngủ như mọi người. Không có việc (hết công trường, không có nước…) thì ngồi nghỉ gần nhà.
    THUẦN THÚ: trước, nút ghi "Cho ăn" nhưng nếu ô đang cầm không phải thức ăn (hoặc vừa cho ăn hết ô đó) thì bấm lần nữa lại thành ĐÁNH con thú.
      Giờ đang lom khom hoặc con thú đang thuần dở: bấm Hành động luôn là cho ăn (lấy thức ăn ở bất kỳ ô nào trong túi); hết thức ăn thì báo, không đánh. */
-const VTH={J:{farm:'Làm ruộng',build:'Thợ xây',herd:'Chăn nuôi',hunt:'Đi săn',fish:'Đánh cá'},PREY:/^(rabbit|junglefowl|deer|goat|monkey)$/};
+const VTH={J:{farm:'Làm ruộng',build:'Thợ xây',craft:'Thợ thủ công',herd:'Chăn nuôi',hunt:'Đi săn',fish:'Đánh cá'},MAKE:['rope','plank','arrow','spear','torch','bandage','leather','brick','charcoal'],KEEP:6,MAX:24,PREY:/^(rabbit|junglefowl|deer|goat|monkey)$/};
 Object.assign(JOBN,VTH.J);
 {const _as=actStart;actStart=function(t){try{if(t&&t.type==='animal'&&t.a&&t.a.alive&&!t.a._h3down&&!G.work&&TAME[t.a.kind]&&!t.a.boss){const a=t.a,doing=a.tame>0&&a.tame<0.99;
       if((G.sneak||doing)&&!a.angry){if(tameFood(a.kind)){tameFeed(a);return;}if(doing){uiToast('Hết thức ăn nó thích rồi: cần '+TAME[a.kind].food.filter(f=>ITEMS[f]).slice(0,3).map(f=>ITEMS[f].n.toLowerCase()).join(' / ')+'. (Không đánh con đang thuần dở.)','bad');sfx('no');return;}}}}catch(e){}return _as.apply(this,arguments);};}
@@ -59,6 +60,12 @@ function vthTick(f,dt){if(!f._o)folkSpawn(f);if(!f._bag)f._bag={};const home=fol
           else if(g.k==='sow'&&b&&!c&&vthTake(vthStores(home),g.id,1)){S.crops[b.id]={k:ITEMS[g.id].crop,p:0};cropShow(b);if(typeof danXp==='function')danXp(f,1);save();}
           else if(g.k==='pad'&&b&&b.k==='paddy'){const op=vthPadOp(b,vthStores(home)),F=l4Pad(b);if(op===g.op){if(op==='water')F.w=1;else if(op==='sow'){if(vthTake(vthStores(home),'seedRice',2)){F.st=1;F.p=0;}}else if(op==='plant'){F.st=3;F.p=0;F.weed=0;}else if(op==='weed')F.weed=0;else if(op==='reap'){F.st=0;F.p=0;F.weed=0;f._bag.riceSheaf=(f._bag.riceSheaf||0)+4;f._bag.seedRice=(f._bag.seedRice||0)+1;V.back=1;}try{l4PadShow(b);}catch(e){}if(typeof danXp==='function')danXp(f,1);save();}}
           V.go=null;}}}}
+  else if(f.job==='craft'){/* thợ thủ công: ngồi ở bàn chế tác (không có thì gần nhà), cứ ~35 giây làm một món từ vật liệu trong kho làng.
+       Chỉ làm món đã biết công thức, kho còn dưới 24 cái, và luôn chừa lại 6 đơn vị mỗi loại nguyên liệu; món cần trạm (bàn chế tác, khung thuộc da, lò nung, bếp) thì phải có trạm đó gần nhà. */
+    f._st='work';if(!V.wb||G.t-V.wbT>10||G.t<V.wbT){V.wbT=G.t;V.wb=S.builds.find(b=>b.k==='workbench'&&b.prog==null&&!b.remote&&Math.hypot(b.x-home.x,b.z-home.z)<700)||home;}const wb=V.wb;tx=wb.x+16;tz=wb.z+6;
+    if(near2(tx,tz,10)){tx=f.x;tz=f.z;pose='chop';f._ry=Math.atan2(wb.x-f.x,wb.z-f.z);if(V.mk==null)V.mk=G.t+30+Math.random()*10;else if(G.t>V.mk){V.mk=null;const L=vthStores(home),has=st=>!st||S.builds.some(b=>b.prog==null&&!b.remote&&pieceDef(b.k)&&pieceDef(b.k).st===st&&Math.hypot(b.x-home.x,b.z-home.z)<700&&(!pieceDef(b.k).fuel||fireLit(b)));let made=null;
+        for(const id of VTH.MAKE){const r=RECIPES.find(x=>x.id===id);if(!r||!S.known['r:'+id]||!has(r.st))continue;const out=Object.keys(r.out)[0];if(vthHave(L,out)>=VTH.MAX)continue;let ok=true;for(const k in r.in)if(vthHave(L,k)<r.in[k]+VTH.KEEP)ok=false;if(!ok)continue;for(const k in r.in)vthTake(L,k,r.in[k]);const st=storeNear(f.x,f.z);if(st){slotsAdd(S.store[st.id],out,r.out[out]);made=out;}break;}
+        if(made){try{puff(f.x,hAt(f.x,f.z)+14,f.z,'#cdbb9a',3);}catch(e){}if(typeof danXp==='function')danXp(f,1);save();}else rest(20);}}}
   else if(f.job==='fish'){f._st='work';if(!V.bk||G.t-V.bkT>60||G.t<V.bkT){V.bk=vthBank(home)||0;V.bkT=G.t;}const k=V.bk;if(!k){rest(15);if(!V.told||G.t-V.told>300){V.told=G.t;uiToast(`🎣 ${f.n}: gần nhà không có sông, hồ để đánh cá.`,'');}}
     else{tx=k.x;tz=k.z;if(near2(tx,tz,8)){tx=f.x;tz=f.z;pose='gather';f._ry=Math.atan2(k.wx-f.x,k.wz-f.z);if(V.fT==null)V.fT=G.t+14+Math.random()*8;else if(G.t>V.fT){V.fT=null;f._bag.fish=(f._bag.fish||0)+1;try{puff(k.wx,2,k.wz,'#bfe3ff',4);}catch(e){}if(bagN()>=3)V.back=1;}}}}
   f._gx=tx;f._gz=tz;const dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);if(d>4&&pose!=='sleep'){f.x+=dx/d*Math.min(d,sp*dt);f.z+=dz/d*Math.min(d,sp*dt);f._ry=Math.atan2(dx,dz);pose='walk';f._g=(f._g||0)+dt*1.4;}
