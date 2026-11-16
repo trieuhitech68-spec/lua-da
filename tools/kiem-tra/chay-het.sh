@@ -96,4 +96,6 @@ echo "32. Voi: có voi rừng, thuần được, cưỡi ngồi cao trên lưng,
 OUT=$(timeout 400 node voi-chien.js 2>&1); echo "$OUT" | grep -q "^VOI-DAT" && ok "voi rừng, tượng binh" || bad "voi: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-700)"
 echo "33. Bảng Chế tạo xếp gọn: mục Làm được ngay + mỗi nhóm một mục gập, không mất công thức, lọc / tìm thì về danh sách phẳng, nút Làm vẫn chạy"
 OUT=$(timeout 400 node che-tao-xep.js 2>&1); echo "$OUT" | grep -q "^CTX-DAT" && ok "bảng chế tạo xếp gọn" || bad "bảng chế tạo: $(echo "$OUT" | grep "^{\|CTX" | tail -2 | tr '\n' ';' | cut -c1-900)"
+echo "34. Bảng Xây, bộ phận rời xếp theo công năng: 4 thẻ lớn, mục Có công năng chia theo việc, cộng các thẻ đủ 188 món, tìm kiếm và bấm đặt vẫn chạy"
+OUT=$(timeout 400 node xay-xep.js 2>&1); echo "$OUT" | grep -q "^XX-DAT" && ok "bảng xây xếp theo công năng" || bad "bảng xây: $(echo "$OUT" | grep "^{\|XX" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
