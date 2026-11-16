@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261116032749">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261116034718">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -287,6 +287,24 @@ try{const _f=window.fetch;if(_f)window.fetch=function(u){let p='';try{p=String(t
 try{new PerformanceObserver(l=>{for(const e of l.getEntries()){if(e.duration<800)continue;const recent=BK.log.length&&Date.now()-BK.log[BK.log.length-1][0]<e.duration+1500;if(recent)continue;const n=BK.net&&e.startTime-BK.net.t<400&&e.startTime-BK.net.t>-50?'xử lý sau khi tải '+BK.net.p:'việc khác của trình duyệt (dọn bộ nhớ hoặc xử lý dữ liệu tải về)';bkSay(e.duration,n);}}).observe({entryTypes:['longtask']});}catch(e){}
 try{let lt=0;const tick=now=>{requestAnimationFrame(tick);try{if(lt&&now-lt>1200&&!document.hidden&&typeof G!=='undefined'&&G.on&&!G.paused){const gap=now-lt;setTimeout(()=>{const recent=BK.log.length&&Date.now()-BK.log[BK.log.length-1][0]<2500;if(!recent)bkSay(gap,'không có việc nào của game chạy lâu: card hình hoặc trình duyệt bị treo');},300);}}catch(e){}lt=now;};requestAnimationFrame(tick);document.addEventListener('visibilitychange',()=>{lt=0;});}catch(e){}
 setTimeout(function w(){try{if(typeof loop==='function'&&!loop.__bk){const _l=loop;loop=function(){const t0=performance.now();try{return _l.apply(this,arguments);}finally{const d=performance.now()-t0;if(d>400)bkSay(d,'vòng chạy chính của game (tính toán + vẽ)');}};loop.__bk=1;return;}}catch(e){}setTimeout(w,3000);},3000);
+/* ===================== KHÔNG GHI BỘ NHỚ TRÌNH DUYỆT KIỂU CHẶN TRONG LÚC CHƠI =====================
+   Bộ bắt cú đứng hình chỉ ra: việc tự lưu định kỳ giữ máy 1,5 giây. Trên máy người chơi, mỗi lần ghi localStorage (kiểu ghi CHẶN: trang phải đứng chờ)
+   mất cả giây dù dữ liệu chỉ vài chục KB; game lại ghi kiểu đó ở nhiều chỗ (bản lưu khi ghi nền không dùng được, số bản đồng bộ, nấc đồ hoạ…).
+   Giờ: trong lúc đang chơi và trang đang hiện, MỌI lần ghi localStorage chỉ ghi vào bộ nhớ tạm (đọc lại vẫn thấy ngay), kèm một bản ghi nền vào IndexedDB phòng sập;
+   ghi thật xuống localStorage khi rời trang, chuyển ứng dụng, ẩn trang hoặc thoát ra màn hình chính. Mở lại mà còn bản tạm chưa ghi thì tự chép sang. */
+const LSB={pend:new Map(),hold:0,db:null,t:0};
+try{(function(){const SP=Storage.prototype,_set=SP.setItem,_get=SP.getItem,_rem=SP.removeItem;let LS=null;try{LS=window.localStorage;}catch(e){}if(!LS)return;
+  const playing=()=>{try{return !LSB.hold&&typeof G!=='undefined'&&G&&G.on&&!document.hidden;}catch(e){return false;}};
+  const mirror=()=>{if(!LSB.db||LSB.mt)return;LSB.mt=setTimeout(()=>{LSB.mt=null;try{const o={};LSB.pend.forEach((v,k)=>{o[k]=v;});LSB.db.transaction('p','readwrite').objectStore('p').put({o,ts:Date.now()},'pend');}catch(e){}},400);};
+  SP.setItem=function(k,v){if(this===LS&&playing()){LSB.pend.set(String(k),String(v));mirror();return;}if(this===LS&&LSB.pend.size)LSB.pend.delete(String(k));return _set.apply(this,arguments);};
+  SP.getItem=function(k){if(this===LS&&LSB.pend.size){const key=String(k);if(LSB.pend.has(key))return LSB.pend.get(key);}return _get.apply(this,arguments);};
+  SP.removeItem=function(k){if(this===LS&&playing()){LSB.pend.set(String(k),null);mirror();return;}if(this===LS&&LSB.pend.size)LSB.pend.delete(String(k));return _rem.apply(this,arguments);};
+  LSB.flush=function(){if(!LSB.pend.size)return 0;LSB.hold++;let n=0;try{const E=[...LSB.pend];LSB.pend.clear();/* bản lưu nhân vật ghi trước tiên */E.sort((a,b)=>(/lua-da-tay-trang/.test(b[0])?1:0)-(/lua-da-tay-trang/.test(a[0])?1:0));for(const [k,v] of E){try{if(v===null)_rem.call(LS,k);else _set.call(LS,k,v);n++;}catch(e){}}try{if(LSB.db)LSB.db.transaction('p','readwrite').objectStore('p').delete('pend');}catch(e){}}finally{LSB.hold--;}return n;};
+  const out=()=>{try{LSB.flush();}catch(e){}};addEventListener('pagehide',out,true);addEventListener('beforeunload',out,true);document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible')out();},true);
+  setInterval(()=>{try{if(LSB.pend.size&&!(typeof G!=='undefined'&&G&&G.on))LSB.flush();}catch(e){}},1500);
+  // bản ghi nền phòng sập: mở lại trang mà còn bản tạm chưa kịp ghi thật thì chép sang (chỉ khi chưa vào game)
+  try{if(window.indexedDB){const rq=indexedDB.open('lua-da-tam',1);rq.onupgradeneeded=()=>{try{rq.result.createObjectStore('p');}catch(e){}};rq.onsuccess=()=>{LSB.db=rq.result;try{const g=LSB.db.transaction('p','readonly').objectStore('p').get('pend');g.onsuccess=()=>{try{const r=g.result;if(r&&r.o&&!(typeof G!=='undefined'&&G&&G.on)&&!LSB.pend.size){for(const k in r.o){/* bản lưu nhân vật đã có đường khôi phục riêng (so giờ ghi): ở đây chỉ chép các mục nhỏ */if(/lua-da-tay-trang/.test(k))continue;try{if(r.o[k]===null)_rem.call(LS,k);else _set.call(LS,k,r.o[k]);}catch(e){}}LSB.db.transaction('p','readwrite').objectStore('p').delete('pend');}}catch(e){}};}catch(e){}};rq.onerror=()=>{};}}catch(e){}
+})();}catch(e){}
 /* ===================== LÀM MỚI DỮ LIỆU (đợt 11/2026) =====================
    Sau đợt nâng cấp lớn, mọi người chơi lại từ đầu: bản lưu nhân vật cũ trên máy bị xoá MỘT LẦN khi mở bản này (cài đặt, email đăng nhập giữ nguyên).
    Dữ liệu trên máy chủ xoá bằng supabase_reset_2026_11.sql. Muốn làm mới lần nữa: đổi LD_RESET. */
@@ -21818,9 +21836,9 @@ const LTH2={t:0,pend:0,timer:null,GAP:45000,req:0,by:{},last:null};
 function lth2Lean(){try{if(typeof curSlot!=='function'||typeof ACC==='undefined')return false;const id=curSlot();if(!id||!S||!G.on||ACC.stop||G.ldLeaving===2)return false;
     S.p.x=+P.x.toFixed(1);S.p.z=+P.z.toFixed(1);S.p.ry=+P.ry.toFixed(2);try{if(G.hoIn&&typeof hoS==='function')hoS().out=Date.now();}catch(e){}
     const t0=performance.now(),raw=JSON.stringify(S,(k,v)=>k&&k[0]==='_'?undefined:v),t1=performance.now();let nen=0;if(lidbPut(SKEY+'#'+id,{raw,ts:Date.now()})){nen=1;LTH2.raw=raw;LTH2.rawId=id;}else localStorage.setItem(SKEY+'#'+id,raw);const t2=performance.now();
-    LTH2.pend=0;if(LTH2.timer){clearTimeout(LTH2.timer);LTH2.timer=null;}LTH2.t=t2;LTH2.last={ms:Math.round(t2-t0),goi:Math.round(t1-t0),dia:Math.round(t2-t1),gon:1,nen,at:Date.now()};LTH2.plain=1;
+    LTH2.pend=0;if(LTH2.timer){clearTimeout(LTH2.timer);LTH2.timer=null;}LTH2.t=t2;LTH2.last={ms:Math.round(t2-t0),goi:Math.round(t1-t0),dia:Math.round(t2-t1),gon:1,nen,at:Date.now()};LTH2.plain=1;try{if(t2-t0>200&&typeof bkSay==='function')bkSay(t2-t0,'tự lưu: đóng gói '+Math.round(t1-t0)+' ms ('+Math.round(raw.length/1024)+' KB), ghi '+Math.round(t2-t1)+' ms'+(nen?'':' (không ghi nền được)'));}catch(e){}
     if(ACC.db&&Date.now()-ACC.lastPush>60000)try{accPush(id);}catch(e){}return true;}catch(e){return false;}}
-function lth2Fire(){LTH2.timer=null;if(!LTH2.pend)return;try{const moving=typeof P!=='undefined'&&typeof G!=='undefined'&&G.on&&!G.panel&&!G.work&&!G.sit&&!G.sleeping&&(P.speed||0)>8;if(moving&&performance.now()-LTH2.t<LTH2.GAP+40000){LTH2.timer=setTimeout(lth2Fire,700);return;}}catch(e){}try{if(!lth2Lean())saveNow();}catch(e){}}
+function lth2Fire(){LTH2.timer=null;if(!LTH2.pend)return;try{const moving=typeof P!=='undefined'&&typeof G!=='undefined'&&G.on&&!G.panel&&!G.work&&!G.sit&&!G.sleeping&&(P.speed||0)>8;if(moving&&performance.now()-LTH2.t<LTH2.GAP+40000){LTH2.timer=setTimeout(lth2Fire,700);return;}}catch(e){}try{if(!lth2Lean())saveNow();/* saveNow lúc đang chơi giờ cũng chỉ ghi vào bộ nhớ tạm (xem loi.js), không còn chặn */}catch(e){}}
 if(typeof accPush==='function'){const _ap=accPush;accPush=function(){try{if(LTH2.pend&&!lth2Lean())saveNow();}catch(e){}return _ap.apply(this,arguments);};}
 addEventListener('pagehide',()=>{try{if(LTH2.pend||LTH2.plain){LTH2.plain=0;saveNow();}}catch(e){}},true);addEventListener('beforeunload',()=>{try{if(LTH2.pend||LTH2.plain){LTH2.plain=0;saveNow();}}catch(e){}},true);
 document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState!=='visible'&&(LTH2.pend||LTH2.plain)){LTH2.plain=0;saveNow();}}catch(e){}},true);
