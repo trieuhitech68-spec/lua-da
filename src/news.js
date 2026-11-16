@@ -1,13 +1,11 @@
 /* ===================== CÓ GÌ MỚI: thẻ giới thiệu tính năng, mỗi phiên bản hiện một lần cho mỗi máy ===================== */
-const NEWS_V='2026-11-b',NEWS=[
- ['⚔️','Đánh và thu phục','Nút Đánh tự tìm mục tiêu gần nhất. Mang dây thừng để trói bắt chiến binh, cho ăn để thuần thú.'],
- ['🧍','Nhân vật','Cấp, 4 thuộc tính, danh hiệu, cường hoá vũ khí – giáp – dụng cụ. Mũ, giáp, khiên giờ hiện lên người.'],
- ['🏗️','Nâng cấp công trình','Xây → Nâng cấp: giỏ rương chứa nhiều hơn, bếp cháy lâu hơn, mái vách bền hơn.'],
- ['👥','Dân làng, thổ dân','Giao việc theo sở trường, cắt người Giữ cổng hoặc làm Lính theo bạn.'],
- ['👑','Vùng theo cấp, thú chúa','Càng xa nơi bắt đầu càng nguy hiểm. Thú chúa canh mỏ sắt, than, vàng, ngọc bích.'],
- ['🤝','Liên minh, chiến tranh','Liên minh 70 người, tuyên chiến, cướp phá nhà người không cùng liên minh, hạ cờ chiếm đất.'],
- ['🗺️','Bản đồ hình chữ S','Máy chủ mới có miền Trung và miền Nam. Chọn khi tạo nhân vật.'],
- ['🕐','Giờ thật Việt Nam','Ngày đêm và bốn mùa trong game theo giờ thật, mọi người như nhau.']];
+const NEWS_V='2026-11-c',NEWS=[
+ ['⚔️','Đạo quân','Dân làng → Đạo quân: đội hình (hàng ngang, cột, mũi nhọn, vòng tròn), mệnh lệnh (theo tôi, giữ chỗ, xung phong, về trại), lính giáo – cung thủ – lính khiên. Có Trại lính thì chiêu mộ dân binh.'],
+ ['🐎','Kỵ binh, tượng binh','Cấp ngựa đã thuần cho lính thành kỵ binh. Voi rừng thuần được, cưỡi được, cấp cho lính thành tượng binh.'],
+ ['🗡️','Nhà quân sự','Kho vũ khí, Trường bắn, Chuồng ngựa chiến, Nhà chỉ huy: dựng xong là lính mạnh hơn.'],
+ ['🏘️','Bảng Xây, Chế tạo gọn','Xây: nhà và món có công năng ở trên, trang trí gom một chỗ. Chế tạo: mục «Làm được ngay» và mỗi nhóm một mục gập.'],
+ ['🧑‍🌾','Người làng nhiều việc hơn','Thợ xây (xây dở, sửa chữa), Chăn nuôi, Đi săn, Đánh cá, Làm ruộng (cả lúa nước). Bảng Dân làng phân công bằng nút + −.'],
+ ['🐐','Vật nuôi','Thuần dê núi, thỏ rừng; đổi con giống ở làng bên. Chuồng trống: bấm Hành động để xem cách kiếm.']];
 function newsShow(force){try{if(!force&&localStorage.getItem('ldtt-news')===NEWS_V)return;}catch(e){return;}if(!G.on||!S||G.panel||document.getElementById('newsCard'))return;
   const d=document.createElement('div');d.id='newsCard';d.innerHTML=`<div class="nw-box"><div class="nw-h"><b>🔥 Có gì mới</b><button class="p-x" data-a="newsx" aria-label="Đóng">✕</button></div><div class="nw-l">${NEWS.map(([ic,t,x])=>`<div class="nw-i"><span>${ic}</span><div><b>${t}</b><small>${x}</small></div></div>`).join('')}</div><button class="btn" data-a="newsx">Đã hiểu, chơi thôi</button></div>`;
   document.getElementById('game').appendChild(d);if(document.pointerLockElement)document.exitPointerLock();}
