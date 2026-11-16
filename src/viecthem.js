@@ -9,7 +9,7 @@
    Đêm về chỗ ngủ như mọi người. Không có việc (hết công trường, không có nước…) thì ngồi nghỉ gần nhà.
    THUẦN THÚ: trước, nút ghi "Cho ăn" nhưng nếu ô đang cầm không phải thức ăn (hoặc vừa cho ăn hết ô đó) thì bấm lần nữa lại thành ĐÁNH con thú.
      Giờ đang lom khom hoặc con thú đang thuần dở: bấm Hành động luôn là cho ăn (lấy thức ăn ở bất kỳ ô nào trong túi); hết thức ăn thì báo, không đánh. */
-const VTH={J:{farm:'Làm ruộng',build:'Thợ xây',craft:'Thợ thủ công',herd:'Chăn nuôi',hunt:'Đi săn',fish:'Đánh cá'},MAKE:['rope','plank','arrow','spear','torch','bandage','leather','brick','charcoal'],KEEP:6,MAX:24,PREY:/^(rabbit|junglefowl|deer|goat|monkey)$/};
+const VTH={J:{farm:'Làm ruộng',build:'Thợ xây',craft:'Thợ thủ công',herd:'Chăn nuôi',hunt:'Đi săn',fish:'Đánh cá'},MAKE:['rope','plank','arrow','spear','torch','bandage','leather','brick','charcoal'],KEEP:6,MAX:24,PREY:/^(rabbit|junglefowl|deer|goat|monkey|mallard)$/};
 Object.assign(JOBN,VTH.J);
 {const _as=actStart;actStart=function(t){try{if(t&&t.type==='animal'&&t.a&&t.a.alive&&!t.a._h3down&&!G.work&&TAME[t.a.kind]&&!t.a.boss){const a=t.a,doing=a.tame>0&&a.tame<0.99;
       if((G.sneak||doing)&&!a.angry){if(tameFood(a.kind)){tameFeed(a);return;}if(doing){uiToast('Hết thức ăn nó thích rồi: cần '+TAME[a.kind].food.filter(f=>ITEMS[f]).slice(0,3).map(f=>ITEMS[f].n.toLowerCase()).join(' / ')+'. (Không đánh con đang thuần dở.)','bad');sfx('no');return;}}}}catch(e){}return _as.apply(this,arguments);};}

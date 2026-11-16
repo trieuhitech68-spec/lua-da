@@ -11,9 +11,9 @@ const CNU={GROW:{kid:'goat',duckling:'duck',bunny:'rabbit'},BREED:{goat:'kid',du
   MEAT:{goat:{meat:5,hide:2,bone:2},rabbit:{meat:2,hide:1},duck:{meat:2,feather:3}},
   SEED:{chickPair:'chick',pigletPair:'piglet',kidPair:'kid',ducklingPair:'duckling',bunnyPair:'bunny'},
   HINT:{pigPen:'🐖 Chuồng lợn chưa có con nào. Cách kiếm: lom khom lại gần LỢN RỪNG, cho ăn quả mọng / nấm / chuối 3 lần là nó theo về; hoặc đổi "Lợn giống" ở thợ săn làng bên (4 thịt + 6 quả mọng).',
-    goatShed:'🐐 Chuồng dê chưa có con nào. Cách kiếm: tìm DÊ NÚI ở vùng núi đá, bìa rừng, lom khom cho ăn đọt dương xỉ / chuối / muối 3 lần; hoặc đổi "Dê giống" ở già làng (3 da + 2 muối).',
+    coopX:'',goatShed:'🐐 Chuồng dê chưa có con nào. Cách kiếm: tìm DÊ NÚI ở vùng núi đá, bìa rừng, lom khom cho ăn đọt dương xỉ / chuối / muối 3 lần; hoặc đổi "Dê giống" ở già làng (3 da + 2 muối).',
     buffaloShed:'🐃 Chuồng trâu chưa có con nào. Cách kiếm: đổi "Nghé con" ở tù trưởng làng bên (6 thịt + 4 da), mở túi bấm Thả ra; ba ngày sau nghé lớn thành trâu kéo cày.',
-    coop:'🐔 Chưa có gà, vịt. Cách kiếm: lom khom lại gần GÀ RỪNG, cho ăn hạt / quả mọng 3 lần; hoặc đổi "Gà giống" (8 quả mọng), "Vịt giống" (4 cá) ở người hái lượm làng bên rồi thả cạnh chuồng.'}};
+    coop:'🐔 Chưa có gà, vịt. Cách kiếm: lom khom lại gần GÀ RỪNG, cho ăn hạt / quả mọng 3 lần; VỊT TRỜI ven sông hồ cũng thuần được bằng hạt, thóc; hoặc đổi "Gà giống" (8 quả mọng), "Vịt giống" (4 cá) ở người hái lượm làng bên rồi thả cạnh chuồng.'}};
 Object.assign(PETN,{goat:'Dê nhà',kid:'Dê con',duck:'Vịt nhà',duckling:'Vịt con',rabbit:'Thỏ nhà',bunny:'Thỏ con'});
 Object.assign(ITEMS,{chickPair:{n:'Gà giống (2 con)',t:'pet',ds:'Lồng tre nhốt hai gà con đổi ở làng. Mở túi, bấm "Thả ra" cạnh chuồng gà: ba ngày sau lớn, đẻ trứng và sinh đàn.'},
   pigletPair:{n:'Lợn giống (2 con)',t:'pet',ds:'Hai lợn con đổi ở làng. Thả cạnh chuồng lợn có máng ăn: ba ngày sau lớn.'},
@@ -25,19 +25,24 @@ try{TRADES.gatherer.push([{berry:8},{chickPair:1}],[{fish:4},{ducklingPair:1}],[
 // thú rừng thuần được thêm: thỏ rừng, dê núi
 ANIMALS.goat={n:'Dê núi',hp:4,spd:170,r:10,flee:140,drop:{meat:3,hide:2,bone:1},bio:['rock','edge','meadow'],n0:0,aggro:'never',herd:3};
 try{if(typeof H3WT==='object')H3WT.goat=35;}catch(e){}
-{const ok=L=>L.filter(k=>ITEMS[k]);TAME.rabbit={to:'rabbit',food:ok(['fernShoot','centella','gourd','berry','banana']),n:'thỏ'};TAME.goat={to:'goat',food:ok(['fernShoot','banana','salt','gourd','berry']),n:'dê'};}
+// vịt trời: sống ven nước, nhát; thuần bằng hạt, thóc thành vịt nhà
+ANIMALS.mallard={n:'Vịt trời',hp:1,spd:150,r:5,flee:120,drop:{meat:1,feather:2},bio:['bank','beach','meadow'],n0:0,aggro:'never',herd:3};try{if(typeof H3WT==='object')H3WT.mallard=2;}catch(e){}
+{const _am=animalModel;animalModel=function(kind){if(kind==='mallard'&&arguments.length===1)return cnuDuck(false,true);return _am.apply(this,arguments);};}
+{const ok=L=>L.filter(k=>ITEMS[k]);TAME.rabbit={to:'rabbit',food:ok(['fernShoot','centella','gourd','berry','banana']),n:'thỏ'};TAME.goat={to:'goat',food:ok(['fernShoot','banana','salt','gourd','berry']),n:'dê'};TAME.mallard={to:'duck',food:ok(['grain','seedGrain','paddy','wildgrain','rice','berry']),n:'vịt'};}
 {const _ai=animalsInit;animalsInit=function(){const r=_ai.apply(this,arguments);try{const R=rng((S.seed|0)+7373),D=ANIMALS.goat,N=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)?6:10;let n=0,tries=0;
       while(n<N&&tries<2500){tries++;let x,z;const a=R()*6.283,rr=Math.sqrt(R())*WR*0.85;x=Math.cos(a)*rr;z=Math.sin(a)*rr;if(typeof V5!=='undefined'&&WV>=4&&R()<0.7){x=V5.box[0]+R()*V5.box[2];z=V5.box[1]+R()*V5.box[3];}
         if(!wIn(x,z,0.95)||hAt(x,z)<3||wdAt(x,z)>0||!D.bio.includes(biome(x,z))||(tries<1500&&biome(x,z)==='meadow')||Math.hypot(x-SPAWN[0],z-SPAWN[1])<320)continue;
         for(let k=0;k<3&&n<N;k++,n++){const g=animalNew('goat',x+(R()-0.5)*60,z+(R()-0.5)*60,R);if(k===2)try{g.o.scale.multiplyScalar(0.72);}catch(e){}G.animals.push(g);}}
+      /* vịt trời: từng bầy 3 con sát mép nước */{const D2=ANIMALS.mallard,N2=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)?9:15;let n2=0,t2=0;while(n2<N2&&t2<4000){t2++;const a=R()*6.283,rr=Math.sqrt(R())*WR*0.85;let x=Math.cos(a)*rr,z=Math.sin(a)*rr;if(typeof V5!=='undefined'&&WV>=4&&R()<0.7){x=V5.box[0]+R()*V5.box[2];z=V5.box[1]+R()*V5.box[3];}
+          if(!wIn(x,z,0.95)||hAt(x,z)<1||wdAt(x,z)>0||!nearWater(x,z,90)||Math.hypot(x-SPAWN[0],z-SPAWN[1])<260)continue;for(let k=0;k<3&&n2<N2;k++,n2++)G.animals.push(animalNew('mallard',x+(R()-0.5)*40,z+(R()-0.5)*40,R));}}
       try{seasonPatchAll();}catch(e){}}catch(e){console.warn('dê núi',e);}return r;};}
 // hình con vịt (chưa có sẵn): thân bầu, cổ cong, mỏ dẹt, chân màng
-function cnuDuck(young){const g=new THREE.Group(),M=c=>new THREE.MeshLambertMaterial({color:c}),wh=M(young?'#e8d27a':'#f1ede2'),or=M('#e08a2a'),dk=M('#2a2622');
+function cnuDuck(young,wild){const g=new THREE.Group(),M=c=>new THREE.MeshLambertMaterial({color:c}),wh=M(wild?'#7a6248':young?'#e8d27a':'#f1ede2'),or=M('#e08a2a'),dk=M('#2a2622'),hd=wild?M('#2f5e3c'):wh;
   const sp=new THREE.SphereGeometry(1,12,9),add=(geo,mt,x,y,z,sx,sy,sz,par)=>{const m=new THREE.Mesh(geo,mt);m.position.set(x,y,z);m.scale.set(sx,sy,sz);(par||g).add(m);return m;};
   add(sp,wh,0,5.2,0,2.7,2.5,4.2);add(sp,wh,0,6.6,-3.6,1.5,1.3,1.9);/* đuôi vểnh */add(sp,wh,2.3,5.4,-0.3,0.7,1.7,3);add(sp,wh,-2.3,5.4,-0.3,0.7,1.7,3);
-  const head=new THREE.Group();head.position.set(0,7,3);g.add(head);add(sp,wh,0,1.6,0.4,1,2.2,1,head);add(sp,wh,0,3.8,0.9,1.5,1.4,1.6,head);add(sp,or,0,3.5,2.7,1,0.4,1.3,head);for(const x of [0.9,-0.9])add(sp,dk,x,4.2,1.7,0.3,0.3,0.3,head);
+  const head=new THREE.Group();head.position.set(0,7,3);g.add(head);add(sp,wh,0,1.6,0.4,1,2.2,1,head);add(sp,hd,0,3.8,0.9,1.5,1.4,1.6,head);add(sp,or,0,3.5,2.7,1,0.4,1.3,head);for(const x of [0.9,-0.9])add(sp,dk,x,4.2,1.7,0.3,0.3,0.3,head);
   const leg=x=>{const L=new THREE.Group();L.position.set(x,3,0);g.add(L);add(new THREE.CylinderGeometry(0.3,0.3,3,5),or,0,-1.5,0,1,1,1,L);add(sp,or,0,-2.9,0.7,0.9,0.2,1.3,L);return L;};
-  g.userData.rig={head,legL:leg(1.1),legR:leg(-1.1)};g.scale.setScalar(young?0.55:1);return g;}
+  {const lL=leg(1.1),lR=leg(-1.1),body=g.children[0];g.userData.rig={body,head,legL:lL,legR:lR,legFL:lL,legBR:lL,legFR:lR,legBL:lR};}g.userData.kind=wild?'mallard':'duck';g.userData.h=9;g.userData.len=9;g.userData.r=5;g.scale.setScalar(young?0.55:1);return g;}
 {const _pm=petModel;petModel=function(k){try{if(k==='duck'||k==='duckling')return cnuDuck(k==='duckling');if(k==='kid'){const o=animalModel('goat');o.scale.multiplyScalar(0.5);return o;}if(k==='rabbit'||k==='bunny'){const o=animalModel('rabbit');if(k==='bunny')o.scale.multiplyScalar(0.6);return o;}if(k==='goat')return animalModel('goat');}catch(e){console.warn('hình vật nuôi',k,e);}return _pm.apply(this,arguments);};}
 // chỗ ở: dê về chuồng dê, vịt về chuồng vịt / ao, thỏ quanh máng ăn hoặc chuồng
 {const _hm=petHome;petHome=function(p){const k=p.k,rx=k==='goat'||k==='kid'?/^goatShed$/:k==='duck'||k==='duckling'?/^(duckHouse|fishPond)$/:k==='rabbit'||k==='bunny'?/^(trough|goatShed|pigPen|coop|chickenCoop2)$/:null;if(!rx)return _hm.apply(this,arguments);
