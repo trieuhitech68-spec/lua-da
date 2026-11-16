@@ -137,10 +137,12 @@ function resInstances(){const groups=new Map(),protos=new Map();const lazyLo=!G.
 // cây ở xa (ảnh giả): nướng bản đồ ảnh SAU khi đã vào game (trước đây nướng ảnh 4096² lúc tải → chờ lâu nhất).
 // Trong lúc chờ, cây xa vẫn hiện bằng mô hình đầy đủ nên không bị "mọc" thêm cây.
 function treeLoLater(){if(!G.loQ||!G.loQ.length||!G.on){G.loQ=null;return;}const t0=performance.now();try{SBM.v6bake();}catch(e){console.warn('ảnh cây xa',e);}G.impDone=1;const M=new THREE.Matrix4();
-  for(const q of G.loQ){const v=RI.get(q.k);if(!v||v.api!==q.hi)continue;const hi=q.hi;let lo;try{lo=instGroup(G.loProto(q.sk,true).parts,q.n,{shadow:false,sphere:q.sph});}catch(e){console.warn('cây xa',q.sk,e);continue;}
+  /* dựng bản xa cho từng khối cây RẢI RA nhiều khung hình (mỗi lượt tối đa ~5 ms) thay vì dựng hết một lèo: trước là một cú khựng dài ngay lúc vừa vào game */
+  const Q=G.loQ,proto=G.loProto;let qi=0;G.loQ=null;const fin=()=>{G.loProto=null;G.cullT=-9;G.envK=null;G.bakeMs=Math.round(performance.now()-t0);};const step=()=>{if(!G.on){fin();return;}const ts=performance.now();while(qi<Q.length&&performance.now()-ts<5){const q=Q[qi++];loOne(q);}if(qi<Q.length)setTimeout(step,30);else{G.cullT=-9;fin();}};
+  const loOne=q=>{const v=RI.get(q.k);if(!v||v.api!==q.hi)return;const hi=q.hi;let lo;try{lo=instGroup(proto(q.sk,true).parts,q.n,{shadow:false,sphere:q.sph});}catch(e){console.warn('cây xa',q.sk,e);return;}
     const im0=hi.ims[0];for(let i=0;i<q.n;i++){im0.getMatrixAt(i,M);const m=M.elements;if(m[0]===0&&m[1]===0&&m[2]===0)lo.hide(i);else lo.setM(i,M);}lo.flush();lo.G.visible=false;G.sc.add(lo.G);try{seasonPatchAll(lo.G);}catch(e){}
-    v.api={G:hi.G,lo,hi,get nOn(){return hi.nOn;},set(...a){hi.set(...a);lo.set(...a);},setM(i,m){hi.setM(i,m);lo.setM(i,m);},hide(i){hi.hide(i);lo.hide(i);},flush(){hi.flush();lo.flush();}};}
-  G.loQ=null;G.loProto=null;G.cullT=-9;G.envK=null;G.bakeMs=Math.round(performance.now()-t0);}
+    v.api={G:hi.G,lo,hi,get nOn(){return hi.nOn;},set(...a){hi.set(...a);lo.set(...a);},setM(i,m){hi.setM(i,m);lo.setM(i,m);},hide(i){hi.hide(i);lo.hide(i);},flush(){hi.flush();lo.flush();}};};
+  step();}
 // dời cây vào đúng tâm sàn nhà trên cây
 function treeMove(q,x,z){const k0=rKey(q.x,q.z),L=RGRID.get(k0);if(L){const i=L.indexOf(q.i);if(i>=0)L.splice(i,1);}q.x=x;q.z=z;q.y=hAt(x,z)-1.2;const k=rKey(x,z);if(!RGRID.has(k))RGRID.set(k,[]);RGRID.get(k).push(q.i);resShow(q);RI.forEach(v=>v.api.flush());}
 function resShow(q){const a=RI.get(q.gk).api;if(q.st===0){a.set(q.gi,q.x,q.y,q.z,q.ry,q.s);if(q.sk)RI.get(q.sk).api.hide(q.si);if(q.ek)RI.get(q.ek).api.hide(q.ei);}

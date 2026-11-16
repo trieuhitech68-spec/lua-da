@@ -12,12 +12,12 @@ function hnApply(){try{if(typeof G==='undefined'||!G.R||!G.cam)return;const L=HN
     G.hnV=HNG.VW[L];G.cullT=0;
     G.noPost=L>=2;if(G.L&&G.L.sun)G.L.sun.castShadow=(G.q|0)>0&&L<2;if(G.grass)G.grass.visible=L<3;try{localStorage.setItem('ld-perf',String(L));}catch(e){}}catch(e){}}
 {const _aq=applyQ;applyQ=function(){const r=_aq.apply(this,arguments);try{HNG.base={fogF:G.fogF,fogN:G.fogN,treeD:G.treeD||G.fogF};hnApply();}catch(e){}return r;};}
-(function(){const tick=()=>{HNG.fr++;requestAnimationFrame(tick);};requestAnimationFrame(tick);
+(function(){/* đếm khung hình game THẬT SỰ vẽ (ở perfTick). Trước đếm theo nhịp màn hình: khi đang giới hạn 30 khung/giây bộ đếm vẫn thấy 60 nên cứ 30 giây lại tự NÂNG nấc, bật lại bóng nắng và hậu kỳ, card hình phải biên dịch lại toàn bộ chương trình tô bóng: đứng hình 1-2 giây, rồi nặng quá lại hạ, cứ thế lặp. */
   setInterval(()=>{try{const fr=HNG.fr;HNG.fr=0;if(typeof G==='undefined'||!G.on||G.paused||document.hidden||!fr){HNG.lo=HNG.hi=0;return;}const fps=fr/3;HNG.fps=fps;if(!HNG.auto)return;
       if(G.t<12||(G.t-HNG.t)<9){HNG.lo=HNG.hi=0;return;}/* mới vào game / vừa đổi nấc: chờ ổn định */
       if(HNG.lv>=3&&fps<46&&(G.q|0)>0&&!HNG.qStop){/* đã giảm hết tầm nhìn, độ nét mà vẫn nặng: hạ luôn mức chất lượng (Đẹp → Vừa → Nhẹ). Người chơi chọn lại mức cao hơn thì thôi không tự hạ nữa trong lần chơi này. */HNG.hi=0;if(++HNG.lo>=3){HNG.lo=0;G.q=(G.q|0)-1;HNG.qAuto=G.q;HNG.t=G.t;try{applyQ();}catch(e){}uiToast('⚙️ Máy vẫn nặng: game hạ chất lượng xuống '+(G.q===1?'Vừa':'Nhẹ')+' cho mượt. Muốn đổi lại: Cài đặt → Đồ họa.','');try{if(G.panel==='settings')uiOpenRefresh();}catch(e){}}}
-      else if(fps<26&&(G.prK||1)<=0.62){HNG.hi=0;if(++HNG.lo>=2&&HNG.lv<3){HNG.lo=0;const up=G.t-(HNG.upT||-999)<25;HNG.lv++;HNG.t=G.t;if(up)HNG.lock=G.t+300;hnApply();if(!HNG.told){HNG.told=1;uiToast('⚙️ Máy đang nặng: game tự giảm tầm nhìn cho mượt. Tắt ở Cài đặt → "Tự cân chỉnh cho mượt".','');}}}
-      else if(fps>50){HNG.lo=0;if(++HNG.hi>=10&&HNG.lv>0&&G.t>HNG.lock){HNG.hi=0;HNG.lv--;HNG.t=G.t;HNG.upT=G.t;hnApply();}}
+      else if(fps<26&&(G.prK||1)<=0.62){HNG.hi=0;if(++HNG.lo>=2&&HNG.lv<3){HNG.lo=0;const up=G.t-(HNG.upT||-999)<120;HNG.lv++;HNG.t=G.t;if(up)HNG.lock=1e12;hnApply();if(!HNG.told){HNG.told=1;uiToast('⚙️ Máy đang nặng: game tự giảm tầm nhìn cho mượt. Tắt ở Cài đặt → "Tự cân chỉnh cho mượt".','');}}}
+      else if(fps>50&&!(typeof SET!=='undefined'&&SET.fpsCap&&SET.fpsCap<50)){HNG.lo=0;/* nâng nấc rất dè dặt: mượt liên tục 90 giây mới nâng một nấc, mỗi lần chơi nâng tối đa 2 lần; nâng xong mà phải hạ lại thì thôi không nâng nữa cho tới lần chơi sau */if(++HNG.hi>=30&&HNG.lv>0&&G.t>HNG.lock&&(HNG.ups|0)<2){HNG.hi=0;HNG.lv--;HNG.t=G.t;HNG.upT=G.t;HNG.ups=(HNG.ups|0)+1;hnApply();}}
       else{HNG.lo=0;HNG.hi=0;}}catch(e){}},3000);})();
 /* công tắc trong Cài đặt */
 setInterval(()=>{try{if(typeof G==='undefined'||!G.on||G.panel!=='settings')return;const bd=document.querySelector('#panel .p-body');if(!bd||bd.querySelector('.hn-b'))return;
@@ -43,7 +43,7 @@ document.addEventListener('click',e=>{try{const b=e.target&&e.target.closest&&e.
 /* ---------- BÓNG NẮNG VẼ CÁCH KHUNG ----------
    Đo thấy lượt vẽ bóng nắng chiếm gần 40% số tam giác mỗi khung (vẽ lại toàn bộ cây, nhà từ hướng mặt trời). Bóng đổi rất chậm nên chỉ cần vẽ lại bản đồ bóng
    mỗi 2 khung hình; khung ở giữa dùng lại bản cũ (bóng người đi trễ một khung, mắt thường không nhận ra). */
-{const _pt=perfTick;perfTick=function(){try{const sm=G.R&&G.R.shadowMap;if(sm){if(sm.autoUpdate){sm.autoUpdate=false;sm.needsUpdate=true;}HNG.sf=(HNG.sf|0)+1;if(HNG.sf%2===0)sm.needsUpdate=true;}}catch(e){}return _pt.apply(this,arguments);};}
+{const _pt=perfTick;perfTick=function(){try{const sm=G.R&&G.R.shadowMap;if(sm){if(sm.autoUpdate){sm.autoUpdate=false;sm.needsUpdate=true;}HNG.sf=(HNG.sf|0)+1;if(HNG.sf%2===0)sm.needsUpdate=true;}HNG.fr++;}catch(e){}return _pt.apply(this,arguments);};}
 
 /* ---------- KHỬ RĂNG CƯA THEO MỨC ĐỒ HOẠ ----------
    Bộ đệm hậu kỳ trước luôn khử răng cưa 4 mẫu trên máy tính (mỗi điểm ảnh lưu 4 lần, màu 16 bit): rất tốn băng thông card hình, nhất là card tích hợp.
