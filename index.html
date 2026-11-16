@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261116110957">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261116111841">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -21901,15 +21901,21 @@ setInterval(qdBar,600);
    · CƯỠI VOI: lại gần bấm Hành động như cưỡi ngựa. Ngồi cao, đi chậm hơn ngựa nhưng lội được nước sâu hơn.
    · TƯỢNG BINH: trong Dân làng → Đạo quân, bấm + Kỵ binh khi có voi rảnh thì lính nhận voi: đòn mạnh gấp 2,5, đứng hai cánh đội hình. */
 const VOI={seat:52,sc:1};
-function voiModel(){const T=THREE,g=new T.Group(),M=c=>new T.MeshLambertMaterial({color:c}),sk=M('#7d766c'),dk=M('#5f5951'),iv=M('#e9e2cf'),ey=M('#17120e');
-  const sp=new T.SphereGeometry(1,14,10),add=(geo,mt,x,y,z,sx,sy,sz,par,rx,rz)=>{const m=new T.Mesh(geo,mt);m.position.set(x,y,z);m.scale.set(sx,sy,sz);if(rx)m.rotation.x=rx;if(rz)m.rotation.z=rz;(par||g).add(m);return m;};
-  const body=new T.Group();g.add(body);add(sp,sk,0,44,0,19,18,31,body);add(sp,sk,0,49,-12,17,15,20,body);add(sp,dk,0,36,2,16,10,26,body);
-  const head=new T.Group();head.position.set(0,50,27);g.add(head);add(sp,sk,0,2,6,12.5,14,12,head);add(sp,sk,0,10,4,10,7,9,head);
-  for(const s of [1,-1]){add(sp,dk,s*14,3,0,2.2,13,10.5,head,0,s*-0.18);add(sp,ey,s*8.6,4,13.6,0.9,0.9,0.9,head);const tk=new T.Mesh(new T.ConeGeometry(1.5,17,7),iv);tk.position.set(s*5.6,-9,16);tk.rotation.set(1.95,0,s*0.12);head.add(tk);}
-  let py=-4,pz=15.5;for(let i=0;i<6;i++){const r=5-i*0.62,h=7;const c=new T.Mesh(new T.CylinderGeometry(r*0.86,r,h,8),sk);c.position.set(0,py-h/2,pz);c.rotation.x=-0.1+i*0.03;head.add(c);py-=h*0.92;pz+=0.45-i*0.25;}
-  const leg=(x,z)=>{const L=new T.Group();L.position.set(x,31,z);g.add(L);add(new T.CylinderGeometry(6.2,6.8,31,9),sk,0,-15.5,0,1,1,1,L);add(new T.CylinderGeometry(7,7.2,3,9),dk,0,-29.6,0.6,1,1,1,L);return L;};
-  const tail=new T.Group();tail.position.set(0,50,-30);g.add(tail);add(new T.CylinderGeometry(0.9,1.4,22,5),dk,0,-11,-1,1,1,1,tail,0.12);add(sp,ey,0,-23,-2.4,1.6,2.6,1.6,tail);
-  g.userData.rig={body,head,tail,legFL:leg(-10.5,17),legFR:leg(10.5,17),legBL:leg(-10.5,-18),legBR:leg(10.5,-18)};g.userData.h=66;g.userData.len=76;g.userData.r=30;g.userData.kind='elephant';return g;}
+function voiModel(decor){const T=THREE,g=new T.Group(),M=(c,o)=>new T.MeshLambertMaterial(Object.assign({color:c},o||{})),sk=M('#857d72'),dk=M('#655e55'),lt=M('#9a9186'),iv=M('#efe8d4'),ey=M('#17120e'),pk=M('#b08a80');
+  const sp=new T.SphereGeometry(1,18,12),add=(geo,mt,x,y,z,sx,sy,sz,par,rx,rz,ry)=>{const m=new T.Mesh(geo,mt);m.position.set(x,y,z);m.scale.set(sx,sy,sz);if(rx)m.rotation.x=rx;if(rz)m.rotation.z=rz;if(ry)m.rotation.y=ry;(par||g).add(m);return m;};
+  const body=new T.Group();g.add(body);add(sp,sk,0,45,2,18.5,17.5,27,body);add(sp,sk,0,48,-13,17.5,16,19,body);add(sp,sk,0,50,12,16,14,16,body);add(sp,dk,0,35,0,15.5,9.5,25,body);add(sp,lt,0,57,-2,11,6,22,body);
+  const head=new T.Group();head.position.set(0,52,27);g.add(head);add(sp,sk,0,1,7,12,13.5,11.5,head);add(sp,sk,-4.6,10.5,5,6.2,5.4,6.4,head);add(sp,sk,4.6,10.5,5,6.2,5.4,6.4,head);add(sp,sk,0,-5,12.5,7.5,7,7,head);
+  for(const s of [1,-1]){/* tai to hình quạt, hơi xoè ra sau */const ear=new T.Mesh(new T.CircleGeometry(13,14),M('#7a7268',{side:T.DoubleSide}));ear.position.set(s*13.5,2,1);ear.scale.set(0.78,1.08,1);ear.rotation.set(0,s*(Math.PI/2-0.55),s*0.12);head.add(ear);const in2=new T.Mesh(new T.CircleGeometry(9,12),M('#a08a82',{side:T.DoubleSide}));in2.position.set(s*13.9,1.4,1.6);in2.scale.set(0.74,1.02,1);in2.rotation.copy(ear.rotation);head.add(in2);
+    add(sp,ey,s*8.3,4.6,14.6,0.95,0.95,0.6,head);add(sp,lt,s*8.3,6.2,14.2,1.8,0.7,0.9,head);
+    /* ngà cong vểnh lên: ba đoạn */let px=s*5.4,py=-7.5,pz=15.5,ax=1.25;for(let i=0;i<4;i++){const len=6.2,r0=1.7-i*0.36,c=new T.Mesh(new T.CylinderGeometry(Math.max(0.25,r0-0.36),r0,len,7),iv);c.position.set(px,py-Math.cos(ax)*len/2,pz+Math.sin(ax)*len/2);c.rotation.set(Math.PI-ax,0,0);head.add(c);py-=Math.cos(ax)*len;pz+=Math.sin(ax)*len;ax+=0.42;px+=s*0.5;}}
+  /* vòi: 9 đốt thuôn dần, rủ xuống rồi cong nhẹ ra trước */{let py=-8,pz=16.5,ax=0.12;for(let i=0;i<9;i++){const r=5.3-i*0.5,len=5.6,c=new T.Mesh(new T.CylinderGeometry(Math.max(1,r-0.5),r,len,9),sk);c.position.set(0,py-Math.cos(ax)*len/2,pz+Math.sin(ax)*len/2);c.rotation.x=Math.PI-ax;head.add(c);py-=Math.cos(ax)*len*0.94;pz+=Math.sin(ax)*len*0.94;ax+=i<5?-0.03:0.2;}add(sp,pk,0,py+0.6,pz+0.4,1.3,1,1.3,head);}
+  const leg=(x,z,front)=>{const L=new T.Group();L.position.set(x,33,z);g.add(L);add(new T.CylinderGeometry(6.6,5.6,17,10),sk,0,-8.5,0,1,1,1,L);add(sp,sk,0,-17,front?0.6:-0.4,5.9,3.4,5.9,L);add(new T.CylinderGeometry(5.3,6.4,14,10),sk,0,-24.5,0,1,1,1,L);add(new T.CylinderGeometry(6.9,7.1,2.6,10),dk,0,-31.8,0.5,1,1,1,L);for(let k=-1;k<=1;k++)add(sp,iv,k*3.4,-32,6.6,1.5,1.2,0.9,L);return L;};
+  const tail=new T.Group();tail.position.set(0,52,-31);g.add(tail);add(new T.CylinderGeometry(0.8,1.5,24,6),dk,0,-12,-1.6,1,1,1,tail,0.14);add(sp,ey,0,-25,-3.2,1.5,3,1.5,tail);
+  g.userData.rig={body,head,tail,legFL:leg(-10.5,17,1),legFR:leg(10.5,17,1),legBL:leg(-10.5,-18,0),legBR:leg(10.5,-18,0)};
+  if(decor){/* voi nhà: tấm phủ lưng đỏ viền vàng, miếng che trán */const cl=M('#b3261e',{side:T.DoubleSide}),gd=M('#e6b422',{side:T.DoubleSide});const cover=new T.Mesh(new T.SphereGeometry(1,18,10,0,Math.PI*2,0,1.2),cl);cover.position.set(0,45.5,-1);cover.scale.set(19.6,18.6,21);body.add(cover);
+    const band=new T.Mesh(new T.SphereGeometry(1,18,4,0,Math.PI*2,1.2,0.16),gd);band.position.copy(cover.position);band.scale.set(19.9,18.9,21.3);body.add(band);const fr=new T.Mesh(new T.SphereGeometry(1,10,6,0,Math.PI*2,0,0.75),gd);fr.position.set(0,2.5,8.2);fr.scale.set(8,9,11);fr.rotation.x=1.2;head.add(fr);
+    const seat=new T.Mesh(new T.BoxGeometry(15,2.4,18),M('#5a3a22'));seat.position.set(0,63.6,-2);body.add(seat);}
+  g.userData.h=68;g.userData.len=78;g.userData.r=30;g.userData.kind='elephant';return g;}
 ANIMALS.elephant={n:'Voi rừng',hp:40,spd:140,r:30,flee:0,drop:{meat:14,hide:8,bone:6},bio:['meadow','edge','forest'],n0:0,aggro:'defend',dmg:30,herd:3};
 try{if(typeof H3WT==='object')H3WT.elephant=900;}catch(e){}
 if(typeof TAME!=='undefined')TAME.elephant={to:'elephant',food:['banana','gourd','sugarcane','yam','taro','berry'].filter(k=>ITEMS[k]),n:'voi'};
@@ -21923,7 +21929,7 @@ if(typeof TAME!=='undefined')TAME.elephant={to:'elephant',food:['banana','gourd'
     if(a.tame>=0.99){a.alive=false;a.o.visible=false;a.back=TNOW()+5;if(!Array.isArray(S.mounts))S.mounts=[];const m={id:(S.mseq=(S.mseq||0)+1),k:'elephant',n:'Voi của '+(S.name||'bạn'),x:+a.x.toFixed(1),z:+a.z.toFixed(1),ry:a.ry||0,land:mtLand()};S.mounts.push(m);mtShow(m);cnt('cnt','tame');cnt('cnt','elephant');uiToast('🐘 Voi rừng đã quen người: nó là voi của bạn! Lại gần bấm Hành động để cưỡi, hoặc cấp cho lính làm tượng binh (Dân làng → Đạo quân).','gold');sfx('level');save();}
     else uiToast(`Voi rừng đưa vòi nhận thức ăn (${Math.round(a.tame*100)}%). Kiên nhẫn cho ăn thêm.`,'');};}
 // hình voi cho thú cưỡi loại "elephant"
-{const _ms=mtShow;mtShow=function(m){if(!m||m.k!=='elephant')return _ms.apply(this,arguments);if(!G.sc||MT.o.has(m.id))return;const o=voiModel();o.traverse(x=>{if(x.isMesh)x.castShadow=true;});if(m.x==null){m.x=P.x+50;m.z=P.z+30;}o.position.set(m.x,hAt(m.x,m.z),m.z);o.rotation.y=m.ry||0;G.sc.add(o);try{seasonPatchAll(o);}catch(e){}MT.o.set(m.id,o);};}
+{const _ms=mtShow;mtShow=function(m){if(!m||m.k!=='elephant')return _ms.apply(this,arguments);if(!G.sc||MT.o.has(m.id))return;const o=voiModel(true);o.traverse(x=>{if(x.isMesh)x.castShadow=true;});if(m.x==null){m.x=P.x+50;m.z=P.z+30;}o.position.set(m.x,hAt(m.x,m.z),m.z);o.rotation.y=m.ry||0;G.sc.add(o);try{seasonPatchAll(o);}catch(e){}MT.o.set(m.id,o);};}
 {const _ti=targetInfo;targetInfo=function(t){const r=_ti.apply(this,arguments);try{if(t&&t.type==='mount'&&t.m&&t.m.k==='elephant'&&r)r.verb=t.off?'Xuống voi':'Cưỡi voi';}catch(e){}return r;};}
 // cưỡi voi: ngồi cao hơn, đi chậm hơn ngựa, lội nước sâu hơn
 {const _at=animTick;animTick=function(dt){const r=_at.apply(this,arguments);try{if(G.mnt&&G.mnt.k==='elephant'&&P.model){const up=VOI.seat-(MT.sy||20);P.model.position.y+=up;MT.sy=VOI.seat;}}catch(e){}return r;};}
