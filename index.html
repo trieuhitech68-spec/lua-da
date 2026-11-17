@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261117103756">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261117105130">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -18863,10 +18863,14 @@ function landGo(to){landInit();const why=landWhy(to);if(why){uiToast(why,'bad');
   G.ldLeaving=2;try{sessionStorage.setItem('ld-cont','1');/* qua cổng là tải lại CÓ CHỦ Ý: không tính vào bộ đếm 'tải lại liên tục' (qua 2 cổng trong 90 giây từng bị chặn, kẹt ở màn hình ngoài) */sessionStorage.removeItem('ldtt-autoh');}catch(e){}/* Trình duyệt ghi bộ nhớ trang xuống máy theo đợt; tải lại quá sớm có thể mất lần ghi vừa rồi (qua cổng xong vẫn ở vùng cũ).
      Ghi thêm một bản vào kho lưu nền (IndexedDB), CHỜ ghi xong rồi mới tải lại; lúc mở lại, bản nền mới hơn sẽ được chép sang. */
   const go=()=>{if(G.ldGone)return;G.ldGone=1;try{location.reload();}catch(e){}};
-  try{const id=typeof curSlot==='function'&&curSlot(),raw=localStorage.getItem(SKEY);if(id&&raw&&typeof LIDB==='object'&&LIDB.ok){const tx=LIDB.db.transaction('s','readwrite');tx.objectStore('s').put({raw,ts:Date.now()+5},SKEY+'#'+id);tx.oncomplete=()=>setTimeout(go,700);}}catch(e){}
+  try{const id=typeof curSlot==='function'&&curSlot(),raw=localStorage.getItem(SKEY);if(id)sessionStorage.setItem('ld-cont-id',id);if(id&&raw&&typeof LIDB==='object'&&LIDB.ok){const tx=LIDB.db.transaction('s','readwrite');tx.objectStore('s').put({raw,ts:Date.now()+5},SKEY+'#'+id);tx.oncomplete=()=>setTimeout(go,700);}}catch(e){}
   setTimeout(go,2500);}
 // tải lại xong: vào thẳng game
-{const _b=boot;boot=function(d){let c=false;try{c=sessionStorage.getItem('ld-cont')==='1';sessionStorage.removeItem('ld-cont');}catch(e){}return _b(c?Object.assign({},d||{},{cont:true}):d);};}
+{const _b=boot;boot=function(d){let c=false,id=null;try{c=sessionStorage.getItem('ld-cont')==='1';id=sessionStorage.getItem('ld-cont-id');sessionStorage.removeItem('ld-cont');sessionStorage.removeItem('ld-cont-id');}catch(e){}
+  const run=()=>_b(c?Object.assign({},d||{},{cont:true}):d);let miss=false;try{miss=!!(c&&id&&!localStorage.getItem(SKEY)&&window.indexedDB);}catch(e){}if(!miss)return run();
+  /* tải lại sau khi qua cổng mà bộ nhớ trang trống (trình duyệt chưa kịp ghi): lấy lại bản đã ghi vào kho lưu nền rồi mới vào game */
+  let done=0;const fin=()=>{if(done)return;done=1;run();};try{const rq=indexedDB.open('lua-da-luu',1);rq.onupgradeneeded=()=>{try{rq.result.createObjectStore('s');}catch(e){}};rq.onerror=fin;
+    rq.onsuccess=()=>{try{const g=rq.result.transaction('s','readonly').objectStore('s').get(SKEY+'#'+id);g.onerror=fin;g.onsuccess=()=>{try{const v=g.result;if(v&&typeof v.raw==='string'){localStorage.setItem(SKEY,v.raw);localStorage.setItem(SKEY+'#'+id,v.raw);localStorage.setItem(CURK,id);const sl=slotsLocal();if(!sl[id]){sl[id]=slotMeta(JSON.parse(v.raw));slotsWrite(sl);}}}catch(e){}fin();};}catch(e){fin();}};}catch(e){fin();}setTimeout(fin,3000);};}
 // đến nơi: đứng ở cổng dẫn về vùng vừa rời
 setInterval(()=>{try{if(!G.on||!S||G.ldLeaving)return;landInit();if(S.landArr&&G.sc&&G.terrain&&P.model&&G.animals&&G.animals.length&&typeof REG!=='undefined'&&REG.length){/* chờ thế giới dựng xong (đã có địa hình, vùng, cổng) rồi mới đặt người */const g=LD.gates.find(x=>x.to===S.landArr)||LD.gates.find(x=>x.to==='*')||LD.gates[0],L=landCur();if(g){let px=g.x+46,pz=g.z+30;for(let k=0;k<8&&(wdAt(px,pz)>0||hAt(px,pz)<3);k++){px=g.x+Math.cos(k*0.8)*50;pz=g.z+Math.sin(k*0.8)*50;}P.x=px;P.z=pz;P.y=groundY(P.x,P.z,hAt(P.x,P.z)+40);if(S.p){S.p.x=+px.toFixed(1);S.p.z=+pz.toFixed(1);}}S.landArr=null;uiToast(`${L.ic} Đã tới ${L.n}. ${L.lv?'Vùng cấp cao hơn '+L.lv+' bậc: cẩn thận thú dữ.':L.home?'Đất định cư: cắm mốc lãnh thổ, dựng nhà chính ở đây được.':''}`,'gold');try{uiRegion({ic:L.ic,n:L.n,d:L.d},true);}catch(e){}save();}
   landGateObjs();}catch(e){}},800);
@@ -22310,8 +22314,8 @@ const MNV={cap:140};
 (function(){const R=7400,pos=(f)=>(h,x,z)=>h>0?f(h,x,z):h;const tree=t=>t==='pine'||t==='oak'||t==='birch',rock=t=>t==='rock'||t==='boulder';
  const A=[
   ['d1','Kinh Bắc','🌾','Châu thổ bằng phẳng, đồi thấp thoai thoải, đất dễ làm ruộng. Nhiều tre.',pos(h=>Math.min(70,4+(h-4)*0.22)),(q,r,t,re)=>{if(tree(t)&&r<0.3)re(q,'bamboo');}],
-  ['d2','Sơn Nam','🎋','Vùng trũng: hồ đầm nối nhau, lau sậy, tre trúc bạt ngàn.',pos(h=>(h-26)*0.7),(q,r,t,re)=>{if(tree(t)&&r<0.5)re(q,'bamboo');else if(t==='tallgrass'&&r<0.5)re(q,'reeds');}],
-  ['d3','Hải Đông','⚓','Quần đảo: biển dâng nhấn chìm đồng bằng, còn lại đảo lớn đảo nhỏ, cọ và chuối.',(h,x,z)=>{let v=h>0?(h-45)*0.8:h;if(v<2&&Math.hypot(x,z)<6600){const n=NS.fbm(x/330+3,z/330+8,3);if(n>0.32)v=Math.max(v,(n-0.32)*80-4);}return v;},(q,r,t,re)=>{if(tree(t)){if(r<0.45)re(q,'palm');else if(r<0.65)re(q,'banana');}else if(t==='tallgrass'||t==='reeds'){const h=hAt(q.x,q.z);if(h<14&&r<0.2)re(q,'saltPan');else if(h<14&&r<0.36)re(q,'shellBed');}}],
+  ['d2','Sơn Nam','🎋','Vùng trũng: hồ đầm nối nhau, lau sậy, tre trúc bạt ngàn.',pos(h=>(h-14)*0.8),(q,r,t,re)=>{if(tree(t)&&r<0.5)re(q,'bamboo');else if(t==='tallgrass'&&r<0.5)re(q,'reeds');}],
+  ['d3','Hải Đông','⚓','Quần đảo: biển dâng nhấn chìm đồng bằng, còn lại đảo lớn đảo nhỏ, cọ và chuối.',(h,x,z)=>{let v=h>0?(h-20)*0.85:h;if(v<2&&Math.hypot(x,z)<6600){const n=NS.fbm(x/330+3,z/330+8,3);if(n>0.32)v=Math.max(v,(n-0.32)*80-4);}return v;},(q,r,t,re)=>{if(tree(t)){if(r<0.45)re(q,'palm');else if(r<0.65)re(q,'banana');}else if(t==='tallgrass'||t==='reeds'){const h=hAt(q.x,q.z);if(h<14&&r<0.2)re(q,'saltPan');else if(h<14&&r<0.36)re(q,'shellBed');}}],
   ['d4','Thanh Hoa','🥁','Núi đá lởm chởm xen thung lũng, giàu đồng, thiếc, đá lửa. Thông mọc dày.',pos((h,x,z)=>h*1.3+Math.abs(NS.ridge(x/700+2,z/700-6,4))*110*ss(20,120,h)),(q,r,t,re)=>{if(rock(t)){if(r<0.12)re(q,'copperRock');else if(r<0.2)re(q,'tinRock');else if(r<0.3)re(q,'flintRock');}else if((t==='oak'||t==='birch')&&r<0.4)re(q,'pine');}],
   ['d5','Hoan Châu','⛰️','Cao nguyên bậc thang: đất xếp từng tầng phẳng nối nhau bằng sườn dốc, dễ giữ, khó đánh.',pos(h=>{if(h<6)return h;const s=40,q=Math.floor(h/s),f=h/s-q;return (q+ss(0.35,0.65,f))*s;}),(q,r,t,re)=>{if((t==='oak'||t==='birch')&&r<0.6)re(q,'pine');}],
   ['d6','Thuận Hoá','🏯','Phía tây núi dựng, phía đông thoải dần ra biển và đầm phá.',pos((h,x)=>{const k=x/R;return h*(1-0.8*k)-Math.max(0,k)*30;}),(q,r,t,re)=>{if(tree(t)){if(q.x>0&&r<0.4)re(q,'palm');else if(r<0.2)re(q,'bamboo');}}],
