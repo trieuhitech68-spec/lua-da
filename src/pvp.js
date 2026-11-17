@@ -23,7 +23,7 @@ function pvpHp(def,k){if(/palisade|watchtower|rampart|stoneWall|dryStoneWall|ram
 // vì sao KHÔNG cướp được (null = được)
 function pvpWhy(uid){if(!pvpOn())return 'Chỉ có ở thế giới chung.';if(typeof mpSameClan==='function'&&mpSameClan(uid))return 'Công trình của đồng minh.';if((typeof heroLv==='function'?heroLv():1)<PVP_MINLV)return `Cần nhân vật cấp ${PVP_MINLV} mới đi cướp phá được.`;
   const p=MP.players[uid],now=pvpNow();if(p){if((p.hl||1)<PVP_MINLV)return 'Chủ nhà là người mới (dưới cấp '+PVP_MINLV+'): đang được bảo vệ.';if(p.sh>now)return `Chủ nhà đang có khiên bảo vệ, còn ${Math.max(1,Math.ceil((p.sh-now)/3600000))} giờ.`;
-    if(!landFar()&&p.ho&&p.ho[0]>0&&now-p.ho[1]>300000&&now<p.ho[1]+p.ho[0]*3600000&&!pvpAtWar(uid))return `Chủ nhà đang nghỉ trong nhà: nhà được bảo hộ thêm ${Math.max(1,Math.ceil((p.ho[1]+p.ho[0]*3600000-now)/3600000))} giờ.`;}
+    if((!landFar()||MP.claims[uid])&&p.ho&&p.ho[0]>0&&now-p.ho[1]>300000&&now<p.ho[1]+p.ho[0]*3600000&&!pvpAtWar(uid))return `Chủ nhà đang nghỉ trong nhà: nhà được bảo hộ thêm ${Math.max(1,Math.ceil((p.ho[1]+p.ho[0]*3600000-now)/3600000))} giờ.`;}
   const o=pvpS().out[uid];if(o&&now-o.at<PVP_DAY&&o.ids.length>=pvpCap(uid))return 'Hôm nay bạn đã phá đủ '+pvpCap(uid)+' món của nhà này.';return null;}
 /* ---------- tìm công trình của người khác ở gần ---------- */
 function pvpNearScan(){PVP.nearT=G.t;PVP.near=null;if(!pvpOn()||!MP.bcur||!MP.bcur.size)return;let bd=REACH+12;for(const [uid,cur] of MP.bcur){for(const o of cur.values()){const b=o.b;if(Math.abs(b.x-P.x)>90||Math.abs(b.z-P.z)>90||Math.abs((b.y||0)-P.y)>60)continue;const def=pieceDef(b.k);if(!def||!BYID.has(b.id))continue;

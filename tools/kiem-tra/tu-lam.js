@@ -3,7 +3,7 @@ const MAXMIN=+process.argv[2]||8,SEEDK=process.argv[3]||'';
 (async()=>{
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});
   const c=await b.newContext({viewport:{width:900,height:600},deviceScaleFactor:1});
-  await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-c');localStorage.setItem('ldtt-nohd','1')}catch(e){}});
+  await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-d');localStorage.setItem('ldtt-nohd','1')}catch(e){}});
   const p=await c.newPage();const logs=[];p.on('pageerror',e=>logs.push('ERR '+e.message+' '+(e.stack||'').slice(0,300)));p.on('console',m=>{if(m.type()==='warning'&&/auto|solid|cơ bản/.test(m.text()))logs.push(m.text().slice(0,300))});
   await p.goto('file://'+require('path').resolve(__dirname,'../../index.html'));await p.waitForTimeout(5000);
   const click=async t=>{await p.evaluate(t=>{const b=[...document.querySelectorAll('button')].filter(b=>b.offsetParent).find(b=>b.innerText.includes(t));b&&b.click()},t);await p.waitForTimeout(1500)};

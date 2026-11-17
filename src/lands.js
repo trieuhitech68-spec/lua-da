@@ -5,7 +5,7 @@
      dao Biển Đảo Phương Nam  : mực nước dâng 22 đơn vị → quần đảo, đầm phá, bãi cát; giàu muối, sò ngọc, cọ, tre, chuối, vàng sa khoáng. Vùng cấp +10. Cần cấp 12.
    Vùng xa dựng bằng bộ sinh địa hình bản đồ tròn (WV 3) với hạt giống riêng suy từ hạt giống gốc, rồi biến đổi độ cao theo vùng.
    S.land = mã vùng đang ở; S.seed0 = hạt giống gốc; S.seed = hạt giống của vùng đang ở. Phần 2 (đi qua cổng, lưu riêng từng vùng) ở lands2.js. */
-const LANDS=[{id:'c',n:'Đất Trung Tâm',ic:'🏠',lv:0,need:1,d:'Nơi bắt đầu. Nhà chính, lãnh thổ và bảo hộ khi vắng chỉ có ở đây.'},
+const LANDS=[{id:'c',n:'Đất Trung Tâm',ic:'🏠',lv:0,need:1,d:'Nơi mọi người bắt đầu. Đông người nhất; thấy chật thì qua Cổng Muôn Nẻo sang vùng định cư khác.'},
   {id:'tb',n:'Tây Bắc Núi Cao',ic:'🏔️',lv:6,need:8,d:'Núi dựng cao gấp rưỡi, đèo dốc, tuyết phủ. Giàu quặng đồng, thiếc, sắt, than đá và gỗ thông cổ thụ. Gấu, sói, hổ mạnh.',hf:(h,x,z)=>{if(h<=0)return h;let v=h*1.5+Math.min(14,h);/* dãy núi thứ hai ở phía nam + lòng chảo Điện Biên ở giữa: bố cục khác hẳn vùng trung tâm */
      const s=ss(600,2600,z)*(1-ss(5200,6600,Math.hypot(x,z)));v+=s*(60+NS.ridge(x/850+5,z/850-3,4)*330);const bd=Math.hypot((x+1600)/1500,(z-900)/1000);if(bd<1.3){const k=1-ss(0.55,1.3,bd);v=v*(1-k)+(34+NS.fbm(x/400,z/400,2)*8)*k;}return v;},
    reg:{start:'Bản Đầu Nguồn',range:'Dãy Hoàng Liên',pineplat:'Cao Nguyên Mộc Châu',karst:'Cao Nguyên Đá Đồng Văn',terrace:'Ruộng Bậc Thang Mù Cang Chải',canyon:'Hẻm Vực Tu Sản',vista:'Đèo Ô Quy Hồ',plateau:'Sơn Nguyên Tà Phình',bamboovl:'Thung Lũng Mường Thanh',hotspring:'Suối Khoáng Mường La',basalt:'Núi Lửa Ngủ Yên',forest:'Rừng Pơ Mu',village:'Bản Người Thái'}},

@@ -1,7 +1,7 @@
 // Gom việc ghi bản lưu: gọi save() dồn dập chỉ ghi thật 1 lần; rời trang, mở Cài đặt, sắp đẩy lên máy chủ thì ghi ngay; bản ghi đúng dữ liệu mới nhất.
 const {chromium}=require('playwright');const path=require('path');
 (async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});const c=await b.newContext({viewport:{width:393,height:852}});
-await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-c');localStorage.setItem('ldtt-nohd','1')}catch(e){}window.__W=0;const _s=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='lua-da-tay-trang-v1')__W++;return _s.apply(this,arguments);};});
+await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-d');localStorage.setItem('ldtt-nohd','1')}catch(e){}window.__W=0;const _s=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='lua-da-tay-trang-v1')__W++;return _s.apply(this,arguments);};});
 const p=await c.newPage();const logs=[];p.on('pageerror',e=>logs.push('ERR '+e.message));await p.goto('file://'+path.resolve(__dirname,'../../index.html'));await p.waitForTimeout(5000);
 const click=async t=>{await p.evaluate(t=>{const b=[...document.querySelectorAll('button')].filter(b=>b.offsetParent).find(b=>b.innerText.includes(t));b&&b.click()},t);await p.waitForTimeout(1500)};
 await click('Tạo nhân vật mới');await click('Bắt đầu');await p.waitForFunction(()=>typeof G==='object'&&G.on&&G.animals&&G.animals.length&&P.model,null,{timeout:240000});await p.waitForTimeout(3000);
