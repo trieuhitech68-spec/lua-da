@@ -13,7 +13,11 @@ function landGo(to){landInit();const why=landWhy(to);if(why){uiToast(why,'bad');
   for(const k of LD_KEYS){if(nx[k]!==undefined)S[k]=nx[k];else if(LD_DEF[k])S[k]=LD_DEF[k]();else delete S[k];}delete S.lands[to];
   G.ldLeaving=1;/* trang cũ không được tự đặt người / lưu đè nữa */S.land=to;S.seed=landSeed(to);S.wv=to==='c'?(S.wv0||3):3;S.landArr=from;S.wx=null;G.walkTo=null;G.act=null;if(typeof AQ==='object'&&AQ.on)try{aqStop();}catch(e){}
   cnt('cnt','gate');uiToast(`⛩️ Đang sang ${T.n}…`,'gold');/* phải GHI NGAY: lệnh lưu thường bị hoãn vài chục giây, mà sau dòng này mọi lần lưu đều bị chặn → tải lại trang vẫn ở vùng cũ */if(typeof saveNow==='function')saveNow();else save();try{if(typeof accPush==='function'&&typeof curSlot==='function'&&ACC.db)accPush(curSlot());}catch(e){}
-  G.ldLeaving=2;try{sessionStorage.setItem('ld-cont','1');/* qua cổng là tải lại CÓ CHỦ Ý: không tính vào bộ đếm 'tải lại liên tục' (qua 2 cổng trong 90 giây từng bị chặn, kẹt ở màn hình ngoài) */sessionStorage.removeItem('ldtt-autoh');}catch(e){}setTimeout(()=>{try{location.reload();}catch(e){}},900);}
+  G.ldLeaving=2;try{sessionStorage.setItem('ld-cont','1');/* qua cổng là tải lại CÓ CHỦ Ý: không tính vào bộ đếm 'tải lại liên tục' (qua 2 cổng trong 90 giây từng bị chặn, kẹt ở màn hình ngoài) */sessionStorage.removeItem('ldtt-autoh');}catch(e){}/* Trình duyệt ghi bộ nhớ trang xuống máy theo đợt; tải lại quá sớm có thể mất lần ghi vừa rồi (qua cổng xong vẫn ở vùng cũ).
+     Ghi thêm một bản vào kho lưu nền (IndexedDB), CHỜ ghi xong rồi mới tải lại; lúc mở lại, bản nền mới hơn sẽ được chép sang. */
+  const go=()=>{if(G.ldGone)return;G.ldGone=1;try{location.reload();}catch(e){}};
+  try{const id=typeof curSlot==='function'&&curSlot(),raw=localStorage.getItem(SKEY);if(id&&raw&&typeof LIDB==='object'&&LIDB.ok){const tx=LIDB.db.transaction('s','readwrite');tx.objectStore('s').put({raw,ts:Date.now()+5},SKEY+'#'+id);tx.oncomplete=()=>setTimeout(go,700);}}catch(e){}
+  setTimeout(go,2500);}
 // tải lại xong: vào thẳng game
 {const _b=boot;boot=function(d){let c=false;try{c=sessionStorage.getItem('ld-cont')==='1';sessionStorage.removeItem('ld-cont');}catch(e){}return _b(c?Object.assign({},d||{},{cont:true}):d);};}
 // đến nơi: đứng ở cổng dẫn về vùng vừa rời
