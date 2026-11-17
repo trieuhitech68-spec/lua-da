@@ -1,6 +1,6 @@
 /* ===================== CÓ GÌ MỚI: thẻ giới thiệu tính năng, mỗi phiên bản hiện một lần cho mỗi máy ===================== */
 const NEWS_V='2026-11-d',NEWS=[
- ['🌀','9 vùng định cư mới','Gần chỗ bắt đầu có Cổng Muôn Nẻo 🌀: sang được 9 vùng đất mới, mỗi vùng to bằng cả Đất Trung Tâm. Vùng nào cũng cắm mốc lãnh thổ, dựng nhà chính được. Túi đồ, cấp, kỹ năng đi theo bạn.'],
+ ['🌀','9 vùng định cư mới','Gần chỗ bắt đầu có Cổng Muôn Nẻo 🌀: sang được 9 vùng đất mới, mỗi vùng một kiểu (châu thổ, đầm hồ, quần đảo, núi đá, bậc thang, lòng chảo, thảo nguyên, hẻm núi…). Vùng nào cũng cắm mốc lãnh thổ được. Đang cưỡi thú thì cưỡi qua luôn; lính đang «Theo tôi» đi qua cùng bạn.'],
  ['🐎','Thú không còn mất tích','Ngựa, voi hiện trên bản đồ nhỏ, có nút Gọi về. Vật nuôi tự về chuồng hoặc về làng; đói không bỏ đi nữa.'],
  ['🧹','Khu đã khai phá sạch hẳn','Quanh công trình, nền đã san, trong vòng rào: không mọc lại cỏ cây, thú hoang không vào. San nền có rìu thì đốn luôn cây.'],
  ['⚔️','Đạo quân','Dân làng → Đạo quân: đội hình (hàng ngang, cột, mũi nhọn, vòng tròn), mệnh lệnh (theo tôi, giữ chỗ, xung phong, về trại), lính giáo – cung thủ – lính khiên. Có Trại lính thì chiêu mộ dân binh.'],

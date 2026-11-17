@@ -15,11 +15,11 @@ o.a=await p.evaluate(()=>{const r={};r.n=LANDS.filter(L=>L.home).length;r.hub=LA
   r.zHere=!!mpZoneHere({x:10,z:10,r:200});r.zOther=mpZoneHere({x:10,z:10,r:200,l:'d1'});r.zRaw=(mpZoneRaw({x:10,z:10,r:200,l:'d1'})||{}).l;r.clanDoc=mpClanDoc({name:'a',leader:'u',members:['u'],color:'#fff',emblem:'🔥',createdAt:1,zone:null,zoneRaw:{x:1,z:2,r:200,l:'d2'},deny:[]},{members:['u','v']}).zone.l;return r;});
 if(SHOT)await p.screenshot({path:SHOT});
 o.c0=await info();
-await p.evaluate(()=>{mnClose();landGo('d5');});await p.waitForTimeout(6000);await ready();o.d5=await info();
-o.d5x=await p.evaluate(()=>{const r={};r.claimWhy=mpClaimWhy(SPAWN[0]+900,SPAWN[1]+900,160,'claim');r.cur=landCur().n;r.home=!!landCur().home;return r;});
+await p.evaluate(()=>{mnClose();S.mounts=[{id:1,k:'horse',n:'Ngựa thử',x:P.x+20,z:P.z,ry:0,land:mtLand()}];mtShow(S.mounts[0]);mtRide(S.mounts[0]);S.folk=S.folk||[];for(let i=0;i<3;i++)S.folk.push({n:'Lính '+i,job:'soldier',x:P.x+30+i*10,z:P.z+30,seed:i+1,hp:10});S.folk.push({n:'Dân',job:'gather',x:P.x+40,z:P.z+40,seed:9,hp:10});qdS().cmd='follow';landGo('d5');});await p.waitForTimeout(6000);await ready();o.d5=await info();
+o.d5x=await p.evaluate(()=>{const r={};r.mnt=!!G.mnt;r.sold=(S.folk||[]).filter(f=>f.job==='soldier').length;r.other=(S.folk||[]).filter(f=>f.job!=='soldier').length;r.sd=Math.round(Math.max(0,...(S.folk||[]).map(f=>Math.hypot(f.x-P.x,f.z-P.z))));r.claimWhy=mpClaimWhy(SPAWN[0]+900,SPAWN[1]+900,160,'claim');r.cur=landCur().n;r.home=!!landCur().home;return r;});
 await p.evaluate(()=>{landGo('c');});await p.waitForTimeout(6000);await ready();o.c1=await info();
 console.log(JSON.stringify(o));const a=o.a,d=o.d5;
 const ok=a.n===9&&a.hub&&a.tbSeed&&a.gate&&a.open&&a.rows===12&&a.go>=9&&a.w&&/Chọn vùng/.test(a.verb||'')&&a.zHere&&a.zOther===null&&a.zRaw==='d1'&&a.clanDoc==='d2'
-  &&d.land==='d5'&&d.wv===o.c0.wv&&d.seed!==o.c0.seed&&/c/.test(d.gates)&&/\*/.test(d.gates)&&d.res>5000&&d.an>50&&d.h>1&&d.wd<=0&&d.builds===0&&d.palm<=o.c0.palm*1.5+20&&!/tranh chấp/.test(o.d5x.claimWhy||'')&&o.d5x.home
-  &&o.c1.land==='c'&&o.c1.seed===o.c0.seed&&o.c1.builds===o.c0.builds&&o.c1.builds>=1&&!logs.length;
+  &&d.land==='d5'&&d.wv===3&&o.d5x.mnt&&o.d5x.sold===3&&o.d5x.other===0&&o.d5x.sd<400&&d.seed!==o.c0.seed&&/c/.test(d.gates)&&/\*/.test(d.gates)&&d.res>5000&&d.an>50&&d.h>1&&d.wd<=0&&d.builds===0&&!/tranh chấp/.test(o.d5x.claimWhy||'')&&o.d5x.home
+  &&o.c1.land==='c'&&o.c1.seed===o.c0.seed&&o.c1.builds===o.c0.builds&&o.c1.builds>=1&&o.c1.wv===o.c0.wv&&!logs.length;
 console.log(ok?'NVG-DAT':'NVG-HONG '+logs.join('|'));await b.close();})();
