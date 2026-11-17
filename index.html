@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261117084510">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261117090041">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -22272,6 +22272,8 @@ function kpGone(q,perm){q.st=perm?1:2;q.hp=0;if(perm){q.rg=1e12;S.res[q.i]=[1,1e
 /* quét: nền đã san sạch mọi thứ còn sống hoặc đang ngủ theo mùa; trong khu thì thứ đã hết không hẹn mọc lại */
 function kpSweep(){let ch=0;try{for(const f of S.flat||[])for(const i of near(f.x,f.z,f.r+20)){const q=RES[i];if(!q||q.lock||Math.hypot(q.x-f.x,q.z-f.z)>f.r)continue;const m=S.res[q.i];if(q.st===0){kpGone(q,true);ch++;}else if(q.st===2&&!m){S.res[q.i]=[2,0];}}
     for(const k in S.res){const m=S.res[k];if(m[0]!==1||m[1]>=1e11)continue;const q=RES[+k];if(q&&kpIn(q.x,q.z))S.res[k]=[1,1e12];}
+    /* trong khu: bụi rậm, cây non, cỏ cao, đá vụn (thứ nhổ tay được) dọn luôn, khỏi mọc lổm ngổm giữa sân làng; cây to phải chặt thì để nguyên */
+    const seen=new Set();for(const b of S.builds){if(b.remote)continue;const d=pieceDef(b.k);if(!d)continue;for(const i of near(b.x,b.z,(d.fp?Math.max(d.fp[0],d.fp[1])*20:20)+110)){if(seen.has(i))continue;seen.add(i);const q=RES[i];if(!q||q.st!==0||q.lock||RT[q.t].tool||/^(clay|beehive|banana|lotus|reedBed|berry|wildgrain|gourdwild)$/.test(q.t)/* thứ có ích thì giữ: bãi đất sét, tổ ong, chuối, sen, bụi quả mọng, kê dại, bầu dại */||!kpIn(q.x,q.z))continue;kpGone(q,true);ch++;}}
     if(ch)RI.forEach(v=>v.api.flush());}catch(e){}return ch;}
 function kpRefresh(force){try{if(!S||!S.builds)return;const L=S.builds,sig=L.length+':'+(L.length?L[L.length-1].id:0)+':'+((S.flat||[]).length)+':'+(S.land||'c');if(!force&&sig===KP.sig)return;KP.sig=sig;kpBuild();kpSweep();G.gLast=null;}catch(e){}}
 {const _rr=resRegrow;resRegrow=function(){try{for(const k in S.res){const m=S.res[k];if(m[0]!==1||m[1]>=1e11)continue;const q=RES[+k];if(q&&kpIn(q.x,q.z))S.res[k]=[1,1e12];}}catch(e){}return _rr.apply(this,arguments);};}
@@ -22336,6 +22338,40 @@ if(typeof mpClaim==='function'){const _c=mpClaim;mpClaim=function(){const r=_c.a
 if(typeof NVQ!=='undefined')NVQ.push({id:'muonneo',ic:'🌀',t:'Tìm Cổng Muôn Nẻo, xem các vùng định cư',d:'Gần chỗ bắt đầu có cổng đá mang dấu 🌀 (mở 🗺️ Bản đồ để cắm cờ tới cổng). Bấm vào để xem 12 vùng đất và số người đã định cư ở mỗi vùng.',n:1,f:()=>nvC('cnt:nvhub'),rw:{rope:2,meatCooked:2},lv:2});
 {const _o=mnOpen;mnOpen=function(){try{cnt('cnt','nvhub');}catch(e){}return _o.apply(this,arguments);};}
 (function(){try{const st=document.createElement('style');st.textContent='#nvw{position:fixed;inset:0;z-index:60;background:rgba(10,8,6,.62);display:flex;align-items:center;justify-content:center;padding:12px}#nvw[hidden]{display:none}.nv-card{background:#2a211a;color:#f3e9d8;border:1px solid rgba(255,210,122,.35);border-radius:14px;max-width:520px;width:100%;max-height:86vh;overflow:auto;padding:12px 14px;box-shadow:0 10px 40px rgba(0,0,0,.5)}.nv-h{display:flex;justify-content:space-between;align-items:center;font-size:17px;margin-bottom:4px}.nv-x{background:none;border:0;color:#f3e9d8;font-size:18px;padding:4px 8px;cursor:pointer}.nv-l{display:flex;flex-direction:column;gap:6px;margin-top:8px}.nv-r{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border-radius:10px;padding:7px 9px}.nv-r.cur{outline:1px solid rgba(255,210,122,.5)}.nv-ic{font-size:24px;flex:none}.nv-m{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px}.nv-m b{font-size:14px}.nv-t{font-style:normal;font-size:11px;padding:1px 6px;border-radius:8px;margin-left:4px;background:rgba(255,255,255,.12);white-space:nowrap}.nv-t.best{background:#2f6b3a}.nv-t.cur{background:#7a5a1e}.nv-t.full{background:#7a2e22}.nv-r .btn{flex:none}';document.head.appendChild(st);}catch(e){}})();
+/* ===================== sualoi3: RUỘNG LIỀN NHAU CÙNG MỘT MẶT · THÚ KHÔNG CHỒNG LÊN NHAU, KHÔNG LỌT VÀO NHÀ =====================
+   1) Mấy thửa ruộng nước đặt sát nhau trên đất hơi dốc: mỗi thửa tự san đất theo cao độ riêng, thửa sau đè cao độ của mình lên phần đất
+      chung với thửa trước → đất nhô lên xuyên qua mặt nước thửa bên cạnh. Giờ các thửa (và ao cá) sát nhau được đưa về CÙNG một cao độ
+      (lấy thửa cao nhất), đất bên dưới san lại một lượt theo cao độ đó.
+   2) Ngựa, voi gọi về hay để lại đều đứng trùng một điểm, chồng vào nhau, có con lọt vào trong nhà. Giờ mỗi con một chỗ: gọi về thì xếp
+      quanh người; con nào đứng trùng con khác hoặc đứng trên nền nhà (trừ chuồng ngựa) thì tự dời ra chỗ trống gần nhất.
+   3) Vật nuôi đi lại không còn xuyên qua nhau (đẩy nhẹ ra) và không đi vào nền nhà. */
+const SL3={};
+function sl3Pads(){let ch=0;try{if(typeof SOL_FLAT==='undefined'||typeof flatApply!=='function'||!S||!S.builds)return 0;const L=S.builds.filter(b=>(b.k==='paddy'||b.k==='fishPond')&&b.prog==null&&!b.remote);if(L.length<2)return 0;
+    const par=L.map((_,i)=>i),find=i=>par[i]===i?i:(par[i]=find(par[i]));for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++)if(Math.abs(L[i].x-L[j].x)<=84&&Math.abs(L[i].z-L[j].z)<=84&&Math.abs(L[i].y-L[j].y)<14)par[find(i)]=find(j);
+    const top={};L.forEach((b,i)=>{const r=find(i);if(top[r]==null||b.y>top[r])top[r]=b.y;});const re=[];
+    L.forEach((b,i)=>{const y=top[find(i)];if(Math.abs(b.y-y)<0.15&&b.fl)return;if(wdAt(b.x,b.z)>0.5)return;b.y=+y.toFixed(2);try{const e=piecePrep(b.k),idx=e.map.get(b.id);if(idx!=null){setPieceM(e.api,idx,b);e.api.flush();}}catch(e){}
+      S.flat=(S.flat||[]).filter(f=>!(Math.hypot(f.x-b.x,f.z-b.z)<12&&f.r<=80));const f={x:+b.x.toFixed(1),z:+b.z.toFixed(1),r:SOL_FLAT[b.k]||74,h:+(b.y-0.9).toFixed(2)};S.flat.push(f);b.fl=1;re.push([b,f]);ch++;});
+    if(ch){/* áp lại cả cụm theo cao độ chung, rồi mới dựng lại mặt đất một lượt */for(const [b,f] of re)flatApply(f);for(const [b,f] of re){try{landRebuild(f);}catch(e){}try{if(b.k==='paddy'&&typeof l4PadShow==='function')l4PadShow(b);}catch(e){}}
+      try{for(const [b] of re)for(const i of near(b.x,b.z,130)){const q=RES[i];if(q.wy!=null)continue;const ny=hAt(q.x,q.z)-1.2;if(Math.abs(ny-q.y)>0.3){q.y=ny;resShow(q);}}RI.forEach(v=>v.api.flush());}catch(e){}G.gLast=null;try{P.y=groundY(P.x,P.z);}catch(e){}save();}}catch(e){console.warn('ruộng liền thửa',e);}return ch;}
+if(typeof siteDone==='function'){const _sd=siteDone;siteDone=function(b){const r=_sd.apply(this,arguments);try{if(b&&(b.k==='paddy'||b.k==='fishPond'))setTimeout(sl3Pads,300);}catch(e){}return r;};}
+setTimeout(function chk(){try{if(typeof G==='undefined'||!G.on||!S||!S.builds||!G.terrain){setTimeout(chk,3000);return;}sl3Pads();}catch(e){}},9000);
+/* ---------- thú cưỡi: mỗi con một chỗ ---------- */
+function sl3Floor(x,z){try{const c=cellAt(x,z);return !!(c&&c.floor);}catch(e){return false;}}
+function sl3Stable(x,z){try{return S.builds.some(b=>(b.k==='trough'||b.k==='hayPile')&&b.prog==null&&Math.hypot(b.x-x,b.z-z)<95);}catch(e){return false;}}
+function sl3FreeM(x,z,me){try{if(cellBusy(x,z)||hAt(x,z)<1.5||wdAt(x,z)>0)return false;const c=collide(x,z);if(Math.hypot(c[0]-x,c[1]-z)>3)return false;if(Math.hypot(x-P.x,z-P.z)<30)return false;
+    for(const m of S.mounts||[]){if(m===me||m.x==null||G.mnt===m||(m.land||'c')!==((S&&S.land)||'c'))continue;if(Math.hypot(m.x-x,m.z-z)<44)return false;}return true;}catch(e){return false;}}
+function sl3Spot(x,z,me,r0){for(let r=r0||0;r<=320;r+=30){const n=r?Math.max(8,Math.round(r/14)):1;for(let i=0;i<n;i++){const a=i/n*6.283+r*0.37,px=x+Math.cos(a)*r,pz=z+Math.sin(a)*r;if(sl3FreeM(px,pz,me))return [px,pz];}}return null;}
+function sl3Put(m,p){m.x=+p[0].toFixed(1);m.z=+p[1].toFixed(1);try{const o=typeof MT==='object'&&MT.o.get(m.id);if(o)o.position.set(m.x,hAt(m.x,m.z),m.z);}catch(e){}}
+function sl3Mounts(){let ch=0;try{const here=(S&&S.land)||'c',L=(S.mounts||[]).filter(m=>m.x!=null&&G.mnt!==m&&m.sol==null&&(m.land||'c')===here);for(let i=0;i<L.length;i++){const m=L[i];let bad=sl3Floor(m.x,m.z)&&!sl3Stable(m.x,m.z);if(!bad)for(let j=0;j<i;j++)if(Math.hypot(L[j].x-m.x,L[j].z-m.z)<40){bad=true;break;}if(!bad)continue;const p=sl3Spot(m.x,m.z,m,30);if(p){sl3Put(m,p);ch++;}}if(ch)save();}catch(e){}return ch;}
+if(typeof tvCall==='function'){const _tc=tvCall;tvCall=function(m){const x0=m&&m.x,z0=m&&m.z;const r=_tc.apply(this,arguments);try{if(m&&(m.x!==x0||m.z!==z0)){const p=sl3Spot(P.x-Math.sin(P.ry||0)*50,P.z-Math.cos(P.ry||0)*50,m,0);if(p){sl3Put(m,p);save();}}}catch(e){}return r;};}
+if(typeof mtOff==='function'){const _mo=mtOff;mtOff=function(){const r=_mo.apply(this,arguments);try{sl3Mounts();}catch(e){}return r;};}
+setInterval(()=>{try{if(typeof G==='object'&&G.on&&!G.paused&&S)sl3Mounts();}catch(e){}},2500);
+/* ---------- vật nuôi: không xuyên qua nhau, không vào nền nhà ---------- */
+const SL3_R={pig:11,buffalo:15,calfB:10,goat:10,dog:9,kid:7,piglet:7,puppy:6,chicken:5,duck:5,rabbit:5,chick:3.5,duckling:3.5,bunny:3.5};
+{const _pt=petsTick;petsTick=function(dt){const L=(S&&S.pets)||[];for(const p of L){p._px=p.x;p._pz=p.z;}const r=_pt.apply(this,arguments);try{const n=L.length;
+      for(let i=0;i<n;i++){const a=L[i];if(sl3Floor(a.x,a.z)&&!sl3Floor(a._px,a._pz)){/* định bước lên nền nhà: đứng lại, chọn hướng khác */a.x=a._px;a.z=a._pz;a._t=0;}
+        const ra=SL3_R[a.k]||7;for(let j=i+1;j<n;j++){const b=L[j],dx=b.x-a.x,dz=b.z-a.z;if(dx>30||dx<-30||dz>30||dz<-30)continue;const d=Math.hypot(dx,dz),m=ra+(SL3_R[b.k]||7);if(d>=m)continue;const k=(m-d)/2*Math.min(1,dt*6),ux=d>0.01?dx/d:Math.cos(i*2.4),uz=d>0.01?dz/d:Math.sin(i*2.4);a.x-=ux*k;a.z-=uz*k;b.x+=ux*k;b.z+=uz*k;}}
+      for(const p of L)if(p._o&&(p.x!==p._ox||p.z!==p._oz)){p._ox=p.x;p._oz=p.z;p._o.position.x=p.x;p._o.position.z=p.z;}}catch(e){}return r;};}
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.

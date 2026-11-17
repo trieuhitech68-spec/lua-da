@@ -17,6 +17,8 @@ function kpGone(q,perm){q.st=perm?1:2;q.hp=0;if(perm){q.rg=1e12;S.res[q.i]=[1,1e
 /* quét: nền đã san sạch mọi thứ còn sống hoặc đang ngủ theo mùa; trong khu thì thứ đã hết không hẹn mọc lại */
 function kpSweep(){let ch=0;try{for(const f of S.flat||[])for(const i of near(f.x,f.z,f.r+20)){const q=RES[i];if(!q||q.lock||Math.hypot(q.x-f.x,q.z-f.z)>f.r)continue;const m=S.res[q.i];if(q.st===0){kpGone(q,true);ch++;}else if(q.st===2&&!m){S.res[q.i]=[2,0];}}
     for(const k in S.res){const m=S.res[k];if(m[0]!==1||m[1]>=1e11)continue;const q=RES[+k];if(q&&kpIn(q.x,q.z))S.res[k]=[1,1e12];}
+    /* trong khu: bụi rậm, cây non, cỏ cao, đá vụn (thứ nhổ tay được) dọn luôn, khỏi mọc lổm ngổm giữa sân làng; cây to phải chặt thì để nguyên */
+    const seen=new Set();for(const b of S.builds){if(b.remote)continue;const d=pieceDef(b.k);if(!d)continue;for(const i of near(b.x,b.z,(d.fp?Math.max(d.fp[0],d.fp[1])*20:20)+110)){if(seen.has(i))continue;seen.add(i);const q=RES[i];if(!q||q.st!==0||q.lock||RT[q.t].tool||/^(clay|beehive|banana|lotus|reedBed|berry|wildgrain|gourdwild)$/.test(q.t)/* thứ có ích thì giữ: bãi đất sét, tổ ong, chuối, sen, bụi quả mọng, kê dại, bầu dại */||!kpIn(q.x,q.z))continue;kpGone(q,true);ch++;}}
     if(ch)RI.forEach(v=>v.api.flush());}catch(e){}return ch;}
 function kpRefresh(force){try{if(!S||!S.builds)return;const L=S.builds,sig=L.length+':'+(L.length?L[L.length-1].id:0)+':'+((S.flat||[]).length)+':'+(S.land||'c');if(!force&&sig===KP.sig)return;KP.sig=sig;kpBuild();kpSweep();G.gLast=null;}catch(e){}}
 {const _rr=resRegrow;resRegrow=function(){try{for(const k in S.res){const m=S.res[k];if(m[0]!==1||m[1]>=1e11)continue;const q=RES[+k];if(q&&kpIn(q.x,q.z))S.res[k]=[1,1e12];}}catch(e){}return _rr.apply(this,arguments);};}
