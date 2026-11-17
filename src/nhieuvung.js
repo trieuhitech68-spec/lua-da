@@ -22,7 +22,7 @@ const MNV={cap:140};
 const mnLands=()=>LANDS.filter(L=>!L.hub);
 /* ---------- cổng Muôn Nẻo gần chỗ bắt đầu của mọi vùng ---------- */
 {const _gp=landGatesPlan;landGatesPlan=function(){_gp.apply(this,arguments);try{const cur=landCur();if(cur.home)LD.gates=LD.gates.filter(g=>g.to==='c');
-    const tries=[[340,-260],[-360,280],[420,300],[-300,-380],[620,0],[0,640]];for(const [dx,dz] of tries){const p=landSpot(SPAWN[0]+dx,SPAWN[1]+dz);if(p&&!LD.gates.some(g=>Math.hypot(g.x-p[0],g.z-p[1])<200)){LD.gates.push({to:'*',x:p[0],z:p[1]});break;}}}catch(e){console.warn('cổng muôn nẻo',e);}};}
+    const tries=[[520,-400],[-540,420],[600,440],[-460,-560],[760,0],[0,780]];for(const [dx,dz] of tries){const p=landSpot(SPAWN[0]+dx,SPAWN[1]+dz);if(p&&!LD.gates.some(g=>Math.hypot(g.x-p[0],g.z-p[1])<200)){LD.gates.push({to:'*',x:p[0],z:p[1]});break;}}}catch(e){console.warn('cổng muôn nẻo',e);}};}
 function mnPop(id){try{return (typeof MP==='object'&&MP.landPop&&MP.landPop[id])||0;}catch(e){return 0;}}
 function mnHtml(){const here=(S&&S.land)||'c',on=typeof mpOn==='function'&&mpOn(),lv=typeof heroLv==='function'?heroLv():1,L=mnLands().slice().sort((a,b)=>(a.id===here?-1:b.id===here?1:0));let best=null;if(on)for(const T of mnLands()){if(!(T.id==='c'||T.home)||T.id===here)continue;if(!best||mnPop(T.id)<mnPop(best.id))best=T;}
   return `<div class="nv-card"><div class="nv-h"><b>🌀 Cổng Muôn Nẻo</b><button class="nv-x" data-nv="x">✕</button></div>
