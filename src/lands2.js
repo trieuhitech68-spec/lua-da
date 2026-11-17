@@ -11,7 +11,7 @@ function landWhy(to){const T=LANDS.find(L=>L.id===to);if(!T)return 'Cổng hỏn
 function landGo(to){landInit();const why=landWhy(to);if(why){uiToast(why,'bad');sfx('no');return;}const from=S.land,T=LANDS.find(L=>L.id===to);
   const keep={};for(const k of LD_KEYS){if(S[k]!==undefined)keep[k]=S[k];}S.lands[from]=keep;const nx=S.lands[to]||{};
   for(const k of LD_KEYS){if(nx[k]!==undefined)S[k]=nx[k];else if(LD_DEF[k])S[k]=LD_DEF[k]();else delete S[k];}delete S.lands[to];
-  G.ldLeaving=1;/* trang cũ không được tự đặt người / lưu đè nữa */S.land=to;S.seed=landSeed(to);S.wv=(to==='c'||(LANDS.find(L=>L.id===to)||{}).home)?(S.wv0||3):3;/* vùng định cư mới dựng bằng cùng bộ sinh bản đồ với Đất Trung Tâm */S.landArr=from;S.wx=null;G.walkTo=null;G.act=null;if(typeof AQ==='object'&&AQ.on)try{aqStop();}catch(e){}
+  G.ldLeaving=1;/* trang cũ không được tự đặt người / lưu đè nữa */S.land=to;S.seed=landSeed(to);S.wv=to==='c'?(S.wv0||3):3;S.landArr=from;S.wx=null;G.walkTo=null;G.act=null;if(typeof AQ==='object'&&AQ.on)try{aqStop();}catch(e){}
   cnt('cnt','gate');uiToast(`⛩️ Đang sang ${T.n}…`,'gold');/* phải GHI NGAY: lệnh lưu thường bị hoãn vài chục giây, mà sau dòng này mọi lần lưu đều bị chặn → tải lại trang vẫn ở vùng cũ */if(typeof saveNow==='function')saveNow();else save();try{if(typeof accPush==='function'&&typeof curSlot==='function'&&ACC.db)accPush(curSlot());}catch(e){}
   G.ldLeaving=2;try{sessionStorage.setItem('ld-cont','1');/* qua cổng là tải lại CÓ CHỦ Ý: không tính vào bộ đếm 'tải lại liên tục' (qua 2 cổng trong 90 giây từng bị chặn, kẹt ở màn hình ngoài) */sessionStorage.removeItem('ldtt-autoh');}catch(e){}setTimeout(()=>{try{location.reload();}catch(e){}},900);}
 // tải lại xong: vào thẳng game
@@ -30,9 +30,9 @@ function landGateNear(){for(const g of LD.gates){const d=Math.hypot(g.x-P.x,g.z-
 {const _as=actStart;actStart=function(t){if(t&&t.type==='ldgate'&&!G.work){const to=t.g.to,why=landWhy(to);if(why){uiToast(why,'bad');sfx('no');return;}if(G.ldArm===to&&G.t-(G.ldArmT||0)<6){G.ldArm=null;landGo(to);}else{G.ldArm=to;G.ldArmT=G.t;const T=LANDS.find(L=>L.id===to);uiToast(`⛩️ ${T.n}: ${T.d} Túi đồ, cấp, kỹ năng đi theo bạn; nhà cửa ở lại vùng này. Bấm lần nữa để đi.`,'');sfx('pick');}return;}return _as.apply(this,arguments);};}
 /* ---------- cấp vùng, tài nguyên, thú theo vùng ---------- */
 {const _kl=khuLv;khuLv=function(x,z){return clamp(_kl(x,z)+landCur().lv,1,20);};}
-{const _rg=resGen;resGen=function(seed){_rg.apply(this,arguments);try{const id=landCur().id;if(id==='c'||landCur().home)return;const hsh=i=>{let x=(i*2654435761+((seed|0)*97))>>>0;x^=x>>>15;x=Math.imul(x,2246822519)>>>0;x^=x>>>13;return (x>>>0)/4294967296;};
+{const _rg=resGen;resGen=function(seed){_rg.apply(this,arguments);try{const id=landCur().id,Lc=landCur();if(id==='c')return;const hsh=i=>{let x=(i*2654435761+((seed|0)*97))>>>0;x^=x>>>15;x=Math.imul(x,2246822519)>>>0;x^=x>>>13;return (x>>>0)/4294967296;};
     const re=(q,t)=>{if(!RT[t])return;q.t=t;q.s=(0.85+hsh(q.i+7)*0.35)*(RT[t].sc||1);q.hp=RT[t].hp;};
-    for(const q of RES){if(q.site)continue;const r=hsh(q.i),t=q.t;
+    for(const q of RES){if(q.site)continue;const r=hsh(q.i),t=q.t;if(Lc.remap){/* vùng định cư: bảng đổi cây, đá riêng của vùng (nhieuvung.js) */Lc.remap(q,r,t,re);continue;}
       if(id==='tb'){if(t==='rock'||t==='boulder'){if(r<0.14)re(q,'copperRock');else if(r<0.22)re(q,'tinRock');else if(r<0.32)re(q,'ironRock');else if(r<0.42)re(q,'coalRock');else if(r<0.5)re(q,'flintRock');}else if((t==='oak'||t==='birch')&&r<0.55)re(q,'pine');else if(t==='pine'&&r<0.1)re(q,'pineG');else if(t==='pebble'&&r<0.2)re(q,'jadeRock');}
       else{if((t==='pine'||t==='oak'||t==='birch')){if(r<0.4)re(q,'palm');else if(r<0.6)re(q,'banana');else if(r<0.75)re(q,'bamboo');}else if(t==='tallgrass'||t==='reeds'){const h=hAt(q.x,q.z);if(h<14&&r<0.2)re(q,'saltPan');else if(h<14&&r<0.38)re(q,'shellBed');else if(h<10&&r<0.46)re(q,'goldPan');}else if(t==='rock'&&r<0.12)re(q,'flintRock');}}}catch(e){console.warn('tài nguyên vùng',e);}};}
 // thú chúa ở vùng xa trâu hơn

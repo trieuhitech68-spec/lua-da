@@ -7,17 +7,18 @@
      Túi đồ, cấp, kỹ năng đi theo người; nhà cửa, kho, dân làng, vật nuôi ở lại vùng cũ (quay lại vẫn còn nguyên).
    Vùng mới nối vào CUỐI danh sách nên hạt giống của Tây Bắc, Biển Đảo không đổi. */
 const MNV={cap:140};
-(function(){const hill=k=>(h)=>h>0?h*k:h;const A=[
-  ['d1','Kinh Bắc','🌾','Đồng bằng trù phú ven sông, đất dễ làm ruộng.',null],
-  ['d2','Sơn Nam','🎋','Làng xóm ven đầm, nhiều tre và đất sét.',hill(0.9)],
-  ['d3','Hải Đông','⚓','Cửa sông, bãi bồi, gần biển.',hill(0.84)],
-  ['d4','Thanh Hoa','🥁','Núi đồi xen đồng bằng, giàu đá và đồng.',hill(1.1)],
-  ['d5','Hoan Châu','⛰️','Đồi núi dựng hơn, dễ giữ, khó đánh.',hill(1.2)],
-  ['d6','Thuận Hoá','🏯','Dải đất hẹp giữa núi và biển.',null],
-  ['d7','Quảng Nam','🛶','Sông ngòi, rừng quế, đường ra biển.',hill(0.95)],
-  ['d8','Gia Định','🌴','Đất phẳng rộng, dễ dựng làng lớn.',hill(0.82)],
-  ['d9','Hà Tiên','🐚','Miền đầm lầy, cá tôm và muối.',hill(1.05)]];
-  for(const [id,n,ic,d,hf] of A){if(LANDS.some(L=>L.id===id))continue;const L={id,n,ic,lv:0,need:1,home:1,d:d+' Đất định cư: cắm mốc lãnh thổ, dựng nhà chính ở đây được.'};if(hf)L.hf=hf;LANDS.push(L);}
+(function(){const R=7400,pos=(f)=>(h,x,z)=>h>0?f(h,x,z):h;const tree=t=>t==='pine'||t==='oak'||t==='birch',rock=t=>t==='rock'||t==='boulder';
+ const A=[
+  ['d1','Kinh Bắc','🌾','Châu thổ bằng phẳng, đồi thấp thoai thoải, đất dễ làm ruộng. Nhiều tre.',pos(h=>4+(h-4)*0.45),(q,r,t,re)=>{if(tree(t)&&r<0.3)re(q,'bamboo');}],
+  ['d2','Sơn Nam','🎋','Vùng trũng: hồ đầm nối nhau, lau sậy, tre trúc bạt ngàn.',pos(h=>(h-9)*0.9),(q,r,t,re)=>{if(tree(t)&&r<0.5)re(q,'bamboo');else if(t==='tallgrass'&&r<0.5)re(q,'reeds');}],
+  ['d3','Hải Đông','⚓','Quần đảo: biển dâng nhấn chìm đồng bằng, còn lại đảo lớn đảo nhỏ, cọ và chuối.',(h,x,z)=>{let v=h>0?(h-18)*0.9:h;if(v<2&&Math.hypot(x,z)<6600){const n=NS.fbm(x/330+3,z/330+8,3);if(n>0.32)v=Math.max(v,(n-0.32)*80-4);}return v;},(q,r,t,re)=>{if(tree(t)){if(r<0.45)re(q,'palm');else if(r<0.65)re(q,'banana');}else if(t==='tallgrass'||t==='reeds'){const h=hAt(q.x,q.z);if(h<14&&r<0.2)re(q,'saltPan');else if(h<14&&r<0.36)re(q,'shellBed');}}],
+  ['d4','Thanh Hoa','🥁','Núi đá lởm chởm xen thung lũng, giàu đồng, thiếc, đá lửa. Thông mọc dày.',pos((h,x,z)=>h*1.1+Math.abs(NS.ridge(x/700+2,z/700-6,4))*90*ss(20,120,h)),(q,r,t,re)=>{if(rock(t)){if(r<0.12)re(q,'copperRock');else if(r<0.2)re(q,'tinRock');else if(r<0.3)re(q,'flintRock');}else if((t==='oak'||t==='birch')&&r<0.4)re(q,'pine');}],
+  ['d5','Hoan Châu','⛰️','Cao nguyên bậc thang: đất xếp từng tầng phẳng nối nhau bằng sườn dốc, dễ giữ, khó đánh.',pos(h=>{if(h<6)return h;const s=26,q=Math.floor(h/s),f=h/s-q;return (q+ss(0.35,0.65,f))*s;}),(q,r,t,re)=>{if((t==='oak'||t==='birch')&&r<0.6)re(q,'pine');}],
+  ['d6','Thuận Hoá','🏯','Phía tây núi dựng, phía đông thoải dần ra biển và đầm phá.',pos((h,x)=>{const k=x/R;return h*(1-0.55*k)-Math.max(0,k)*14;}),(q,r,t,re)=>{if(tree(t)){if(q.x>0&&r<0.4)re(q,'palm');else if(r<0.2)re(q,'bamboo');}}],
+  ['d7','Quảng Nam','🛶','Lòng chảo rộng màu mỡ nằm giữa vòng núi cao, chuối và tre mọc khắp.',pos((h,x,z)=>{const r=Math.hypot(x,z)/R,k=1-ss(0.22,0.45,r),v=h*(1-k)+(12+NS.fbm(x/500,z/500,2)*5)*k;return v+ss(0.42,0.55,r)*(1-ss(0.62,0.78,r))*120;}),(q,r,t,re)=>{if(tree(t)){if(r<0.25)re(q,'banana');else if(r<0.5)re(q,'bamboo');}}],
+  ['d8','Gia Định','🌴','Thảo nguyên phẳng mênh mông, cây thưa, dựng làng lớn và chăn nuôi rất tiện.',pos((h,x,z)=>6+(h-6)*0.25+NS.fbm(x/900,z/900,2)*4),(q,r,t,re)=>{if(tree(t)&&r<0.65&&RT.savannaTree)re(q,'savannaTree');}],
+  ['d9','Hà Tiên','🐚','Hẻm núi: cao nguyên bị những khe vực sâu cắt ngang dọc, nhiều đá lửa.',pos((h,x,z)=>{const b=h*0.8+30*ss(8,40,h),c=Math.abs(NS.fbm(x/600+11,z/600+5,3));return b-(1-ss(0.02,0.11,c))*Math.max(0,Math.min(b-3,60));}),(q,r,t,re)=>{if(rock(t)&&r<0.22)re(q,'flintRock');else if((t==='oak'||t==='birch')&&r<0.3)re(q,'pine');}]];
+  for(const [id,n,ic,d,hf,remap] of A){if(LANDS.some(L=>L.id===id))continue;LANDS.push({id,n,ic,lv:0,need:1,home:1,hf,remap,d:d+' Đất định cư: cắm mốc lãnh thổ, dựng nhà chính ở đây được.'});}
   if(!LANDS.some(L=>L.id==='*'))LANDS.push({id:'*',n:'Muôn Nẻo',ic:'🌀',lv:0,need:1,hub:1,d:'Cổng lớn dẫn tới mọi vùng đất định cư. Chọn vùng thưa người để dựng làng.'});})();
 const mnLands=()=>LANDS.filter(L=>!L.hub);
 /* ---------- cổng Muôn Nẻo gần chỗ bắt đầu của mọi vùng ---------- */
@@ -44,3 +45,11 @@ if(typeof mpClaim==='function'){const _c=mpClaim;mpClaim=function(){const r=_c.a
 if(typeof NVQ!=='undefined')NVQ.push({id:'muonneo',ic:'🌀',t:'Tìm Cổng Muôn Nẻo, xem các vùng định cư',d:'Gần chỗ bắt đầu có cổng đá mang dấu 🌀 (mở 🗺️ Bản đồ để cắm cờ tới cổng). Bấm vào để xem 12 vùng đất và số người đã định cư ở mỗi vùng.',n:1,f:()=>nvC('cnt:nvhub'),rw:{rope:2,meatCooked:2},lv:2});
 {const _o=mnOpen;mnOpen=function(){try{cnt('cnt','nvhub');}catch(e){}return _o.apply(this,arguments);};}
 (function(){try{const st=document.createElement('style');st.textContent='#nvw{position:fixed;inset:0;z-index:60;background:rgba(10,8,6,.62);display:flex;align-items:center;justify-content:center;padding:12px}#nvw[hidden]{display:none}.nv-card{background:#2a211a;color:#f3e9d8;border:1px solid rgba(255,210,122,.35);border-radius:14px;max-width:520px;width:100%;max-height:86vh;overflow:auto;padding:12px 14px;box-shadow:0 10px 40px rgba(0,0,0,.5)}.nv-h{display:flex;justify-content:space-between;align-items:center;font-size:17px;margin-bottom:4px}.nv-x{background:none;border:0;color:#f3e9d8;font-size:18px;padding:4px 8px;cursor:pointer}.nv-l{display:flex;flex-direction:column;gap:6px;margin-top:8px}.nv-r{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border-radius:10px;padding:7px 9px}.nv-r.cur{outline:1px solid rgba(255,210,122,.5)}.nv-ic{font-size:24px;flex:none}.nv-m{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px}.nv-m b{font-size:14px}.nv-t{font-style:normal;font-size:11px;padding:1px 6px;border-radius:8px;margin-left:4px;background:rgba(255,255,255,.12);white-space:nowrap}.nv-t.best{background:#2f6b3a}.nv-t.cur{background:#7a5a1e}.nv-t.full{background:#7a2e22}.nv-r .btn{flex:none}';document.head.appendChild(st);}catch(e){}})();
+/* ---------- QUA CỔNG CÙNG THÚ CƯỠI VÀ ĐẠO QUÂN ----------
+   · Đang cưỡi ngựa, voi mà qua cổng: sang tới nơi vẫn ngồi trên lưng nó (trước bị bỏ lại vùng cũ).
+   · Lính đang ở lệnh "Theo tôi" / "Xung phong" và đứng gần (trong 35 m) đi qua cổng cùng bạn, kỵ binh mang theo cả ngựa.
+     Lính đang giữ chỗ, về trại, hoặc ở xa thì ở lại giữ làng. Quay về thì lính theo về. */
+{const _lg=landGo;landGo=function(to){try{if(!landWhy(to)&&LANDS.some(L=>L.id===to&&!L.hub)&&to!==S.land){landInit();const m=G.mnt;if(m){m.land=to;m.x=null;m.z=null;S.mntOn=m.id;}
+      const A=typeof qdS==='function'?qdS():null;if(A&&(A.cmd==='follow'||A.cmd==='charge')&&Array.isArray(S.folk)){const mv=S.folk.filter(f=>f.job==='soldier'&&Math.hypot(f.x-P.x,f.z-P.z)<700);
+        if(mv.length){S.folk=S.folk.filter(f=>!mv.includes(f));const nx=S.lands[to]=S.lands[to]||{};const uids=new Set();for(const f of mv){f.qua=1;if(f.uid)uids.add(f.uid);}nx.folk=(Array.isArray(nx.folk)?nx.folk:[]).concat(mv);for(const h of S.mounts||[])if(h.sol!=null&&uids.has(h.sol)){h.land=to;h.x=null;h.z=null;}S.quaN=mv.length;}}}}catch(e){console.warn('qua cổng cùng quân',e);}return _lg.apply(this,arguments);};}
+setInterval(()=>{try{if(typeof G!=='object'||!G.on||!S||S.landArr||G.ldLeaving||!P.model||!Array.isArray(S.folk))return;let n=0;S.folk.forEach((f,i)=>{if(!f.qua)return;delete f.qua;const a=i*1.3;f.x=P.x-Math.sin(P.ry||0)*50+Math.cos(a)*(20+i*6);f.z=P.z-Math.cos(P.ry||0)*50+Math.sin(a)*(20+i*6);n++;});if(n){uiToast(`⚔️ ${n} lính đã theo bạn qua cổng.`,'gold');S.quaN=0;save();}}catch(e){}},1200);

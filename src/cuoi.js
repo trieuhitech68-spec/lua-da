@@ -37,7 +37,7 @@ function mtOff(q){const m=G.mnt;if(!m)return;m.x=+P.x.toFixed(1);m.z=+P.z.toFixe
 {const _st=sitToggle;sitToggle=function(v){if(G.mnt&&(v==null||v)){mtOff();return;}return _st.apply(this,arguments);};}
 setInterval(()=>{try{if(!S||!G.on)return;if(G.mnt&&(G.sleeping||G.swim||G.dying||G.build||G.work))mtOff(1);for(const m of mtList())if(!MT.o.has(m.id))mtShow(m);}catch(e){}},600);
 // qua cổng: ngựa đang cưỡi đi theo
-if(typeof landGo==='function'){const _lg=landGo;landGo=function(to){const m=G.mnt;const l0=S&&S.land;const r=_lg.apply(this,arguments);try{if(m&&S.land!==l0){m.land=S.land;m.x=null;m.z=null;S.mntOn=null;save();}}catch(e){}return r;};}
+if(typeof landGo==='function'){const _lg=landGo;landGo=function(to){const m=G.mnt;const l0=S&&S.land;const r=_lg.apply(this,arguments);try{if(0&&m&&S.land!==l0){/* chuyển thú cưỡi qua cổng giờ làm TRƯỚC khi lưu (nhieuvung.js): ở đây lưu đã bị chặn nên trước kia thú không sang được */}}catch(e){}return r;};}
 // nhiệm vụ chính + Tự làm
 if(!GOALS.some(g=>g.t==='Thuần ngựa và cưỡi')){GOALS.push(G_(4,'Thuần ngựa và cưỡi','Tìm đàn ngựa rừng ở đồng cỏ, bìa rừng. Cầm hạt kê, chuối hoặc quả mọng, lom khom lại gần cho ăn 4–6 lần. Thuần xong bấm Hành động để cưỡi: đi xa nhanh gấp đôi.',2,()=>Math.min(1,gC('cnt:horse'))+Math.min(1,gC('cnt:mount'))));
   AUG['Thuần ngựa và cưỡi']=()=>gC('cnt:horse')>0?{k:'ridehorse'}:{k:'tameh'};}
