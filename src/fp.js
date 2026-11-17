@@ -32,6 +32,7 @@ function grassTick(){const g=G.grass;if(!g)return;const px=P.x,pz=P.z,N=G.gOff.l
     if(s>0){const c=cellAt(x,z);if(c&&(c.floor||c.obj))s=0;}const y=hAt(x,z);if(y<1.2)s=0;
     // không mọc cỏ trong lòng suối/sông nông (trước đây ngọn cỏ chọc lên khỏi mặt nước)
     if(s>0&&wdAt(x,z)>0)s=0;
+    /* khu đã khai phá (quanh công trình, nền đã san, trong vòng rào): không có cỏ nền */if(s>0&&typeof kpIn==='function'&&kpIn(x,z))s=0;
     Q.setFromAxisAngle(UP,o[3]);V.set(x,y-0.6,z);SC.set(s,s*(b===2?1.15:1),s);M.compose(V,Q,SC);g.setMatrixAt(i,M);
     if(s>0){/* màu cỏ lấy đúng màu mặt đất ngay dưới chân nó (thảm cỏ liền với đất, không còn các bụi đen nổi lên) */let ok=false;try{if(typeof TCOL!=='undefined'&&TCOL){const ti=clamp(Math.round((x+WSIZE/2)/HSTEP),0,HN-1),tj=clamp(Math.round((z+WOZ)/HSTEP),0,HN-1),n=(tj*HN+ti)*3;const r0=TCOL[n],g0=TCOL[n+1],b0=TCOL[n+2];if(r0+g0+b0>0.05){const k=0.9+o[4]*0.22;C.setRGB(Math.min(1,r0*k*0.42),Math.min(1,g0*k*0.8),Math.min(1,b0*k*0.46));ok=true;}}}catch(e){}
       if(!ok){const cc=GCOL[b]||GCOL[3];C.set(cc[o[4]<0.5?0:1]).multiplyScalar(0.86+o[4]*0.28);}g.setColorAt(i,C);}}

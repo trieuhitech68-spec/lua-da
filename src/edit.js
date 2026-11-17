@@ -138,7 +138,7 @@ function edGrpPlan(grp,tx,tz,q){const ids=new Set(grp.list.map(o=>o.b.id)),plan=
   if(!why)for(const p of plan){for(const [m,k,s] of edOccKeys(p.d,p.b.k,p.x,p.z,p.r,p.lv)){const id=m==='e'?OCC.edge.get(k):(OCC.cell.get(k)||{})[s];if(id!=null&&!ids.has(id)){const o=BYID.get(id);why='Chỗ mới vướng '+(o&&pieceDef(o.k)?pieceDef(o.k).n.toLowerCase():'công trình khác')+'.';break;}}if(why)break;}
   if(!why)for(const p of plan){if(p.lv!==0||p.d.kind==='roof')continue;
     if(wdAt(p.x,p.z)>1&&!/^(stilt|post|fishTrap)$/.test(p.b.k)&&!onPlat(p)){why='Không đặt trên nước: chọn chỗ đất khô.';break;}
-    const rad=p.d.kind==='edge'?20:p.d.kind==='corner'?8:(p.d.fp?Math.max(...p.d.fp)*20:20);for(const i of near(p.x,p.z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass||q.lock)continue;if(Math.hypot(q.x-p.x,q.z-p.z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã.';break;}}if(why)break;}
+    const rad=p.d.kind==='edge'?20:p.d.kind==='corner'?8:(p.d.fp?Math.max(...p.d.fp)*20:20);for(const i of near(p.x,p.z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass||!RT[q.t].tool/* bụi cỏ, cây non, đá vụn nhổ tay được: không chặn, đặt công trình là tự dọn */||q.lock)continue;if(Math.hypot(q.x-p.x,q.z-p.z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã.';break;}}if(why)break;}
   if(!why&&typeof mpOn==='function'&&typeof mpLandWhy==='function'&&mpOn())for(const p of plan){const w=mpLandWhy(p.x,p.z);if(w){why=w;break;}}
   return {plan,why,dy};}
 function edGrpUpdate(){const B=G.build,a=buildAim(),tx=Math.round(a.x/CELL)*CELL,tz=Math.round(a.z/CELL)*CELL,q=B.gq||0,k=tx+','+tz+','+q+','+S.builds.length;

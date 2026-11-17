@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261116131013">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261117063433">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -2432,7 +2432,7 @@ function buildUpdate(){const B=G.build;if(!B)return;const def=B.def,a=buildAim()
   else if(def.kind==='edge'){const p1=r%2?[x-20,z]:[x,z-20],p2=r%2?[x+20,z]:[x,z+20];const f1=floorTop(p1[0],p1[1]),f2=floorTop(p2[0],p2[1]);y=f1!=null||f2!=null?Math.max(f1??-1e9,f2??-1e9):Math.min(hAt(x-(r%2?0:18),z-(r%2?18:0)),hAt(x+(r%2?0:18),z+(r%2?18:0)))-1;}
   else{const f=floorTop(x,z);y=f!=null?f:Math.max(...cells.map(([i,j])=>hAt((i+0.5)*CELL,(j+0.5)*CELL)))-0.5;}
   if(!why){if(def.kind==='edge'){if(OCC.edge.has(key))why='Đã có tường ở đây';}else{const slot=def.kind==='floor'?'floor':def.kind==='roof'?'roof':'obj';for(const [i,j] of cells){const c=OCC.cell.get(i+','+j);if(c&&c[slot]){why='Ô này đã có đồ';break;}}}}
-  if(!why&&def.kind!=='roof'){const rad=def.kind==='edge'?20:(def.fp?Math.max(...def.fp)*20:20);for(const i of near(x,z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass)continue;if(Math.hypot(q.x-x,q.z-z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã';break;}}}
+  if(!why&&def.kind!=='roof'){const rad=def.kind==='edge'?20:(def.fp?Math.max(...def.fp)*20:20);for(const i of near(x,z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass||!RT[q.t].tool/* bụi cỏ, cây non, đá vụn nhổ tay được: không chặn, đặt công trình là tự dọn */)continue;if(Math.hypot(q.x-x,q.z-z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã';break;}}}
   if(!why&&wdAt(x,z)>1&&def.kind!=='edge'&&!/^(stilt|post|fishTrap)/.test(B.id))why='Không xây trên nước (dựng cột nhà sàn trước)';if(!why&&Math.hypot(x-P.x,z-P.z)>330)why='Xa quá';if(!why&&!lvOk(def.lv))why='Cần '+lvText(def.lv);if(!why&&!canPay(def.cost))why='Thiếu nguyên liệu';
   B.pos={x,y,z,r};B.ok=!why;B.why=why;B.g.position.set(x,y,z);B.g.rotation.y=r*Math.PI/2;B.mat.color.set(why?0xff6a5a:0x7cff9a);if(G.t-(B.uiT||0)>0.2){B.uiT=G.t;uiBuildBar(true,def,why);}}
 function buildPlace(){const B=G.build;if(!B||!B.pos)return;if(!B.ok){uiToast(B.why||'Không đặt được ở đây','bad');sfx('no');return;}const def=B.def;pay(def.cost);
@@ -2981,6 +2981,7 @@ function grassTick(){const g=G.grass;if(!g)return;const px=P.x,pz=P.z,N=G.gOff.l
     if(s>0){const c=cellAt(x,z);if(c&&(c.floor||c.obj))s=0;}const y=hAt(x,z);if(y<1.2)s=0;
     // không mọc cỏ trong lòng suối/sông nông (trước đây ngọn cỏ chọc lên khỏi mặt nước)
     if(s>0&&wdAt(x,z)>0)s=0;
+    /* khu đã khai phá (quanh công trình, nền đã san, trong vòng rào): không có cỏ nền */if(s>0&&typeof kpIn==='function'&&kpIn(x,z))s=0;
     Q.setFromAxisAngle(UP,o[3]);V.set(x,y-0.6,z);SC.set(s,s*(b===2?1.15:1),s);M.compose(V,Q,SC);g.setMatrixAt(i,M);
     if(s>0){/* màu cỏ lấy đúng màu mặt đất ngay dưới chân nó (thảm cỏ liền với đất, không còn các bụi đen nổi lên) */let ok=false;try{if(typeof TCOL!=='undefined'&&TCOL){const ti=clamp(Math.round((x+WSIZE/2)/HSTEP),0,HN-1),tj=clamp(Math.round((z+WOZ)/HSTEP),0,HN-1),n=(tj*HN+ti)*3;const r0=TCOL[n],g0=TCOL[n+1],b0=TCOL[n+2];if(r0+g0+b0>0.05){const k=0.9+o[4]*0.22;C.setRGB(Math.min(1,r0*k*0.42),Math.min(1,g0*k*0.8),Math.min(1,b0*k*0.46));ok=true;}}}catch(e){}
       if(!ok){const cc=GCOL[b]||GCOL[3];C.set(cc[o[4]<0.5?0:1]).multiplyScalar(0.86+o[4]*0.28);}g.setColorAt(i,C);}}
@@ -4746,7 +4747,7 @@ function buildUpdate(){const B=G.build;if(!B)return;const def=B.def,a=buildAim()
     if(B.id==='stilt'&&L>0)why='Cột nhà sàn chỉ dựng từ mặt đất';}
   if(!why){if(def.kind==='edge'||def.kind==='corner'){if(OCC.edge.has(key))why='Chỗ này đã có rồi';}else{const slot=slotN(def.kind==='floor'?'floor':def.kind==='roof'?'roof':'obj',L);for(const [i,j] of cells){const c=OCC.cell.get(i+','+j);if(c&&(c[slot]||(B.id==='stilt'&&(c.floor||c.floor1)))){why='Ô này đã có đồ';break;}}}}
   if(B.id==='treePlatform'){if(!B.tree)why='Đặt sát gốc một cây sồi, thông to';else if(Math.hypot(B.tree.x-x,B.tree.z-z)>24)why='Cây lệch quá: chọn cây gần giữa sàn hơn';y=hAt(x,z)-0.5;}
-  if(!why&&L===0&&def.kind!=='roof'&&B.id!=='treePlatform'){const rad=def.kind==='edge'?20:def.kind==='corner'?8:(def.fp?Math.max(...def.fp)*20:20);for(const i of near(x,z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass)continue;if(Math.hypot(q.x-x,q.z-z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã';break;}}}
+  if(!why&&L===0&&def.kind!=='roof'&&B.id!=='treePlatform'){const rad=def.kind==='edge'?20:def.kind==='corner'?8:(def.fp?Math.max(...def.fp)*20:20);for(const i of near(x,z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass||!RT[q.t].tool/* bụi cỏ, cây non, đá vụn nhổ tay được: không chặn, đặt công trình là tự dọn */)continue;if(Math.hypot(q.x-x,q.z-z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã';break;}}}
   if(!why&&L===0&&wdAt(x,z)>1&&!/^(stilt|post|fishTrap)$/.test(B.id)&&!floorTopL(x,z,0))why='Không xây trên nước: dựng cột nhà sàn trước';
   if(!why&&B.id==='fishTrap'&&(wdAt(x,z)<1||wdAt(x,z)>10))why='Đặt đó bắt cá ở chỗ nước nông';
   if(!why&&B.id==='stilt'&&wdAt(x,z)>22)why='Nước sâu quá để chôn cột';
@@ -9243,7 +9244,7 @@ function b4BpPlan(parts,tx,tz,q){const plan=[];for(const p of parts){const d=pie
   if(!why)for(const p of plan){if(p.lv!==0||p.d.kind==='roof')continue;
     if(wdAt(p.x,p.z)>1&&!p.d.water&&!/^(stilt|post|fishTrap)$/.test(p.k)&&!onPlat(p)){why='Phần '+p.d.n.toLowerCase()+' rơi xuống nước: dời sang chỗ đất khô (chỉ cầu, bến, nhà sàn mới dựng trên nước).';break;}
     if(p.d.water&&wdAt(p.x,p.z)>40){why='Nước sâu quá để đóng cọc.';break;}
-    const rad=p.d.kind==='edge'?20:p.d.kind==='corner'?8:(p.d.fp?Math.max(...p.d.fp)*20:20);for(const i of near(p.x,p.z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass||q.lock)continue;if(Math.hypot(q.x-p.x,q.z-p.z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã.';break;}}if(why)break;}
+    const rad=p.d.kind==='edge'?20:p.d.kind==='corner'?8:(p.d.fp?Math.max(...p.d.fp)*20:20);for(const i of near(p.x,p.z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass||!RT[q.t].tool/* bụi cỏ, cây non, đá vụn nhổ tay được: không chặn, đặt công trình là tự dọn */||q.lock)continue;if(Math.hypot(q.x-p.x,q.z-p.z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã.';break;}}if(why)break;}
   if(!why&&typeof mpOn==='function'&&typeof mpLandWhy==='function'&&mpOn())for(const p of plan){const w=mpLandWhy(p.x,p.z);if(w){why=w;break;}}
   return {plan,why,dy};}
 function b4BpUpdate(){const B=G.build,a=buildAim(),tx=Math.round(a.x/CELL)*CELL,tz=Math.round(a.z/CELL)*CELL,q=((B.r%4)+4)%4,k=tx+','+tz+','+q+','+S.builds.length;
@@ -14185,7 +14186,7 @@ function edGrpPlan(grp,tx,tz,q){const ids=new Set(grp.list.map(o=>o.b.id)),plan=
   if(!why)for(const p of plan){for(const [m,k,s] of edOccKeys(p.d,p.b.k,p.x,p.z,p.r,p.lv)){const id=m==='e'?OCC.edge.get(k):(OCC.cell.get(k)||{})[s];if(id!=null&&!ids.has(id)){const o=BYID.get(id);why='Chỗ mới vướng '+(o&&pieceDef(o.k)?pieceDef(o.k).n.toLowerCase():'công trình khác')+'.';break;}}if(why)break;}
   if(!why)for(const p of plan){if(p.lv!==0||p.d.kind==='roof')continue;
     if(wdAt(p.x,p.z)>1&&!/^(stilt|post|fishTrap)$/.test(p.b.k)&&!onPlat(p)){why='Không đặt trên nước: chọn chỗ đất khô.';break;}
-    const rad=p.d.kind==='edge'?20:p.d.kind==='corner'?8:(p.d.fp?Math.max(...p.d.fp)*20:20);for(const i of near(p.x,p.z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass||q.lock)continue;if(Math.hypot(q.x-p.x,q.z-p.z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã.';break;}}if(why)break;}
+    const rad=p.d.kind==='edge'?20:p.d.kind==='corner'?8:(p.d.fp?Math.max(...p.d.fp)*20:20);for(const i of near(p.x,p.z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass||!RT[q.t].tool/* bụi cỏ, cây non, đá vụn nhổ tay được: không chặn, đặt công trình là tự dọn */||q.lock)continue;if(Math.hypot(q.x-p.x,q.z-p.z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã.';break;}}if(why)break;}
   if(!why&&typeof mpOn==='function'&&typeof mpLandWhy==='function'&&mpOn())for(const p of plan){const w=mpLandWhy(p.x,p.z);if(w){why=w;break;}}
   return {plan,why,dy};}
 function edGrpUpdate(){const B=G.build,a=buildAim(),tx=Math.round(a.x/CELL)*CELL,tz=Math.round(a.z/CELL)*CELL,q=B.gq||0,k=tx+','+tz+','+q+','+S.builds.length;
@@ -21778,7 +21779,7 @@ function chhClone(src){const map=new Map(),rec=s=>{const ud=s.userData;s.userDat
 function sl2Clear(q){if(q.st===2)return;q.st=2;q.hp=0;S.res[q.i]=[2,0];resShow(q);}
 {const _rs=resShow;resShow=function(q){if(q.st===2){try{RI.get(q.gk).api.hide(q.gi);if(q.sk)RI.get(q.sk).api.hide(q.si);if(q.ek)RI.get(q.ek).api.hide(q.ei);}catch(e){}return;}return _rs.apply(this,arguments);};}
 function sl2Sweep(b){try{const d=pieceDef(b.k);if(!d||b.remote||b.tree!=null||/tree|ropeLadder|bridge|jetty|steppingStones|Path$|gardenBorder/i.test(b.k))return 0;if(d.kind!=='floor'&&d.kind!=='obj')return 0;if(d.kind==='floor'&&(b.lv|0)>0)return 0;
-    if(typeof RES==='undefined'||!RES.length)return 0;let n=0;const cs=cellsOf(d,b.x,b.z,b.r||0),small=d.kind==='obj'&&cs.length===1&&!d.farm&&!d.bed&&!d.store&&!d.st;for(const [i,j] of cs){const cx=(i+0.5)*CELL,cz=(j+0.5)*CELL;for(const ri of near(cx,cz,CELL)){const q=RES[ri];if(!q||q.st===2||q.lock)continue;const m=CELL/2+(RT[q.t]&&/tree|pine|oak|birch|bamboo|palm|banyan|savanna/i.test(q.t)?5:1);/* món nhỏ 1 ô (đuốc, biển, giỏ…) chỉ dọn thứ nằm sát ngay nó, không xoá cả cây ở mép ô */if(small?Math.hypot(q.x-b.x,q.z-b.z)<=13:(Math.abs(q.x-cx)<=m&&Math.abs(q.z-cz)<=m)){sl2Clear(q);n++;}}}return n;}catch(e){return 0;}}
+    if(typeof RES==='undefined'||!RES.length)return 0;let n=0;const cs=cellsOf(d,b.x,b.z,b.r||0),small=d.kind==='obj'&&cs.length===1&&!d.farm&&!d.bed&&!d.store&&!d.st;for(const [i,j] of cs){const cx=(i+0.5)*CELL,cz=(j+0.5)*CELL;for(const ri of near(cx,cz,CELL)){const q=RES[ri];if(!q||q.st===2||q.lock)continue;const m=CELL/2+(RT[q.t]&&/tree|pine|oak|birch|bamboo|palm|banyan|savanna/i.test(q.t)?5:1)+(d.farm||cs.length>1?10:0)/* ruộng, công trình nhiều ô: dọn thêm nửa bước quanh mép, kẻo bụi mọc sát mép ngả lá vào trong */;/* món nhỏ 1 ô (đuốc, biển, giỏ…) chỉ dọn thứ nằm sát ngay nó, không xoá cả cây ở mép ô */if(small?Math.hypot(q.x-b.x,q.z-b.z)<=13:(Math.abs(q.x-cx)<=m&&Math.abs(q.z-cz)<=m)){sl2Clear(q);n++;}}}return n;}catch(e){return 0;}}
 {const _sa=structAdd;structAdd=function(b,quiet){const r=_sa.apply(this,arguments);try{if(sl2Sweep(b)&&!quiet)RI.forEach(v=>{try{v.api.flush();}catch(e){}});}catch(e){}return r;};}
 // vật nuôi: cho ăn / xem tình trạng thay cho "vuốt ve"
 function sl2PetTxt(p){const day=TNOW(),age=day-(p.born||0),hungry=day-(p.fed||0)>1,n=PETN[p.k]||'Vật nuôi',young=/^(chick|piglet|puppy|kid|duckling|bunny|calfB)$/.test(p.k);let s=`${n}: ${hungry?'đang ĐÓI (bỏ thức ăn vào máng hoặc cho ăn ở chuồng)':'no bụng'} · ${Math.max(0,Math.floor(age))} ngày tuổi.`;
@@ -22206,6 +22207,86 @@ if(typeof u8Make==='function'){const _um=u8Make;u8Make=function(id){const r=_um.
 /* dựng từng ảnh một, cách nhau một quãng: không còn cảnh vài ảnh dồn vào một khung hình */
 iconPump=function(){if(ICO.busy||!ICO.q.length)return;ICO.busy=true;requestAnimationFrame(()=>{try{while(ICO.q.length){const id=ICO.q.shift();if(ICO.url[id])continue;iconMake(id);break;}}catch(e){console.warn('biểu tượng',e);}ICO.busy=false;if(ICO.q.length)setTimeout(iconPump,G.panel?60:220);});};
 if(typeof u8Pump==='function')u8Pump=function(){if(U8.busy||!U8.q.length)return;U8.busy=true;requestAnimationFrame(()=>{try{while(U8.q.length){const id=U8.q.shift();if(U8.url[id])continue;u8Make(id);break;}}catch(e){}U8.busy=false;if(U8.q.length)setTimeout(u8Pump,50);});};
+/* ===================== thuve: THÚ NUÔI, THÚ CƯỠI KHÔNG CÒN "MẤT TÍCH" =====================
+   Người chơi báo: · xuống ngựa xong không biết ngựa ở đâu, không có dấu định vị nào;
+                   · nuôi mấy con mà chỉ thấy một con; sói thuần xong để ở nhà rồi mất luôn.
+   Nguyên nhân: · ngựa đứng chờ ở chỗ xuống, bản đồ không vẽ nó, không có cách gọi về;
+                · thú thuần xong cứ quanh quẩn đúng chỗ bị thuần (ngoài rừng), không về làng;
+                · thú đói quá 2,5 ngày là BỎ ĐI HẲN (kể cả lúc người chơi vắng mặt).
+   Giờ: · ngựa, voi hiện biểu tượng trên bản đồ nhỏ (ở xa thì nằm sát mép, chỉ đúng hướng) và bản đồ lớn; bảng Thú cưỡi ghi cách bao xa, có nút "Gọi về";
+        · vật nuôi tự về chuồng đúng loài, chưa có chuồng thì về quanh tâm làng; có nút "Gọi cả đàn về làng";
+        · thú đói không bỏ đi nữa: chỉ ngừng đẻ, ngừng lớn cho tới khi được ăn. */
+const TV={};
+function tvDir(dx,dz){return ['Bắc','Đông Bắc','Đông','Đông Nam','Nam','Tây Nam','Tây','Tây Bắc'][((Math.round(Math.atan2(dx,-dz)/(Math.PI/4))%8)+8)%8];}
+function tvFar(x,z){const d=Math.hypot(x-P.x,z-P.z);return d<60?'ngay cạnh bạn':'cách '+Math.max(1,Math.round(d/20))+' m về phía '+tvDir(x-P.x,z-P.z);}
+/* ---------- vật nuôi: chỗ ở đúng ---------- */
+function tvHome(p){try{const sp=(typeof CTU==='object'&&CTU.AD[p.k])||p.k,rx=typeof CTU==='object'&&CTU.HOME[sp];let best=null,bd=1e9;
+    if(rx)for(const b of S.builds){if(b.remote||b.prog!=null||!rx.test(b.k))continue;const d=Math.hypot(b.x-p.x,b.z-p.z);if(d<bd){bd=d;best=b;}}
+    if(best)return {x:best.x,z:best.z,shed:1};const h=typeof homePos==='function'?homePos():null;if(!h)return null;const c=typeof cdCenter==='function'?cdCenter():h;return {x:c.x,z:c.z};}catch(e){return null;}}
+function tvFollow(p){return (p.k==='dog'||p.k==='puppy')&&!p.stay;}
+function tvGather(force){let moved=0;try{for(const p of S.pets||[]){if(tvFollow(p))continue;const h=tvHome(p);if(!h)continue;const lim=h.shed?150:280;
+      if(p.hx==null||Math.hypot(p.hx-h.x,p.hz-h.z)>lim){const a=Math.random()*6.283,r=h.shed?24+Math.random()*50:70+Math.random()*110;let x=h.x+Math.cos(a)*r,z=h.z+Math.sin(a)*r;try{if(hAt(x,z)<2||wdAt(x,z)>0){x=h.x;z=h.z;}}catch(e){}p.hx=+x.toFixed(1);p.hz=+z.toFixed(1);p._tx=p.hx;p._tz=p.hz;}
+      const dH=Math.hypot(p.x-p.hx,p.z-p.hz);if(dH>300&&(force||Math.hypot(p.x-P.x,p.z-P.z)>450)){p.x=p.hx;p.z=p.hz;p._tx=p.hx;p._tz=p.hz;if(p._o)p._o.position.set(p.x,hAt(p.x,p.z),p.z);moved++;}}}catch(e){}return moved;}
+function tvStray(){let n=0;try{for(const p of S.pets||[]){if(tvFollow(p))continue;const h=tvHome(p);if(h&&Math.hypot(p.x-h.x,p.z-h.z)>420)n++;}}catch(e){}return n;}
+{const _ph=petsHourly;petsHourly=function(gh){try{if(S&&S.pets){const day=TNOW();for(const p of S.pets)if(day-(p.fed||0)>2.4)p.fed=day-2.4;}}catch(e){}const r=_ph.apply(this,arguments);try{tvGather(false);}catch(e){}return r;};}
+{const _pi=petsInit;petsInit=function(){const r=_pi.apply(this,arguments);try{tvGather(false);}catch(e){}return r;};}
+/* ---------- thú cưỡi: gọi về ---------- */
+function tvFree(m){return m&&G.mnt!==m&&m.sol==null&&(m.land||'c')===((S&&S.land)||'c')&&m.x!=null;}
+function tvCall(m){if(!m)return;if(G.mnt===m){uiToast('Bạn đang cưỡi nó rồi.','');return;}if(m.sol!=null){uiToast('Con này đang cấp cho lính. Thu lại từ lính trước đã.','bad');return;}if((m.land||'c')!==((S&&S.land)||'c')){uiToast('Nó đang ở vùng đất khác, phải qua cổng sang đó mới gọi được.','bad');return;}
+  let x=P.x-Math.sin(P.ry||0)*46,z=P.z-Math.cos(P.ry||0)*46;try{const c=collide(x,z);x=c[0];z=c[1];if(hAt(x,z)<1.5||wdAt(x,z)>30){x=P.x+20;z=P.z+20;}}catch(e){}
+  m.x=+x.toFixed(1);m.z=+z.toFixed(1);m.ry=P.ry||0;const o=typeof MT==='object'&&MT.o.get(m.id);if(o)o.position.set(m.x,hAt(m.x,m.z),m.z);else{try{mtShow(m);}catch(e){}}
+  try{sfx('bark');}catch(e){}try{puff(m.x,hAt(m.x,m.z)+14,m.z,'#ffd27a',8);}catch(e){}uiToast((m.k==='elephant'?'🐘 ':'🐎 ')+esc(m.n||'Thú cưỡi')+' nghe tiếng gọi, đã chạy về đứng sau lưng bạn.','gold');save();}
+{const _mo=mtOff;mtOff=function(q){const r=_mo.apply(this,arguments);try{if(!q&&!TV.told){TV.told=1;uiToast('📍 Ngựa hiện biểu tượng 🐎 trên bản đồ nhỏ. Lạc thì mở Nhân vật → 🐾 → Thú cưỡi → Gọi về.','');}}catch(e){}return r;};}
+if(typeof ctMountHtml==='function'){const _h=ctMountHtml;ctMountHtml=function(){let s=_h.apply(this,arguments);try{const L=(S.mounts||[]).filter(tvFree);if(L.length)s=`<div class="tv-box">${L.map(m=>`<div class="tv-r"><span>${m.k==='elephant'?'🐘':'🐎'} <b>${esc(m.n||'Thú cưỡi')}</b> <small>${tvFar(m.x,m.z)}</small></span><button class="btn sm" data-a="tvcall" data-k="${m.id}">📯 Gọi về</button></div>`).join('')}</div>`+s;}catch(e){}return s;};}
+if(typeof ctPetHtml==='function'){const _h=ctPetHtml;ctPetHtml=function(){let s=_h.apply(this,arguments);try{if((S.pets||[]).length){const n=tvStray(),hp=typeof homePos==='function'&&homePos();
+      s=`<div class="tv-box"><div class="tv-r"><span>${!hp?'📍 Chưa có làng (bếp lửa hoặc chỗ ngủ): thú ở quanh chỗ được thuần.':n?`📍 <b>${n}</b> con đang ở xa làng`:'📍 Cả đàn đang ở quanh làng, hiện chấm trắng trên bản đồ nhỏ'}</span>${hp?`<button class="btn sm${n?'':' ghost'}" data-a="tvpets">📯 Gọi cả đàn về làng</button>`:''}</div><p class="small muted">Thú đói không bỏ đi nữa, chỉ ngừng đẻ và ngừng lớn tới khi được ăn. Chó đang "đi theo" thì luôn theo sát bạn.</p></div>`+s;}}catch(e){}return s;};}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="tvcall"],[data-a="tvpets"]');if(!b||!S)return;e.stopImmediatePropagation();
+  if(b.dataset.a==='tvcall')tvCall((S.mounts||[]).find(m=>String(m.id)===b.dataset.k));else{const n=tvGather(true);uiToast(n?`📯 Đã gọi ${n} con về làng.`:'Cả đàn đã ở quanh làng rồi.',n?'gold':'');try{sfx('bark');}catch(er){}save();}
+  try{if(typeof H4==="object"&&H4.on&&typeof h4Draw==="function")h4Draw(true);else if(G.panel)uiOpenRefresh();}catch(er){}},true);
+/* ---------- dấu trên bản đồ nhỏ và bản đồ lớn ---------- */
+{const _mt=miniTick;miniTick=function(){const t0=G.miniT;_mt.apply(this,arguments);try{if(G.miniT===t0)return;const L=(S.mounts||[]).filter(tvFree);if(!L.length)return;const cv=$('#mini');if(!cv)return;const pr=Math.min(2,devicePixelRatio||1),W=cv.clientWidth||130,sc=W/1800,c=cv.getContext('2d');c.save();c.setTransform(pr,0,0,pr,0,0);c.font='13px system-ui';c.textAlign='center';c.textBaseline='middle';
+      for(const m of L){let a=W/2+(m.x-P.x)*sc,b=W/2+(m.z-P.z)*sc;const d=Math.hypot(a-W/2,b-W/2),mx=W/2-9;if(d>mx){a=W/2+(a-W/2)/d*mx;b=W/2+(b-W/2)/d*mx;}c.fillText(m.k==='elephant'?'🐘':'🐎',a,b);}c.restore();}catch(e){}};}
+{const _md=mapDraw;mapDraw=function(){_md.apply(this,arguments);try{const cv=$('#mapcv');if(!cv||!S)return;const pr=Math.min(2,devicePixelRatio||1),W=cv.width/pr,V=mapView(),c=cv.getContext('2d');c.save();c.setTransform(pr,0,0,pr,0,0);c.textAlign='center';c.textBaseline='middle';const sx=x=>(x-V.x0)/V.span*W,sy=z=>(z-V.z0)/V.span*W;
+      c.fillStyle='#fff';c.strokeStyle='rgba(0,0,0,.6)';c.lineWidth=1;for(const p of S.pets||[]){const a=sx(p.x),b=sy(p.z);if(a<0||b<0||a>W||b>W)continue;c.beginPath();c.arc(a,b,2.4,0,7);c.fill();c.stroke();}
+      c.font='16px system-ui';for(const m of (S.mounts||[]).filter(tvFree)){const a=sx(m.x),b=sy(m.z);if(a<-8||b<-8||a>W+8||b>W+8)continue;c.fillText(m.k==='elephant'?'🐘':'🐎',a,b);}c.restore();}catch(e){}};}
+(function(){try{const st=document.createElement('style');st.textContent='.tv-box{background:rgba(255,210,122,.08);border:1px solid rgba(255,210,122,.25);border-radius:10px;padding:6px 8px;margin:0 0 8px}.tv-r{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0}.tv-r span{min-width:0;font-size:13px}.tv-r small{opacity:.75;margin-left:4px}.tv-r .btn{flex:none}.tv-box p{margin:4px 0 0}';document.head.appendChild(st);}catch(e){}})();
+/* ===================== khaipha: KHU ĐÃ KHAI PHÁ THÌ SẠCH HẲN =====================
+   Người chơi báo: khu đã xây vẫn mọc cỏ, mọc lại cây bụi, rắn bò vào; khu đã san nền vẫn báo "vướng cây" không xây được.
+   Nguyên nhân: · cây bụi theo mùa đang "ngủ" lúc san nền / lúc đặt công trình không bị nhổ, sang mùa (hoặc lần tải game sau) chúng mọc lại ngay trong khu;
+                · cây cỏ bị hái, chặt quanh nhà vẫn hẹn giờ mọc lại; cỏ nền chỉ tránh đúng ô có sàn; thú hoang không biết đâu là làng.
+   Giờ có "khu đã khai phá" = quanh mỗi công trình ~3 m + mọi nền đã san + lòng vòng rào của làng. Trong khu đó:
+        · thứ đã chặt, hái, dọn thì KHÔNG mọc lại; nền đã san thì nhổ sạch mọi thứ còn sót (kể cả thứ mọc theo mùa);
+        · không có cỏ nền; thú hoang (rắn, thỏ, lợn rừng…) đang không đuổi ai thì bị lùa ra ngoài và chuyển chỗ ở ra ngoài khu.
+   Cây to bạn chưa chặt thì vẫn để nguyên (muốn giữ bóng mát thì giữ). */
+const KP={g:new Set(),sig:'',C:80};
+const kpK=(ix,iz)=>(ix+8000)*20000+(iz+8000);
+function kpIn(x,z){return KP.g.size>0&&KP.g.has(kpK(Math.floor(x/80),Math.floor(z/80)));}
+function kpMark(x,z,r){const C=KP.C,i0=Math.floor((x-r)/C),i1=Math.floor((x+r)/C),j0=Math.floor((z-r)/C),j1=Math.floor((z+r)/C);for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const cx=(i+0.5)*C,cz=(j+0.5)*C;if(Math.hypot(cx-x,cz-z)<=r+C*0.35)KP.g.add(kpK(i,j));}}
+function kpBuild(){KP.g.clear();try{for(const b of S.builds){if(b.tree!=null||/tree|ropeLadder|bridge|jetty|steppingStones|Path$|gardenBorder|[tT]rap|snare|scarecrow/.test(b.k))continue;const d=pieceDef(b.k);if(!d)continue;kpMark(b.x,b.z,(d.fp?Math.max(d.fp[0],d.fp[1])*20:20)+60);}
+    for(const f of S.flat||[])kpMark(f.x,f.z,f.r);
+    if(typeof cdRing==='function'&&typeof homePos==='function'&&homePos()){const R=cdRing(cdCenter());if(R&&R.x1-R.x0<1600&&R.z1-R.z0<1600){const C=KP.C;for(let i=Math.floor(R.x0/C);i<=Math.floor(R.x1/C);i++)for(let j=Math.floor(R.z0/C);j<=Math.floor(R.z1/C);j++)KP.g.add(kpK(i,j));}}}catch(e){}}
+function kpGone(q,perm){q.st=perm?1:2;q.hp=0;if(perm){q.rg=1e12;S.res[q.i]=[1,1e12];}else S.res[q.i]=[2,0];try{resShow(q);}catch(e){}}
+/* quét: nền đã san sạch mọi thứ còn sống hoặc đang ngủ theo mùa; trong khu thì thứ đã hết không hẹn mọc lại */
+function kpSweep(){let ch=0;try{for(const f of S.flat||[])for(const i of near(f.x,f.z,f.r+20)){const q=RES[i];if(!q||q.lock||Math.hypot(q.x-f.x,q.z-f.z)>f.r)continue;const m=S.res[q.i];if(q.st===0){kpGone(q,true);ch++;}else if(q.st===2&&!m){S.res[q.i]=[2,0];}}
+    for(const k in S.res){const m=S.res[k];if(m[0]!==1||m[1]>=1e11)continue;const q=RES[+k];if(q&&kpIn(q.x,q.z))S.res[k]=[1,1e12];}
+    if(ch)RI.forEach(v=>v.api.flush());}catch(e){}return ch;}
+function kpRefresh(force){try{if(!S||!S.builds)return;const L=S.builds,sig=L.length+':'+(L.length?L[L.length-1].id:0)+':'+((S.flat||[]).length)+':'+(S.land||'c');if(!force&&sig===KP.sig)return;KP.sig=sig;kpBuild();kpSweep();G.gLast=null;}catch(e){}}
+{const _rr=resRegrow;resRegrow=function(){try{for(const k in S.res){const m=S.res[k];if(m[0]!==1||m[1]>=1e11)continue;const q=RES[+k];if(q&&kpIn(q.x,q.z))S.res[k]=[1,1e12];}}catch(e){}return _rr.apply(this,arguments);};}
+/* sang mùa / lúc tải game: thứ đã bị dọn hẳn (ghi [2,0]) không được "tỉnh dậy"; thứ tỉnh dậy trong nền đã san hay dưới công trình thì nhổ luôn */
+{const _rs=resSeasonal;resSeasonal=function(){const r=_rs.apply(this,arguments);try{kpRefresh(false);let ch=0;for(const q of RES){if(q.st!==0)continue;const m=S.res[q.i];if(m&&m[0]===2){q.st=2;q.hp=0;try{resShow(q);}catch(e){}ch++;}else if(!q.lock&&((typeof inFlat==='function'&&inFlat(q.x,q.z))||(RT[q.t].seasons&&!RT[q.t].pass&&cellBusy(q.x,q.z)))){kpGone(q,true);ch++;}}if(ch)RI.forEach(v=>v.api.flush());}catch(e){}return r;};}
+/* thú hoang: đang ở trong khu mà không đuổi ai thì ra ngoài, chỗ ở cũng dời ra ngoài */
+function kpOut(x,z){const c=(typeof homePos==='function'&&homePos())||{x:P.x,z:P.z};let a0=Math.atan2(z-c.z,x-c.x);if(Math.hypot(x-c.x,z-c.z)<1)a0=0;for(const da of [0,0.8,-0.8,1.6,-1.6,2.4,-2.4,3.14]){const dx=Math.cos(a0+da),dz=Math.sin(a0+da);let ox=x,oz=z;for(let s=0;s<40;s++){ox+=dx*80;oz+=dz*80;if(kpIn(ox,oz))continue;const tx=ox+dx*140,tz=oz+dz*140;try{if(hAt(tx,tz)<2||wdAt(tx,tz)>0||kpIn(tx,tz))break;}catch(e){}return [tx,tz];}}return null;}
+function kpAnimals(){try{if(!KP.g.size||!G.animals)return;for(const a of G.animals){if(!a.alive||a.tame>0||a.state==='chase'||a.angry||(a.calm&&a.calm>G.t)||a.kind==='horse'&&a.tame>0)continue;const inA=kpIn(a.x,a.z),inH=a.home&&kpIn(a.home.x,a.home.z);if(!inA&&!inH)continue;
+      const o=kpOut(inA?a.x:a.home.x,inA?a.z:a.home.z);if(!o)continue;a.home={x:o[0],z:o[1]};if(!inA)continue;const d=Math.hypot(a.x-P.x,a.z-P.z);
+      if(d>260||!a.o||!a.o.visible){a.x=o[0];a.z=o[1];a.y=hAt(a.x,a.z);a.tx=a.x;a.tz=a.z;if(a.o)a.o.position.set(a.x,a.y,a.z);}else{a.tx=o[0];a.tz=o[1];a.tt=Math.max(a.tt||0,6);a.state='wander';}}}catch(e){}}
+setInterval(()=>{try{if(typeof G!=='object'||!G.on||G.paused||!S)return;kpRefresh(false);kpAnimals();}catch(e){}},1500);
+/* đặt rào, tường: bụi cỏ, cây non, đá vụn nằm ngay dưới chân rào tự dọn (trước phải đi nhổ từng thứ mới đặt được) */
+{const _sa=structAdd;structAdd=function(b,quiet){const r=_sa.apply(this,arguments);try{const d=pieceDef(b.k);if(d&&!b.remote&&(d.kind==='edge'||d.kind==='corner')&&typeof RES!=='undefined'&&RES.length){let n=0;for(const i of near(b.x,b.z,30)){const q=RES[i];if(!q||q.st!==0||q.lock||RT[q.t].pass||RT[q.t].tool)continue;if(Math.hypot(q.x-b.x,q.z-b.z)<(d.kind==='edge'?20:8)*0.75+(RT[q.t].r||4)*0.6){sl2Clear(q);n++;}}if(n&&!quiet)RI.forEach(v=>{try{v.api.flush();}catch(e){}});}}catch(e){}return r;};}
+/* san nền chỗ còn cây lớn: có rìu thì đốn luôn trong lúc san (trước báo lỗi, bắt đi chặt từng cây rồi quay lại) */
+{const _lc=landCheck;landCheck=function(r){const w=_lc.apply(this,arguments);KP.fell=0;try{if(w&&/^Còn \d+ cây lớn/.test(w)&&hasTool('axe')){r=+r||110;for(const b of S.builds)if(Math.hypot(b.x-P.x,b.z-P.z)<r*0.85)return 'Khu này đã có công trình. San nền trước khi xây.';KP.fell=+w.match(/\d+/)[0];return null;}if(w&&/^Còn \d+ cây lớn/.test(w))return w+' (Có rìu trong túi thì san nền sẽ đốn luôn.)';}catch(e){}return w;};
+ const _ls=landStart;landStart=function(r){const res=_ls.apply(this,arguments);try{if(G.work&&KP.fell>0&&G.work.steps&&G.work.i===0){const n=KP.fell;G.work.steps.unshift({n:'Đốn '+n+' cây lớn trong khu',a:'carve',t:Math.min(14,1.6+n*1.1),fx:'chop'});KP.fell=0;try{workUi();}catch(e){}}}catch(e){}return res;};}
+/* luống đất trên chỗ hơi dốc: trước là tấm phẳng nên một mép hở khỏi mặt đất, nhìn như tấm ván lơ lửng. Giờ có khối đất đắp bên dưới, mép nào cũng liền đất. */
+{const _m=model;model=function(spec){const g=_m.apply(this,arguments);try{if(g&&spec&&spec[0]==='piece'){const d=typeof pieceDef==='function'&&pieceDef(spec[1]);if(d&&d.kind==='obj'&&d.farm&&spec[1]!=='paddy'&&!g.userData.kpSk){g.userData.kpSk=1;const fp=d.fp||[1,1],T=THREE,mt=KP.skM||(KP.skM=new T.MeshStandardMaterial({color:'#5f4129',roughness:1,metalness:0})),me=new T.Mesh(new T.BoxGeometry(fp[0]*CELL-3,9,fp[1]*CELL-3),mt);me.position.y=-4.3;me.receiveShadow=true;g.add(me);}}}catch(e){}return g;};}
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.

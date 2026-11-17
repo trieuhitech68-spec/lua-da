@@ -48,7 +48,7 @@ function buildUpdate(){const B=G.build;if(!B)return;const def=B.def,a=buildAim()
     if(B.id==='stilt'&&L>0)why='Cột nhà sàn chỉ dựng từ mặt đất';}
   if(!why){if(def.kind==='edge'||def.kind==='corner'){if(OCC.edge.has(key))why='Chỗ này đã có rồi';}else{const slot=slotN(def.kind==='floor'?'floor':def.kind==='roof'?'roof':'obj',L);for(const [i,j] of cells){const c=OCC.cell.get(i+','+j);if(c&&(c[slot]||(B.id==='stilt'&&(c.floor||c.floor1)))){why='Ô này đã có đồ';break;}}}}
   if(B.id==='treePlatform'){if(!B.tree)why='Đặt sát gốc một cây sồi, thông to';else if(Math.hypot(B.tree.x-x,B.tree.z-z)>24)why='Cây lệch quá: chọn cây gần giữa sàn hơn';y=hAt(x,z)-0.5;}
-  if(!why&&L===0&&def.kind!=='roof'&&B.id!=='treePlatform'){const rad=def.kind==='edge'?20:def.kind==='corner'?8:(def.fp?Math.max(...def.fp)*20:20);for(const i of near(x,z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass)continue;if(Math.hypot(q.x-x,q.z-z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã';break;}}}
+  if(!why&&L===0&&def.kind!=='roof'&&B.id!=='treePlatform'){const rad=def.kind==='edge'?20:def.kind==='corner'?8:(def.fp?Math.max(...def.fp)*20:20);for(const i of near(x,z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass||!RT[q.t].tool/* bụi cỏ, cây non, đá vụn nhổ tay được: không chặn, đặt công trình là tự dọn */)continue;if(Math.hypot(q.x-x,q.z-z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã';break;}}}
   if(!why&&L===0&&wdAt(x,z)>1&&!/^(stilt|post|fishTrap)$/.test(B.id)&&!floorTopL(x,z,0))why='Không xây trên nước: dựng cột nhà sàn trước';
   if(!why&&B.id==='fishTrap'&&(wdAt(x,z)<1||wdAt(x,z)>10))why='Đặt đó bắt cá ở chỗ nước nông';
   if(!why&&B.id==='stilt'&&wdAt(x,z)>22)why='Nước sâu quá để chôn cột';

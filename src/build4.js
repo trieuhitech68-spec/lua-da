@@ -550,7 +550,7 @@ function b4BpPlan(parts,tx,tz,q){const plan=[];for(const p of parts){const d=pie
   if(!why)for(const p of plan){if(p.lv!==0||p.d.kind==='roof')continue;
     if(wdAt(p.x,p.z)>1&&!p.d.water&&!/^(stilt|post|fishTrap)$/.test(p.k)&&!onPlat(p)){why='Phần '+p.d.n.toLowerCase()+' rơi xuống nước: dời sang chỗ đất khô (chỉ cầu, bến, nhà sàn mới dựng trên nước).';break;}
     if(p.d.water&&wdAt(p.x,p.z)>40){why='Nước sâu quá để đóng cọc.';break;}
-    const rad=p.d.kind==='edge'?20:p.d.kind==='corner'?8:(p.d.fp?Math.max(...p.d.fp)*20:20);for(const i of near(p.x,p.z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass||q.lock)continue;if(Math.hypot(q.x-p.x,q.z-p.z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã.';break;}}if(why)break;}
+    const rad=p.d.kind==='edge'?20:p.d.kind==='corner'?8:(p.d.fp?Math.max(...p.d.fp)*20:20);for(const i of near(p.x,p.z,rad+30)){const q=RES[i];if(q.st!==0||RT[q.t].pass||!RT[q.t].tool/* bụi cỏ, cây non, đá vụn nhổ tay được: không chặn, đặt công trình là tự dọn */||q.lock)continue;if(Math.hypot(q.x-p.x,q.z-p.z)<rad*0.75+(RT[q.t].r||4)*0.6){why='Vướng '+RT[q.t].n.toLowerCase()+': dọn trước đã.';break;}}if(why)break;}
   if(!why&&typeof mpOn==='function'&&typeof mpLandWhy==='function'&&mpOn())for(const p of plan){const w=mpLandWhy(p.x,p.z);if(w){why=w;break;}}
   return {plan,why,dy};}
 function b4BpUpdate(){const B=G.build,a=buildAim(),tx=Math.round(a.x/CELL)*CELL,tz=Math.round(a.z/CELL)*CELL,q=((B.r%4)+4)%4,k=tx+','+tz+','+q+','+S.builds.length;

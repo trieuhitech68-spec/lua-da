@@ -110,4 +110,6 @@ echo "39. Tự dựng chọn đất có tính toán (không sát vách, cửa qu
 OUT=$(timeout 400 node chon-dat.js 2>&1); echo "$OUT" | grep -q "^CD-DAT" && ok "chọn đất, gợi ý" || bad "chọn đất, gợi ý: $(echo "$OUT" | grep "^{\|CD-" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo "40. Ảnh biểu tượng dựng một lần, nhớ sang lần chơi sau (không dựng lại, hết khựng khi gặp món mới)"
 OUT=$(timeout 500 node nho-hinh.js 2>&1); echo "$OUT" | grep -q "^NH-DAT" && ok "nhớ ảnh biểu tượng" || bad "nhớ ảnh biểu tượng: $(echo "$OUT" | grep "^\[\|NH-" | tail -2 | tr '\n' ';' | cut -c1-600)"
+echo "41. Thú nuôi, thú cưỡi không mất tích (gọi về, tự về làng, đói không bỏ đi) + khu đã khai phá sạch hẳn (không mọc lại, nền san nhổ sạch, thú hoang ra ngoài, san nền có rìu thì đốn luôn cây)"
+OUT=$(timeout 500 node khai-pha.js 2>&1); echo "$OUT" | grep -q "^KP-DAT" && ok "thú về làng, khu khai phá" || bad "thú về làng, khu khai phá: $(echo "$OUT" | grep "^{\|KP-" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
