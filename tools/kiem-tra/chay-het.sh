@@ -114,4 +114,6 @@ echo "41. Thú nuôi, thú cưỡi không mất tích (gọi về, tự về là
 OUT=$(timeout 500 node khai-pha.js 2>&1); echo "$OUT" | grep -q "^KP-DAT" && ok "thú về làng, khu khai phá" || bad "thú về làng, khu khai phá: $(echo "$OUT" | grep "^{\|KP-" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo "42. Nhiều vùng định cư: 9 vùng mới + Cổng Muôn Nẻo, sang vùng mới rồi quay về nhà cũ còn nguyên, lãnh thổ theo từng vùng"
 OUT=$(timeout 900 node nhieu-vung.js 2>&1); echo "$OUT" | grep -q "^NVG-DAT" && ok "nhiều vùng định cư" || bad "nhiều vùng định cư: $(echo "$OUT" | grep "^{\|NVG-\|Error" | tail -2 | tr '\n' ';' | cut -c1-900)"
+echo "43. Đại lục liền (lõi địa hình): mảnh dựng nhanh, liền mép, lục địa đủ rộng, có đồng bằng - núi - sông - biển"
+OUT=$(timeout 120 node dai-luc.js 2>&1); echo "$OUT" | grep -q "^DL-DAT" && ok "đại lục: lõi địa hình" || bad "đại lục: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-500)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
