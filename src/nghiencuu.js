@@ -4,30 +4,38 @@
    CỘT VẬT TỔ: bấm Hành động ở cột để TẾ LỄ (2 thịt chín + 2 hoa, mỗi ngày thật một lần) → "Tổ tiên phù hộ" 3 giờ thật: +15% kinh nghiệm,
    +10 thể lực tối đa, lính đánh mạnh +10%. Cột cũng là mốc chiếm tiền đồn (dựng trong vòng đất của điểm giàu sau khi hạ lính canh). */
 const NC=[
- {id:'nong',ic:'🌾',n:'Ủ phân, chọn giống',d:'Cây trên luống và lúa ngoài ruộng lớn nhanh hơn.',fx:l=>'+'+(l*12)+'% tốc độ lớn của cây trồng',cost:l=>({grain:4*l,clay:3*l,fiber:4*l})},
- {id:'binh',ic:'⚔️',n:'Luyện binh',d:'Lính theo bạn và người giữ cổng đánh mạnh hơn.',fx:l=>'+'+(l*8)+'% sức đánh của lính',cost:l=>({wood:6*l,flint:2*l,hide:2*l})},
- {id:'suc',ic:'💪',n:'Rèn thể lực',d:'Làm việc, chạy nhảy được lâu hơn.',fx:l=>'+'+(l*6)+' thể lực tối đa',cost:l=>({meatCooked:3*l,rope:2*l,stone:4*l})},
- {id:'hoc',ic:'📖',n:'Truyền nghề',d:'Làm gì cũng học nhanh hơn.',fx:l=>'+'+(l*6)+'% kinh nghiệm mọi tay nghề',cost:l=>({plank:3*l,fiber:6*l,clay:2*l})},
- {id:'chay',ic:'🏃',n:'Dép cỏ, lối mòn',d:'Đi lại nhanh hơn.',fx:l=>'+'+(l*4)+'% tốc độ đi và chạy',cost:l=>({fiber:8*l,hide:1*l,rope:2*l})},
- {id:'duong',ic:'🌿',n:'Thuốc nam dưỡng sinh',d:'Khi no đủ, máu tự hồi dần.',fx:l=>'hồi '+(l*0.5).toFixed(1)+' máu mỗi 5 giây khi no trên 40%',cost:l=>({centella:2*l,mugwort:2*l,mint:1*l})}];
-const NC_T=[0,5,15,40];
+ {id:'nong',ic:'🌾',n:'Ủ phân, chọn giống',d:'Cây trên luống và lúa ngoài ruộng lớn nhanh hơn.',fx:l=>'+'+Math.round(l*12)+'% tốc độ lớn của cây trồng',cost:l=>({grain:4*l,clay:3*l,fiber:4*l})},
+ {id:'binh',ic:'⚔️',n:'Luyện binh',d:'Lính theo bạn và người giữ cổng đánh mạnh hơn.',fx:l=>'+'+Math.round(l*8)+'% sức đánh của lính',cost:l=>({wood:6*l,flint:2*l,hide:2*l})},
+ {id:'suc',ic:'💪',n:'Rèn thể lực',d:'Làm việc, chạy nhảy được lâu hơn.',fx:l=>'+'+Math.round(l*6)+' thể lực tối đa',cost:l=>({meatCooked:3*l,rope:2*l,stone:4*l})},
+ {id:'hoc',ic:'📖',n:'Truyền nghề',d:'Làm gì cũng học nhanh hơn.',fx:l=>'+'+Math.round(l*6)+'% kinh nghiệm mọi tay nghề',cost:l=>({plank:3*l,fiber:6*l,clay:2*l})},
+ {id:'chay',ic:'🏃',n:'Dép cỏ, lối mòn',d:'Đi lại nhanh hơn.',fx:l=>'+'+Math.round(l*4)+'% tốc độ đi và chạy',cost:l=>({fiber:8*l,hide:1*l,rope:2*l})},
+ {id:'duong',ic:'🌿',n:'Thuốc nam dưỡng sinh',d:'Khi no đủ, máu tự hồi dần.',fx:l=>'hồi '+(l*0.5).toFixed(1)+' máu mỗi 5 giây khi no trên 40%',cost:l=>({centella:2*l,mugwort:2*l,mint:1*l})},
+ {id:'chihuy',ic:'🎖️',n:'Binh pháp',d:'Mỗi tướng chỉ huy được nhiều lính hơn.',fx:l=>'+'+Math.floor(l)+' lính cho mỗi tướng',cost:l=>({hide:3*l,plank:3*l,meatCooked:4*l})},
+ {id:'thanh',ic:'🏯',n:'Kỹ thuật thành luỹ',d:'Nhân vật chịu đòn tốt hơn khi có lính bên cạnh.',fx:l=>'giảm '+Math.round(l*2)+'% sát thương nhận vào',cost:l=>({stone:8*l,wood:6*l,clay:3*l})}];
+/* NGHIÊN CỨU SÂU VÀ CHẬM (kiểu game chiến thuật xây dựng): mỗi kỹ thuật 10 bậc. Bậc 1-3 nhanh như cũ (5, 15, 40 phút) để người mới thấy kết quả sớm;
+   từ bậc 4 thời gian và vật liệu tăng mạnh (1,5 giờ → 36 giờ), và bậc N đòi nhân vật cấp 3×N. Tác dụng từ bậc 4 tăng nửa nhịp (ncEff) để không phá cân bằng. */
+const NC_MAX=10,NC_T=[0,5,15,40,90,180,360,600,900,1440,2160];
+const ncEff=id=>{const l=ncLv(id);return l<=3?l:3+(l-3)*0.5;};const ncEffL=l=>l<=3?l:3+(l-3)*0.5;
+function ncCost(q,l){const c=q.cost(l),k=l<=3?1:1+0.6*(l-3);const o={};for(const i in c)o[i]=Math.ceil(c[i]*k);return o;}
+function ncNeedLv(l){return l<=1?1:l*3;}
+function ncTime(l){const m=NC_T[l]||0;return m<60?m+' phút':(m/60)+' giờ';}
 function ncS(){if(!S.nc||typeof S.nc!=='object')S.nc={lv:{},cur:null};if(!S.nc.lv)S.nc.lv={};return S.nc;}
 function ncLv(id){try{return (S&&S.nc&&S.nc.lv&&S.nc.lv[id])|0;}catch(e){return 0;}}
 function ncHouse(){try{return typeof qhHas==='function'&&qhHas('qh_nghien');}catch(e){return false;}}
 function ncBuff(){try{return !!(S&&S.tt&&S.tt.until>Date.now());}catch(e){return false;}}
-function ncTick(){try{if(!S||!G.on)return;const R=ncS(),c=R.cur;if(c&&Date.now()>=c.end){const q=NC.find(x=>x.id===c.id);R.lv[c.id]=Math.max(ncLv(c.id),c.lv);R.cur=null;if(q){uiToast('📜 Nghiên cứu xong: '+q.n+' bậc '+c.lv+' ('+q.fx(c.lv)+').','gold');try{sfx('craft');}catch(e){}}try{cnt('cnt','research');save();}catch(e){}ncDraw();}
-    const dl=ncLv('duong');if(dl&&S.p.hp<100&&S.p.hp>0&&S.p.food>40&&!G.sleeping)S.p.hp=Math.min(100,S.p.hp+dl*0.5);}catch(e){}}
+function ncTick(){try{if(!S||!G.on)return;const R=ncS(),c=R.cur;if(c&&Date.now()>=c.end){const q=NC.find(x=>x.id===c.id);R.lv[c.id]=Math.max(ncLv(c.id),c.lv);R.cur=null;if(q){uiToast('📜 Nghiên cứu xong: '+q.n+' bậc '+c.lv+' ('+q.fx(ncEffL(c.lv))+').','gold');try{sfx('craft');}catch(e){}}try{cnt('cnt','research');save();}catch(e){}ncDraw();}
+    const dl=ncEff('duong');if(dl&&S.p.hp<100&&S.p.hp>0&&S.p.food>40&&!G.sleeping)S.p.hp=Math.min(100,S.p.hp+dl*0.5);}catch(e){}}
 setInterval(ncTick,5000);
-function ncStart(id){const q=NC.find(x=>x.id===id),R=ncS();if(!q)return;if(!ncHouse()){uiToast('Cần dựng Nhà nghiên cứu trước (Xây → Quy hoạch làng).','bad');return;}if(R.cur){uiToast('Đang nghiên cứu dở một kỹ thuật khác.','bad');return;}const l=ncLv(id)+1;if(l>3){uiToast('Đã đạt bậc cao nhất.','');return;}
-  const c=q.cost(l);if(!canPay(c)){uiToast('Thiếu vật liệu: '+Object.entries(c).filter(([k,v])=>haveCount(k)<v).map(([k,v])=>(v-haveCount(k))+' '+(ITEMS[k]?ITEMS[k].n:k)).join(', ')+'.','bad');try{sfx('no');}catch(e){}return;}
-  pay(c);R.cur={id,lv:l,end:Date.now()+NC_T[l]*60000,t0:Date.now()};try{sfx('build');uiHotbar();save();}catch(e){}uiToast('📜 Bắt đầu nghiên cứu '+q.n+' bậc '+l+': '+NC_T[l]+' phút (thoát game vẫn tính).','good');ncDraw();}
+function ncStart(id){const q=NC.find(x=>x.id===id),R=ncS();if(!q)return;if(!ncHouse()){uiToast('Cần dựng Nhà nghiên cứu trước (Xây → Quy hoạch làng).','bad');return;}if(R.cur){uiToast('Đang nghiên cứu dở một kỹ thuật khác.','bad');return;}const l=ncLv(id)+1;if(l>NC_MAX){uiToast('Đã đạt bậc cao nhất.','');return;}if(typeof heroLv==='function'&&heroLv()<ncNeedLv(l)){uiToast('Bậc '+l+' cần nhân vật cấp '+ncNeedLv(l)+'.','bad');return;}
+  const c=ncCost(q,l);if(!canPay(c)){uiToast('Thiếu vật liệu: '+Object.entries(c).filter(([k,v])=>haveCount(k)<v).map(([k,v])=>(v-haveCount(k))+' '+(ITEMS[k]?ITEMS[k].n:k)).join(', ')+'.','bad');try{sfx('no');}catch(e){}return;}
+  pay(c);R.cur={id,lv:l,end:Date.now()+NC_T[l]*60000,t0:Date.now()};try{sfx('build');uiHotbar();save();}catch(e){}uiToast('📜 Bắt đầu nghiên cứu '+q.n+' bậc '+l+': '+ncTime(l)+' (thoát game vẫn tính).','good');ncDraw();}
 function ncDraw(){const el=document.getElementById('ncw');if(!el||el.hidden)return;const R=ncS(),has=ncHouse(),c=R.cur,left=c?Math.max(0,c.end-Date.now()):0;
   let h=`<div class="nc-c"><div class="nc-h"><b>📜 Nghiên cứu</b><button class="nc-x" data-nc="x" aria-label="Đóng">✕</button></div>
     <p class="small muted">${has?'Mỗi lúc nghiên cứu một kỹ thuật. Tác dụng vĩnh viễn, cộng dồn theo bậc; thoát game vẫn tính giờ.':'🔒 Cần dựng <b>Nhà nghiên cứu</b> (Xây → Quy hoạch làng → Học hỏi) mới bắt đầu nghiên cứu được. Bạn vẫn xem trước được các kỹ thuật bên dưới.'}</p>`;
   if(c){const q=NC.find(x=>x.id===c.id),k=1-left/Math.max(1,c.end-c.t0);h+=`<div class="nc-cur">Đang nghiên cứu: <b>${q?q.ic+' '+esc(q.n):''} bậc ${c.lv}</b> · còn ${Math.ceil(left/60000)} phút<div class="nc-bar"><i style="width:${Math.round(k*100)}%"></i></div></div>`;}
-  for(const q of NC){const l=ncLv(q.id),nl=l+1,cost=nl<=3?q.cost(nl):null,ok=cost&&canPay(cost);
-    h+=`<div class="nc-i"><span class="nc-ic">${q.ic}</span><div class="nc-m"><b>${esc(q.n)} <em>${'●'.repeat(l)}${'○'.repeat(3-l)}</em></b><span class="small muted">${esc(q.d)}</span>${l?`<span class="nc-fx">Đang có: ${esc(q.fx(l))}</span>`:''}
-      ${cost?`<span class="small">Bậc ${nl}: ${esc(q.fx(nl))} · ${NC_T[nl]} phút</span><div class="chips">${Object.entries(cost).map(([k,v])=>`<span class="chip${haveCount(k)<v?' lack':''}">${icon(k)}${Math.min(haveCount(k),v)}/${v}</span>`).join('')}</div>
+  for(const q of NC){const l=ncLv(q.id),nl=l+1,cost=nl<=NC_MAX?ncCost(q,nl):null,lvOk=typeof heroLv!=='function'||heroLv()>=ncNeedLv(nl),ok=cost&&canPay(cost)&&lvOk;
+    h+=`<div class="nc-i"><span class="nc-ic">${q.ic}</span><div class="nc-m"><b>${esc(q.n)} <em>Bậc ${l}/${NC_MAX}</em></b><span class="small muted">${esc(q.d)}</span>${l?`<span class="nc-fx">Đang có: ${esc(q.fx(ncEffL(l)))}</span>`:''}
+      ${cost?`<span class="small">Bậc ${nl}: ${esc(q.fx(ncEffL(nl)))} · ${ncTime(nl)}${lvOk?'':` · <b class="warn">cần nhân vật cấp ${ncNeedLv(nl)}</b>`}</span><div class="chips">${Object.entries(cost).map(([k,v])=>`<span class="chip${haveCount(k)<v?' lack':''}">${icon(k)}${Math.min(haveCount(k),v)}/${v}</span>`).join('')}</div>
       <div class="row"><button class="btn sm${has&&!c&&ok?'':' ghost'}" data-nc="go" data-id="${q.id}">Nghiên cứu bậc ${nl}</button>${!ok&&typeof gmPin==='function'?'':''}</div>`:'<span class="nc-fx">✓ Đã đạt bậc cao nhất</span>'}</div></div>`;}
   h+='</div>';el.innerHTML=h;}
 function ncOpen(){let el=document.getElementById('ncw');if(!el){document.body.insertAdjacentHTML('beforeend','<div id="ncw" class="ncw" hidden></div>');el=document.getElementById('ncw');
@@ -38,12 +46,12 @@ setInterval(()=>{const el=document.getElementById('ncw');if(el&&!el.hidden)ncDra
 setInterval(()=>{try{const m=document.getElementById('menu');if(!m||!S||!G.on||m.querySelector('[data-ui="nc"]'))return;const b=document.createElement('button');b.dataset.ui='nc';b.setAttribute('aria-label','Nghiên cứu');b.innerHTML='<span>📜</span><i>Nghiên cứu</i>';m.insertBefore(b,m.firstChild);}catch(e){}},1500);
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-ui="nc"]');if(!b||!S||!G.on)return;e.stopImmediatePropagation();e.preventDefault();ncOpen();},true);
 /* tác dụng */
-{const _ct=cropsTick;cropsTick=function(gd){return _ct.call(this,gd*(1+0.12*ncLv('nong')));};}
-if(typeof l4PadTick==='function'){const _pt=l4PadTick;l4PadTick=function(gh){return _pt.call(this,gh*(1+0.12*ncLv('nong')));};}
-if(typeof danDmg==='function'){const _dd=danDmg;danDmg=function(f){return _dd.apply(this,arguments)*(1+0.08*ncLv('binh'))*(ncBuff()?1.1:1);};}
-{const _ms=maxStam;maxStam=function(){return _ms.apply(this,arguments)+6*ncLv('suc')+(ncBuff()?10:0);};}
-{const _ax=addXp;addXp=function(k,n){return _ax.call(this,k,n*(1+0.06*ncLv('hoc'))*(ncBuff()?1.15:1));};}
-{const _mv=move;move=function(dx,dz,m,dt,run){const l=ncLv('chay');return _mv.call(this,dx,dz,l?m*(1+0.04*l):m,dt,run);};}
+{const _ct=cropsTick;cropsTick=function(gd){return _ct.call(this,gd*(1+0.12*ncEff('nong')));};}
+if(typeof l4PadTick==='function'){const _pt=l4PadTick;l4PadTick=function(gh){return _pt.call(this,gh*(1+0.12*ncEff('nong')));};}
+if(typeof danDmg==='function'){const _dd=danDmg;danDmg=function(f){return _dd.apply(this,arguments)*(1+0.08*ncEff('binh'))*(ncBuff()?1.1:1);};}
+{const _ms=maxStam;maxStam=function(){return _ms.apply(this,arguments)+6*ncEff('suc')+(ncBuff()?10:0);};}
+{const _ax=addXp;addXp=function(k,n){return _ax.call(this,k,n*(1+0.06*ncEff('hoc'))*(ncBuff()?1.15:1));};}
+{const _mv=move;move=function(dx,dz,m,dt,run){const l=ncEff('chay');return _mv.call(this,dx,dz,l?m*(1+0.04*l):m,dt,run);};}
 /* ---------- CỘT VẬT TỔ: tế lễ ---------- */
 function ttDay(){return Math.floor((Date.now()+7*3600000)/86400000);}
 function ttOffer(){if(!S)return;if(!S.tt)S.tt={};if(S.tt.day===ttDay()){uiToast('Hôm nay đã tế lễ rồi. Mai lại dâng lễ nhé.'+(ncBuff()?' Tổ tiên còn phù hộ '+Math.ceil((S.tt.until-Date.now())/60000)+' phút.':''),'');return;}

@@ -3,7 +3,7 @@ const {chromium}=require('playwright');const fs=require('fs');
   const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});
   const c=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true});
   await c.addInitScript(fs.readFileSync(require('path').join(__dirname,'mock.js'),'utf8').replace("put('world/s2',{seed:777,wv:3});","").replace(/for\(let i=0;i<150;i\+\+\)/,"for(let i=0;i<3;i++)"));
-  await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-e')}catch(e){}});
+  await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-f')}catch(e){}});
   const p=await c.newPage();const logs=[];p.on('pageerror',e=>logs.push('ERR '+e.message+' '+(e.stack||'').slice(0,400)));p.on('console',m=>{if(m.type()==='warning'&&!/GPU stall/.test(m.text()))logs.push('W '+m.text().slice(0,260))});
   await p.goto('file://'+require('path').resolve(__dirname,'../../../index.html'));await p.waitForTimeout(6000);
   const click=async t=>{await p.evaluate(t=>{const b=[...document.querySelectorAll('button')].filter(b=>b.offsetParent).find(b=>b.innerText.includes(t));b&&b.click()},t);await p.waitForTimeout(1500)};

@@ -1,7 +1,7 @@
 // Nhiều vùng định cư: có 9 vùng mới + Cổng Muôn Nẻo; sang vùng mới dựng được thế giới không lỗi; quay về nhà cũ còn nguyên; lãnh thổ, vùng chung chỉ có hiệu lực ở vùng của nó.
 const {chromium}=require('playwright');const HTML=process.argv[2]||require('path').resolve(__dirname,'../../index.html');const SHOT=process.argv[3];
 (async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});const c=await b.newContext({viewport:{width:390,height:800},isMobile:true,hasTouch:true});
-await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-e');localStorage.setItem('ldtt-nohd','1');localStorage.setItem('ld-dl','0')}catch(e){}});const p=await c.newPage();const logs=[];p.on('pageerror',e=>logs.push('ERR '+e.message));
+await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-f');localStorage.setItem('ldtt-nohd','1');localStorage.setItem('ld-dl','0')}catch(e){}});const p=await c.newPage();const logs=[];p.on('pageerror',e=>logs.push('ERR '+e.message));
 await p.goto('file://'+HTML);await p.waitForTimeout(5000);
 const click=async t=>{await p.evaluate(t=>{const b=[...document.querySelectorAll('button')].filter(b=>b.offsetParent).find(b=>b.innerText.includes(t));b&&b.click()},t);await p.waitForTimeout(1500)};
 const ready=async()=>{await p.waitForFunction(()=>typeof G==='object'&&G.on&&G.animals&&G.animals.length&&P.model&&typeof REG!=='undefined'&&REG.length&&!S.landArr,null,{timeout:300000});await p.waitForTimeout(4000);};

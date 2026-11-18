@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118143322">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118145948">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -16907,13 +16907,13 @@ if(typeof heroHtml==='function'){const _hh=heroHtml;heroHtml=function(){let h=_h
 // thông báo nổi không đè lên cụm nút (cụm nút giờ cao 4 hàng)
 {const st=document.createElement('style');st.textContent='@media (max-width:600px){#game .toasts{bottom:calc(var(--u-sb,10px) + 338px)!important}}';document.head.appendChild(st);}
 /* ===================== CÓ GÌ MỚI: thẻ giới thiệu tính năng, mỗi phiên bản hiện một lần cho mỗi máy ===================== */
-const NEWS_V='2026-11-e',NEWS=[
+const NEWS_V='2026-11-f',NEWS=[
+ ['🎖️','Tướng lĩnh và quân số','Phong lính làm tướng (cần Trại lính). Tướng lên cấp nhờ ra trận, thăng sao bằng vật liệu, có sở trường binh chủng. Quân số tối đa do tướng quyết định; có chiến thuật Tấn công, Phòng thủ, Vây bắn.'],
+ ['📈','Bảng Phát triển','☰ → 📈: sáu trụ cột (Nhân vật, Làng, Học vấn, Quân đội, Tướng lĩnh, Liên minh), điểm Thế lực và bước tiếp theo. Nghiên cứu giờ có 10 bậc, bậc cao tốn nhiều giờ.'],
  ['🌏','Đại lục rộng lớn','Nhân vật MỚI (chơi một mình) giờ sống trên một đại lục liền rộng hơn 20 km²: đồng bằng, sông hồ, rừng, dãy núi phủ tuyết, biển. Không có cổng: đi tới đâu game nạp vùng đất tới đó, nhà cửa giữ nguyên chỗ. Nhân vật cũ vẫn ở bản đồ cũ.'],
  ['⛰️','Núi cao, vách đá','Núi cao gần gấp đôi, vách đá dựng theo tầng, tuyết trên đỉnh.'],
  ['🌀','9 vùng định cư mới','Gần chỗ bắt đầu có Cổng Muôn Nẻo 🌀: sang được 9 vùng đất mới, mỗi vùng một kiểu (châu thổ, đầm hồ, quần đảo, núi đá, bậc thang, lòng chảo, thảo nguyên, hẻm núi…). Vùng nào cũng cắm mốc lãnh thổ được. Đang cưỡi thú thì cưỡi qua luôn; lính đang «Theo tôi» đi qua cùng bạn.'],
- ['🐎','Thú không còn mất tích','Ngựa, voi hiện trên bản đồ nhỏ, có nút Gọi về. Vật nuôi tự về chuồng hoặc về làng; đói không bỏ đi nữa.'],
- ['🧹','Khu đã khai phá sạch hẳn','Quanh công trình, nền đã san, trong vòng rào: không mọc lại cỏ cây, thú hoang không vào. San nền có rìu thì đốn luôn cây.'],
- ['⚔️','Đạo quân','Dân làng → Đạo quân: đội hình (hàng ngang, cột, mũi nhọn, vòng tròn), mệnh lệnh (theo tôi, giữ chỗ, xung phong, về trại), lính giáo – cung thủ – lính khiên. Có Trại lính thì chiêu mộ dân binh.']];
+ ['🐎','Thú không còn mất tích','Ngựa, voi hiện trên bản đồ nhỏ, có nút Gọi về. Vật nuôi tự về chuồng hoặc về làng; đói không bỏ đi nữa.']];
 function newsShow(force){try{if(!force&&localStorage.getItem('ldtt-news')===NEWS_V)return;}catch(e){return;}if(!G.on||!S||G.panel||document.getElementById('newsCard'))return;
   const d=document.createElement('div');d.id='newsCard';d.innerHTML=`<div class="nw-box"><div class="nw-h"><b>🔥 Có gì mới</b><button class="p-x" data-a="newsx" aria-label="Đóng">✕</button></div><div class="nw-l">${NEWS.map(([ic,t,x])=>`<div class="nw-i"><span>${ic}</span><div><b>${t}</b><small>${x}</small></div></div>`).join('')}</div><button class="btn" data-a="newsx">Đã hiểu, chơi thôi</button></div>`;
   document.getElementById('game').appendChild(d);if(document.pointerLockElement)document.exitPointerLock();}
@@ -20585,30 +20585,38 @@ if(typeof HD_L!=='undefined')HD_L.push({id:'ghim',ic:'📌',t:'Ghim vật liệu
    CỘT VẬT TỔ: bấm Hành động ở cột để TẾ LỄ (2 thịt chín + 2 hoa, mỗi ngày thật một lần) → "Tổ tiên phù hộ" 3 giờ thật: +15% kinh nghiệm,
    +10 thể lực tối đa, lính đánh mạnh +10%. Cột cũng là mốc chiếm tiền đồn (dựng trong vòng đất của điểm giàu sau khi hạ lính canh). */
 const NC=[
- {id:'nong',ic:'🌾',n:'Ủ phân, chọn giống',d:'Cây trên luống và lúa ngoài ruộng lớn nhanh hơn.',fx:l=>'+'+(l*12)+'% tốc độ lớn của cây trồng',cost:l=>({grain:4*l,clay:3*l,fiber:4*l})},
- {id:'binh',ic:'⚔️',n:'Luyện binh',d:'Lính theo bạn và người giữ cổng đánh mạnh hơn.',fx:l=>'+'+(l*8)+'% sức đánh của lính',cost:l=>({wood:6*l,flint:2*l,hide:2*l})},
- {id:'suc',ic:'💪',n:'Rèn thể lực',d:'Làm việc, chạy nhảy được lâu hơn.',fx:l=>'+'+(l*6)+' thể lực tối đa',cost:l=>({meatCooked:3*l,rope:2*l,stone:4*l})},
- {id:'hoc',ic:'📖',n:'Truyền nghề',d:'Làm gì cũng học nhanh hơn.',fx:l=>'+'+(l*6)+'% kinh nghiệm mọi tay nghề',cost:l=>({plank:3*l,fiber:6*l,clay:2*l})},
- {id:'chay',ic:'🏃',n:'Dép cỏ, lối mòn',d:'Đi lại nhanh hơn.',fx:l=>'+'+(l*4)+'% tốc độ đi và chạy',cost:l=>({fiber:8*l,hide:1*l,rope:2*l})},
- {id:'duong',ic:'🌿',n:'Thuốc nam dưỡng sinh',d:'Khi no đủ, máu tự hồi dần.',fx:l=>'hồi '+(l*0.5).toFixed(1)+' máu mỗi 5 giây khi no trên 40%',cost:l=>({centella:2*l,mugwort:2*l,mint:1*l})}];
-const NC_T=[0,5,15,40];
+ {id:'nong',ic:'🌾',n:'Ủ phân, chọn giống',d:'Cây trên luống và lúa ngoài ruộng lớn nhanh hơn.',fx:l=>'+'+Math.round(l*12)+'% tốc độ lớn của cây trồng',cost:l=>({grain:4*l,clay:3*l,fiber:4*l})},
+ {id:'binh',ic:'⚔️',n:'Luyện binh',d:'Lính theo bạn và người giữ cổng đánh mạnh hơn.',fx:l=>'+'+Math.round(l*8)+'% sức đánh của lính',cost:l=>({wood:6*l,flint:2*l,hide:2*l})},
+ {id:'suc',ic:'💪',n:'Rèn thể lực',d:'Làm việc, chạy nhảy được lâu hơn.',fx:l=>'+'+Math.round(l*6)+' thể lực tối đa',cost:l=>({meatCooked:3*l,rope:2*l,stone:4*l})},
+ {id:'hoc',ic:'📖',n:'Truyền nghề',d:'Làm gì cũng học nhanh hơn.',fx:l=>'+'+Math.round(l*6)+'% kinh nghiệm mọi tay nghề',cost:l=>({plank:3*l,fiber:6*l,clay:2*l})},
+ {id:'chay',ic:'🏃',n:'Dép cỏ, lối mòn',d:'Đi lại nhanh hơn.',fx:l=>'+'+Math.round(l*4)+'% tốc độ đi và chạy',cost:l=>({fiber:8*l,hide:1*l,rope:2*l})},
+ {id:'duong',ic:'🌿',n:'Thuốc nam dưỡng sinh',d:'Khi no đủ, máu tự hồi dần.',fx:l=>'hồi '+(l*0.5).toFixed(1)+' máu mỗi 5 giây khi no trên 40%',cost:l=>({centella:2*l,mugwort:2*l,mint:1*l})},
+ {id:'chihuy',ic:'🎖️',n:'Binh pháp',d:'Mỗi tướng chỉ huy được nhiều lính hơn.',fx:l=>'+'+Math.floor(l)+' lính cho mỗi tướng',cost:l=>({hide:3*l,plank:3*l,meatCooked:4*l})},
+ {id:'thanh',ic:'🏯',n:'Kỹ thuật thành luỹ',d:'Nhân vật chịu đòn tốt hơn khi có lính bên cạnh.',fx:l=>'giảm '+Math.round(l*2)+'% sát thương nhận vào',cost:l=>({stone:8*l,wood:6*l,clay:3*l})}];
+/* NGHIÊN CỨU SÂU VÀ CHẬM (kiểu game chiến thuật xây dựng): mỗi kỹ thuật 10 bậc. Bậc 1-3 nhanh như cũ (5, 15, 40 phút) để người mới thấy kết quả sớm;
+   từ bậc 4 thời gian và vật liệu tăng mạnh (1,5 giờ → 36 giờ), và bậc N đòi nhân vật cấp 3×N. Tác dụng từ bậc 4 tăng nửa nhịp (ncEff) để không phá cân bằng. */
+const NC_MAX=10,NC_T=[0,5,15,40,90,180,360,600,900,1440,2160];
+const ncEff=id=>{const l=ncLv(id);return l<=3?l:3+(l-3)*0.5;};const ncEffL=l=>l<=3?l:3+(l-3)*0.5;
+function ncCost(q,l){const c=q.cost(l),k=l<=3?1:1+0.6*(l-3);const o={};for(const i in c)o[i]=Math.ceil(c[i]*k);return o;}
+function ncNeedLv(l){return l<=1?1:l*3;}
+function ncTime(l){const m=NC_T[l]||0;return m<60?m+' phút':(m/60)+' giờ';}
 function ncS(){if(!S.nc||typeof S.nc!=='object')S.nc={lv:{},cur:null};if(!S.nc.lv)S.nc.lv={};return S.nc;}
 function ncLv(id){try{return (S&&S.nc&&S.nc.lv&&S.nc.lv[id])|0;}catch(e){return 0;}}
 function ncHouse(){try{return typeof qhHas==='function'&&qhHas('qh_nghien');}catch(e){return false;}}
 function ncBuff(){try{return !!(S&&S.tt&&S.tt.until>Date.now());}catch(e){return false;}}
-function ncTick(){try{if(!S||!G.on)return;const R=ncS(),c=R.cur;if(c&&Date.now()>=c.end){const q=NC.find(x=>x.id===c.id);R.lv[c.id]=Math.max(ncLv(c.id),c.lv);R.cur=null;if(q){uiToast('📜 Nghiên cứu xong: '+q.n+' bậc '+c.lv+' ('+q.fx(c.lv)+').','gold');try{sfx('craft');}catch(e){}}try{cnt('cnt','research');save();}catch(e){}ncDraw();}
-    const dl=ncLv('duong');if(dl&&S.p.hp<100&&S.p.hp>0&&S.p.food>40&&!G.sleeping)S.p.hp=Math.min(100,S.p.hp+dl*0.5);}catch(e){}}
+function ncTick(){try{if(!S||!G.on)return;const R=ncS(),c=R.cur;if(c&&Date.now()>=c.end){const q=NC.find(x=>x.id===c.id);R.lv[c.id]=Math.max(ncLv(c.id),c.lv);R.cur=null;if(q){uiToast('📜 Nghiên cứu xong: '+q.n+' bậc '+c.lv+' ('+q.fx(ncEffL(c.lv))+').','gold');try{sfx('craft');}catch(e){}}try{cnt('cnt','research');save();}catch(e){}ncDraw();}
+    const dl=ncEff('duong');if(dl&&S.p.hp<100&&S.p.hp>0&&S.p.food>40&&!G.sleeping)S.p.hp=Math.min(100,S.p.hp+dl*0.5);}catch(e){}}
 setInterval(ncTick,5000);
-function ncStart(id){const q=NC.find(x=>x.id===id),R=ncS();if(!q)return;if(!ncHouse()){uiToast('Cần dựng Nhà nghiên cứu trước (Xây → Quy hoạch làng).','bad');return;}if(R.cur){uiToast('Đang nghiên cứu dở một kỹ thuật khác.','bad');return;}const l=ncLv(id)+1;if(l>3){uiToast('Đã đạt bậc cao nhất.','');return;}
-  const c=q.cost(l);if(!canPay(c)){uiToast('Thiếu vật liệu: '+Object.entries(c).filter(([k,v])=>haveCount(k)<v).map(([k,v])=>(v-haveCount(k))+' '+(ITEMS[k]?ITEMS[k].n:k)).join(', ')+'.','bad');try{sfx('no');}catch(e){}return;}
-  pay(c);R.cur={id,lv:l,end:Date.now()+NC_T[l]*60000,t0:Date.now()};try{sfx('build');uiHotbar();save();}catch(e){}uiToast('📜 Bắt đầu nghiên cứu '+q.n+' bậc '+l+': '+NC_T[l]+' phút (thoát game vẫn tính).','good');ncDraw();}
+function ncStart(id){const q=NC.find(x=>x.id===id),R=ncS();if(!q)return;if(!ncHouse()){uiToast('Cần dựng Nhà nghiên cứu trước (Xây → Quy hoạch làng).','bad');return;}if(R.cur){uiToast('Đang nghiên cứu dở một kỹ thuật khác.','bad');return;}const l=ncLv(id)+1;if(l>NC_MAX){uiToast('Đã đạt bậc cao nhất.','');return;}if(typeof heroLv==='function'&&heroLv()<ncNeedLv(l)){uiToast('Bậc '+l+' cần nhân vật cấp '+ncNeedLv(l)+'.','bad');return;}
+  const c=ncCost(q,l);if(!canPay(c)){uiToast('Thiếu vật liệu: '+Object.entries(c).filter(([k,v])=>haveCount(k)<v).map(([k,v])=>(v-haveCount(k))+' '+(ITEMS[k]?ITEMS[k].n:k)).join(', ')+'.','bad');try{sfx('no');}catch(e){}return;}
+  pay(c);R.cur={id,lv:l,end:Date.now()+NC_T[l]*60000,t0:Date.now()};try{sfx('build');uiHotbar();save();}catch(e){}uiToast('📜 Bắt đầu nghiên cứu '+q.n+' bậc '+l+': '+ncTime(l)+' (thoát game vẫn tính).','good');ncDraw();}
 function ncDraw(){const el=document.getElementById('ncw');if(!el||el.hidden)return;const R=ncS(),has=ncHouse(),c=R.cur,left=c?Math.max(0,c.end-Date.now()):0;
   let h=`<div class="nc-c"><div class="nc-h"><b>📜 Nghiên cứu</b><button class="nc-x" data-nc="x" aria-label="Đóng">✕</button></div>
     <p class="small muted">${has?'Mỗi lúc nghiên cứu một kỹ thuật. Tác dụng vĩnh viễn, cộng dồn theo bậc; thoát game vẫn tính giờ.':'🔒 Cần dựng <b>Nhà nghiên cứu</b> (Xây → Quy hoạch làng → Học hỏi) mới bắt đầu nghiên cứu được. Bạn vẫn xem trước được các kỹ thuật bên dưới.'}</p>`;
   if(c){const q=NC.find(x=>x.id===c.id),k=1-left/Math.max(1,c.end-c.t0);h+=`<div class="nc-cur">Đang nghiên cứu: <b>${q?q.ic+' '+esc(q.n):''} bậc ${c.lv}</b> · còn ${Math.ceil(left/60000)} phút<div class="nc-bar"><i style="width:${Math.round(k*100)}%"></i></div></div>`;}
-  for(const q of NC){const l=ncLv(q.id),nl=l+1,cost=nl<=3?q.cost(nl):null,ok=cost&&canPay(cost);
-    h+=`<div class="nc-i"><span class="nc-ic">${q.ic}</span><div class="nc-m"><b>${esc(q.n)} <em>${'●'.repeat(l)}${'○'.repeat(3-l)}</em></b><span class="small muted">${esc(q.d)}</span>${l?`<span class="nc-fx">Đang có: ${esc(q.fx(l))}</span>`:''}
-      ${cost?`<span class="small">Bậc ${nl}: ${esc(q.fx(nl))} · ${NC_T[nl]} phút</span><div class="chips">${Object.entries(cost).map(([k,v])=>`<span class="chip${haveCount(k)<v?' lack':''}">${icon(k)}${Math.min(haveCount(k),v)}/${v}</span>`).join('')}</div>
+  for(const q of NC){const l=ncLv(q.id),nl=l+1,cost=nl<=NC_MAX?ncCost(q,nl):null,lvOk=typeof heroLv!=='function'||heroLv()>=ncNeedLv(nl),ok=cost&&canPay(cost)&&lvOk;
+    h+=`<div class="nc-i"><span class="nc-ic">${q.ic}</span><div class="nc-m"><b>${esc(q.n)} <em>Bậc ${l}/${NC_MAX}</em></b><span class="small muted">${esc(q.d)}</span>${l?`<span class="nc-fx">Đang có: ${esc(q.fx(ncEffL(l)))}</span>`:''}
+      ${cost?`<span class="small">Bậc ${nl}: ${esc(q.fx(ncEffL(nl)))} · ${ncTime(nl)}${lvOk?'':` · <b class="warn">cần nhân vật cấp ${ncNeedLv(nl)}</b>`}</span><div class="chips">${Object.entries(cost).map(([k,v])=>`<span class="chip${haveCount(k)<v?' lack':''}">${icon(k)}${Math.min(haveCount(k),v)}/${v}</span>`).join('')}</div>
       <div class="row"><button class="btn sm${has&&!c&&ok?'':' ghost'}" data-nc="go" data-id="${q.id}">Nghiên cứu bậc ${nl}</button>${!ok&&typeof gmPin==='function'?'':''}</div>`:'<span class="nc-fx">✓ Đã đạt bậc cao nhất</span>'}</div></div>`;}
   h+='</div>';el.innerHTML=h;}
 function ncOpen(){let el=document.getElementById('ncw');if(!el){document.body.insertAdjacentHTML('beforeend','<div id="ncw" class="ncw" hidden></div>');el=document.getElementById('ncw');
@@ -20619,12 +20627,12 @@ setInterval(()=>{const el=document.getElementById('ncw');if(el&&!el.hidden)ncDra
 setInterval(()=>{try{const m=document.getElementById('menu');if(!m||!S||!G.on||m.querySelector('[data-ui="nc"]'))return;const b=document.createElement('button');b.dataset.ui='nc';b.setAttribute('aria-label','Nghiên cứu');b.innerHTML='<span>📜</span><i>Nghiên cứu</i>';m.insertBefore(b,m.firstChild);}catch(e){}},1500);
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-ui="nc"]');if(!b||!S||!G.on)return;e.stopImmediatePropagation();e.preventDefault();ncOpen();},true);
 /* tác dụng */
-{const _ct=cropsTick;cropsTick=function(gd){return _ct.call(this,gd*(1+0.12*ncLv('nong')));};}
-if(typeof l4PadTick==='function'){const _pt=l4PadTick;l4PadTick=function(gh){return _pt.call(this,gh*(1+0.12*ncLv('nong')));};}
-if(typeof danDmg==='function'){const _dd=danDmg;danDmg=function(f){return _dd.apply(this,arguments)*(1+0.08*ncLv('binh'))*(ncBuff()?1.1:1);};}
-{const _ms=maxStam;maxStam=function(){return _ms.apply(this,arguments)+6*ncLv('suc')+(ncBuff()?10:0);};}
-{const _ax=addXp;addXp=function(k,n){return _ax.call(this,k,n*(1+0.06*ncLv('hoc'))*(ncBuff()?1.15:1));};}
-{const _mv=move;move=function(dx,dz,m,dt,run){const l=ncLv('chay');return _mv.call(this,dx,dz,l?m*(1+0.04*l):m,dt,run);};}
+{const _ct=cropsTick;cropsTick=function(gd){return _ct.call(this,gd*(1+0.12*ncEff('nong')));};}
+if(typeof l4PadTick==='function'){const _pt=l4PadTick;l4PadTick=function(gh){return _pt.call(this,gh*(1+0.12*ncEff('nong')));};}
+if(typeof danDmg==='function'){const _dd=danDmg;danDmg=function(f){return _dd.apply(this,arguments)*(1+0.08*ncEff('binh'))*(ncBuff()?1.1:1);};}
+{const _ms=maxStam;maxStam=function(){return _ms.apply(this,arguments)+6*ncEff('suc')+(ncBuff()?10:0);};}
+{const _ax=addXp;addXp=function(k,n){return _ax.call(this,k,n*(1+0.06*ncEff('hoc'))*(ncBuff()?1.15:1));};}
+{const _mv=move;move=function(dx,dz,m,dt,run){const l=ncEff('chay');return _mv.call(this,dx,dz,l?m*(1+0.04*l):m,dt,run);};}
 /* ---------- CỘT VẬT TỔ: tế lễ ---------- */
 function ttDay(){return Math.floor((Date.now()+7*3600000)/86400000);}
 function ttOffer(){if(!S)return;if(!S.tt)S.tt={};if(S.tt.day===ttDay()){uiToast('Hôm nay đã tế lễ rồi. Mai lại dâng lễ nhé.'+(ncBuff()?' Tổ tiên còn phù hộ '+Math.ceil((S.tt.until-Date.now())/60000)+' phút.':''),'');return;}
@@ -22648,6 +22656,83 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   setInterval(()=>{try{if(!DL.on||typeof G!=='object'||!G.on||G.ldLeaving||DL.busy||!S||G.work||G.build||G.panel)return;/* sang hẳn địa phận tỉnh bên (quá ranh giới 25 m) thì chuyển tỉnh */const A=dlA(),nx=Math.round((S.dl.ox+P.x)/A)*A-S.dl.ox,nz=Math.round((S.dl.oz+P.z)/A)*A-S.dl.oz;if((nx||nz)&&Math.hypot(P.x,P.z)-Math.hypot(P.x-nx,P.z-nz)>1000)dlShift();}catch(e){}},700);
 
 }
+/* ===================== tuonglinh: TƯỚNG LĨNH · QUÂN SỐ · CHIẾN THUẬT · BẢNG "PHÁT TRIỂN" =====================
+   Học theo lối chung của các game chiến thuật xây dựng: quân đội không lớn lên chỉ nhờ có giường; phải có TƯỚNG mới chỉ huy được nhiều lính,
+   tướng phải ra trận mới lên cấp, lên sao tốn của; nghiên cứu, nhà quân sự, cấp nhân vật mở thêm suất tướng. Mọi thứ đi từ từ.
+   · PHONG TƯỚNG: chọn một người lính làm tướng (cần Trại lính; suất tướng: 1 + Nhà chỉ huy 1 + mỗi 10 cấp nhân vật 1, tối đa 6).
+     Mỗi tướng: cấp 1-30 (kinh nghiệm từ các đòn đánh của quân mình), sao 0-5 (thăng sao tốn vật liệu, cần đủ cấp), sở trường một binh chủng.
+   · QUÂN SỐ: tự bạn chỉ huy được 3 lính; mỗi tướng chỉ huy thêm 4 + cấp/3 + 2×sao (+ bậc nghiên cứu Binh pháp). Hết quân số thì không chiêu mộ thêm được.
+   · SỞ TRƯỜNG: lính đúng binh chủng của tướng đánh mạnh hơn (6% + 1,2% mỗi cấp + 5% mỗi sao, lấy tướng tốt nhất). Bản thân tướng đánh mạnh hơn hẳn.
+   · CHIẾN THUẬT cho cả đạo quân: Cân bằng · Tấn công · Phòng thủ (cần một tướng cấp 3) · Vây bắn (cần một tướng cấp 6).
+   · BẢNG PHÁT TRIỂN (☰ → 📈): sáu trụ cột (Nhân vật, Làng, Học vấn, Quân đội, Tướng lĩnh, Liên minh), mỗi trụ đang ở đâu, bước tiếp theo là gì, và điểm THẾ LỰC tổng. */
+const TG={MAXLV:30,MAXST:5,SP:{spear:['🗡️','Bộ binh','lính giáo'],bow:['🏹','Cung thủ','cung thủ'],shield:['🛡️','Thủ vệ','lính khiên'],cav:['🐎','Kỵ binh','kỵ binh, tượng binh']},
+  TAC:{can:['⚖️','Cân bằng','Không cộng không trừ.',0],cong:['⚔️','Tấn công','Lính đánh mạnh hơn 15%, bạn chịu đòn nặng hơn 5%.',3],thu:['🛡️','Phòng thủ','Bạn chịu đòn nhẹ hơn 12%, lính đánh yếu đi 8%.',3],vay:['🏹','Vây bắn','Cung thủ mạnh hơn 25%, lính cận chiến yếu đi 5%.',6]}};
+function tgS(){if(!S.tg||typeof S.tg!=='object'||!Array.isArray(S.tg.list))S.tg={list:[]};return S.tg;}
+function tgList(){const T=tgS(),sol=new Map((S.folk||[]).filter(f=>f.job==='soldier').map(f=>[qdUid(f),f]));/* lọc TẠI CHỖ: nơi khác đang giữ đúng mảng này để thêm tướng, tạo mảng mới thì tướng vừa phong bị rơi mất */for(let i=T.list.length-1;i>=0;i--)if(!sol.has(T.list[i].uid))T.list.splice(i,1);return T.list;}
+function tgOf(f){try{const u=f&&f.uid;return u?tgList().find(g=>g.uid===u)||null:null;}catch(e){return null;}}
+function tgMan(g){return (S.folk||[]).find(f=>f.uid===g.uid)||null;}
+function tgSlots(){let n=0;try{if(qhHas('qh_linh'))n=1;if(n&&qhHas('qh_chihuy'))n++;if(n)n+=Math.floor((typeof heroLv==='function'?heroLv():1)/10);}catch(e){}return Math.min(6,n);}
+function tgCap(g){return 4+Math.floor((g.lv||1)/3)+(g.st|0)*2+(typeof ncLv==='function'?ncLv('chihuy'):0);}
+function tgArmyCap(){let n=3;for(const g of tgList())n+=tgCap(g);return n;}
+function tgNeed(g){return 40*(g.lv||1);}
+function tgXp(g,n){if((g.lv||1)>=TG.MAXLV)return;g.xp=(g.xp||0)+n;while(g.xp>=tgNeed(g)&&g.lv<TG.MAXLV){g.xp-=tgNeed(g);g.lv++;const m=tgMan(g);uiToast(`🎖️ Tướng ${m?esc(m.n):''} lên cấp ${g.lv}: chỉ huy được ${tgCap(g)} lính.`,'gold');try{sfx('level');}catch(e){}}}
+function tgPromoCost(n){return {meatCooked:8*(n+1),hide:3*(n+1),spear:1};}
+function tgStarCost(g){const n=(g.st|0)+1,c={meatCooked:6*n,hide:3*n,bone:3*n};if(n>=3&&ITEMS.bronze)c.bronze=n-1;return c;}
+function tgPromote(uid){const L=tgList(),f=(S.folk||[]).find(x=>x.job==='soldier'&&qdUid(x)===+uid);if(!f)return;if(tgOf(f)){uiToast('Người này đã là tướng.','');return;}if(L.length>=tgSlots()){uiToast(tgSlots()?'Hết suất tướng. Dựng Nhà chỉ huy hoặc lên thêm 10 cấp nhân vật để có thêm suất.':'Cần dựng Trại lính mới phong tướng được.','bad');try{sfx('no');}catch(e){}return;}
+  const need=5*(L.length+1),hl=typeof heroLv==='function'?heroLv():1;if(hl<need){uiToast('Phong tướng thứ '+(L.length+1)+' cần nhân vật cấp '+need+'.','bad');return;}const c=tgPromoCost(L.length);if(!canPay(c)){uiToast('Thiếu lễ vật phong tướng: '+Object.entries(c).map(([k,v])=>v+' '+(ITEMS[k]?ITEMS[k].n.toLowerCase():k)).join(', ')+'.','bad');try{sfx('no');}catch(e){}return;}
+  pay(c);const arm=qdHorse(f)?'cav':qdArm(f);L.push({uid:qdUid(f),lv:1,xp:0,st:0,sp:arm});try{cnt('cnt','general');sfx('level');uiHotbar();}catch(e){}uiToast(`🎖️ ${esc(f.n)} được phong làm tướng (${TG.SP[arm][1]}). Quân số tối đa giờ là ${tgArmyCap()}.`,'gold');save();}
+function tgStar(uid){const g=tgList().find(x=>x.uid===+uid);if(!g||(g.st|0)>=TG.MAXST)return;const n=(g.st|0)+1;if((g.lv||1)<5*n){uiToast('Thăng '+n+' sao cần tướng cấp '+(5*n)+'.','bad');return;}const c=tgStarCost(g);if(!canPay(c)){uiToast('Thiếu vật liệu thăng sao: '+Object.entries(c).map(([k,v])=>v+' '+(ITEMS[k]?ITEMS[k].n.toLowerCase():k)).join(', ')+'.','bad');try{sfx('no');}catch(e){}return;}pay(c);g.st=n;try{sfx('level');uiHotbar();}catch(e){}uiToast(`⭐ Tướng lên ${n} sao: chỉ huy được ${tgCap(g)} lính.`,'gold');save();}
+function tgSpNext(uid){const g=tgList().find(x=>x.uid===+uid);if(!g)return;const K=Object.keys(TG.SP);g.sp=K[(K.indexOf(g.sp)+1)%K.length];try{sfx('pick');}catch(e){}save();}
+function tgTac(){const A=qdS();return TG.TAC[A.tac]?A.tac:'can';}
+function tgTacSet(k){const T=TG.TAC[k];if(!T)return;const mx=Math.max(0,...tgList().map(g=>g.lv||1));if(mx<T[3]){uiToast('Chiến thuật «'+T[1]+'» cần một tướng cấp '+T[3]+'.','bad');return;}qdS().tac=k;try{sfx('pick');}catch(e){}uiToast(T[0]+' Chiến thuật: '+T[1]+'. '+T[2],'');save();}
+/* tác dụng */
+{const _dd=danDmg;danDmg=function(f){let v=_dd.apply(this,arguments);try{if(f&&f.job==='soldier'){const L=tgList();if(L.length){const me=L.find(g=>g.uid===f.uid),arm=qdHorse(f)?'cav':qdArm(f);if(me)v*=1.25+0.03*(me.lv||1)+0.1*(me.st|0);else{let b=0;for(const g of L)if(g.sp===arm)b=Math.max(b,0.06+0.012*(g.lv||1)+0.05*(g.st|0));v*=1+b;}
+        /* kinh nghiệm cho tướng: mỗi đòn của quân mình (tối đa ~1 lần mỗi 0,8 giây) */if(!TG.ui&&G.t-(TG.xpT||0)>0.8){TG.xpT=G.t;for(const g of L)tgXp(g,g.uid===f.uid?1.5:0.5);}}
+      const t=tgTac();if(t==='cong')v*=1.15;else if(t==='thu')v*=0.92;else if(t==='vay')v*=(qdArm(f)==='bow'&&!qdHorse(f))?1.25:0.95;}}catch(e){}return v;};}
+{const _hd=heroDef;heroDef=function(){let v=_hd.apply(this,arguments);try{if(S&&(S.folk||[]).some(f=>f.job==='soldier')){const t=tgTac();if(t==='thu')v+=0.12;else if(t==='cong')v-=0.05;if(typeof ncEff==='function')v+=0.02*ncEff('thanh');}}catch(e){}return Math.max(0,Math.min(0.85,v));};}
+/* quân số: hết suất thì không chiêu mộ thêm */
+{const _rc=qdRecruit;qdRecruit=function(){try{const n=qdSol().length,cap=tgArmyCap();if(n>=cap){uiToast(`Quân số đã đầy (${n}/${cap}). Phong thêm tướng, cho tướng lên cấp / thăng sao, hoặc nghiên cứu Binh pháp để chỉ huy được nhiều lính hơn.`,'bad');try{sfx('no');}catch(e){}return;}}catch(e){}return _rc.apply(this,arguments);};}
+/* giao diện trong khung Đạo quân */
+function tgHtml(){try{const L=tgList(),sol=qdSol(),cap=tgArmyCap(),slots=tgSlots(),A=qdS(),hl=typeof heroLv==='function'?heroLv():1;TG.ui=1;let h='';
+    const cand=sol.filter(f=>!tgOf(f)).sort((a,b)=>danLv(b)-danLv(a))[0];
+    h+=`<div class="tg-box"><div class="qd-h"><b>🎖️ Tướng lĩnh · ${L.length}/${slots||0} suất</b><span class="small ${sol.length>=cap?'warn':'muted'}">Quân số ${sol.length}/${cap}</span></div>`;
+    if(!slots)h+='<span class="small muted">Cần dựng <b>Trại lính</b> mới phong tướng được. Không có tướng thì tự bạn chỉ huy tối đa 3 lính.</span>';
+    for(const g of L){const f=tgMan(g),sp=TG.SP[g.sp]||TG.SP.spear,n=(g.st|0)+1,sc=n<=TG.MAXST?tgStarCost(g):null,okLv=(g.lv||1)>=5*n;
+      h+=`<div class="tg-g"><div class="tg-n"><b>${esc(f?f.n:'?')}</b> <em>Cấp ${g.lv||1}</em> <span class="tg-st">${'★'.repeat(g.st|0)}${'☆'.repeat(TG.MAXST-(g.st|0))}</span></div>
+        <div class="nc-bar"><i style="width:${Math.round((g.xp||0)/tgNeed(g)*100)}%"></i></div>
+        <span class="small">${sp[0]} Sở trường ${sp[1]}: ${sp[2]} đánh mạnh hơn ${Math.round((0.06+0.012*(g.lv||1)+0.05*(g.st|0))*100)}% · chỉ huy ${tgCap(g)} lính</span>
+        <div class="row"><button class="btn sm ghost" data-a="tgsp" data-k="${g.uid}">Đổi sở trường</button>${sc?`<button class="btn sm${okLv&&canPay(sc)?'':' ghost'}" data-a="tgstar" data-k="${g.uid}">⭐ Thăng ${n} sao${okLv?'':' (cần cấp '+5*n+')'}</button>`:'<span class="small ok">Đủ 5 sao</span>'}</div>
+        ${sc&&okLv?`<div class="chips">${Object.entries(sc).map(([k,v])=>`<span class="chip${haveCount(k)<v?' lack':''}">${icon(k)}${Math.min(haveCount(k),v)}/${v}</span>`).join('')}</div>`:''}</div>`;}
+    if(slots&&L.length<slots){const need=5*(L.length+1),c=tgPromoCost(L.length);h+=cand?`<div class="tg-p"><span class="small">Phong <b>${esc(cand.n)}</b> (cấp ${danLv(cand)}) làm tướng${hl<need?` · <b class="warn">cần nhân vật cấp ${need}</b>`:''}</span><div class="chips">${Object.entries(c).map(([k,v])=>`<span class="chip${haveCount(k)<v?' lack':''}">${icon(k)}${Math.min(haveCount(k),v)}/${v}</span>`).join('')}</div><button class="btn sm${hl>=need&&canPay(c)?'':' ghost'}" data-a="tgpro" data-k="${qdUid(cand)}">🎖️ Phong tướng</button></div>`:'<span class="small muted">Còn suất tướng nhưng chưa có lính nào để phong.</span>';}
+    else if(slots&&L.length>=slots&&slots<6)h+=`<span class="small muted">Thêm suất tướng: ${qhHas('qh_chihuy')?'':'dựng Nhà chỉ huy, hoặc '}nhân vật lên cấp ${(Math.floor(hl/10)+1)*10}.</span>`;
+    const cur=tgTac(),mx=Math.max(0,...L.map(g=>g.lv||1));
+    h+=`<div class="tg-t"><span class="small"><b>Chiến thuật:</b> ${TG.TAC[cur][2]}</span><div class="row">${Object.keys(TG.TAC).map(k=>{const T=TG.TAC[k],lock=mx<T[3];return `<button class="tb sm${cur===k?' on':''}${lock?' ghost':''}" data-a="tgtac" data-v="${k}">${T[0]} ${T[1]}${lock?' 🔒'+T[3]:''}</button>`;}).join('')}</div></div></div>`;TG.ui=0;return h;}catch(e){TG.ui=0;return '';}}
+{const _qh=qdHtml;qdHtml=function(){let s=_qh.apply(this,arguments);try{if(s&&(qdSol().length||qhHas('qh_linh')))s+=tgHtml();}catch(e){}return s;};}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="tgpro"],[data-a="tgstar"],[data-a="tgsp"],[data-a="tgtac"]');if(!b||!S)return;e.stopImmediatePropagation();const a=b.dataset.a;if(a==='tgpro')tgPromote(b.dataset.k);else if(a==='tgstar')tgStar(b.dataset.k);else if(a==='tgsp')tgSpNext(b.dataset.k);else tgTacSet(b.dataset.v);
+  try{if(G.panel)uiOpenRefresh();}catch(er){}try{ptDraw();}catch(er){}},true);
+/* ---------- BẢNG PHÁT TRIỂN ---------- */
+function ptData(){const hl=typeof heroLv==='function'?heroLv():1,folk=(S.folk||[]).length,sol=qdSol().length,L=tgList(),qhN=(typeof QH!=='undefined'?QH.filter(q=>{try{return qhHas(q.id);}catch(e){return false;}}).length:0),ncN=(typeof NC!=='undefined'?NC.reduce((n,q)=>n+ncLv(q.id),0):0),ncMax=(typeof NC!=='undefined'?NC.length*NC_MAX:1);
+  const gen=L.reduce((n,g)=>n+(g.lv||1)*5+(g.st|0)*20,0),mp=typeof mpOn==='function'&&mpOn(),clan=mp&&mpMyClan()?MP.clans[mpMyClan()]:null,terr=mp&&MP.claims[MP.uid]?1:0;
+  const score=hl*10+ncN*8+sol*6+gen+qhN*12+folk*3+(clan?clan.members.length*4:0)+terr*30;
+  return {hl,folk,sol,L,qhN,ncN,ncMax,gen,mp,clan,terr,score,cap:tgArmyCap(),slots:tgSlots()};}
+function ptHtml(){const d=ptData(),age=typeof AGES!=='undefined'&&AGES[S.age||0]?AGES[S.age||0].n:'',row=(ic,t,v,sub,k,btn)=>`<div class="pt-r"><span class="pt-ic">${ic}</span><div class="pt-m"><b>${t} <em>${v}</em></b><div class="nc-bar"><i style="width:${Math.round(Math.max(0,Math.min(1,k))*100)}%"></i></div><span class="small muted">${sub}</span></div>${btn||''}</div>`,go=(u,n)=>`<button class="btn sm ghost" data-pt="${u}">${n}</button>`;
+  const nextNc=typeof NC!=='undefined'?NC.map(q=>ncLv(q.id)).sort((a,b)=>a-b)[0]+1:1,q0=d.L.slice().sort((a,b)=>(a.lv||1)-(b.lv||1))[0];
+  return `<div class="nc-c"><div class="nc-h"><b>📈 Phát triển</b><button class="nc-x" data-pt="x" aria-label="Đóng">✕</button></div>
+   <div class="pt-s"><span>THẾ LỰC</span><b>${d.score.toLocaleString('vi-VN')}</b><small>Tổng của sáu trụ cột bên dưới. Trụ nào yếu thì kéo cả thế lực xuống: phải xây đều.</small></div>
+   ${row('🧍','Nhân vật','Cấp '+d.hl,'Lên cấp nhờ làm mọi việc. Cấp mở suất tướng (mỗi 10 cấp), bậc nghiên cứu cao (bậc N cần cấp 3×N), kỹ năng, thiên phú.',d.hl/60,go('hero','Xem'))}
+   ${row('🏘️','Làng',d.qhN+' nhà có công năng · '+d.folk+' dân'+(age?' · '+esc(age):''),'Mỗi nhà có công năng mở một việc: Trại lính (lính, tướng), Nhà chỉ huy (thêm suất tướng), Nhà nghiên cứu (học vấn), kho, chuồng trại…',d.qhN/Math.max(1,typeof QH!=='undefined'?QH.length:1),go('build','Xây'))}
+   ${row('📜','Học vấn',d.ncN+'/'+d.ncMax+' bậc','Mỗi kỹ thuật 10 bậc; bậc cao tốn nhiều giờ và nhiều vật liệu. Bậc thấp nhất của bạn đang là '+(nextNc-1)+'.',d.ncN/d.ncMax,go('nc','Nghiên cứu'))}
+   ${row('⚔️','Quân đội',d.sol+'/'+d.cap+' lính','Quân số do tướng quyết định. Kho vũ khí, Trường bắn, Chuồng ngựa chiến, nghiên cứu Luyện binh làm lính mạnh lên.',d.sol/Math.max(1,d.cap),go('dan','Đạo quân'))}
+   ${row('🎖️','Tướng lĩnh',d.L.length+'/'+d.slots+' tướng'+(d.L.length?' · tổng cấp '+d.L.reduce((n,g)=>n+(g.lv||1),0):''),d.L.length?'Tướng lên cấp nhờ ra trận cùng quân; thăng sao cần vật liệu và đủ cấp. '+(q0?'Tướng yếu nhất đang cấp '+(q0.lv||1)+'.':''):'Chưa có tướng: dựng Trại lính, chiêu mộ lính rồi phong tướng trong khung Đạo quân.',d.gen/(6*(30*5+100)),go('dan','Tướng'))}
+   ${row('🤝','Liên minh',d.mp?(d.clan?esc(mpCT(d.clan.name))+' · '+d.clan.members.length+' người':'chưa vào liên minh'):'đang chơi một mình',d.mp?'Liên minh cho đất chung, đồng minh giữ nhà, tuyên chiến và công thành. '+(d.terr?'Bạn đã cắm lãnh thổ.':'Bạn chưa cắm lãnh thổ.'):'Vào thế giới chung để lập liên minh, giữ đất, tranh điểm giàu với người khác.',d.clan?Math.min(1,d.clan.members.length/20):0,d.mp?go('mp','Liên minh'):'')}
+   <p class="small muted">Thứ tự hợp lý: dựng làng đủ ăn → Trại lính, vài người lính → phong tướng đầu tiên → Nhà nghiên cứu, học dần → thêm tướng, thăng sao → vào liên minh, giữ đất.</p></div>`;}
+function ptDraw(){const el=document.getElementById('ptw');if(el&&!el.hidden)el.innerHTML=ptHtml();}
+function ptOpen(){let el=document.getElementById('ptw');if(!el){document.body.insertAdjacentHTML('beforeend','<div id="ptw" class="ncw" hidden></div>');el=document.getElementById('ptw');
+    el.addEventListener('click',e=>{const b=e.target.closest('[data-pt]');if(!b){if(e.target===el)el.hidden=true;return;}const v=b.dataset.pt;el.hidden=true;if(v==='x')return;try{if(v==='nc')ncOpen();else if(v==='hero')uiOpen('l4',{});else uiOpen(v,{});}catch(er){}});}
+  try{if(G.panel)uiClose();const mb=document.querySelector('#menu.ui5-open .ui5-mb');if(mb)mb.click();}catch(e){}el.hidden=false;el.innerHTML=ptHtml();}
+setInterval(()=>{try{const m=document.getElementById('menu');if(!m||!S||!G.on||m.querySelector('[data-ui="pt"]'))return;const b=document.createElement('button');b.dataset.ui='pt';b.setAttribute('aria-label','Phát triển');b.innerHTML='<span>📈</span><i>Phát triển</i>';m.insertBefore(b,m.firstChild);}catch(e){}},1500);
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('#menu [data-ui="pt"]');if(!b)return;e.stopImmediatePropagation();e.preventDefault();ptOpen();},true);
+(function(){try{const st=document.createElement('style');st.textContent='.tg-box{margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,210,122,.2)}.tg-g,.tg-p,.tg-t{background:rgba(255,255,255,.05);border-radius:10px;padding:7px 9px;margin:6px 0;display:flex;flex-direction:column;gap:4px}.tg-n em{font-style:normal;opacity:.8;font-size:12px;margin-left:4px}.tg-st{color:#ffd27a;letter-spacing:1px;margin-left:6px}.tg-t .row{flex-wrap:wrap;gap:6px}.pt-s{display:flex;flex-direction:column;align-items:center;gap:2px;background:linear-gradient(180deg,rgba(255,210,122,.16),rgba(255,210,122,.04));border:1px solid rgba(255,210,122,.3);border-radius:12px;padding:10px;margin:6px 0 10px;text-align:center}.pt-s span{font-size:11px;letter-spacing:2px;opacity:.8}.pt-s b{font-size:30px;color:#ffd27a;line-height:1.1}.pt-s small{opacity:.7;font-size:12px}.pt-r{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border-radius:10px;padding:8px 10px;margin:6px 0}.pt-ic{font-size:24px;flex:none}.pt-m{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px}.pt-m em{font-style:normal;font-weight:400;opacity:.85;font-size:13px;margin-left:4px}.pt-r .btn{flex:none}';document.head.appendChild(st);}catch(e){}})();
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.
