@@ -57,3 +57,33 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 .nvm-t .dp-ic{pointer-events:none}.nvm-t small{font-size:11.5px;font-weight:700;white-space:nowrap}
 .nvm-t.off{opacity:.45}.nvm-t.sel{border-color:#ffd27a;background:linear-gradient(180deg,#4a3a22,#2a2016);box-shadow:0 0 10px rgba(255,210,122,.35)}
 .nvm-t.can::after{content:'';position:absolute;top:6px;right:8px;width:9px;height:9px;border-radius:50%;background:#5fd06a;box-shadow:0 0 6px #5fd06a}`;document.head.appendChild(st);}catch(e){}})();
+/* ---------- PHẨM CHẤT THẬT HƠN + DẤU HIỆU NGOÀI MÀU + SO SÁNH KHI ĐỔI ĐỒ ----------
+   · Phẩm chất tính từ CHỈ SỐ của món (ấm, giáp, che mưa, sức công cụ) trước, chất liệu trong tên chỉ là dự phòng.
+   · Mỗi ô có thêm hàng chấm ◆ (1-5) dưới góc trái: không cần phân biệt màu vẫn biết món nào hơn.
+   · Thẻ món đồ: mỗi món cùng ô trong túi ghi rõ hơn / kém bao nhiêu so với món đang mặc (▲ xanh, ▼ đỏ). */
+function nvmScore(I){if(!I)return 0;return (I.warm||0)+(I.arm||0)*100+(I.rain||0)*20+(I.pow||0)*8+(I.foot?4:0)+(I.spirit?3:0);}
+{const _q=nvmQ;nvmQ=function(id){try{const I=ITEMS[id];if(I){const s=nvmScore(I);if(I.t==='wear'&&(I.warm||I.arm||I.rain))return s>=30?4:s>=20?3:s>=11?2:s>=5?1:0;if(I.t==='tool'&&I.pow)return I.pow>=3.4?4:I.pow>=2.4?3:I.pow>=1.6?2:I.pow>=1?1:0;}}catch(e){}return _q.apply(this,arguments);};}
+function nvmDelta(J,I){const out=[],d=(lb,a,b,f)=>{const v=(a||0)-(b||0);if(Math.abs(v)<1e-6)return;out.push(`<i class="${v>0?'up':'dn'}">${v>0?'▲':'▼'} ${lb} ${v>0?'+':''}${f?f(v):v}</i>`);};
+  d('Ấm',J.warm,I&&I.warm);d('Giáp',J.arm,I&&I.arm,v=>Math.round(v*100)+'%');d('Che mưa',J.rain,I&&I.rain,v=>Math.round(v*100)+'%');if(J.foot&&!(I&&I.foot))out.push('<i class="up">▲ Không dẫm gai</i>');if(!J.foot&&I&&I.foot)out.push('<i class="dn">▼ Mất chống gai</i>');return out.join('');}
+if(typeof h5SlotCard==='function'){const _c=h5SlotCard;h5SlotCard=function(k){let h=_c.apply(this,arguments);try{if(k!=='wp'&&k!=='tl'){const cur=S.wear&&S.wear[k],I=cur&&ITEMS[cur],seen={};for(const it of S.inv)if(it&&ITEMS[it.id]&&ITEMS[it.id].t==='wear')seen[it.id]=(seen[it.id]||0)+(it.n||1);const done={};
+      h=h.replace(/<button class="btn sm" data-a="use" data-i="(\d+)">([\s\S]*?)<\/button>/g,(m,i,inner)=>{const it=S.inv[+i],J=it&&ITEMS[it.id];if(!J)return m;/* nhiều món giống nhau: chỉ hiện một dòng kèm số lượng */if(done[it.id])return '';done[it.id]=1;const dl=nvmDelta(J,I),q=nvmQ(it.id);return `<button class="nvm-eq q${q}" data-a="use" data-i="${i}"><span class="nvm-en">${inner}${seen[it.id]>1?' <small>×'+seen[it.id]+'</small>':''}</span><span class="nvm-dl">${dl||'<i>Ngang nhau</i>'}</span></button>`;});}}catch(e){}return h;};}
+{const _f=nvmFix;nvmFix=function(){_f.apply(this,arguments);try{const el=document.getElementById('h4');if(!el)return;el.querySelectorAll('.h5-s').forEach(b=>{if(b.querySelector('.nvm-qp'))return;const ic=b.querySelector('[data-ic]'),id=ic&&ic.dataset.ic;if(!id)return;const q=nvmQ(id);b.insertAdjacentHTML('beforeend','<u class="nvm-qp">'+'◆'.repeat(q+1)+'</u>');b.title=(ITEMS[id]?ITEMS[id].n+' · ':'')+'phẩm chất '+NVM.Q[q];});}catch(e){}};}
+(function(){try{const st=document.createElement('style');st.textContent=`
+#h4.nvm .nvm-qp{position:absolute;left:3px;bottom:13px;font-size:6.5px;letter-spacing:.5px;text-decoration:none;color:#fff;text-shadow:0 0 2px #000,0 1px 0 #000;line-height:1}
+.nvm-eq{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;text-align:left;padding:8px 10px;border-radius:12px;border:2px solid rgba(255,255,255,.14);background:#26221d;color:#f0e6d2;font-weight:700}
+.nvm-eq .nvm-en{display:flex;align-items:center;gap:6px;font-size:14px}.nvm-eq .nvm-dl{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:12px}.nvm-eq .nvm-dl i{font-style:normal;opacity:.8}
+.nvm-eq .nvm-dl i.up{color:#6fe07c;opacity:1}.nvm-eq .nvm-dl i.dn{color:#ff7a66;opacity:1}
+.nvm-eq.q1{border-color:#7fd08a}.nvm-eq.q2{border-color:#5fa8f0}.nvm-eq.q3{border-color:#b98af5}.nvm-eq.q4{border-color:#f5a53c}`;document.head.appendChild(st);}catch(e){}})();
+/* ---------- TÚI ĐỒ gọn: bỏ đoạn giải thích dài và khung trống lớn phía trên lưới; ô đồ có viền phẩm chất, chấm ◆, mũi tên ▲ khi món trong túi TỐT HƠN món đang mặc ---------- */
+function nvmBag(){try{if(typeof G==='undefined'||G.panel!=='bag')return;const bd=document.querySelector('#panel .p-body');if(!bd)return;const grid=bd.querySelector('.mxinv');if(!grid)return;bd.classList.add('nvb');
+    const tip=bd.querySelector('.kho-tip'),bar=bd.querySelector('.kho-bar');if(tip&&bar&&!bar.querySelector('.nvb-i')){const b=document.createElement('button');b.className='btn sm ghost nvb-i';b.textContent='ⓘ';b.setAttribute('aria-label','Giải thích về kho');b.onclick=e=>{e.stopPropagation();tip.classList.toggle('show');};bar.appendChild(b);}
+    const det=bd.querySelector('.kho-det');if(det)det.classList.toggle('nvb-empty',det.children.length===1&&det.firstElementChild.matches('p.muted'));
+    grid.querySelectorAll('.sl').forEach(b=>{const ic=b.querySelector('[data-ic]'),id=ic&&ic.dataset.ic,key=id||'';if(b.dataset.nvb===key)return;b.dataset.nvb=key;b.classList.remove('q0','q1','q2','q3','q4');b.querySelectorAll('.nvm-qp,.nvb-up').forEach(x=>x.remove());const I=id&&ITEMS[id];if(!I||(I.t!=='wear'&&I.t!=='tool'))return;const q=nvmQ(id);b.classList.add('q'+q);b.insertAdjacentHTML('beforeend','<u class="nvm-qp">'+'◆'.repeat(q+1)+'</u>');
+      if(I.t==='wear'){const cur=S.wear&&S.wear[I.slot||'body'];if(cur!==id&&nvmScore(I)>nvmScore(cur&&ITEMS[cur]))b.insertAdjacentHTML('beforeend','<u class="nvb-up">▲</u>');}});}catch(e){}}
+setInterval(nvmBag,450);
+(function(){try{const st=document.createElement('style');st.textContent=`
+.nvb .kho-tip{display:none}.nvb .kho-tip.show{display:block}.nvb .kho-bar{display:flex;align-items:center;gap:8px}.nvb .kho-bar .nvb-i{flex:none;min-width:36px;padding:6px 0}
+.nvb .kho-det.nvb-empty{padding:6px 10px;min-height:0;border-style:dashed;opacity:.8}.nvb .kho-det.nvb-empty p{margin:0;font-size:12px}
+.nvb .mxinv .sl{position:relative}.nvb .mxinv .sl.q1{border-color:#7fd08a}.nvb .mxinv .sl.q2{border-color:#5fa8f0}.nvb .mxinv .sl.q3{border-color:#b98af5;box-shadow:0 0 6px rgba(170,120,245,.4)}.nvb .mxinv .sl.q4{border-color:#f5a53c;box-shadow:0 0 8px rgba(245,160,60,.5)}
+.nvb .mxinv .sl .nvm-qp{position:absolute;left:3px;bottom:2px;font-size:6.5px;letter-spacing:.5px;text-decoration:none;color:#fff;text-shadow:0 0 2px #000,0 1px 0 #000;line-height:1}
+.nvb .mxinv .sl .nvb-up{position:absolute;left:2px;top:1px;font-size:11px;text-decoration:none;color:#6fe07c;text-shadow:0 0 3px #000,0 1px 0 #000;line-height:1}`;document.head.appendChild(st);}catch(e){}})();
