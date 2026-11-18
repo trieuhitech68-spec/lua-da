@@ -219,7 +219,7 @@ function m2ValLb(uid,d){if(!m2Id(uid)||!d||typeof d!=='object'||(S&&d.w!==seed0(
 async function m2LbLoad(){if(!m2Net())return;try{const s=await mpTO(MP.db.collection('lb').limit(500).get(),10000);const o={};for(const d of s.docs){const v=m2ValLb(d.id,d.data());if(v)o[d.id]=v;}M2K.lb=o;M2K.lbT=Date.now();}catch(e){}}
 function m2LbPush(){if(!m2Net())return;const s=m2MyStats(),k=JSON.stringify(s);if(k===M2K.lbK)return;M2K.lbK=k;mpPut('lb/'+MP.uid,Object.assign(s,{at:Date.now()}));M2K.lb[MP.uid]=m2ValLb(MP.uid,Object.assign({},s,{at:Date.now()}));}
 const M2LB=[['d','📅 Ngày sống',''],['h','🏹 Thú săn',''],['b','🏠 Công trình',''],['a','🏆 Thành tựu',''],['r','🗺️ Vùng đất',''],['k','🚶 Đường đi',' km'],['clan','🤝 Bộ tộc','']];
-function m2LbHtml(){const t=G.m2lb||'d',tabs=M2LB.map(([k,n])=>`<button class="tb sm${t===k?' on':''}" data-a="m2lbt" data-v="${k}">${n}</button>`).join('');let h=`<div class="chipsel">${tabs}</div>`;
+function m2LbHtml(){const t=G.m2lb||M2LB[0][0],tabs=M2LB.map(([k,n])=>`<button class="tb sm${t===k?' on':''}" data-a="m2lbt" data-v="${k}">${n}</button>`).join('');let h=`<div class="chipsel">${tabs}</div>`;
   if(!m2Net()){const s=m2MyStats();return h+`<p class="small">Bảng xếp hạng so tài với mọi người ở <b>🌐 Thế giới chung</b>. Thành tích của bạn ở thế giới riêng:</p><div class="mxstat">${M2LB.slice(0,6).map(([k,n,u])=>`<div><span>${n}</span><b>${s[k]}${u}</b></div>`).join('')}</div>`;}
   if(Date.now()-M2K.lbT>60000&&!M2K.lbAsk){M2K.lbAsk=1;m2LbPush();m2LbLoad().then(()=>{M2K.lbAsk=0;M2K.dirty=true;});}
   const L=M2K.lb;if(t==='clan'){const C={};for(const cid in MP.clans){const c=MP.clans[cid];C[cid]={c,b:0,h:0,n:c.members.length,t:c.zone?c.zone.r:0};for(const u of c.members){const s=L[u];if(s){C[cid].b+=s.b;C[cid].h+=s.h;}}}
