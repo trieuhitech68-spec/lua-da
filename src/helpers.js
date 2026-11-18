@@ -1,7 +1,7 @@
 /* ===================== LÀM MỚI DỮ LIỆU (đợt 11/2026) =====================
    Sau đợt nâng cấp lớn, mọi người chơi lại từ đầu: bản lưu nhân vật cũ trên máy bị xoá MỘT LẦN khi mở bản này (cài đặt, email đăng nhập giữ nguyên).
    Dữ liệu trên máy chủ xoá bằng supabase_reset_2026_11.sql. Muốn làm mới lần nữa: đổi LD_RESET. */
-const LD_RESET='2026-11-11';
+const LD_RESET='2026-11-18';/* đợt 18/11/2026: bỏ hết nhân vật của bản đồ cũ, mọi người bắt đầu lại trên ĐẠI LỤC. Dữ liệu máy chủ xoá bằng docs/lam-moi-du-lieu-2026-11-18.sql */
 try{if(localStorage.getItem('ldtt-reset')!==LD_RESET){const del=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(k.indexOf('lua-da-tay-trang-v1')===0||k==='ldtt-slots'||k==='ldtt-cur'||k.indexOf('ld-upl-')===0))del.push(k);}
   del.forEach(k=>localStorage.removeItem(k));localStorage.setItem('ldtt-reset',LD_RESET);}}catch(e){}
 /* ===================== TIỆN ÍCH ĐỒ HỌA DÙNG CHUNG ===================== */

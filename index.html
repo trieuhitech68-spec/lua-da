@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118084354">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118091000">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -312,7 +312,7 @@ try{if(sessionStorage.getItem('ld-cont')==='1'){const t=sessionStorage.getItem('
 /* ===================== LÀM MỚI DỮ LIỆU (đợt 11/2026) =====================
    Sau đợt nâng cấp lớn, mọi người chơi lại từ đầu: bản lưu nhân vật cũ trên máy bị xoá MỘT LẦN khi mở bản này (cài đặt, email đăng nhập giữ nguyên).
    Dữ liệu trên máy chủ xoá bằng supabase_reset_2026_11.sql. Muốn làm mới lần nữa: đổi LD_RESET. */
-const LD_RESET='2026-11-11';
+const LD_RESET='2026-11-18';/* đợt 18/11/2026: bỏ hết nhân vật của bản đồ cũ, mọi người bắt đầu lại trên ĐẠI LỤC. Dữ liệu máy chủ xoá bằng docs/lam-moi-du-lieu-2026-11-18.sql */
 try{if(localStorage.getItem('ldtt-reset')!==LD_RESET){const del=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(k.indexOf('lua-da-tay-trang-v1')===0||k==='ldtt-slots'||k==='ldtt-cur'||k.indexOf('ld-upl-')===0))del.push(k);}
   del.forEach(k=>localStorage.removeItem(k));localStorage.setItem('ldtt-reset',LD_RESET);}}catch(e){}
 /* ===================== TIỆN ÍCH ĐỒ HỌA DÙNG CHUNG ===================== */
@@ -18257,7 +18257,7 @@ async function mpGetDoc(path){try{const s=await mpTO(MP.db.doc(path).get(),10000
 async function mpWorld(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v;let d=await mpGetDoc('world/main');
   if(d===undefined)d=await mpGetDoc('world/main');
   if(!d||!ok(d.seed)){if(MP.ro)return;const ref=MP.db.doc('world/main');
-    try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);if(L&&L.acquired){d=await mpGetDoc('world/main');if(!d||!ok(d.seed)){d={seed:((Math.random()*2e9)|0)+1,wv:4,createdAt:mpNow()};await ref.set(d);}}/* Máy chủ 1 tạo mới (sau khi làm mới dữ liệu) dùng bản đồ hình chữ S */
+    try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);if(L&&L.acquired){d=await mpGetDoc('world/main');if(!d||!ok(d.seed)){d={seed:((Math.random()*2e9)|0)+1,wv:4,createdAt:mpNow()};/* Máy chủ 1 tạo lại từ đầu thì là máy chủ ĐẠI LỤC */try{if(localStorage.getItem('ld-dl')!=='0'){d.dl=1;d.wv=3;}}catch(e){d.dl=1;d.wv=3;}await ref.set(d);}}/* Máy chủ 1 tạo mới (sau khi làm mới dữ liệu) dùng bản đồ hình chữ S */
       else{for(let i=0;i<6&&(!d||!ok(d.seed));i++){await mpSleep(1500);d=await mpGetDoc('world/main');}}}catch(e){console.warn('thế giới chung',e);}}
   if(d&&ok(d.seed)){MP.seed=d.seed;MP.worlds=[{id:'main',seed:d.seed,n:null,wv:d.wv>=4?4:3,dl:d.dl===1}];MP.srv='main';
     for(let i=2;i<=MP_SRVMAX;i++){const e=await mpGetDoc('world/s'+i);if(!e||!ok(e.seed))break;MP.worlds.push({id:'s'+i,seed:e.seed,n:null,wv:e.wv>=4?4:3,dl:e.dl===1});}}}
@@ -22546,7 +22546,14 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
       const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('color',new T.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
       const me=new T.Mesh(g,new T.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0}));me.receiveShadow=false;me.castShadow=false;me.frustumCulled=false;me.userData.noSea=1;G.sc.add(me);DL.ring=me;
       /* biển quanh vành đất */const w=new T.Mesh(new T.PlaneGeometry((n0+ext)*TS*2+20000,(n0+ext)*TS*2+20000),new T.MeshStandardMaterial({color:0x2f6f8f,roughness:0.35,metalness:0.1,transparent:true,opacity:0.9}));w.rotation.x=-Math.PI/2;w.position.y=-0.4;w.frustumCulled=false;if(DL.sea)G.sc.remove(DL.sea);G.sc.add(w);DL.sea=w;}catch(e){console.warn('vành đất xa',e);}}
-  {const _si=sceneInit;sceneInit=function(){const r=_si.apply(this,arguments);try{if(DL.on)dlRing();if(DL.on&&S.dlNew){S.dlNew=0;/* mỗi người một chỗ đặt chân quanh bến của tỉnh, khỏi dồn vào một điểm */for(let k=0;k<30;k++){const a=Math.random()*6.283,d=260+Math.random()*900,x=SPAWN[0]+Math.cos(a)*d,z=SPAWN[1]+Math.sin(a)*d;if(hAt(x,z)>5&&wdAt(x,z)<=0&&slopeAt(x,z)<0.3){P.x=x;P.z=z;P.y=hAt(x,z);if(S.p){S.p.x=+x.toFixed(1);S.p.z=+z.toFixed(1);}break;}}}}catch(e){}return r;};}
+  {const _si=sceneInit;sceneInit=function(){const r=_si.apply(this,arguments);try{if(DL.on)dlRing();if(DL.on&&S.dlNew){S.dlNew=0;/* mỗi người một chỗ đặt chân quanh bến của tỉnh, khỏi dồn vào một điểm */for(let k=0;k<60;k++){const a=Math.random()*6.283,d=260+Math.random()*900,x=SPAWN[0]+Math.cos(a)*d,z=SPAWN[1]+Math.sin(a)*d,h=hAt(x,z);if(!(h>6&&wdAt(x,z)<=0&&slopeAt(x,z)<0.3))continue;
+          /* chỗ dựng nhà đầu tiên phải khô ráo, bằng phẳng trong vòng ~12 m: sát nước thì không rào kín quanh nhà được */let dry=true;for(let i=0;i<12&&dry;i++){const bx=x+Math.cos(i*0.524)*(i%2?240:130),bz=z+Math.sin(i*0.524)*(i%2?240:130);if(wdAt(bx,bz)>0||hAt(bx,bz)<3||Math.abs(hAt(bx,bz)-h)>26)dry=false;}if(!dry&&k<50)continue;
+          P.x=x;P.z=z;P.y=h;if(S.p){S.p.x=+x.toFixed(1);S.p.z=+z.toFixed(1);}break;}
+        S.dlSafe={x:+P.x.toFixed(0)+S.dl.ox,z:+P.z.toFixed(0)+S.dl.oz};}if(DL.on&&S.dlSafe)dlSafeZone();}catch(e){}return r;};}
+  /* vùng an toàn quanh chỗ bắt đầu của nhân vật (bản đồ cũ có sẵn quanh điểm xuất phát): mỗi lần dựng thế giới, thú dữ trong vòng ~37 m quanh đó được dời ra xa */
+  function dlSafeZone(){try{const cx=S.dlSafe.x-S.dl.ox,cz=S.dlSafe.z-S.dl.oz;if(Math.hypot(cx,cz)>WR)return;for(const an of G.animals||[]){const D=ANIMALS[an.kind];if(!D||!D.aggro||D.aggro==='never')continue;const dd=Math.hypot(an.x-cx,an.z-cz);if(dd>=750)continue;
+        for(let t=0;t<8;t++){const ang=Math.atan2(an.z-cz,an.x-cx)+t*0.7,nd=850+dlHash(t,an.x|0,an.z|0)*350,nx=cx+Math.cos(ang)*nd,nz=cz+Math.sin(ang)*nd;if(hAt(nx,nz)<2||(an.kind!=='crocodile'&&wdAt(nx,nz)>0))continue;an.x=nx;an.z=nz;an.y=hAt(nx,nz);an.home={x:nx,z:nz};an.tx=nx;an.tz=nz;if(an.o)an.o.position.set(nx,an.y,nz);break;}}}catch(e){}}
+
   /* ===================== đợt 3: ĐI KHẮP ĐẠI LỤC =====================
      Game vẫn dựng đầy đủ cây đá, thú trong một "vùng nạp" bán kính ~370 m quanh điểm neo. Đi gần tới mép vùng (80% bán kính) thì DỜI ĐIỂM NEO về chỗ đang đứng
      rồi nạp lại vùng mới (qua màn hố đen, như qua cổng nhưng không có cổng, đất liền nối nhau). Mọi thứ có vị trí (nhà, nền san, dân, vật nuôi, thú cưỡi, cờ)
