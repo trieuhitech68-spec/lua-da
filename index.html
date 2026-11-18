@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118041423">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118043521">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -7229,13 +7229,13 @@ function t3Tex(){if(T3.tex)return T3.tex;const N=512,R=rng(9137+((S&&S.seed)|0)%
     c.strokeStyle='rgba(45,32,20,.4)';for(let i=0;i<70;i++){let x=R()*N,y=R()*N;const pts=[[x,y]];for(let k=0;k<6;k++){x+=(R()-0.5)*40;y+=(R()-0.5)*40;pts.push([x,y]);}const lw=0.6+R();wrapDraw(c,cc=>{cc.lineWidth=lw;cc.beginPath();pts.forEach((p,i)=>i?cc.lineTo(p[0],p[1]):cc.moveTo(p[0],p[1]));cc.stroke();});}});
   // đá vôi: xám trắng, phân tầng nằm ngang (trục dọc của vân = độ cao), vệt nước đen chảy dọc, khe nứt, địa y
   const rock=paint(c=>{c.fillStyle='#aaa59b';c.fillRect(0,0,N,N);let y=0;while(y<N){const th=Math.min(N-y,5+R()*30),col=['#b8b3a8','#a19c91','#c6c1b5','#938e84','#afa99d','#9c968a'][Math.floor(R()*6)];c.globalAlpha=0.6;c.fillStyle=col;c.fillRect(0,y,N,th);
-      c.globalAlpha=0.35+R()*0.3;c.fillStyle='#4a463f';c.beginPath();c.moveTo(0,y);for(let x=0;x<=N;x+=16)c.lineTo(x,y+Math.sin(x/N*Math.PI*2*(1+Math.floor(R()*3))+y)*1.4);c.lineTo(N,y+1.6);c.lineTo(0,y+1.6);c.fill();
+      c.globalAlpha=0.16+R()*0.18;c.fillStyle='#4a463f';c.beginPath();c.moveTo(0,y);for(let x=0;x<=N;x+=16)c.lineTo(x,y+Math.sin(x/N*Math.PI*2*(1+Math.floor(R()*3))+y)*1.4);c.lineTo(N,y+1.6);c.lineTo(0,y+1.6);c.fill();
       c.globalAlpha=0.25;c.fillStyle='#e2ddd2';c.fillRect(0,y+2,N,1);y+=th;}c.globalAlpha=1;
     blobs(c,['#8c877d','#c9c4b8','#7e796f','#b5afa3'],1300,2,16,0.32);
     for(let i=0;i<90;i++){const x=R()*N,y0=R()*N,len=40+R()*240,w=2+R()*9,dark=R()<0.7?'60,58,52':'58,66,44',a0=0.2+R()*0.3;
       wrapDraw(c,cc=>{const gr=cc.createLinearGradient(0,y0,0,y0+len);gr.addColorStop(0,`rgba(${dark},${a0})`);gr.addColorStop(1,`rgba(${dark},0)`);cc.fillStyle=gr;cc.beginPath();cc.moveTo(x-w/2,y0);cc.quadraticCurveTo(x+(R()-0.5)*8,y0+len*0.5,x-w*0.1,y0+len);cc.lineTo(x+w*0.1,y0+len);cc.quadraticCurveTo(x+(R()-0.5)*8,y0+len*0.5,x+w/2,y0);cc.fill();});}
     for(let i=0;i<55;i++){let x=R()*N,y=R()*N;const pts=[[x,y]],vert=R()<0.7;for(let k=0;k<5;k++){x+=vert?(R()-0.5)*10:(R()-0.5)*50;y+=vert?10+R()*25:(R()-0.5)*10;pts.push([x,y]);}const lw=0.8+R()*1.6;
-      wrapDraw(c,cc=>{cc.lineWidth=lw;cc.strokeStyle='rgba(38,36,32,.65)';cc.beginPath();pts.forEach((p,i)=>i?cc.lineTo(p[0],p[1]):cc.moveTo(p[0],p[1]));cc.stroke();cc.lineWidth=lw*0.7;cc.strokeStyle='rgba(235,230,220,.3)';cc.beginPath();pts.forEach((p,i)=>i?cc.lineTo(p[0]+1.5,p[1]+1):cc.moveTo(p[0]+1.5,p[1]+1));cc.stroke();});}
+      wrapDraw(c,cc=>{cc.lineWidth=lw;cc.strokeStyle='rgba(38,36,32,.38)';cc.beginPath();pts.forEach((p,i)=>i?cc.lineTo(p[0],p[1]):cc.moveTo(p[0],p[1]));cc.stroke();cc.lineWidth=lw*0.7;cc.strokeStyle='rgba(235,230,220,.3)';cc.beginPath();pts.forEach((p,i)=>i?cc.lineTo(p[0]+1.5,p[1]+1):cc.moveTo(p[0]+1.5,p[1]+1));cc.stroke();});}
     blobs(c,['#5d5850','#4e4a44'],160,1.5,5,0.45);blobs(c,['#c9b98a','#8f9a6a','#b8b070','#d8d0b8'],260,1.5,7,0.3);});
   // cát + mặt nạ sỏi (kênh A) cho bãi sông
   const sand=paint(c=>{c.fillStyle='#c9b68a';c.fillRect(0,0,N,N);blobs(c,['#d6c498','#bda676','#e0d0a6','#ae9666','#c4ae80'],3200,1,4,0.45);
@@ -7328,9 +7328,9 @@ float t3h=0.5,t3wet=0.0,t3rk=0.0,t3far=0.0;
  // đá vôi: chiếu ba mặt; vân có trục dọc = độ cao nên tầng đá nằm ngang, vệt nước chảy dọc
  vec3 an=abs(N);an*=an;an*=an;an/=(an.x+an.y+an.z);vec2 off=vec2(m2.b*0.23,m2.g*0.17);
  #if T3Q>0
- vec4 cr=texture2D(tR,vec2(wp.z,-wp.y*1.15)*(1.0/96.0)+off)*an.x+texture2D(tR,uv*(1.0/96.0))*an.y+texture2D(tR,vec2(wp.x,-wp.y*1.15)*(1.0/96.0)+off)*an.z;
+ vec4 cr=texture2D(tR,vec2(wp.z,-wp.y*1.15)*(1.0/96.0)+off)*an.x+texture2D(tR,uv*(1.0/96.0),2.6)*an.y+texture2D(tR,vec2(wp.x,-wp.y*1.15)*(1.0/96.0)+off)*an.z;
  #else
- vec4 cr=an.y>0.5?texture2D(tR,uv*(1.0/96.0)):texture2D(tR,(an.x>an.z?vec2(wp.z,-wp.y):vec2(wp.x,-wp.y))*(1.0/96.0)+off);
+ vec4 cr=an.y>0.5?texture2D(tR,uv*(1.0/96.0),2.6):texture2D(tR,(an.x>an.z?vec2(wp.z,-wp.y):vec2(wp.x,-wp.y))*(1.0/96.0)+off);
  #endif
  float band=sin(wp.y*0.19+mac*9.0+m2.r*4.0);cr.rgb*=(0.84+0.16*smoothstep(-0.5,0.8,band))*0.82;cr.rgb*=mix(vec3(1.0),vec3(1.05,1.0,0.92),m1.g);
  // rêu chỗ ẩm, ưu tiên mặt ngửa lên
@@ -7377,7 +7377,7 @@ terrainSplatMat=function(m){const tx=t3Tex(),U=t3U();m.userData.noSea=1;T3.terr=
       .replace('#include <color_fragment>','#include <color_fragment>\n'+T3_TERR_FS)
       .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\n  roughnessFactor=clamp(roughnessFactor-t3rk*0.1-t3wet*0.55,0.32,1.0);')
       .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n'+T3_TERR_BUMP);};
-  m.customProgramCacheKey=()=>'t3terr3'+(G.q|0);m.needsUpdate=true;};
+  m.customProgramCacheKey=()=>'t3terr4'+(G.q|0);m.needsUpdate=true;};
 /* ---------- shader nước: sông/suối (RIVER), biển/hồ (mặc định), thác (FALL) ---------- */
 const T3_WATER_VS=`
 #ifdef RIVER
