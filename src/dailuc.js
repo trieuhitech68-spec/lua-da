@@ -57,6 +57,8 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
      (cây đá, thú, làng). Đó là điều kiện để chơi chung. Mã tỉnh (vd 'qij') dùng làm mã vùng đất: lãnh thổ, công trình chia sẻ, vùng chung của liên minh tách theo tỉnh. */
   const dlA=()=>DL.TS*6;
   function dlKey(ox,oz){const A=dlA();return 'q'+(Math.round(ox/A)+18).toString(36)+(Math.round(oz/A)+18).toString(36);}
+  /* 8 tỉnh kề bên tỉnh đang đứng: mã tỉnh, hạt giống, độ dời toạ độ (để thấy lãnh thổ, công trình, người chơi ở tỉnh bên) */
+  function dlNb(){const k=S&&S.land;if(DL.nb&&DL.nbK===k)return DL.nb;const A=dlA(),o={key:{},seed:{}};if(S&&S.dl)for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){if(!i&&!j)continue;const ox=S.dl.ox+i*A,oz=S.dl.oz+j*A,e={dx:i*A,dz:j*A,key:dlKey(ox,oz),seed:dlSeedAt(ox,oz)};o.key[e.key]=e;o.seed[e.seed]=e;}DL.nb=o;DL.nbK=k;return o;}
   function dlAnchor(seed,pick){dlInit(seed);const A=dlA(),L=[];for(let ix=-8;ix<=8;ix++)for(let iz=-8;iz<=8;iz++){const ox=ix*A,oz=iz*A;if(Math.hypot(ox,oz)>DL.R*0.55)continue;const h=dlBase(ox,oz);if(h<8||h>70)continue;let land=0,wat=0,hi=0,n=0;for(let i=0;i<48;i++){const b=i*0.131*6.283,d=600+(i%6)*1000,hh=dlBase(ox+Math.cos(b)*d,oz+Math.sin(b)*d);n++;if(hh<0)wat++;else{land++;if(hh>230)hi++;}}
       const sc=land/n*3+Math.min(0.2,wat/n)*4-hi/n*2-Math.abs(h-25)/60;L.push({ox,oz,sc});}L.sort((a,b)=>b.sc-a.sc);if(!L.length)return {ox:0,oz:0};/* chơi chung: rải người vào 16 tỉnh tốt nhất theo mã người chơi, khỏi dồn một chỗ */const top=L.slice(0,40);return pick!=null?top[Math.floor(dlHash(pick,5,seed)*top.length)%top.length]:top[0];}
   /* tên tỉnh cho người đọc: cột chữ cái (tây → đông), hàng số (bắc → nam); tỉnh giữa đại lục là J10 */
@@ -89,7 +91,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   if(typeof wIn==='function'){const _wi=wIn;wIn=function(x,z,k){if(!DL.on)return _wi.apply(this,arguments);return Math.hypot(x,z)<WR*(k||1);};}
   {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')!=='0'&&!(G.nworld==='mp')&&!S.dl){/* MẶC ĐỊNH: nhân vật mới chơi một mình sống trên đại lục (tắt: mở trang với ?dailuc=0) */dlStart(null);/* LƯU NGAY: các lớp tạo nhân vật bên trong đã lưu một bản CHƯA có đại lục; không lưu đè thì bị văng ra sớm là vào lại thành nhân vật bản đồ cũ */S._new=1;try{if(typeof saveNow==='function')saveNow();else save();}finally{delete S._new;}}}catch(e){console.warn('đại lục',e);}return r;};}
   /* các hàm dưới đây nằm trong khối riêng (chế độ nghiêm ngặt không tự đưa ra ngoài): gắn lên window để phần máy chủ (mp.js) và bài thử gọi được */
-  setTimeout(()=>{try{Object.assign(window,{dlStart,dlShift,dlRebuild,dlKey,dlAnchor,dlRing,dlSeedAt,dlMapDraw,dlMapZoom,dlMapSharp,dlProvName,dlSafeZone});}catch(e){}},0);
+  setTimeout(()=>{try{Object.assign(window,{dlNb,dlStart,dlShift,dlRebuild,dlKey,dlAnchor,dlRing,dlSeedAt,dlMapDraw,dlMapZoom,dlMapSharp,dlProvName,dlSafeZone});}catch(e){}},0);
   /* đưa nhân vật (S vừa tạo) lên đại lục; uid có thì chọn tỉnh theo mã người chơi */
   function dlStart(uid){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);/* mỗi nhân vật mới một chỗ BẤT KỲ trên đại lục: chọn ngẫu nhiên trong các tỉnh đất tốt (đồng bằng, gần nước) */let pk=(Math.random()*1e9)|0;const a=dlAnchor(S.seed,pk);S.seed0=S.seed;S.dl={ox:a.ox,oz:a.oz};S.land=dlKey(a.ox,a.oz);S.seed=dlSeedAt(a.ox,a.oz);S.dlNew=1;worldCfg(3);}
   /* khoáng sản cho đại lục: bản đồ cũ đặt mỏ theo các vùng vẽ tay (dãy núi, bãi muối…), đại lục không có các vùng đó nên gần như không có quặng.
@@ -197,6 +199,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
     try{uiHud(true);uiHotbar();}catch(e){}
     /* bỏ cảnh cũ: trả bộ nhớ đồ hoạ của mọi lưới trong cảnh cũ. Khuôn dùng chung (thú, người) còn giữ dữ liệu nên lần vẽ sau tự nạp lại; lưới mặt đất cũ thì bỏ hẳn. */
     try{const seen=new Set();old.traverse(m=>{const g=m.geometry;if(g&&g.dispose&&!seen.has(g)){seen.add(g);try{g.dispose();}catch(e){}}});for(const o of olds){if(o&&o.parent)o.parent.remove(o);}}catch(e){}
+    try{if(typeof mpLandRefresh==='function')mpLandRefresh();}catch(e){}
     DL.lastMs=Math.round(performance.now()-t0);return G.on===true;}
   setInterval(()=>{try{if(DL.on&&typeof G==='object'&&G.on&&!G.ldLeaving&&!DL.busy&&P.model&&G.animals&&G.animals.length){const el=document.getElementById('ldhole');if(el&&!el.classList.contains('out')){ldHoleOff();if(DL.shiftAt){DL.doneMs=Math.round(performance.now()-DL.shiftAt);DL.shiftAt=0;}}}}catch(e){}},200);
   setInterval(()=>{try{if(!DL.on||typeof G!=='object'||!G.on||G.ldLeaving||DL.busy||!S||G.work||G.build||G.panel)return;/* sang hẳn địa phận tỉnh bên (quá ranh giới 25 m) thì chuyển tỉnh */const A=dlA(),nx=Math.round((S.dl.ox+P.x)/A)*A-S.dl.ox,nz=Math.round((S.dl.oz+P.z)/A)*A-S.dl.oz;if((nx||nz)&&Math.hypot(P.x,P.z)-Math.hypot(P.x-nx,P.z-nz)>1000)dlShift();}catch(e){}},700);

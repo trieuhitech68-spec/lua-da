@@ -57,7 +57,7 @@ const mpIsMain=()=>!MP.worlds||!MP.worlds.length||!S||seed0()===MP.worlds[0].see
 // tài liệu cũ chưa ghi máy chủ (w) thuộc Máy chủ 1
 const mpWOk=d=>!!d&&(d.w==null?mpIsMain():d.w===seed0());
 // tài liệu công trình: vùng trung tâm ở builds/<uid>, vùng xa ở builds/<uid>/L/<mã vùng> (mỗi vùng một bản, không ghi đè nhau)
-const mpBPath=u=>'builds/'+u+(landFar()?'/L/'+S.land:'');
+const mpBPath=u=>'builds/'+u+(landFar()?'/L/'+((u!==MP.uid&&MP.claims&&MP.claims[u]&&MP.claims[u].pl)||S.land):'');
 async function mpSrvCount(){if(!MP.db||!MP.worlds)return;const since=mpNow()-MP_SRVDAYS*86400000;
   await Promise.all(MP.worlds.map(async w=>{try{const s=await mpTO(MP.db.collection('players').where('w','==',w.seed).limit(600).get(),10000);let n=0;for(const d of s.docs){const v=d.data();if(v&&v.lastSeen>since)n++;}w.n=n;}catch(e){if(w.n==null)w.n=0;}}));MP.srvAt=mpNow();}
 async function mpSrvNew(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v,i=MP.worlds.length+1;if(i>MP_SRVMAX||MP.ro)return null;const path='world/s'+i,ref=MP.db.doc(path);
@@ -91,7 +91,7 @@ async function mpStart(){if(MP.started||!MP.ok||!S||!S.mp||!G.on)return;MP.start
   const sub=(q,fn)=>{try{const un=q.onSnapshot(fn,e=>console.warn('chơi chung: nghe',e&&e.code));MP.unsubs.push(un);}catch(e){console.warn(e);}};
   sub(mpIsMain()?MP.db.collection('players').limit(500):MP.db.collection('players').where('w','==',seed0()).limit(500),s=>{const o={};for(const d of s.docs){const v=mpValPlayer(d.id,d.data());if(v)o[d.id]=v;}MP.players=o;MP.loaded.players=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;});
   sub(MP.db.collection('clans').limit(300),s=>{const o={};for(const d of s.docs){if(!mpWOk(d.data()))continue;const v=mpValClan(d.id,d.data());if(v)o[d.id]=v;}MP.clans=o;MP.loaded.clans=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;});
-  sub(MP.db.collection('claims').limit(800),s=>{const o={},pop={},here=(S&&S.land)||'c';MP.myOther=null;for(const d of s.docs){const dd=d.data();if(!mpWOk(dd))continue;const v=mpValClaim(d.id,dd);if(!v)continue;const l=typeof dd.l==='string'&&/^[a-z0-9]{1,6}$/.test(dd.l)?dd.l:'c';pop[l]=(pop[l]||0)+1;/* lãnh thổ thuộc vùng nào thì chỉ có hiệu lực ở vùng đó */if(l!==here){if(d.id===MP.uid)MP.myOther=l;continue;}o[d.id]=v;}MP.landPop=pop;MP.claims=o;MP.loaded.claims=1;MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;MP.tick.near=-9;});
+  sub(MP.db.collection('claims').limit(800),s=>{const raw=[];for(const d of s.docs){const dd=d.data();if(!mpWOk(dd))continue;const v=mpValClaim(d.id,dd);if(!v)continue;const l=typeof dd.l==='string'&&/^[a-z0-9]{1,6}$/.test(dd.l)?dd.l:'c';raw.push([d.id,v,l]);}MP.claimsRaw=raw;mpClaimsBuild();MP.loaded.claims=1;});
   const cur=await mpGetDoc('players/'+MP.uid);const v=cur&&mpValPlayer(MP.uid,cur);
   MP.me={look:S.look|0,clan:v?v.clan:null,req:v?v.req:null,w:seed0(),lastSeen:mpNow(),h:v?v.h:null,df:v?v.df:null,sh:v?v.sh:0,hl:v?v.hl:1,ho:v?v.ho:null,fl:v?v.fl:{}};mpPut('players/'+MP.uid,Object.assign({},MP.me));
   const bh=await mpGetDoc(mpBPath(MP.uid));MP.bHad=!!(bh&&bh.n>0);
@@ -105,6 +105,13 @@ function mpValZone(z){if(!z||typeof z!=='object'||!mpNum(z.x,-2e4,2e4)||!mpNum(z
 function mpValClan(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;const name=mpTxt(d.name,24);if(!name||d.leader!==id||!Array.isArray(d.members))return null;
   const members=[...new Set(d.members.filter(mpIdOk))].slice(0,MP_CLANMAX);if(!members.includes(id))members.unshift(id);
   return {id,name,leader:id,members,color:typeof d.color==='string'&&/^#[0-9a-fA-F]{6}$/.test(d.color)?d.color:MPCOL[7],emblem:MPEMB.includes(d.emblem)?d.emblem:'🔥',createdAt:mpNum(d.createdAt,0,1e14)?d.createdAt:0,zone:mpZoneHere(d.zone),zoneRaw:mpZoneRaw(d.zone),deny:Array.isArray(d.deny)?d.deny.filter(mpIdOk).slice(0,60):[]};}
+/* lãnh thổ thuộc vùng nào thì chỉ có hiệu lực ở vùng đó. ĐẠI LỤC: lãnh thổ ở 8 TỈNH KỀ BÊN cũng được giữ, dời toạ độ sang hệ của tỉnh đang đứng
+   (pl: mã tỉnh gốc, dx/dz: độ dời, ps: hạt giống tỉnh gốc) → đứng gần ranh giới vẫn thấy lãnh thổ, công trình của hàng xóm tỉnh bên. */
+function mpClaimsBuild(){const o={},pop={},here=(S&&S.land)||'c';let nb=null;try{if(S&&S.dl&&typeof dlNb==='function')nb=dlNb().key;}catch(e){}MP.myOther=null;
+  for(const [id,v,l] of MP.claimsRaw||[]){pop[l]=(pop[l]||0)+1;if(l!==here){if(id===MP.uid){MP.myOther=l;continue;}const e=nb&&nb[l];if(!e)continue;const x=v.x+e.dx,z=v.z+e.dz;if(Math.abs(x)>WSIZE/2-300||Math.abs(z)>WSIZE/2-300)continue;o[id]=Object.assign({},v,{x,z,pl:l,dx:e.dx,dz:e.dz,ps:e.seed});continue;}o[id]=v;}
+  MP.landPop=pop;MP.claims=o;MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;MP.tick.near=-9;}
+/* vừa đổi tỉnh ngay trong trang: bỏ hết công trình, vòng lãnh thổ, mô hình người chơi của tỉnh cũ rồi tính lại theo tỉnh mới */
+function mpLandRefresh(){try{if(!MP.started)return;for(const [u,s] of MP.bsub){try{s.un();}catch(e){}}MP.bsub.clear();MP.braw.clear();MP.bcur.clear();MP.rTot=0;MP.rq.length=0;try{MP.rings.clear();}catch(e){}for(const r of MP.rp.values()){r.o=null;r.pres=null;}mpClaimsBuild();}catch(e){console.warn('làm mới chơi chung',e);}}
 function mpValClaim(id,d){if(!mpIdOk(id))return null;const z=mpValZone(d);if(!z||z.r>480)return null;return z;}
 // liên minh thật sự của một người: họ nhận mình thuộc liên minh đó VÀ thủ lĩnh đã ghi tên họ
 function mpClanOf(uid){const p=uid===MP.uid&&MP.me?MP.me:MP.players[uid];const cid=p&&p.clan;const c=cid&&MP.clans[cid];return c&&c.members.includes(uid)?cid:null;}
@@ -266,10 +273,10 @@ function mpNearTick(){const now=new Map();const add=(u,d)=>{if(u===MP.uid||!mpId
   const want=[...now].filter(([u,d])=>d<MP_NEAR||(MP.bsub.has(u)&&d<MP_FAR)).sort((a,b)=>a[1]-b[1]).slice(0,MP_MAXSUB).map(a=>a[0]);const W=new Set(want);
   for(const [u,s] of MP.bsub)if(!W.has(u)){try{s.un();}catch(e){}MP.bsub.delete(u);MP.braw.delete(u);mpRemoteApply(u);}
   for(const u of want)if(!MP.bsub.has(u)){const s={un:()=>{},ver:null};MP.bsub.set(u,s);try{s.un=MP.db.doc(mpBPath(u)).onSnapshot(sn=>mpBuildSnap(u,s,sn),()=>{});}catch(e){}}}
-async function mpBuildSnap(u,s,sn){if(MP.bsub.get(u)!==s)return;if(!sn.exists){MP.braw.set(u,[]);mpRemoteApply(u);return;}const d=sn.data()||{};if(d.w!==S.seed){MP.braw.set(u,[]);mpRemoteApply(u);return;}
+async function mpBuildSnap(u,s,sn){if(MP.bsub.get(u)!==s)return;if(!sn.exists){MP.braw.set(u,[]);mpRemoteApply(u);return;}const d=sn.data()||{};const pc=MP.claims[u]&&MP.claims[u].pl?MP.claims[u]:null;/* hàng xóm tỉnh bên: hạt giống và toạ độ theo tỉnh của họ */if(d.w!==(pc?pc.ps:S.seed)){MP.braw.set(u,[]);mpRemoteApply(u);return;}
   const ver=typeof d.ver==='string'?d.ver.slice(0,40):'';if(ver&&ver===s.ver)return;let str=typeof d.d==='string'?d.d:'';const parts=mpNum(d.parts,0,40)?d.parts|0:0;
   if(parts){str='';for(let i=0;i<parts;i++){const p=await mpGetDoc(mpBPath(u)+'/p/'+i);if(!p||p.ver!==ver||typeof p.s!=='string')return;str+=p.s;}if(MP.bsub.get(u)!==s)return;}
-  s.ver=ver;MP.braw.set(u,mpDecode(str));try{if(typeof dbFlats==='function')dbFlats(u,d.fl,MP.braw.get(u));}catch(e){console.warn('đồng bộ nền',e);}mpRemoteApply(u);}
+  s.ver=ver;let arr=mpDecode(str);if(pc){const H=WSIZE/2-200;for(const e of arr){e.x+=pc.dx;e.z+=pc.dz;}arr=arr.filter(e=>Math.abs(e.x)<H&&Math.abs(e.z)<H);}MP.braw.set(u,arr);try{if(!pc&&typeof dbFlats==='function')dbFlats(u,d.fl,MP.braw.get(u));}catch(e){console.warn('đồng bộ nền',e);}mpRemoteApply(u);}
 function mpDecode(str){const out=[];if(!str)return out;const L=str.split(';');for(let i=0;i<L.length&&out.length<MP_BCAP;i++){const f=L[i].split(',');if(f.length!==7)continue;
     const id=+f[0],k=f[1],x=+f[2],y=+f[3],z=+f[4],r=+f[5],lv=+f[6];if(!(id>=0&&id<1e9&&Math.floor(id)===id)||!/^[A-Za-z0-9_]{1,40}$/.test(k)||!pieceDef(k))continue;
     if(!mpNum(x,-WSIZE,WSIZE)||!mpNum(z,-WSIZE,WSIZE)||!mpNum(y,-800,4000)||!mpNum(r,0,4)||!mpNum(lv,0,LVMAX)||Math.floor(lv)!==lv)continue;out.push({lid:id,k,x,y,z,r,lv});}return out;}
@@ -294,9 +301,9 @@ function mpPeers(ch){const seen=new Set();for(const p of ch.peers){if(p.sameTab)
     let r=MP.rp.get(p.peer);if(!r){r={peer:p.peer,x:v.x,y:v.y,z:v.z,ry:v.ry,o:null,tag:null,tagK:'',gait:0,spd:0,ph:Math.random()*6,ok:true};MP.rp.set(p.peer,r);if(ch.joined&&ch.joined.some(j=>j.peer===p.peer)&&MP.tick.pres>0)uiToast('👋 '+mpName(v.uid)+' đang ở thế giới chung.','');}
     if(r.pres!==p.presence){r.pres=p.presence;r.tx=v.x;r.ty=v.y;r.tz=v.z;r.tr=v.ry;r.a=v.a;r.uid=v.uid;r.cl=v.cl;if(r.lk!==v.lk&&r.o){G.sc.remove(r.o);r.o=null;}r.lk=v.lk;r.seen=G.t;}}
   for(const [k,r] of MP.rp)if(!seen.has(k)){if(r.o)G.sc.remove(r.o);if(r.tag)G.sc.remove(r.tag);MP.rp.delete(k);}MP.dirty.ui=true;}
-function mpValPres(p){const s=p.presence;if(!s||typeof s!=='object'||!S||s.w!==S.seed)return null;const L=WSIZE;
+function mpValPres(p){const s=p.presence;if(!s||typeof s!=='object'||!S)return null;let off=null;if(s.w!==S.seed){/* người đang đứng ở tỉnh kề bên: dời toạ độ sang hệ của mình */try{off=S.dl&&typeof dlNb==='function'?dlNb().seed[s.w]:null;}catch(e){off=null;}if(!off)return null;}const L=WSIZE;
   if(!mpNum(s.x,-L,L)||!mpNum(s.z,-L,L)||!mpNum(s.y,-1000,5000))return null;const uid=mpIdOk(p.by)?p.by:mpIdOk(s.u)?s.u:null;if(!uid||uid===MP.uid)return null;
-  return {x:s.x,y:s.y,z:s.z,ry:mpNum(s.ry,-100,100)?s.ry:0,a:MPA.has(s.a)?s.a:'idle',lk:mpNum(s.lk,0,LOOKS.length-1)?s.lk|0:0,cl:mpIdOk(s.cl)?s.cl:'',uid};}
+  if(off&&(Math.abs(s.x+off.dx)>WSIZE/2-100||Math.abs(s.z+off.dz)>WSIZE/2-100))return null;return {x:s.x+(off?off.dx:0),y:s.y,z:s.z+(off?off.dz:0),ry:mpNum(s.ry,-100,100)?s.ry:0,a:MPA.has(s.a)?s.a:'idle',lk:mpNum(s.lk,0,LOOKS.length-1)?s.lk|0:0,cl:mpIdOk(s.cl)?s.cl:'',uid};}
 function mpAnim(){if(G.sleeping)return 'sleep';if(G.ride||G.sit)return 'sit';if(G.work){const st=G.work.steps&&G.work.steps[G.work.i],a=st&&st.a;return MPA.has(a)?a:'whittle';}if(G.swim)return 'swim';
   if(G.act)return P.anim==='chop'&&P.toolId==='pick'?'mine':P.anim==='hammer'?'hammer':P.anim==='gather'?'gather':'chop';if(P.speed>8)return G.sneak?'sneak':G.running?'run':'walk';return 'idle';}
 function mpPresTick(){const R=MP.room;if(!R)return;const r1=v=>Math.round(v*10)/10;const o={w:S.seed,u:MP.uid,x:r1(P.x),y:r1(P.y),z:r1(P.z),ry:Math.round(P.ry*100)/100,a:mpAnim(),lk:S.look|0,ap:typeof crPres==='function'?crPres():'',cl:mpMyClan()||'',wr:typeof wearPres==='function'?wearPres():''};

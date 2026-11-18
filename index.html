@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118172851">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118173328">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -18276,7 +18276,7 @@ const mpIsMain=()=>!MP.worlds||!MP.worlds.length||!S||seed0()===MP.worlds[0].see
 // tài liệu cũ chưa ghi máy chủ (w) thuộc Máy chủ 1
 const mpWOk=d=>!!d&&(d.w==null?mpIsMain():d.w===seed0());
 // tài liệu công trình: vùng trung tâm ở builds/<uid>, vùng xa ở builds/<uid>/L/<mã vùng> (mỗi vùng một bản, không ghi đè nhau)
-const mpBPath=u=>'builds/'+u+(landFar()?'/L/'+S.land:'');
+const mpBPath=u=>'builds/'+u+(landFar()?'/L/'+((u!==MP.uid&&MP.claims&&MP.claims[u]&&MP.claims[u].pl)||S.land):'');
 async function mpSrvCount(){if(!MP.db||!MP.worlds)return;const since=mpNow()-MP_SRVDAYS*86400000;
   await Promise.all(MP.worlds.map(async w=>{try{const s=await mpTO(MP.db.collection('players').where('w','==',w.seed).limit(600).get(),10000);let n=0;for(const d of s.docs){const v=d.data();if(v&&v.lastSeen>since)n++;}w.n=n;}catch(e){if(w.n==null)w.n=0;}}));MP.srvAt=mpNow();}
 async function mpSrvNew(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v,i=MP.worlds.length+1;if(i>MP_SRVMAX||MP.ro)return null;const path='world/s'+i,ref=MP.db.doc(path);
@@ -18310,7 +18310,7 @@ async function mpStart(){if(MP.started||!MP.ok||!S||!S.mp||!G.on)return;MP.start
   const sub=(q,fn)=>{try{const un=q.onSnapshot(fn,e=>console.warn('chơi chung: nghe',e&&e.code));MP.unsubs.push(un);}catch(e){console.warn(e);}};
   sub(mpIsMain()?MP.db.collection('players').limit(500):MP.db.collection('players').where('w','==',seed0()).limit(500),s=>{const o={};for(const d of s.docs){const v=mpValPlayer(d.id,d.data());if(v)o[d.id]=v;}MP.players=o;MP.loaded.players=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;});
   sub(MP.db.collection('clans').limit(300),s=>{const o={};for(const d of s.docs){if(!mpWOk(d.data()))continue;const v=mpValClan(d.id,d.data());if(v)o[d.id]=v;}MP.clans=o;MP.loaded.clans=1;MP.dirty.mem=MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;});
-  sub(MP.db.collection('claims').limit(800),s=>{const o={},pop={},here=(S&&S.land)||'c';MP.myOther=null;for(const d of s.docs){const dd=d.data();if(!mpWOk(dd))continue;const v=mpValClaim(d.id,dd);if(!v)continue;const l=typeof dd.l==='string'&&/^[a-z0-9]{1,6}$/.test(dd.l)?dd.l:'c';pop[l]=(pop[l]||0)+1;/* lãnh thổ thuộc vùng nào thì chỉ có hiệu lực ở vùng đó */if(l!==here){if(d.id===MP.uid)MP.myOther=l;continue;}o[d.id]=v;}MP.landPop=pop;MP.claims=o;MP.loaded.claims=1;MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;MP.tick.near=-9;});
+  sub(MP.db.collection('claims').limit(800),s=>{const raw=[];for(const d of s.docs){const dd=d.data();if(!mpWOk(dd))continue;const v=mpValClaim(d.id,dd);if(!v)continue;const l=typeof dd.l==='string'&&/^[a-z0-9]{1,6}$/.test(dd.l)?dd.l:'c';raw.push([d.id,v,l]);}MP.claimsRaw=raw;mpClaimsBuild();MP.loaded.claims=1;});
   const cur=await mpGetDoc('players/'+MP.uid);const v=cur&&mpValPlayer(MP.uid,cur);
   MP.me={look:S.look|0,clan:v?v.clan:null,req:v?v.req:null,w:seed0(),lastSeen:mpNow(),h:v?v.h:null,df:v?v.df:null,sh:v?v.sh:0,hl:v?v.hl:1,ho:v?v.ho:null,fl:v?v.fl:{}};mpPut('players/'+MP.uid,Object.assign({},MP.me));
   const bh=await mpGetDoc(mpBPath(MP.uid));MP.bHad=!!(bh&&bh.n>0);
@@ -18324,6 +18324,13 @@ function mpValZone(z){if(!z||typeof z!=='object'||!mpNum(z.x,-2e4,2e4)||!mpNum(z
 function mpValClan(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;const name=mpTxt(d.name,24);if(!name||d.leader!==id||!Array.isArray(d.members))return null;
   const members=[...new Set(d.members.filter(mpIdOk))].slice(0,MP_CLANMAX);if(!members.includes(id))members.unshift(id);
   return {id,name,leader:id,members,color:typeof d.color==='string'&&/^#[0-9a-fA-F]{6}$/.test(d.color)?d.color:MPCOL[7],emblem:MPEMB.includes(d.emblem)?d.emblem:'🔥',createdAt:mpNum(d.createdAt,0,1e14)?d.createdAt:0,zone:mpZoneHere(d.zone),zoneRaw:mpZoneRaw(d.zone),deny:Array.isArray(d.deny)?d.deny.filter(mpIdOk).slice(0,60):[]};}
+/* lãnh thổ thuộc vùng nào thì chỉ có hiệu lực ở vùng đó. ĐẠI LỤC: lãnh thổ ở 8 TỈNH KỀ BÊN cũng được giữ, dời toạ độ sang hệ của tỉnh đang đứng
+   (pl: mã tỉnh gốc, dx/dz: độ dời, ps: hạt giống tỉnh gốc) → đứng gần ranh giới vẫn thấy lãnh thổ, công trình của hàng xóm tỉnh bên. */
+function mpClaimsBuild(){const o={},pop={},here=(S&&S.land)||'c';let nb=null;try{if(S&&S.dl&&typeof dlNb==='function')nb=dlNb().key;}catch(e){}MP.myOther=null;
+  for(const [id,v,l] of MP.claimsRaw||[]){pop[l]=(pop[l]||0)+1;if(l!==here){if(id===MP.uid){MP.myOther=l;continue;}const e=nb&&nb[l];if(!e)continue;const x=v.x+e.dx,z=v.z+e.dz;if(Math.abs(x)>WSIZE/2-300||Math.abs(z)>WSIZE/2-300)continue;o[id]=Object.assign({},v,{x,z,pl:l,dx:e.dx,dz:e.dz,ps:e.seed});continue;}o[id]=v;}
+  MP.landPop=pop;MP.claims=o;MP.dirty.ui=MP.dirty.remote=true;MP.tick.ring=-9;MP.tick.near=-9;}
+/* vừa đổi tỉnh ngay trong trang: bỏ hết công trình, vòng lãnh thổ, mô hình người chơi của tỉnh cũ rồi tính lại theo tỉnh mới */
+function mpLandRefresh(){try{if(!MP.started)return;for(const [u,s] of MP.bsub){try{s.un();}catch(e){}}MP.bsub.clear();MP.braw.clear();MP.bcur.clear();MP.rTot=0;MP.rq.length=0;try{MP.rings.clear();}catch(e){}for(const r of MP.rp.values()){r.o=null;r.pres=null;}mpClaimsBuild();}catch(e){console.warn('làm mới chơi chung',e);}}
 function mpValClaim(id,d){if(!mpIdOk(id))return null;const z=mpValZone(d);if(!z||z.r>480)return null;return z;}
 // liên minh thật sự của một người: họ nhận mình thuộc liên minh đó VÀ thủ lĩnh đã ghi tên họ
 function mpClanOf(uid){const p=uid===MP.uid&&MP.me?MP.me:MP.players[uid];const cid=p&&p.clan;const c=cid&&MP.clans[cid];return c&&c.members.includes(uid)?cid:null;}
@@ -18485,10 +18492,10 @@ function mpNearTick(){const now=new Map();const add=(u,d)=>{if(u===MP.uid||!mpId
   const want=[...now].filter(([u,d])=>d<MP_NEAR||(MP.bsub.has(u)&&d<MP_FAR)).sort((a,b)=>a[1]-b[1]).slice(0,MP_MAXSUB).map(a=>a[0]);const W=new Set(want);
   for(const [u,s] of MP.bsub)if(!W.has(u)){try{s.un();}catch(e){}MP.bsub.delete(u);MP.braw.delete(u);mpRemoteApply(u);}
   for(const u of want)if(!MP.bsub.has(u)){const s={un:()=>{},ver:null};MP.bsub.set(u,s);try{s.un=MP.db.doc(mpBPath(u)).onSnapshot(sn=>mpBuildSnap(u,s,sn),()=>{});}catch(e){}}}
-async function mpBuildSnap(u,s,sn){if(MP.bsub.get(u)!==s)return;if(!sn.exists){MP.braw.set(u,[]);mpRemoteApply(u);return;}const d=sn.data()||{};if(d.w!==S.seed){MP.braw.set(u,[]);mpRemoteApply(u);return;}
+async function mpBuildSnap(u,s,sn){if(MP.bsub.get(u)!==s)return;if(!sn.exists){MP.braw.set(u,[]);mpRemoteApply(u);return;}const d=sn.data()||{};const pc=MP.claims[u]&&MP.claims[u].pl?MP.claims[u]:null;/* hàng xóm tỉnh bên: hạt giống và toạ độ theo tỉnh của họ */if(d.w!==(pc?pc.ps:S.seed)){MP.braw.set(u,[]);mpRemoteApply(u);return;}
   const ver=typeof d.ver==='string'?d.ver.slice(0,40):'';if(ver&&ver===s.ver)return;let str=typeof d.d==='string'?d.d:'';const parts=mpNum(d.parts,0,40)?d.parts|0:0;
   if(parts){str='';for(let i=0;i<parts;i++){const p=await mpGetDoc(mpBPath(u)+'/p/'+i);if(!p||p.ver!==ver||typeof p.s!=='string')return;str+=p.s;}if(MP.bsub.get(u)!==s)return;}
-  s.ver=ver;MP.braw.set(u,mpDecode(str));try{if(typeof dbFlats==='function')dbFlats(u,d.fl,MP.braw.get(u));}catch(e){console.warn('đồng bộ nền',e);}mpRemoteApply(u);}
+  s.ver=ver;let arr=mpDecode(str);if(pc){const H=WSIZE/2-200;for(const e of arr){e.x+=pc.dx;e.z+=pc.dz;}arr=arr.filter(e=>Math.abs(e.x)<H&&Math.abs(e.z)<H);}MP.braw.set(u,arr);try{if(!pc&&typeof dbFlats==='function')dbFlats(u,d.fl,MP.braw.get(u));}catch(e){console.warn('đồng bộ nền',e);}mpRemoteApply(u);}
 function mpDecode(str){const out=[];if(!str)return out;const L=str.split(';');for(let i=0;i<L.length&&out.length<MP_BCAP;i++){const f=L[i].split(',');if(f.length!==7)continue;
     const id=+f[0],k=f[1],x=+f[2],y=+f[3],z=+f[4],r=+f[5],lv=+f[6];if(!(id>=0&&id<1e9&&Math.floor(id)===id)||!/^[A-Za-z0-9_]{1,40}$/.test(k)||!pieceDef(k))continue;
     if(!mpNum(x,-WSIZE,WSIZE)||!mpNum(z,-WSIZE,WSIZE)||!mpNum(y,-800,4000)||!mpNum(r,0,4)||!mpNum(lv,0,LVMAX)||Math.floor(lv)!==lv)continue;out.push({lid:id,k,x,y,z,r,lv});}return out;}
@@ -18513,9 +18520,9 @@ function mpPeers(ch){const seen=new Set();for(const p of ch.peers){if(p.sameTab)
     let r=MP.rp.get(p.peer);if(!r){r={peer:p.peer,x:v.x,y:v.y,z:v.z,ry:v.ry,o:null,tag:null,tagK:'',gait:0,spd:0,ph:Math.random()*6,ok:true};MP.rp.set(p.peer,r);if(ch.joined&&ch.joined.some(j=>j.peer===p.peer)&&MP.tick.pres>0)uiToast('👋 '+mpName(v.uid)+' đang ở thế giới chung.','');}
     if(r.pres!==p.presence){r.pres=p.presence;r.tx=v.x;r.ty=v.y;r.tz=v.z;r.tr=v.ry;r.a=v.a;r.uid=v.uid;r.cl=v.cl;if(r.lk!==v.lk&&r.o){G.sc.remove(r.o);r.o=null;}r.lk=v.lk;r.seen=G.t;}}
   for(const [k,r] of MP.rp)if(!seen.has(k)){if(r.o)G.sc.remove(r.o);if(r.tag)G.sc.remove(r.tag);MP.rp.delete(k);}MP.dirty.ui=true;}
-function mpValPres(p){const s=p.presence;if(!s||typeof s!=='object'||!S||s.w!==S.seed)return null;const L=WSIZE;
+function mpValPres(p){const s=p.presence;if(!s||typeof s!=='object'||!S)return null;let off=null;if(s.w!==S.seed){/* người đang đứng ở tỉnh kề bên: dời toạ độ sang hệ của mình */try{off=S.dl&&typeof dlNb==='function'?dlNb().seed[s.w]:null;}catch(e){off=null;}if(!off)return null;}const L=WSIZE;
   if(!mpNum(s.x,-L,L)||!mpNum(s.z,-L,L)||!mpNum(s.y,-1000,5000))return null;const uid=mpIdOk(p.by)?p.by:mpIdOk(s.u)?s.u:null;if(!uid||uid===MP.uid)return null;
-  return {x:s.x,y:s.y,z:s.z,ry:mpNum(s.ry,-100,100)?s.ry:0,a:MPA.has(s.a)?s.a:'idle',lk:mpNum(s.lk,0,LOOKS.length-1)?s.lk|0:0,cl:mpIdOk(s.cl)?s.cl:'',uid};}
+  if(off&&(Math.abs(s.x+off.dx)>WSIZE/2-100||Math.abs(s.z+off.dz)>WSIZE/2-100))return null;return {x:s.x+(off?off.dx:0),y:s.y,z:s.z+(off?off.dz:0),ry:mpNum(s.ry,-100,100)?s.ry:0,a:MPA.has(s.a)?s.a:'idle',lk:mpNum(s.lk,0,LOOKS.length-1)?s.lk|0:0,cl:mpIdOk(s.cl)?s.cl:'',uid};}
 function mpAnim(){if(G.sleeping)return 'sleep';if(G.ride||G.sit)return 'sit';if(G.work){const st=G.work.steps&&G.work.steps[G.work.i],a=st&&st.a;return MPA.has(a)?a:'whittle';}if(G.swim)return 'swim';
   if(G.act)return P.anim==='chop'&&P.toolId==='pick'?'mine':P.anim==='hammer'?'hammer':P.anim==='gather'?'gather':'chop';if(P.speed>8)return G.sneak?'sneak':G.running?'run':'walk';return 'idle';}
 function mpPresTick(){const R=MP.room;if(!R)return;const r1=v=>Math.round(v*10)/10;const o={w:S.seed,u:MP.uid,x:r1(P.x),y:r1(P.y),z:r1(P.z),ry:Math.round(P.ry*100)/100,a:mpAnim(),lk:S.look|0,ap:typeof crPres==='function'?crPres():'',cl:mpMyClan()||'',wr:typeof wearPres==='function'?wearPres():''};
@@ -22523,6 +22530,8 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
      (cây đá, thú, làng). Đó là điều kiện để chơi chung. Mã tỉnh (vd 'qij') dùng làm mã vùng đất: lãnh thổ, công trình chia sẻ, vùng chung của liên minh tách theo tỉnh. */
   const dlA=()=>DL.TS*6;
   function dlKey(ox,oz){const A=dlA();return 'q'+(Math.round(ox/A)+18).toString(36)+(Math.round(oz/A)+18).toString(36);}
+  /* 8 tỉnh kề bên tỉnh đang đứng: mã tỉnh, hạt giống, độ dời toạ độ (để thấy lãnh thổ, công trình, người chơi ở tỉnh bên) */
+  function dlNb(){const k=S&&S.land;if(DL.nb&&DL.nbK===k)return DL.nb;const A=dlA(),o={key:{},seed:{}};if(S&&S.dl)for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){if(!i&&!j)continue;const ox=S.dl.ox+i*A,oz=S.dl.oz+j*A,e={dx:i*A,dz:j*A,key:dlKey(ox,oz),seed:dlSeedAt(ox,oz)};o.key[e.key]=e;o.seed[e.seed]=e;}DL.nb=o;DL.nbK=k;return o;}
   function dlAnchor(seed,pick){dlInit(seed);const A=dlA(),L=[];for(let ix=-8;ix<=8;ix++)for(let iz=-8;iz<=8;iz++){const ox=ix*A,oz=iz*A;if(Math.hypot(ox,oz)>DL.R*0.55)continue;const h=dlBase(ox,oz);if(h<8||h>70)continue;let land=0,wat=0,hi=0,n=0;for(let i=0;i<48;i++){const b=i*0.131*6.283,d=600+(i%6)*1000,hh=dlBase(ox+Math.cos(b)*d,oz+Math.sin(b)*d);n++;if(hh<0)wat++;else{land++;if(hh>230)hi++;}}
       const sc=land/n*3+Math.min(0.2,wat/n)*4-hi/n*2-Math.abs(h-25)/60;L.push({ox,oz,sc});}L.sort((a,b)=>b.sc-a.sc);if(!L.length)return {ox:0,oz:0};/* chơi chung: rải người vào 16 tỉnh tốt nhất theo mã người chơi, khỏi dồn một chỗ */const top=L.slice(0,40);return pick!=null?top[Math.floor(dlHash(pick,5,seed)*top.length)%top.length]:top[0];}
   /* tên tỉnh cho người đọc: cột chữ cái (tây → đông), hàng số (bắc → nam); tỉnh giữa đại lục là J10 */
@@ -22555,7 +22564,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   if(typeof wIn==='function'){const _wi=wIn;wIn=function(x,z,k){if(!DL.on)return _wi.apply(this,arguments);return Math.hypot(x,z)<WR*(k||1);};}
   {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')!=='0'&&!(G.nworld==='mp')&&!S.dl){/* MẶC ĐỊNH: nhân vật mới chơi một mình sống trên đại lục (tắt: mở trang với ?dailuc=0) */dlStart(null);/* LƯU NGAY: các lớp tạo nhân vật bên trong đã lưu một bản CHƯA có đại lục; không lưu đè thì bị văng ra sớm là vào lại thành nhân vật bản đồ cũ */S._new=1;try{if(typeof saveNow==='function')saveNow();else save();}finally{delete S._new;}}}catch(e){console.warn('đại lục',e);}return r;};}
   /* các hàm dưới đây nằm trong khối riêng (chế độ nghiêm ngặt không tự đưa ra ngoài): gắn lên window để phần máy chủ (mp.js) và bài thử gọi được */
-  setTimeout(()=>{try{Object.assign(window,{dlStart,dlShift,dlRebuild,dlKey,dlAnchor,dlRing,dlSeedAt,dlMapDraw,dlMapZoom,dlMapSharp,dlProvName,dlSafeZone});}catch(e){}},0);
+  setTimeout(()=>{try{Object.assign(window,{dlNb,dlStart,dlShift,dlRebuild,dlKey,dlAnchor,dlRing,dlSeedAt,dlMapDraw,dlMapZoom,dlMapSharp,dlProvName,dlSafeZone});}catch(e){}},0);
   /* đưa nhân vật (S vừa tạo) lên đại lục; uid có thì chọn tỉnh theo mã người chơi */
   function dlStart(uid){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);/* mỗi nhân vật mới một chỗ BẤT KỲ trên đại lục: chọn ngẫu nhiên trong các tỉnh đất tốt (đồng bằng, gần nước) */let pk=(Math.random()*1e9)|0;const a=dlAnchor(S.seed,pk);S.seed0=S.seed;S.dl={ox:a.ox,oz:a.oz};S.land=dlKey(a.ox,a.oz);S.seed=dlSeedAt(a.ox,a.oz);S.dlNew=1;worldCfg(3);}
   /* khoáng sản cho đại lục: bản đồ cũ đặt mỏ theo các vùng vẽ tay (dãy núi, bãi muối…), đại lục không có các vùng đó nên gần như không có quặng.
@@ -22663,6 +22672,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
     try{uiHud(true);uiHotbar();}catch(e){}
     /* bỏ cảnh cũ: trả bộ nhớ đồ hoạ của mọi lưới trong cảnh cũ. Khuôn dùng chung (thú, người) còn giữ dữ liệu nên lần vẽ sau tự nạp lại; lưới mặt đất cũ thì bỏ hẳn. */
     try{const seen=new Set();old.traverse(m=>{const g=m.geometry;if(g&&g.dispose&&!seen.has(g)){seen.add(g);try{g.dispose();}catch(e){}}});for(const o of olds){if(o&&o.parent)o.parent.remove(o);}}catch(e){}
+    try{if(typeof mpLandRefresh==='function')mpLandRefresh();}catch(e){}
     DL.lastMs=Math.round(performance.now()-t0);return G.on===true;}
   setInterval(()=>{try{if(DL.on&&typeof G==='object'&&G.on&&!G.ldLeaving&&!DL.busy&&P.model&&G.animals&&G.animals.length){const el=document.getElementById('ldhole');if(el&&!el.classList.contains('out')){ldHoleOff();if(DL.shiftAt){DL.doneMs=Math.round(performance.now()-DL.shiftAt);DL.shiftAt=0;}}}}catch(e){}},200);
   setInterval(()=>{try{if(!DL.on||typeof G!=='object'||!G.on||G.ldLeaving||DL.busy||!S||G.work||G.build||G.panel)return;/* sang hẳn địa phận tỉnh bên (quá ranh giới 25 m) thì chuyển tỉnh */const A=dlA(),nx=Math.round((S.dl.ox+P.x)/A)*A-S.dl.ox,nz=Math.round((S.dl.oz+P.z)/A)*A-S.dl.oz;if((nx||nz)&&Math.hypot(P.x,P.z)-Math.hypot(P.x-nx,P.z-nz)>1000)dlShift();}catch(e){}},700);
