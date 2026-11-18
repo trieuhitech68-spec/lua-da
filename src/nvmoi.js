@@ -96,3 +96,26 @@ function nvmBagCmp(){try{if(typeof G==='undefined'||G.panel!=='bag')return;const
 setInterval(nvmBagCmp,450);
 (function(){try{const st=document.createElement('style');st.textContent=`.kho-det .nvm-cmp{flex:1 1 100%;width:100%;order:9}.nvm-cmp{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:6px;padding-top:6px;border-top:1px dashed rgba(255,255,255,.15);font-size:12.5px}.nvm-cmp i{font-style:normal;opacity:.85}.nvm-cmp i.up{color:#6fe07c;opacity:1;font-weight:700}.nvm-cmp i.dn{color:#ff7a66;opacity:1;font-weight:700}
 .nvm-qt{font-weight:800;font-size:11.5px;padding:1px 7px;border-radius:9px;background:rgba(255,255,255,.1)}.nvm-qt.q1{color:#7fd08a}.nvm-qt.q2{color:#7db9f5}.nvm-qt.q3{color:#c6a0f8}.nvm-qt.q4{color:#f7b65c}`;document.head.appendChild(st);}catch(e){}})();
+/* ---------- THẺ THUỘC TÍNH, THIÊN PHÚ gọn: nút ＋ lên cùng hàng với tên, ô thấp lại; ở các thẻ không phải Tổng quan thì bảng kéo cao hơn để thấy đủ danh sách ---------- */
+{const _f=nvmFix;nvmFix=function(){_f.apply(this,arguments);try{const el=document.getElementById('h4');if(!el)return;el.classList.toggle('nvm-tall',!!(H4.tab&&H4.tab!=='ov'));
+    el.querySelectorAll('.h4-body .h2-at').forEach(c=>{if(c.dataset.nvm)return;c.dataset.nvm='1';const bt=c.querySelector('.h2-at-f .btn');if(bt&&!bt.disabled&&!bt.classList.contains('ghost'))c.classList.add('can');const em=c.querySelector('.h2-at-h em');if(em){const m=/^\s*(\d+)\s*\/\s*(\d+)/.exec(em.textContent);if(m&&+m[1]>=+m[2])c.classList.add('max');}});}catch(e){}};}
+(function(){try{const st=document.createElement('style');st.textContent=`
+@media (orientation:portrait){#h4.nvm.nvm-tall .h4-body{max-height:56vh}#h4.nvm.nvm-tall .h4-pow{display:none}}
+#h4.nvm .h4-body .h3-pts{padding:5px 10px;margin-bottom:6px}#h4.nvm .h4-body .h3-pts b{font-size:22px}
+#h4.nvm .h4-body .h2-ats{grid-template-columns:1fr 1fr;gap:6px}
+#h4.nvm .h4-body .h2-at{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;padding:8px 9px;align-content:start}
+#h4.nvm .h4-body .h2-at.can{border-color:rgba(255,210,122,.45)}#h4.nvm .h4-body .h2-at.max{border-color:rgba(110,220,130,.5)}
+#h4.nvm .h4-body .h2-at-h{grid-column:1/-1;grid-row:1;min-width:0;gap:5px}#h4.nvm .h4-body .h2-at-h span{font-size:17px}#h4.nvm .h4-body .h2-at-h b{font-size:13px;min-width:0;line-height:1.15}#h4.nvm .h4-body .h2-at-h em{font-size:16px;white-space:nowrap}
+#h4.nvm .h4-body .h2-at>.h2-bar,#h4.nvm .h4-body .h2-at>.h2-pips{grid-column:1;grid-row:2;align-self:center}
+#h4.nvm .h4-body .h2-at-f{display:contents}
+#h4.nvm .h4-body .h2-at-f .btn{grid-column:2;grid-row:2/4;align-self:center;min-width:42px;min-height:42px;border-radius:12px}
+#h4.nvm .h4-body .h2-at-f .btn.ghost{opacity:.35}
+#h4.nvm .h4-body .h2-at-f>span{grid-column:1;grid-row:3;font-size:12px;line-height:1.3}#h4.nvm .h4-body .h2-at-f>.h2-eff{font-weight:800}
+#h4.nvm .h4-body .h2-at>span.small{grid-column:1/-1;grid-row:4;font-size:11px;line-height:1.3;opacity:.8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.kho-det{flex-wrap:wrap}`;document.head.appendChild(st);}catch(e){}})();
+/* ---------- THẺ CÔNG THỨC gọn: ghim và sao nằm ở hai góc trên của ảnh, nút Làm và ×5 chung một hàng (trước là hai hàng nút) ---------- */
+(function(){try{const st=document.createElement('style');st.textContent=`
+.u8-cg .rc{position:relative}.u8-cg .rc .rc-a{display:flex;flex-wrap:nowrap;gap:6px;align-items:stretch}
+.u8-cg .rc .rc-a .gm-b,.u8-cg .rc .rc-a .mxfav{position:absolute;top:4px;width:34px;height:34px;min-width:0;min-height:0;padding:0;border-radius:10px;background:rgba(20,14,9,.72);border:1px solid rgba(255,255,255,.14);font-size:14px;line-height:1}
+.u8-cg .rc .rc-a .gm-b{left:4px}.u8-cg .rc .rc-a .mxfav{right:4px}
+.u8-cg .rc .rc-a>.btn:not(.gm-b):not(.mxfav){flex:1 1 0;min-width:0;min-height:38px}.u8-cg .rc .rc-a>.btn.ghost:not(.gm-b):not(.mxfav){flex:0 0 46px;padding:0}`;document.head.appendChild(st);}catch(e){}})();
