@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118164259">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118172851">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -22091,14 +22091,17 @@ function sxBuild(){try{if(typeof G==='undefined'||G.panel!=='build')return;const
     if(cur==='nha'){cards.forEach(c=>{c.style.display=c.dataset.sxg==='nha'&&c.dataset.c4===G.bcat?'':'none';});grid.querySelectorAll('.b4bp,.b4prjs').forEach(e=>e.style.display='none');return;}
     if(cur==='bp')return;grid.querySelectorAll('.b4bp,.b4prjs').forEach(e=>e.style.display='none');grid.querySelectorAll(':scope > p').forEach(e=>e.style.display='none');
     const host=cards[0].parentNode;if(cur==='tt'){cards.forEach(c=>{c.style.display=c.dataset.sxg==='tt'?'':'none';});return;}
-    for(const [k,title] of SXP.P){const L=cards.filter(c=>c.dataset.sxp===k);if(!L.length)continue;const h=document.createElement('div');h.className='sx-h';h.innerHTML=`<b>${title}</b> <small>${L.filter(c=>!c.classList.contains('lock')).length}/${L.length}</small>`;host.appendChild(h);L.forEach(c=>{c.style.display='';host.appendChild(c);});}
+    /* các nhóm công năng GẬP LẠI, mỗi lúc mở một nhóm (trước: mở hết, bảng dài gần chín nghìn điểm ảnh) */
+    const have=SXP.P.filter(([k])=>cards.some(c=>c.dataset.sxp===k)).map(e=>e[0]);if(G.sxOpen==null||(G.sxOpen&&!have.includes(G.sxOpen)))G.sxOpen=have[0]||'';
+    for(const [k,title] of SXP.P){const L=cards.filter(c=>c.dataset.sxp===k);if(!L.length)continue;const op=G.sxOpen===k,h=document.createElement('div');h.className='sx-h sx-acc'+(op?' open':'');h.dataset.a='sxp';h.dataset.k=k;h.setAttribute('role','button');h.innerHTML=`<b>${title}</b> <small>${L.filter(c=>!c.classList.contains('lock')).length}/${L.length}</small><i>${op?'▾':'▸'}</i>`;host.appendChild(h);L.forEach(c=>{c.style.display=op?'':'none';host.appendChild(c);});}
     cards.forEach(c=>{if(c.dataset.sxg!=='cn')c.style.display='none';});}catch(e){if(!SXP.errB){SXP.errB=1;console.warn('xếp bảng xây',e);}}}
 {const _uo=uiOpen;uiOpen=function(){const r=_uo.apply(this,arguments);try{sxBuild();}catch(e){}return r;};}
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="sxg"]');if(!b||!S)return;e.stopImmediatePropagation();const g=b.dataset.g;G.sxB=g;if(g==='bp')G.bcat='bp';else if(g==='nha'){if(!SXP.NHA.includes(G.bcat))G.bcat=G.sxNha||'tuong';}else if(G.bcat==='bp')G.bcat='co';try{sfx('pick');}catch(er){}uiOpenRefresh();},true);
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="sxp"]');if(!b||!S)return;e.stopImmediatePropagation();const k=b.dataset.k;G.sxOpen=G.sxOpen===k?'':k;try{sfx('pick');}catch(er){}sxBuild();try{const h=document.querySelector('#panel .sx-acc[data-k="'+k+'"]');if(h)h.scrollIntoView({block:'nearest'});}catch(er){}},true);
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('.b4tabs [data-a="bcat"]');if(b&&SXP.NHA.includes(b.dataset.c))G.sxNha=b.dataset.c;},true);
 document.addEventListener('input',e=>{try{if(e.target&&e.target.id==='b4q')setTimeout(sxBuild,0);}catch(er){}},true);
 {const st=document.createElement('style');st.textContent=`#game .panel .sx-nav{margin:6px 0}#game .panel .sx-nav .tb{font-weight:800}#game .panel .sx-nav .tb small{opacity:.7;margin-left:4px;font-size:10.5px}
-#game .panel .sx-h{grid-column:1/-1;margin:8px 0 0;padding:4px 2px 2px;border-bottom:1px solid rgba(242,197,90,.3);font-size:13.5px;color:#ffe2a8}#game .panel .sx-h small{font-weight:700;color:#b8e07a;margin-left:6px;font-size:11.5px}`;document.head.appendChild(st);}
+#game .panel .sx-h{grid-column:1/-1;margin:8px 0 0;padding:4px 2px 2px;border-bottom:1px solid rgba(242,197,90,.3);font-size:13.5px;color:#ffe2a8}#game .panel .sx-acc{display:flex;align-items:center;min-height:44px;margin:4px 0 0;padding:6px 10px;border:1px solid rgba(242,197,90,.3);border-radius:12px;background:rgba(40,28,16,.7);cursor:pointer}#game .panel .sx-acc.open{background:linear-gradient(180deg,rgba(90,66,30,.8),rgba(50,36,18,.8));border-color:#f2c55a}#game .panel .sx-acc i{margin-left:auto;font-style:normal;color:#f2c55a;font-size:15px}#game .panel .sx-h small{font-weight:700;color:#b8e07a;margin-left:6px;font-size:11.5px}`;document.head.appendChild(st);}
 /* ---------- KHÔNG ĐỂ THANH NÚT TRÊN CÙNG ĐÈ LÊN LA BÀN, THÔNG BÁO, SỐ KHUNG HÌNH ----------
    Trên máy tính thanh nút (Túi, Chế tạo, Xây… ) ngày càng dài, nằm đè lên la bàn, và các dòng thông báo hiện chồng lên mép dưới của nó.
    Giờ hễ thanh nút nằm trên cùng và trùng bề ngang với các khối đó thì đẩy chúng xuống ngay dưới thanh nút. Trên điện thoại (thanh nút ở đáy) giữ nguyên. */
@@ -22110,6 +22113,8 @@ setInterval(sxHud,1200);
 addEventListener('resize',()=>{try{const m=document.getElementById('menu');if(m)m.classList.remove('sx-t1','sx-t2');}catch(e){}});
 {const st=document.createElement('style');st.textContent=`#game #menu.sx-t1{gap:4px!important}#game #menu.sx-t1 button{min-width:50px!important;width:50px!important;padding-left:2px!important;padding-right:2px!important}#game #menu.sx-t1 button i{font-size:9.5px!important;max-width:46px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 #game #menu.sx-t2 button{min-width:42px!important;width:42px!important}#game #menu.sx-t2 button i{display:none!important}`;document.head.appendChild(st);}
+/* thẻ công trình thấp lại: ảnh 68 điểm (trước 92) để một màn hình thấy được nhiều món hơn */
+{const st=document.createElement('style');st.textContent=`#game .panel .u8-grid.b4grid .bc>.ic{height:68px}#game .panel .u8-grid.b4grid .bc>.ic img{width:68px;height:68px}#game .panel .u8-grid.b4grid .bc>.ic b{font-size:32px}`;document.head.appendChild(st);}
 /* ===================== CẢNH QUAN: DÃY NÚI XA MỜ SƯƠNG + CẦU GỖ LỚN =====================
    · Trước: nhìn ra xa chỉ thấy sương mù phẳng lì tới chân trời. Giờ có hai lớp dãy núi xa (lớp gần sẫm hơn, lớp xa nhạt hơn) viền quanh chân trời,
      đổi màu theo trời (sáng, chiều, đêm, mưa). Chỉ là hai dải hình mỏng đi theo máy quay (khoảng 640 tam giác), không va chạm, không tốn sức máy.
