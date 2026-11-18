@@ -116,4 +116,6 @@ echo "42. Nhiều vùng định cư: 9 vùng mới + Cổng Muôn Nẻo, sang v�
 OUT=$(timeout 900 node nhieu-vung.js 2>&1); echo "$OUT" | grep -q "^NVG-DAT" && ok "nhiều vùng định cư" || bad "nhiều vùng định cư: $(echo "$OUT" | grep "^{\|NVG-\|Error" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo "43. Đại lục liền (lõi địa hình): mảnh dựng nhanh, liền mép, lục địa đủ rộng, có đồng bằng - núi - sông - biển"
 OUT=$(timeout 120 node dai-luc.js 2>&1); echo "$OUT" | grep -q "^DL-DAT" && ok "đại lục: lõi địa hình" || bad "đại lục: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-500)"
+echo "44. Đại lục liền (nối vào game, thử nghiệm): nhân vật đại lục vào game không lỗi, cây đá - thú mọc theo địa hình mới, có vành đất xa"
+OUT=$(timeout 500 node dai-luc-game.js 2>&1); echo "$OUT" | grep -q "^DLG-DAT" && ok "đại lục: vào game" || bad "đại lục vào game: $(echo "$OUT" | tail -4 | tr '\n' ';' | cut -c1-700)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

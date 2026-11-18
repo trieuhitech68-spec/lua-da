@@ -45,3 +45,36 @@ function dlH(x,z){const TS=DL.TS,tx=Math.floor(x/TS),tz=Math.floor(z/TS),t=dlTil
 function dlW(x,z){return dlH(x,z)<0?0:-999;}
 function dlInit(seed){DL.seed=(seed|0)||1;DL.tiles.clear();DL.tick=0;DL.made=0;}
 if(typeof module!=='undefined')module.exports={DL,dlBase,dlTile,dlH,dlW,dlInit};
+/* ===================== đợt 2: NỐI VÀO GAME (thử nghiệm) =====================
+   Nhân vật "đại lục" (S.dl) dùng mặt đất của đại lục thay cho bản đồ cũ. Bật thử bằng cách đặt localStorage 'ld-dl'='1' trước khi tạo nhân vật.
+   Toạ độ trong game là toạ độ quanh "điểm neo" (S.dl.ox, S.dl.oz) của nhân vật trên đại lục, để mọi phần khác của game vẫn chạy như cũ.
+   Ở đợt này: mặt đất, biển, sông hồ lấy từ đại lục; sông kiểu cũ, đường mòn, cột đá, các vùng có tên của bản đồ cũ được bỏ qua. */
+if(typeof window!=='undefined'&&typeof baseH==='function'){
+  DL.on=false;DL.ox=0;DL.oz=0;
+  /* bật / tắt chế độ thử: mở trang với ?dailuc=1 (hoặc ?dailuc=0) rồi tạo nhân vật MỚI kiểu chơi một mình */
+  try{const q=/[?&]dailuc=([01])/.exec(location.search||'');if(q){if(q[1]==='1')localStorage.setItem('ld-dl','1');else localStorage.removeItem('ld-dl');}}catch(e){}
+  function dlAnchor(seed){dlInit(seed);const TS=DL.TS;let best=null;for(let k=0;k<400;k++){const a=dlHash(k,7,seed)*6.283,r=(0.08+dlHash(k,13,seed)*0.42)*DL.R,ox=Math.round(Math.cos(a)*r/TS)*TS,oz=Math.round(Math.sin(a)*r/TS)*TS;const h=dlBase(ox,oz);if(h<8||h>70)continue;let land=0,wat=0,hi=0,n=0;for(let i=0;i<48;i++){const b=i*0.131*6.283,d=600+(i%6)*1000,hh=dlBase(ox+Math.cos(b)*d,oz+Math.sin(b)*d);n++;if(hh<0)wat++;else{land++;if(hh>230)hi++;}}
+      const sc=land/n*3+Math.min(0.2,wat/n)*4-hi/n*2-Math.abs(h-25)/60;if(!best||sc>best.sc)best={ox,oz,sc};}return best||{ox:0,oz:0};}
+  {const _wc=worldCfg;worldCfg=function(v){DL.on=!!(typeof S==='object'&&S&&S.dl);if(!DL.on)return _wc.apply(this,arguments);const r=_wc.call(this,3);DL.HS=HSTEP;DL.TN=48;DL.TS=DL.HS*DL.TN;dlInit(S.seed0||S.seed);DL.ox=S.dl.ox;DL.oz=S.dl.oz;return r;};}
+  {const _bh=baseH;baseH=function(x,z){return DL.on?dlBase(x+DL.ox,z+DL.oz):_bh(x,z);};}
+  {const _rp=riversPlan;riversPlan=function(seed){if(!DL.on)return _rp.apply(this,arguments);RIV=[];RBK=null;WFALLS=[];let best=null;for(let r=0;r<2600&&!best;r+=120)for(let i=0;i<12;i++){const a=i/12*6.283+r,x=Math.cos(a)*r,z=Math.sin(a)*r,h=dlBase(x+DL.ox,z+DL.oz);if(h>6&&h<70&&Math.abs(dlBase(x+60+DL.ox,z+DL.oz)-h)<10&&Math.abs(dlBase(x+DL.ox,z+60+DL.oz)-h)<10){best=[x,z];break;}}SPAWN=best||[0,0];};}
+  {const _rb=regionsBuild;regionsBuild=function(){if(!DL.on)return _rb.apply(this,arguments);REG=[{id:'start',n:'Bến Khởi Đầu',d:'Nơi bạn đặt chân lên đại lục.',ic:'🔥',x:SPAWN[0],z:SPAWN[1],r:260}];try{if(typeof LD==='object')LD.gates=[];}catch(e){}};}
+  {const _tb=trailsBuild;trailsBuild=function(){if(!DL.on)return _tb.apply(this,arguments);TRAILS=[];TRL=null;};}
+  {const _dp=decorPlan;decorPlan=function(){if(!DL.on)return _dp.apply(this,arguments);DECO_PLAN=[];SCOL=[];};}
+  if(typeof wIn==='function'){const _wi=wIn;wIn=function(x,z,k){if(!DL.on)return _wi.apply(this,arguments);return Math.hypot(x,z)<WR*(k||1);};}
+  {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')==='1'&&!(G.nworld==='mp')){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);/* giờ mới biết cỡ mảnh: chọn điểm neo khớp lưới mảnh */const a=dlAnchor(S.seed);S.dl={ox:a.ox,oz:a.oz};worldCfg(3);}}catch(e){console.warn('đại lục',e);}return r;};}
+  /* ngoài vùng nạp vẫn là đại lục: độ cao lấy thẳng từ mảnh (trước trả về "biển sâu") */
+  {const _h=hAt;hAt=function(x,z){const h=_h(x,z);return h===-60&&DL.on?dlH(x+DL.ox,z+DL.oz):h;};}
+  /* VÀNH ĐẤT XA: mặt đất thô quanh vùng nạp (ra thêm ~4 mảnh mỗi phía) để đứng ở mép vùng vẫn thấy núi đồi nối tiếp chứ không phải biển giả.
+     Dựng một lần lúc vào game (vài chục nghìn tam giác, gộp một lưới), tô màu theo độ cao và độ dốc. */
+  function dlRing(){try{if(!DL.on||!G.sc||typeof THREE==='undefined')return;if(DL.ring){G.sc.remove(DL.ring);DL.ring.geometry.dispose();DL.ring=null;}const T=THREE,TS=DL.TS,half=WSIZE/2,n0=Math.round(half/TS),ext=4,st=4,m=DL.TN/st,hs=DL.HS*st,pos=[],col=[],idx=[];
+      const C=(h,sl)=>{if(h<1.5)return [0.76,0.70,0.50];if(h>820)return [0.90,0.92,0.95];if(sl>0.55||h>300)return [0.47,0.45,0.41];if(h>180)return [0.30,0.42,0.20];return [0.27,0.50,0.16];};
+      for(let tz=-n0-ext;tz<n0+ext;tz++)for(let tx=-n0-ext;tx<n0+ext;tx++){if(tx>=-n0&&tx<n0&&tz>=-n0&&tz<n0)continue;const x0=tx*TS,z0=tz*TS,b=pos.length/3;
+        for(let j=0;j<=m;j++)for(let i=0;i<=m;i++){const x=x0+i*hs,z=z0+j*hs,h=dlBase(x+DL.ox,z+DL.oz),hx=dlBase(x+hs+DL.ox,z+DL.oz),hz=dlBase(x+DL.ox,z+hs+DL.oz),sl=Math.max(Math.abs(hx-h),Math.abs(hz-h))/hs,c=C(h,sl);pos.push(x,h<-6?-6:h,z);col.push(c[0],c[1],c[2]);}
+        for(let j=0;j<m;j++)for(let i=0;i<m;i++){const a=b+j*(m+1)+i,c2=a+m+1;idx.push(a,c2,a+1,a+1,c2,c2+1);}}
+      const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('color',new T.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
+      const me=new T.Mesh(g,new T.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0}));me.receiveShadow=false;me.castShadow=false;me.frustumCulled=false;me.userData.noSea=1;G.sc.add(me);DL.ring=me;
+      /* biển quanh vành đất */const w=new T.Mesh(new T.PlaneGeometry((n0+ext)*TS*2+20000,(n0+ext)*TS*2+20000),new T.MeshStandardMaterial({color:0x2f6f8f,roughness:0.35,metalness:0.1,transparent:true,opacity:0.9}));w.rotation.x=-Math.PI/2;w.position.y=-0.4;w.frustumCulled=false;if(DL.sea)G.sc.remove(DL.sea);G.sc.add(w);DL.sea=w;}catch(e){console.warn('vành đất xa',e);}}
+  {const _si=sceneInit;sceneInit=function(){const r=_si.apply(this,arguments);try{if(DL.on)dlRing();}catch(e){}return r;};}
+}
+
