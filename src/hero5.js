@@ -34,7 +34,7 @@ h4Draw=function(force){const el=h4El();if(!H4.on)return;const lv=heroLv(),xp=her
   const all=[slot('wp','Vũ khí','⚔️',tool,heroEn('wp'))].concat(W.map(s=>slot(s[0],s[1],s[2],S.wear&&S.wear[s[0]],s[0]==='body'?heroEn('ar'):0))).concat([slot('tl','Dụng cụ','🪓',null,heroEn('tl'))]),half=Math.ceil(all.length/2);
   const sc=el.querySelector('.h4-body'),st=sc?sc.scrollTop:0;
   const body=H4.tab==='bd'?h5Body():H4.tab==='tp'&&typeof tpHtml==='function'?tpHtml():H4.tab==='lt'&&typeof ltHtml==='function'?ltHtml():H4.tab?h4Body(H4.tab):'';
-  el.innerHTML=`<div class="h4-top"><button class="h4-back" data-h4="x" aria-label="Đóng">←</button><div><b>${esc(RK[1])} · ${esc(S.name||'')}</b><span class="h4-tier">${RK[2]} BẬC ${['I','II','III','IV','V','VI','VII','VIII'][ri]}</span></div>
+  el.innerHTML=`<div class="h4-top"><button class="h4-back" data-h4="x" aria-label="Đóng">←</button><div><b>${esc(RK[1])} · ${esc(S.name||'')}</b><span class="h4-tier">${RK[2]} BẬC ${['I','II','III','IV','V','VI','VII','VIII','IX','X'][ri]}</span></div>
      <div class="h5-tr"><button data-h4="tab" data-t="lt" aria-label="Sủng thú">🐾</button><button data-h4="go" data-t="bag" aria-label="Túi đồ">🎒</button><button data-h4="demo" aria-label="Múa thử">▶</button></div></div>
    ${H4.tab?'':`<div class="h5-col l">${all.slice(0,half).join('')}</div><div class="h5-col r">${all.slice(half).join('')}</div>`}
    <div class="h4-low${H4.tab?' open':''}">${H4.slot&&!H4.tab?h5SlotCard(H4.slot):''}

@@ -30,7 +30,7 @@ function h4Draw(force){const el=h4El();if(!H4.on)return;const lv=heroLv(),xp=her
   const slot=(lb,ic,id,en,go)=>`<button class="h4-g${id?' has':''}" data-h4="${go?'go':'tab'}" data-t="${go||'en'}" aria-label="${esc(lb)}"><span>${id?icon(id,'big'):`<i>${ic}</i>`}</span>${en?`<em>+${en}</em>`:''}<small>${esc(id&&ITEMS[id]?ITEMS[id].n:lb)}</small></button>`;
   const gear=slot('Vũ khí','⚔️',tool,heroEn('wp'),'bag')+W.map(s=>slot(s[1],s[2],S.wear&&S.wear[s[0]],s[0]==='body'?heroEn('ar'):0,'wear')).join('')+slot('Dụng cụ','🪓',null,heroEn('tl'),'');
   const sc=el.querySelector('.h4-body'),st=sc?sc.scrollTop:0;
-  el.innerHTML=`<div class="h4-top"><button class="h4-back" data-h4="x" aria-label="Đóng">←</button><div><b>${esc(RK[1])} · ${esc(S.name||'')}</b><span class="h4-tier">${RK[2]} BẬC ${['I','II','III','IV','V','VI','VII','VIII'][ri]}</span></div></div>
+  el.innerHTML=`<div class="h4-top"><button class="h4-back" data-h4="x" aria-label="Đóng">←</button><div><b>${esc(RK[1])} · ${esc(S.name||'')}</b><span class="h4-tier">${RK[2]} BẬC ${['I','II','III','IV','V','VI','VII','VIII','IX','X'][ri]}</span></div></div>
    <div class="h4-side l"><button data-h4="go" data-t="wear"><i>👕</i>Y phục</button><button data-h4="go" data-t="body"><i>🧍</i>Cơ thể</button></div>
    <div class="h4-side r"><button data-h4="go" data-t="bag"><i>🎒</i>Túi đồ</button><button data-h4="demo"><i>▶</i>Múa thử</button></div>
    <div class="h4-low${H4.tab?' open':''}"><div class="h4-gear">${gear}</div>
