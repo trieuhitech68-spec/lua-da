@@ -89,7 +89,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   if(typeof wIn==='function'){const _wi=wIn;wIn=function(x,z,k){if(!DL.on)return _wi.apply(this,arguments);return Math.hypot(x,z)<WR*(k||1);};}
   {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')!=='0'&&!(G.nworld==='mp')&&!S.dl){/* MẶC ĐỊNH: nhân vật mới chơi một mình sống trên đại lục (tắt: mở trang với ?dailuc=0) */dlStart(null);}}catch(e){console.warn('đại lục',e);}return r;};}
   /* các hàm dưới đây nằm trong khối riêng (chế độ nghiêm ngặt không tự đưa ra ngoài): gắn lên window để phần máy chủ (mp.js) và bài thử gọi được */
-  setTimeout(()=>{try{Object.assign(window,{dlStart,dlShift,dlRebuild,dlKey,dlAnchor,dlRing,dlSeedAt});}catch(e){}},0);
+  setTimeout(()=>{try{Object.assign(window,{dlStart,dlShift,dlRebuild,dlKey,dlAnchor,dlRing,dlSeedAt,dlMapDraw,dlProvName,dlSafeZone});}catch(e){}},0);
   /* đưa nhân vật (S vừa tạo) lên đại lục; uid có thì chọn tỉnh theo mã người chơi */
   function dlStart(uid){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);/* mỗi nhân vật mới một chỗ BẤT KỲ trên đại lục: chọn ngẫu nhiên trong các tỉnh đất tốt (đồng bằng, gần nước) */let pk=(Math.random()*1e9)|0;const a=dlAnchor(S.seed,pk);S.seed0=S.seed;S.dl={ox:a.ox,oz:a.oz};S.land=dlKey(a.ox,a.oz);S.seed=dlSeedAt(a.ox,a.oz);S.dlNew=1;worldCfg(3);}
   /* khoáng sản cho đại lục: bản đồ cũ đặt mỏ theo các vùng vẽ tay (dãy núi, bãi muối…), đại lục không có các vùng đó nên gần như không có quặng.
@@ -123,6 +123,10 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
       c.putImageData(DL.mapImg,0,0);const X=v=>(v-x0)/span*N;c.strokeStyle='rgba(255,255,255,.16)';c.lineWidth=1;for(let k=-9;k<=9;k++){const p=X((k+0.5)*A);c.beginPath();c.moveTo(p,0);c.lineTo(p,N);c.stroke();c.beginPath();c.moveTo(0,p);c.lineTo(N,p);c.stroke();}
       c.strokeStyle='#ffd27a';c.lineWidth=2;c.strokeRect(X(DL.ox-A/2),X(DL.oz-A/2),A/span*N,A/span*N);
       if(S.dlSafe){c.font='13px system-ui';c.textAlign='center';c.textBaseline='middle';c.fillText('🏠',X(S.dlSafe.x),X(S.dlSafe.z));}
+      /* chơi chung: số lãnh thổ đã cắm ở từng tỉnh và cụm nhà của người chơi khác (chấm cam) */
+      try{if(typeof mpOn==='function'&&mpOn()){const dec=k=>/^q[a-z0-9]{2}$/.test(k)?[(parseInt(k[1],36)-18)*A,(parseInt(k[2],36)-18)*A]:null;c.font='bold 11px system-ui';c.textAlign='center';c.textBaseline='middle';
+          for(const k in MP.landPop||{}){const o=dec(k);if(!o)continue;const n=MP.landPop[k];c.fillStyle='rgba(0,0,0,.55)';c.fillText('🚩'+n,X(o[0])+1,X(o[1])-A/span*N*0.3+1);c.fillStyle='#ffe9b0';c.fillText('🚩'+n,X(o[0]),X(o[1])-A/span*N*0.3);}
+          c.fillStyle='#ff9a3a';for(const u in MP.players||{}){if(u===MP.uid)continue;const fl=MP.players[u].fl||{};for(const k in fl){const o=dec(k),f=fl[k];if(!o||!f)continue;c.beginPath();c.arc(X(o[0]+f[0]),X(o[1]+f[1]),2.6,0,7);c.fill();}}}}catch(e){}
       const px=X(P.x+DL.ox),pz=X(P.z+DL.oz);c.fillStyle='#fff';c.strokeStyle='#000';c.lineWidth=1.5;c.beginPath();c.arc(px,pz,4,0,7);c.fill();c.stroke();}catch(e){}}
   if(typeof mapHtml==='function'){const _mh=mapHtml;mapHtml=function(){let h=_mh.apply(this,arguments);try{if(DL.on){h=h.replace(/ Cổng sang vùng khác có dấu ⛩️ trên bản đồ: [^<]*/,'');const km=v=>(v/20/1000).toFixed(1);
         h=`<div class="landbox"><b>🌏 Bản đồ đại lục</b><span class="small muted">Khung vàng là tỉnh bạn đang đứng (${esc('Tỉnh '+dlProvName(DL.ox,DL.oz))}), chấm trắng là bạn, 🏠 là nơi bạn bắt đầu. Đại lục rộng khoảng ${km(DL.R*2)} km mỗi chiều; mỗi ô lưới là một tỉnh.</span><canvas id="dlmap" width="340" height="340" style="width:100%;max-width:360px;display:block;margin:8px auto 2px;border-radius:10px;image-rendering:auto"></canvas></div>`+h;setTimeout(dlMapDraw,80);}}catch(e){}return h;};}
