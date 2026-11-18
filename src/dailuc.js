@@ -53,8 +53,12 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   DL.on=false;DL.ox=0;DL.oz=0;
   /* bật / tắt chế độ thử: mở trang với ?dailuc=1 (hoặc ?dailuc=0) rồi tạo nhân vật MỚI kiểu chơi một mình */
   try{const q=/[?&]dailuc=([01])/.exec(location.search||'');if(q){if(q[1]==='1')localStorage.setItem('ld-dl','1');else localStorage.removeItem('ld-dl');}}catch(e){}
-  function dlAnchor(seed){dlInit(seed);const TS=DL.TS;let best=null;for(let k=0;k<400;k++){const a=dlHash(k,7,seed)*6.283,r=(0.08+dlHash(k,13,seed)*0.42)*DL.R,ox=Math.round(Math.cos(a)*r/TS)*TS,oz=Math.round(Math.sin(a)*r/TS)*TS;const h=dlBase(ox,oz);if(h<8||h>70)continue;let land=0,wat=0,hi=0,n=0;for(let i=0;i<48;i++){const b=i*0.131*6.283,d=600+(i%6)*1000,hh=dlBase(ox+Math.cos(b)*d,oz+Math.sin(b)*d);n++;if(hh<0)wat++;else{land++;if(hh>230)hi++;}}
-      const sc=land/n*3+Math.min(0.2,wat/n)*4-hi/n*2-Math.abs(h-25)/60;if(!best||sc>best.sc)best={ox,oz,sc};}return best||{ox:0,oz:0};}
+  /* ĐẠI LỤC CHIA THÀNH CÁC TỈNH CỐ ĐỊNH (lưới 6 mảnh ≈ 390 m): ai đứng trong tỉnh nào cũng dùng cùng một tâm, cùng hạt giống → thấy đúng một thế giới như nhau
+     (cây đá, thú, làng). Đó là điều kiện để chơi chung. Mã tỉnh (vd 'qij') dùng làm mã vùng đất: lãnh thổ, công trình chia sẻ, vùng chung của liên minh tách theo tỉnh. */
+  const dlA=()=>DL.TS*6;
+  function dlKey(ox,oz){const A=dlA();return 'q'+(Math.round(ox/A)+18).toString(36)+(Math.round(oz/A)+18).toString(36);}
+  function dlAnchor(seed,pick){dlInit(seed);const A=dlA(),L=[];for(let ix=-8;ix<=8;ix++)for(let iz=-8;iz<=8;iz++){const ox=ix*A,oz=iz*A;if(Math.hypot(ox,oz)>DL.R*0.55)continue;const h=dlBase(ox,oz);if(h<8||h>70)continue;let land=0,wat=0,hi=0,n=0;for(let i=0;i<48;i++){const b=i*0.131*6.283,d=600+(i%6)*1000,hh=dlBase(ox+Math.cos(b)*d,oz+Math.sin(b)*d);n++;if(hh<0)wat++;else{land++;if(hh>230)hi++;}}
+      const sc=land/n*3+Math.min(0.2,wat/n)*4-hi/n*2-Math.abs(h-25)/60;L.push({ox,oz,sc});}L.sort((a,b)=>b.sc-a.sc);if(!L.length)return {ox:0,oz:0};/* chơi chung: rải người vào 16 tỉnh tốt nhất theo mã người chơi, khỏi dồn một chỗ */const top=L.slice(0,16);return pick!=null?top[Math.floor(dlHash(pick,5,seed)*top.length)%top.length]:top[0];}
   {const _wc=worldCfg;worldCfg=function(v){DL.on=!!(typeof S==='object'&&S&&S.dl);if(!DL.on)return _wc.apply(this,arguments);const r=_wc.call(this,3);DL.HS=HSTEP;DL.TN=48;DL.TS=DL.HS*DL.TN;dlInit(S.seed0||S.seed);DL.ox=S.dl.ox;DL.oz=S.dl.oz;return r;};}
   {const _bh=baseH;baseH=function(x,z){return DL.on?dlBase(x+DL.ox,z+DL.oz):_bh(x,z);};}
   {const _rp=riversPlan;riversPlan=function(seed){if(!DL.on)return _rp.apply(this,arguments);RIV=[];RBK=null;WFALLS=[];let best=null;for(let r=0;r<2600&&!best;r+=120)for(let i=0;i<12;i++){const a=i/12*6.283+r,x=Math.cos(a)*r,z=Math.sin(a)*r,h=dlBase(x+DL.ox,z+DL.oz);if(h>6&&h<70&&Math.abs(dlBase(x+60+DL.ox,z+DL.oz)-h)<10&&Math.abs(dlBase(x+DL.ox,z+60+DL.oz)-h)<10){best=[x,z];break;}}SPAWN=best||[0,0];};}
@@ -74,7 +78,9 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   {const _tb=trailsBuild;trailsBuild=function(){if(!DL.on)return _tb.apply(this,arguments);TRAILS=[];TRL=null;};}
   {const _dp=decorPlan;decorPlan=function(){if(!DL.on)return _dp.apply(this,arguments);DECO_PLAN=[];SCOL=[];};}
   if(typeof wIn==='function'){const _wi=wIn;wIn=function(x,z,k){if(!DL.on)return _wi.apply(this,arguments);return Math.hypot(x,z)<WR*(k||1);};}
-  {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')==='1'&&!(G.nworld==='mp')){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);/* giờ mới biết cỡ mảnh: chọn điểm neo khớp lưới mảnh */const a=dlAnchor(S.seed);S.seed0=S.seed;S.land='c';S.dl={ox:a.ox,oz:a.oz};worldCfg(3);}}catch(e){console.warn('đại lục',e);}return r;};}
+  {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')==='1'&&!(G.nworld==='mp')){dlStart(null);}}catch(e){console.warn('đại lục',e);}return r;};}
+  /* đưa nhân vật (S vừa tạo) lên đại lục; uid có thì chọn tỉnh theo mã người chơi */
+  function dlStart(uid){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);let pk=null;if(uid){pk=0;for(let i=0;i<uid.length;i++)pk=(Math.imul(pk,31)+uid.charCodeAt(i))|0;}const a=dlAnchor(S.seed,pk);S.seed0=S.seed;S.dl={ox:a.ox,oz:a.oz};S.land=dlKey(a.ox,a.oz);S.seed=dlSeedAt(a.ox,a.oz);S.dlNew=1;worldCfg(3);}
   /* ngoài vùng nạp vẫn là đại lục: độ cao lấy thẳng từ mảnh (trước trả về "biển sâu") */
   {const _h=hAt;hAt=function(x,z){const h=_h(x,z);return h===-60&&DL.on?dlH(x+DL.ox,z+DL.oz):h;};}
   /* VÀNH ĐẤT XA: mặt đất thô quanh vùng nạp (ra thêm ~4 mảnh mỗi phía) để đứng ở mép vùng vẫn thấy núi đồi nối tiếp chứ không phải biển giả.
@@ -87,14 +93,14 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
       const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('color',new T.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
       const me=new T.Mesh(g,new T.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0}));me.receiveShadow=false;me.castShadow=false;me.frustumCulled=false;me.userData.noSea=1;G.sc.add(me);DL.ring=me;
       /* biển quanh vành đất */const w=new T.Mesh(new T.PlaneGeometry((n0+ext)*TS*2+20000,(n0+ext)*TS*2+20000),new T.MeshStandardMaterial({color:0x2f6f8f,roughness:0.35,metalness:0.1,transparent:true,opacity:0.9}));w.rotation.x=-Math.PI/2;w.position.y=-0.4;w.frustumCulled=false;if(DL.sea)G.sc.remove(DL.sea);G.sc.add(w);DL.sea=w;}catch(e){console.warn('vành đất xa',e);}}
-  {const _si=sceneInit;sceneInit=function(){const r=_si.apply(this,arguments);try{if(DL.on)dlRing();}catch(e){}return r;};}
+  {const _si=sceneInit;sceneInit=function(){const r=_si.apply(this,arguments);try{if(DL.on)dlRing();if(DL.on&&S.dlNew){S.dlNew=0;/* mỗi người một chỗ đặt chân quanh bến của tỉnh, khỏi dồn vào một điểm */for(let k=0;k<30;k++){const a=Math.random()*6.283,d=260+Math.random()*900,x=SPAWN[0]+Math.cos(a)*d,z=SPAWN[1]+Math.sin(a)*d;if(hAt(x,z)>5&&wdAt(x,z)<=0&&slopeAt(x,z)<0.3){P.x=x;P.z=z;P.y=hAt(x,z);if(S.p){S.p.x=+x.toFixed(1);S.p.z=+z.toFixed(1);}break;}}}}catch(e){}return r;};}
   /* ===================== đợt 3: ĐI KHẮP ĐẠI LỤC =====================
      Game vẫn dựng đầy đủ cây đá, thú trong một "vùng nạp" bán kính ~370 m quanh điểm neo. Đi gần tới mép vùng (80% bán kính) thì DỜI ĐIỂM NEO về chỗ đang đứng
      rồi nạp lại vùng mới (qua màn hố đen, như qua cổng nhưng không có cổng, đất liền nối nhau). Mọi thứ có vị trí (nhà, nền san, dân, vật nuôi, thú cưỡi, cờ)
      được quy đổi toạ độ nên vẫn nằm đúng chỗ trên đại lục; trạng thái cây đá đã chặt, bản đồ đã khám phá được nhớ riêng theo từng điểm neo. */
   function dlSeedAt(ox,oz){const s0=(S.seed0||S.seed)|0;return ((Math.imul(s0,31)^Math.imul(Math.round(ox/DL.TS),73856093)^Math.imul(Math.round(oz/DL.TS),19349663))>>>0)%2000000000+1;}
   const DL_PER=['res','disc','fogm','khu','rlm','war','plants','boats','recruited'];
-  function dlShift(){try{if(!DL.on||DL.busy||!S||!S.dl)return false;DL.shiftAt=performance.now();const TS=DL.TS,dx=Math.round(P.x/TS)*TS,dz=Math.round(P.z/TS)*TS;if(!dx&&!dz)return false;DL.busy=1;
+  function dlShift(){try{if(!DL.on||DL.busy||!S||!S.dl)return false;DL.shiftAt=performance.now();const A=dlA(),dx=Math.round((S.dl.ox+P.x)/A)*A-S.dl.ox,dz=Math.round((S.dl.oz+P.z)/A)*A-S.dl.oz;if(!dx&&!dz)return false;DL.busy=1;
       const k0=S.dl.ox+','+S.dl.oz,nox=S.dl.ox+dx,noz=S.dl.oz+dz,k1=nox+','+noz;S.dlA=S.dlA||{};const keep={};for(const k of DL_PER)if(S[k]!==undefined)keep[k]=S[k];S.dlA[k0]=keep;const nx=S.dlA[k1]||{};
       for(const k of DL_PER){if(nx[k]!==undefined)S[k]=nx[k];else if(typeof LD_DEF==='object'&&LD_DEF[k])S[k]=LD_DEF[k]();else delete S[k];}delete S.dlA[k1];
       const mv=o=>{if(o&&typeof o.x==='number'&&typeof o.z==='number'){o.x=+(o.x-dx).toFixed(1);o.z=+(o.z-dz).toFixed(1);}};
@@ -102,7 +108,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
       for(const b of S.builds||[])mv(b);for(const f of S.flat||[])mv(f);for(const f of S.folk||[]){mv(f);if(typeof f.hx==='number'){f.hx-=dx;f.hz-=dz;}}
       for(const q of S.pets||[]){mv(q);if(typeof q.hx==='number'){q.hx=+(q.hx-dx).toFixed(1);q.hz=+(q.hz-dz).toFixed(1);}}for(const m of S.mounts||[])mv(m);mv(S.mark);
       if(S.army&&typeof S.army.hx==='number'){S.army.hx-=dx;S.army.hz-=dz;}
-      S.dl={ox:nox,oz:noz};S.seed=dlSeedAt(nox,noz);S.wx=null;G.walkTo=null;G.act=null;try{if(typeof AQ==='object'&&AQ.on)aqStop();}catch(e){}
+      S.dl={ox:nox,oz:noz};S.seed=dlSeedAt(nox,noz);S.land=dlKey(nox,noz);S.wx=null;G.walkTo=null;G.act=null;try{if(typeof AQ==='object'&&AQ.on)aqStop();}catch(e){}
       /* cách nhanh: dựng lại vùng mới ngay trong trang (không tải lại, giữ bộ vẽ, mô hình, shader). Cứ 6 lần thì tải lại trang một lần để dọn bộ nhớ đồ hoạ; lỗi giữa chừng cũng quay về cách tải lại. */
       if(!DL.noIn&&(DL.inN|0)<6){try{ldHole('Đang nạp vùng đất kế tiếp…');}catch(e){}if(typeof saveNow==='function')saveNow();else save();DL.inN=(DL.inN|0)+1;G.ldLeaving=1;/* giữ màn hố đen tới khi dựng xong */setTimeout(()=>{let ok=false;try{ok=dlRebuild();}catch(e){console.warn('dựng lại tại chỗ',e);}if(ok){DL.busy=0;G.ldLeaving=0;DL.doneMs=Math.round(performance.now()-DL.shiftAt);DL.shiftAt=0;try{ldHoleOff();}catch(e){}try{save();}catch(e){}}else{DL.noIn=1;try{sessionStorage.setItem('ld-cont','1');sessionStorage.setItem('ld-cont-n','vùng đất kế tiếp');sessionStorage.removeItem('ldtt-autoh');}catch(e){}G.ldLeaving=2;location.reload();}},120);return true;}
       try{ldHole('Đang nạp vùng đất kế tiếp…');sessionStorage.setItem('ld-cont-n','vùng đất kế tiếp');}catch(e){}
@@ -123,7 +129,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
     try{const seen=new Set();old.traverse(m=>{const g=m.geometry;if(g&&g.dispose&&!seen.has(g)){seen.add(g);try{g.dispose();}catch(e){}}});for(const o of olds){if(o&&o.parent)o.parent.remove(o);}}catch(e){}
     DL.lastMs=Math.round(performance.now()-t0);return G.on===true;}
   setInterval(()=>{try{if(DL.on&&typeof G==='object'&&G.on&&!G.ldLeaving&&!DL.busy&&P.model&&G.animals&&G.animals.length){const el=document.getElementById('ldhole');if(el&&!el.classList.contains('out')){ldHoleOff();if(DL.shiftAt){DL.doneMs=Math.round(performance.now()-DL.shiftAt);DL.shiftAt=0;}}}}catch(e){}},200);
-  setInterval(()=>{try{if(!DL.on||typeof G!=='object'||!G.on||G.ldLeaving||DL.busy||!S||G.work||G.build||G.panel)return;if(Math.hypot(P.x,P.z)>WR*0.8)dlShift();}catch(e){}},700);
+  setInterval(()=>{try{if(!DL.on||typeof G!=='object'||!G.on||G.ldLeaving||DL.busy||!S||G.work||G.build||G.panel)return;/* sang hẳn địa phận tỉnh bên (quá ranh giới 25 m) thì chuyển tỉnh */const A=dlA(),nx=Math.round((S.dl.ox+P.x)/A)*A-S.dl.ox,nz=Math.round((S.dl.oz+P.z)/A)*A-S.dl.oz;if((nx||nz)&&Math.hypot(P.x,P.z)-Math.hypot(P.x-nx,P.z-nz)>1000)dlShift();}catch(e){}},700);
 
 }
 

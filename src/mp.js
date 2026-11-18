@@ -41,8 +41,8 @@ async function mpWorld(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v;let d=a
   if(!d||!ok(d.seed)){if(MP.ro)return;const ref=MP.db.doc('world/main');
     try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);if(L&&L.acquired){d=await mpGetDoc('world/main');if(!d||!ok(d.seed)){d={seed:((Math.random()*2e9)|0)+1,wv:4,createdAt:mpNow()};await ref.set(d);}}/* Máy chủ 1 tạo mới (sau khi làm mới dữ liệu) dùng bản đồ hình chữ S */
       else{for(let i=0;i<6&&(!d||!ok(d.seed));i++){await mpSleep(1500);d=await mpGetDoc('world/main');}}}catch(e){console.warn('thế giới chung',e);}}
-  if(d&&ok(d.seed)){MP.seed=d.seed;MP.worlds=[{id:'main',seed:d.seed,n:null,wv:d.wv>=4?4:3}];MP.srv='main';
-    for(let i=2;i<=MP_SRVMAX;i++){const e=await mpGetDoc('world/s'+i);if(!e||!ok(e.seed))break;MP.worlds.push({id:'s'+i,seed:e.seed,n:null,wv:e.wv>=4?4:3});}}}
+  if(d&&ok(d.seed)){MP.seed=d.seed;MP.worlds=[{id:'main',seed:d.seed,n:null,wv:d.wv>=4?4:3,dl:d.dl===1}];MP.srv='main';
+    for(let i=2;i<=MP_SRVMAX;i++){const e=await mpGetDoc('world/s'+i);if(!e||!ok(e.seed))break;MP.worlds.push({id:'s'+i,seed:e.seed,n:null,wv:e.wv>=4?4:3,dl:e.dl===1});}}}
 /* ---------- NHIỀU MÁY CHỦ ----------
    Mỗi máy chủ là một thế giới riêng: world/main (Máy chủ 1), world/s2 … world/s8, mỗi cái một hạt giống. Mọi dữ liệu chung đã mang
    hạt giống (w) nên người ở máy chủ khác không thấy nhau, không tải dữ liệu của nhau, và mỗi máy chủ dùng một kênh thời gian thực riêng.
@@ -61,9 +61,9 @@ const mpBPath=u=>'builds/'+u+(landFar()?'/L/'+S.land:'');
 async function mpSrvCount(){if(!MP.db||!MP.worlds)return;const since=mpNow()-MP_SRVDAYS*86400000;
   await Promise.all(MP.worlds.map(async w=>{try{const s=await mpTO(MP.db.collection('players').where('w','==',w.seed).limit(600).get(),10000);let n=0;for(const d of s.docs){const v=d.data();if(v&&v.lastSeen>since)n++;}w.n=n;}catch(e){if(w.n==null)w.n=0;}}));MP.srvAt=mpNow();}
 async function mpSrvNew(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v,i=MP.worlds.length+1;if(i>MP_SRVMAX||MP.ro)return null;const path='world/s'+i,ref=MP.db.doc(path);
-  try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);let d=await mpGetDoc(path);if((!d||!ok(d.seed))&&L&&L.acquired){d={seed:((Math.random()*2e9)|0)+1,wv:4,createdAt:mpNow()};await ref.set(d);}/* máy chủ mở mới dùng bản đồ hình chữ S (world5.js) */
+  try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);let d=await mpGetDoc(path);if((!d||!ok(d.seed))&&L&&L.acquired){d={seed:((Math.random()*2e9)|0)+1,wv:4,createdAt:mpNow()};/* đang bật chế độ thử đại lục (?dailuc=1) thì máy chủ mở mới là máy chủ ĐẠI LỤC: mọi người vào đó đều ở trên đại lục liền */try{if(localStorage.getItem('ld-dl')==='1'){d.dl=1;d.wv=3;}}catch(e){}await ref.set(d);}
     for(let k=0;k<4&&(!d||!ok(d.seed));k++){await mpSleep(1200);d=await mpGetDoc(path);}
-    if(d&&ok(d.seed)){const w={id:'s'+i,seed:d.seed,n:0,wv:d.wv>=4?4:3};MP.worlds.push(w);return w;}}catch(e){console.warn('máy chủ mới',e);}return null;}
+    if(d&&ok(d.seed)){const w={id:'s'+i,seed:d.seed,n:0,wv:d.wv>=4?4:3,dl:d.dl===1};MP.worlds.push(w);return w;}}catch(e){console.warn('máy chủ mới',e);}return null;}
 // chọn máy chủ cho nhân vật mới (tự động, trừ khi người chơi đã bấm chọn)
 async function mpSrvPick(){if(MP.srvBusy||!MP.ok)return;MP.srvBusy=true;try{if(!MP.srvAt||mpNow()-MP.srvAt>60000)await mpSrvCount();
     if(!MP.srvUser){let w=MP.worlds.find(x=>(x.n||0)<MP_SRVCAP);if(!w)w=await mpSrvNew();if(!w)w=MP.worlds.slice().sort((a,b)=>(a.n||0)-(b.n||0))[0];MP.srv=w.id;MP.seed=w.seed;}}catch(e){console.warn('chọn máy chủ',e);}MP.srvBusy=false;mpFormRefresh();}
@@ -97,7 +97,7 @@ async function mpStart(){if(MP.started||!MP.ok||!S||!S.mp||!G.on)return;MP.start
   const bh=await mpGetDoc(mpBPath(MP.uid));MP.bHad=!!(bh&&bh.n>0);
   const g=await mpGetDoc('gifts/'+MP.uid);MP.myGifts={list:g&&Array.isArray(g.list)?g.list.filter(x=>x&&typeof x==='object').slice(-12):[]};
   if(!Array.isArray(S.mpGot))S.mpGot=[];if(MP.room)mpRoomInit();}
-function mpValPlayer(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;return {look:mpNum(d.look,0,LOOKS.length-1)?d.look|0:0,clan:mpIdOk(d.clan)?d.clan:null,req:mpIdOk(d.req)?d.req:null,w:mpNum(d.w,0,4.3e9)?d.w:0,lastSeen:mpNum(d.lastSeen,0,1e14)?d.lastSeen:0,fl:(()=>{const o={};if(d.fl&&typeof d.fl==='object')for(const k of (typeof LANDS!=='undefined'?LANDS.map(L=>L.id).filter(k=>k!=='c'&&k!=='*'):['tb','dao'])){const a=d.fl[k];if(Array.isArray(a)&&a.length===3&&mpNum(a[0],-2e4,2e4)&&mpNum(a[1],-2e4,2e4)&&mpNum(a[2],0,4e4))o[k]=[a[0],a[1],a[2]];}return o;})(),ho:Array.isArray(d.ho)&&d.ho.length===2&&mpNum(d.ho[0],0,24)&&mpNum(d.ho[1],0,4e12)?[d.ho[0],d.ho[1]]:null,df:Array.isArray(d.df)&&d.df.length===3&&d.df.every(v=>mpNum(v,0,99))?[d.df[0]|0,d.df[1]|0,d.df[2]|0]:null,sh:mpNum(d.sh,0,4e12)?d.sh:0,hl:mpNum(d.hl,1,999)?d.hl|0:1,h:Array.isArray(d.h)&&d.h.length===3&&mpNum(d.h[0],-2e4,2e4)&&mpNum(d.h[1],-2e4,2e4)&&mpNum(d.h[2],0,4e4)?[d.h[0],d.h[1],d.h[2]]:null};}
+function mpValPlayer(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;return {look:mpNum(d.look,0,LOOKS.length-1)?d.look|0:0,clan:mpIdOk(d.clan)?d.clan:null,req:mpIdOk(d.req)?d.req:null,w:mpNum(d.w,0,4.3e9)?d.w:0,lastSeen:mpNum(d.lastSeen,0,1e14)?d.lastSeen:0,fl:(()=>{const o={};if(d.fl&&typeof d.fl==='object')for(const k of (typeof LANDS!=='undefined'?LANDS.map(L=>L.id).filter(k=>k!=='c'&&k!=='*').concat(Object.keys(d.fl).filter(k=>/^q[a-z0-9]{2,4}$/.test(k)).slice(0,12)):['tb','dao'])){const a=d.fl[k];if(Array.isArray(a)&&a.length===3&&mpNum(a[0],-2e4,2e4)&&mpNum(a[1],-2e4,2e4)&&mpNum(a[2],0,4e4))o[k]=[a[0],a[1],a[2]];}return o;})(),ho:Array.isArray(d.ho)&&d.ho.length===2&&mpNum(d.ho[0],0,24)&&mpNum(d.ho[1],0,4e12)?[d.ho[0],d.ho[1]]:null,df:Array.isArray(d.df)&&d.df.length===3&&d.df.every(v=>mpNum(v,0,99))?[d.df[0]|0,d.df[1]|0,d.df[2]|0]:null,sh:mpNum(d.sh,0,4e12)?d.sh:0,hl:mpNum(d.hl,1,999)?d.hl|0:1,h:Array.isArray(d.h)&&d.h.length===3&&mpNum(d.h[0],-2e4,2e4)&&mpNum(d.h[1],-2e4,2e4)&&mpNum(d.h[2],0,4e4)?[d.h[0],d.h[1],d.h[2]]:null};}
 function mpZoneL(z){return z&&typeof z.l==='string'&&/^[a-z0-9]{1,6}$/.test(z.l)?z.l:'c';}
 function mpZoneRaw(z){const v=mpValZone(z);if(!v)return null;const l=mpZoneL(z);if(l!=='c')v.l=l;return v;}
 function mpZoneHere(z){const v=mpValZone(z);return v&&mpZoneL(z)===((typeof S==='object'&&S&&S.land)||'c')?v:null;}
@@ -114,7 +114,7 @@ function mpSameClan(uid){const a=mpMyClan();return !!a&&a===mpClanOf(uid);}
 function mpColOf(uid){const c=MP.clans[mpClanOf(uid)];return c?c.color:null;}
 /* ---------- chọn thế giới khi tạo nhân vật ---------- */
 {const _ng=newGame;newGame=function(o){const mp=G.nworld==='mp'&&MP.ok&&MP.seed;if(mp){o=Object.assign({},o,{seed:MP.seed});}const r=_ng(o);
-  if(mp&&S){S.mp=1;S.srv=MP.srv||'main';{const w=(MP.worlds||[]).find(x=>x.id===S.srv);if(w&&w.wv>=4){S.wv=4;worldCfg(4);}else if(S.wv>=4){S.wv=3;worldCfg(3);}}S.mpGot=[];S._new=1;save();delete S._new;}return r;};}
+  if(mp&&S){S.mp=1;S.srv=MP.srv||'main';{const w=(MP.worlds||[]).find(x=>x.id===S.srv);if(w&&w.dl&&typeof dlStart==='function'){dlStart(MP.uid);}else if(w&&w.wv>=4){S.wv=4;worldCfg(4);}else if(S.wv>=4){S.wv=3;worldCfg(3);}}S.mpGot=[];S._new=1;save();delete S._new;}return r;};}
 {const _sm=slotMeta;slotMeta=function(s){const m=_sm(s);if(s&&s.mp){m.mp=1;m.srv=s.srv||'main';}return m;};}
 {const _us=uiStart;uiStart=function(o){_us(o);try{mpStartPatch(o||{});}catch(e){console.warn(e);}};}
 function mpStartPatch(o){const f=document.querySelector('.ov-card.form');
@@ -247,7 +247,7 @@ function mpAllowAt(uid,x,z){const c=MP.claims[uid];if(c&&Math.hypot(x-c.x,z-c.z)
   const CL=arguments[3]||MP.claims;for(const u in CL){if(u===uid)continue;const o=CL[u];if(Math.hypot(x-o.x,z-o.z)<o.r-4&&!(mc&&mpClanOf(u)===mc))return false;}
   for(const id in MP.clans){if(id===mc)continue;const z2=MP.clans[id].zone;if(z2&&Math.hypot(x-z2.x,z-z2.z)<z2.r-4)return false;}return true;}
 /* ---------- chia sẻ công trình của mình (gộp ghi: 5 giây sau thay đổi cuối) ---------- */
-function mpEncodeMine(){const a=[];const R=v=>Math.round(v*10)/10;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const b of S.builds){if(b.prog!=null||b.remote||!pieceDef(b.k))continue;if(b.x<x0)x0=b.x;if(b.x>x1)x1=b.x;if(b.z<z0)z0=b.z;if(b.z>z1)z1=b.z;a.push(b.id+','+b.k+','+R(b.x)+','+R(b.y)+','+R(b.z)+','+(Math.round((b.r||0)*100)/100)+','+((b.lv|0)||0));if(a.length>=MP_BCAP)break;}return {s:a.join(';'),n:a.length,h:a.length?[Math.round((x0+x1)/2),Math.round((z0+z1)/2),Math.round(Math.hypot(x1-x0,z1-z0)/2)]:null};}
+function mpEncodeMine(){const a=[];const R=v=>Math.round(v*10)/10;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const b of S.builds){if(b.prog!=null||b.remote||!pieceDef(b.k))continue;/* đại lục: chỉ chia sẻ công trình thuộc tỉnh đang đứng (toạ độ tính theo tâm tỉnh) */if(S.dl&&(Math.abs(b.x)>WSIZE/2||Math.abs(b.z)>WSIZE/2))continue;if(b.x<x0)x0=b.x;if(b.x>x1)x1=b.x;if(b.z<z0)z0=b.z;if(b.z>z1)z1=b.z;a.push(b.id+','+b.k+','+R(b.x)+','+R(b.y)+','+R(b.z)+','+(Math.round((b.r||0)*100)/100)+','+((b.lv|0)||0));if(a.length>=MP_BCAP)break;}return {s:a.join(';'),n:a.length,h:a.length?[Math.round((x0+x1)/2),Math.round((z0+z1)/2),Math.round(Math.hypot(x1-x0,z1-z0)/2)]:null};}
 function mpSigTick(){if(MP.ro)return;const e=mpEncodeMine(),now=mpNow();if(typeof mpFlatStr==='function')e.s+='#'+mpFlatStr();/* san nền mới cũng phải đẩy lên */if(e.s!==MP.bSig){MP.bSig=e.s;MP.bSigT=now;return;}if(MP.bDone===e.s||MP.bBusy||now-MP.bSigT<5000)return;
   if(MP.bDone===null&&!e.n&&!MP.bHad){MP.bDone=e.s;return;}mpPushBuilds(e);}
 async function mpPushBuilds(e){MP.bBusy=true;const base=mpBPath(MP.uid),ver=mpNow().toString(36)+Math.random().toString(36).slice(2,6);
