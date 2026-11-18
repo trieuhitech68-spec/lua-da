@@ -118,4 +118,6 @@ echo "43. Đại lục liền (lõi địa hình): mảnh dựng nhanh, liền m
 OUT=$(timeout 120 node dai-luc.js 2>&1); echo "$OUT" | grep -q "^DL-DAT" && ok "đại lục: lõi địa hình" || bad "đại lục: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-500)"
 echo "44. Đại lục liền (nối vào game, thử nghiệm): nhân vật đại lục vào game không lỗi, cây đá - thú mọc theo địa hình mới, có vành đất xa"
 OUT=$(timeout 500 node dai-luc-game.js 2>&1); echo "$OUT" | grep -q "^DLG-DAT" && ok "đại lục: vào game" || bad "đại lục vào game: $(echo "$OUT" | tail -4 | tr '\n' ';' | cut -c1-700)"
+echo "45. Chơi chung trên máy chủ đại lục (giả lập): nhân vật lên đại lục và nằm trong một tỉnh, lãnh thổ - công trình chia sẻ tách theo tỉnh"
+OUT=$(timeout 500 node mang/dai-luc.js 2>&1); echo "$OUT" | grep -q "^MDL-DAT" && ok "đại lục: chơi chung" || bad "đại lục chơi chung: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-700)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
