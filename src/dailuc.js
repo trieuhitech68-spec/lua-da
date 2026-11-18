@@ -58,7 +58,19 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   {const _wc=worldCfg;worldCfg=function(v){DL.on=!!(typeof S==='object'&&S&&S.dl);if(!DL.on)return _wc.apply(this,arguments);const r=_wc.call(this,3);DL.HS=HSTEP;DL.TN=48;DL.TS=DL.HS*DL.TN;dlInit(S.seed0||S.seed);DL.ox=S.dl.ox;DL.oz=S.dl.oz;return r;};}
   {const _bh=baseH;baseH=function(x,z){return DL.on?dlBase(x+DL.ox,z+DL.oz):_bh(x,z);};}
   {const _rp=riversPlan;riversPlan=function(seed){if(!DL.on)return _rp.apply(this,arguments);RIV=[];RBK=null;WFALLS=[];let best=null;for(let r=0;r<2600&&!best;r+=120)for(let i=0;i<12;i++){const a=i/12*6.283+r,x=Math.cos(a)*r,z=Math.sin(a)*r,h=dlBase(x+DL.ox,z+DL.oz);if(h>6&&h<70&&Math.abs(dlBase(x+60+DL.ox,z+DL.oz)-h)<10&&Math.abs(dlBase(x+DL.ox,z+60+DL.oz)-h)<10){best=[x,z];break;}}SPAWN=best||[0,0];};}
-  {const _rb=regionsBuild;regionsBuild=function(){if(!DL.on)return _rb.apply(this,arguments);REG=[{id:'start',n:'Bến Khởi Đầu',d:'Nơi bạn đặt chân lên đại lục.',ic:'🔥',x:SPAWN[0],z:SPAWN[1],r:260}];try{if(typeof LD==='object')LD.gates=[];}catch(e){}};}
+  /* các vùng có tên của một vùng nạp, đặt theo địa hình thật quanh điểm neo: làng lái buôn và trại cướp trên đất bằng khô ráo, hồ ở chỗ có nước, núi ở chỗ cao, rừng, đồng cỏ */
+  function dlFlat(tx,tz,rad){let best=null;for(let r=0;r<=rad;r+=110){const n=r?Math.max(6,Math.round(r/70)):1;for(let i=0;i<n;i++){const a=i/n*6.283+r*0.13,x=tx+Math.cos(a)*r,z=tz+Math.sin(a)*r;if(Math.hypot(x,z)>WR*0.72)continue;const h=hAt(x,z);if(h<6||h>140||wdAt(x,z)>0||slopeAt(x,z)>0.22)continue;let ok=true;for(let k=0;k<8;k++){const bx=x+Math.cos(k*0.785)*150,bz=z+Math.sin(k*0.785)*150;if(wdAt(bx,bz)>0||Math.abs(hAt(bx,bz)-h)>30){ok=false;break;}}if(ok)return [x,z];if(!best)best=[x,z];}}return best;}
+  function dlFind(test,minD,maxD){for(let r=minD;r<=maxD;r+=160)for(let i=0;i<20;i++){const a=i/20*6.283+r*0.07,x=SPAWN[0]+Math.cos(a)*r,z=SPAWN[1]+Math.sin(a)*r;if(Math.hypot(x,z)>WR*0.8)continue;if(test(x,z))return [x,z];}return null;}
+  {const _rb=regionsBuild;regionsBuild=function(){if(!DL.on)return _rb.apply(this,arguments);const R=[{id:'start',n:'Bến Khởi Đầu',d:'Nơi bạn dừng chân trên đại lục.',ic:'🔥',x:SPAWN[0],z:SPAWN[1],r:260}];
+      try{const sd=(S.seed|0),a0=dlHash(sd,1,3)*6.283,far=(p,d)=>p&&R.every(g=>Math.hypot(g.x-p[0],g.z-p[1])>d);
+        const add=(id,n,d,ic,p,r)=>{if(p)R.push({id,n,d,ic,x:p[0],z:p[1],r});};
+        const v=dlFlat(SPAWN[0]+Math.cos(a0)*1900,SPAWN[1]+Math.sin(a0)*1900,1500);if(far(v,900))add('village','Làng Ven Sông','Làng của người bản địa: đổi hàng, nghe chuyện, học nghề.','🛖',v,230);
+        const c=dlFlat(SPAWN[0]+Math.cos(a0+2.6)*3000,SPAWN[1]+Math.sin(a0+2.6)*3000,1700);if(far(c,1100))add('camp','Trại Cướp','Bọn cướp đóng trại ở đây. Có vũ khí, có người hãy tới.','⚔️',c,260);
+        const lk=dlFind((x,z)=>hAt(x,z)<-3&&hAt(x+200,z)<0&&hAt(x,z+200)<0,500,5200);if(far(lk,600))add('lake','Vùng Nước Lớn','Sông hồ rộng: cá, đất sét, lau sậy.','🌊',lk,420);
+        const mt=dlFind((x,z)=>hAt(x,z)>300,700,5600);if(far(mt,700))add('range','Dãy Núi Đá','Núi cao vách dựng: đá, đá lửa, quặng. Lạnh, dốc.','⛰️',mt,700);
+        const fr=dlFind((x,z)=>{const b=biome(x,z);return b==='forest'||b==='jungle';},600,4200);if(far(fr,700))add('forest','Rừng Già','Rừng rậm: gỗ tốt, thú săn, mật ong.','🌲',fr,520);
+        const md=dlFind((x,z)=>biome(x,z)==='meadow'&&slopeAt(x,z)<0.15,900,4200);if(far(md,700))add('savanna','Đồng Cỏ Lớn','Đồng cỏ thoáng: thú ăn cỏ từng đàn, dễ dựng làng.','🌾',md,520);
+      }catch(e){console.warn('vùng đại lục',e);}REG=R;try{if(typeof LD==='object')LD.gates=[];}catch(e){}};}
   {const _tb=trailsBuild;trailsBuild=function(){if(!DL.on)return _tb.apply(this,arguments);TRAILS=[];TRL=null;};}
   {const _dp=decorPlan;decorPlan=function(){if(!DL.on)return _dp.apply(this,arguments);DECO_PLAN=[];SCOL=[];};}
   if(typeof wIn==='function'){const _wi=wIn;wIn=function(x,z,k){if(!DL.on)return _wi.apply(this,arguments);return Math.hypot(x,z)<WR*(k||1);};}
