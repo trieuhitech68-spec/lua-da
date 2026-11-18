@@ -62,7 +62,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   {const _tb=trailsBuild;trailsBuild=function(){if(!DL.on)return _tb.apply(this,arguments);TRAILS=[];TRL=null;};}
   {const _dp=decorPlan;decorPlan=function(){if(!DL.on)return _dp.apply(this,arguments);DECO_PLAN=[];SCOL=[];};}
   if(typeof wIn==='function'){const _wi=wIn;wIn=function(x,z,k){if(!DL.on)return _wi.apply(this,arguments);return Math.hypot(x,z)<WR*(k||1);};}
-  {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')==='1'&&!(G.nworld==='mp')){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);/* giờ mới biết cỡ mảnh: chọn điểm neo khớp lưới mảnh */const a=dlAnchor(S.seed);S.dl={ox:a.ox,oz:a.oz};worldCfg(3);}}catch(e){console.warn('đại lục',e);}return r;};}
+  {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')==='1'&&!(G.nworld==='mp')){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);/* giờ mới biết cỡ mảnh: chọn điểm neo khớp lưới mảnh */const a=dlAnchor(S.seed);S.seed0=S.seed;S.land='c';S.dl={ox:a.ox,oz:a.oz};worldCfg(3);}}catch(e){console.warn('đại lục',e);}return r;};}
   /* ngoài vùng nạp vẫn là đại lục: độ cao lấy thẳng từ mảnh (trước trả về "biển sâu") */
   {const _h=hAt;hAt=function(x,z){const h=_h(x,z);return h===-60&&DL.on?dlH(x+DL.ox,z+DL.oz):h;};}
   /* VÀNH ĐẤT XA: mặt đất thô quanh vùng nạp (ra thêm ~4 mảnh mỗi phía) để đứng ở mép vùng vẫn thấy núi đồi nối tiếp chứ không phải biển giả.
@@ -76,5 +76,28 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
       const me=new T.Mesh(g,new T.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0}));me.receiveShadow=false;me.castShadow=false;me.frustumCulled=false;me.userData.noSea=1;G.sc.add(me);DL.ring=me;
       /* biển quanh vành đất */const w=new T.Mesh(new T.PlaneGeometry((n0+ext)*TS*2+20000,(n0+ext)*TS*2+20000),new T.MeshStandardMaterial({color:0x2f6f8f,roughness:0.35,metalness:0.1,transparent:true,opacity:0.9}));w.rotation.x=-Math.PI/2;w.position.y=-0.4;w.frustumCulled=false;if(DL.sea)G.sc.remove(DL.sea);G.sc.add(w);DL.sea=w;}catch(e){console.warn('vành đất xa',e);}}
   {const _si=sceneInit;sceneInit=function(){const r=_si.apply(this,arguments);try{if(DL.on)dlRing();}catch(e){}return r;};}
+  /* ===================== đợt 3: ĐI KHẮP ĐẠI LỤC =====================
+     Game vẫn dựng đầy đủ cây đá, thú trong một "vùng nạp" bán kính ~370 m quanh điểm neo. Đi gần tới mép vùng (80% bán kính) thì DỜI ĐIỂM NEO về chỗ đang đứng
+     rồi nạp lại vùng mới (qua màn hố đen, như qua cổng nhưng không có cổng, đất liền nối nhau). Mọi thứ có vị trí (nhà, nền san, dân, vật nuôi, thú cưỡi, cờ)
+     được quy đổi toạ độ nên vẫn nằm đúng chỗ trên đại lục; trạng thái cây đá đã chặt, bản đồ đã khám phá được nhớ riêng theo từng điểm neo. */
+  function dlSeedAt(ox,oz){const s0=(S.seed0||S.seed)|0;return ((Math.imul(s0,31)^Math.imul(Math.round(ox/DL.TS),73856093)^Math.imul(Math.round(oz/DL.TS),19349663))>>>0)%2000000000+1;}
+  const DL_PER=['res','disc','fogm','khu','rlm','war','plants','boats','recruited'];
+  function dlShift(){try{if(!DL.on||DL.busy||!S||!S.dl)return false;const TS=DL.TS,dx=Math.round(P.x/TS)*TS,dz=Math.round(P.z/TS)*TS;if(!dx&&!dz)return false;DL.busy=1;
+      const k0=S.dl.ox+','+S.dl.oz,nox=S.dl.ox+dx,noz=S.dl.oz+dz,k1=nox+','+noz;S.dlA=S.dlA||{};const keep={};for(const k of DL_PER)if(S[k]!==undefined)keep[k]=S[k];S.dlA[k0]=keep;const nx=S.dlA[k1]||{};
+      for(const k of DL_PER){if(nx[k]!==undefined)S[k]=nx[k];else if(typeof LD_DEF==='object'&&LD_DEF[k])S[k]=LD_DEF[k]();else delete S[k];}delete S.dlA[k1];
+      const mv=o=>{if(o&&typeof o.x==='number'&&typeof o.z==='number'){o.x=+(o.x-dx).toFixed(1);o.z=+(o.z-dz).toFixed(1);}};
+      P.x-=dx;P.z-=dz;if(S.p){S.p.x=+P.x.toFixed(1);S.p.z=+P.z.toFixed(1);}
+      for(const b of S.builds||[])mv(b);for(const f of S.flat||[])mv(f);for(const f of S.folk||[]){mv(f);if(typeof f.hx==='number'){f.hx-=dx;f.hz-=dz;}}
+      for(const q of S.pets||[]){mv(q);if(typeof q.hx==='number'){q.hx=+(q.hx-dx).toFixed(1);q.hz=+(q.hz-dz).toFixed(1);}}for(const m of S.mounts||[])mv(m);mv(S.mark);
+      if(S.army&&typeof S.army.hx==='number'){S.army.hx-=dx;S.army.hz-=dz;}
+      S.dl={ox:nox,oz:noz};S.seed=dlSeedAt(nox,noz);S.wx=null;G.walkTo=null;G.act=null;try{if(typeof AQ==='object'&&AQ.on)aqStop();}catch(e){}
+      try{ldHole('Đang nạp vùng đất kế tiếp…');sessionStorage.setItem('ld-cont-n','vùng đất kế tiếp');}catch(e){}
+      G.ldLeaving=1;if(typeof saveNow==='function')saveNow();else save();G.ldLeaving=2;try{sessionStorage.setItem('ld-cont','1');sessionStorage.removeItem('ldtt-autoh');}catch(e){}
+      const go=()=>{if(G.ldGone)return;G.ldGone=1;try{location.reload();}catch(e){}};
+      try{const id=typeof curSlot==='function'&&curSlot(),raw=localStorage.getItem(SKEY);if(id)sessionStorage.setItem('ld-cont-id',id);if(id&&raw&&typeof LIDB==='object'&&LIDB.ok){const tx=LIDB.db.transaction('s','readwrite');tx.objectStore('s').put({raw,ts:Date.now()+5},SKEY+'#'+id);tx.oncomplete=()=>setTimeout(go,350);}}catch(e){}
+      setTimeout(go,2500);return true;}catch(e){console.warn('dời điểm neo',e);DL.busy=0;return false;}}
+  setInterval(()=>{try{if(DL.on&&typeof G==='object'&&G.on&&!G.ldLeaving&&!DL.busy&&P.model&&G.animals&&G.animals.length){const el=document.getElementById('ldhole');if(el&&!el.classList.contains('out'))ldHoleOff();}}catch(e){}},400);
+  setInterval(()=>{try{if(!DL.on||typeof G!=='object'||!G.on||G.ldLeaving||DL.busy||!S||G.work||G.build||G.panel)return;if(Math.hypot(P.x,P.z)>WR*0.8)dlShift();}catch(e){}},700);
+
 }
 
