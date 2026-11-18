@@ -94,7 +94,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
      được quy đổi toạ độ nên vẫn nằm đúng chỗ trên đại lục; trạng thái cây đá đã chặt, bản đồ đã khám phá được nhớ riêng theo từng điểm neo. */
   function dlSeedAt(ox,oz){const s0=(S.seed0||S.seed)|0;return ((Math.imul(s0,31)^Math.imul(Math.round(ox/DL.TS),73856093)^Math.imul(Math.round(oz/DL.TS),19349663))>>>0)%2000000000+1;}
   const DL_PER=['res','disc','fogm','khu','rlm','war','plants','boats','recruited'];
-  function dlShift(){try{if(!DL.on||DL.busy||!S||!S.dl)return false;const TS=DL.TS,dx=Math.round(P.x/TS)*TS,dz=Math.round(P.z/TS)*TS;if(!dx&&!dz)return false;DL.busy=1;
+  function dlShift(){try{if(!DL.on||DL.busy||!S||!S.dl)return false;DL.shiftAt=performance.now();const TS=DL.TS,dx=Math.round(P.x/TS)*TS,dz=Math.round(P.z/TS)*TS;if(!dx&&!dz)return false;DL.busy=1;
       const k0=S.dl.ox+','+S.dl.oz,nox=S.dl.ox+dx,noz=S.dl.oz+dz,k1=nox+','+noz;S.dlA=S.dlA||{};const keep={};for(const k of DL_PER)if(S[k]!==undefined)keep[k]=S[k];S.dlA[k0]=keep;const nx=S.dlA[k1]||{};
       for(const k of DL_PER){if(nx[k]!==undefined)S[k]=nx[k];else if(typeof LD_DEF==='object'&&LD_DEF[k])S[k]=LD_DEF[k]();else delete S[k];}delete S.dlA[k1];
       const mv=o=>{if(o&&typeof o.x==='number'&&typeof o.z==='number'){o.x=+(o.x-dx).toFixed(1);o.z=+(o.z-dz).toFixed(1);}};
@@ -103,12 +103,26 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
       for(const q of S.pets||[]){mv(q);if(typeof q.hx==='number'){q.hx=+(q.hx-dx).toFixed(1);q.hz=+(q.hz-dz).toFixed(1);}}for(const m of S.mounts||[])mv(m);mv(S.mark);
       if(S.army&&typeof S.army.hx==='number'){S.army.hx-=dx;S.army.hz-=dz;}
       S.dl={ox:nox,oz:noz};S.seed=dlSeedAt(nox,noz);S.wx=null;G.walkTo=null;G.act=null;try{if(typeof AQ==='object'&&AQ.on)aqStop();}catch(e){}
+      /* cách nhanh: dựng lại vùng mới ngay trong trang (không tải lại, giữ bộ vẽ, mô hình, shader). Cứ 6 lần thì tải lại trang một lần để dọn bộ nhớ đồ hoạ; lỗi giữa chừng cũng quay về cách tải lại. */
+      if(!DL.noIn&&(DL.inN|0)<6){try{ldHole('Đang nạp vùng đất kế tiếp…');}catch(e){}if(typeof saveNow==='function')saveNow();else save();DL.inN=(DL.inN|0)+1;G.ldLeaving=1;/* giữ màn hố đen tới khi dựng xong */setTimeout(()=>{let ok=false;try{ok=dlRebuild();}catch(e){console.warn('dựng lại tại chỗ',e);}if(ok){DL.busy=0;G.ldLeaving=0;DL.doneMs=Math.round(performance.now()-DL.shiftAt);DL.shiftAt=0;try{ldHoleOff();}catch(e){}try{save();}catch(e){}}else{DL.noIn=1;try{sessionStorage.setItem('ld-cont','1');sessionStorage.setItem('ld-cont-n','vùng đất kế tiếp');sessionStorage.removeItem('ldtt-autoh');}catch(e){}G.ldLeaving=2;location.reload();}},120);return true;}
       try{ldHole('Đang nạp vùng đất kế tiếp…');sessionStorage.setItem('ld-cont-n','vùng đất kế tiếp');}catch(e){}
       G.ldLeaving=1;if(typeof saveNow==='function')saveNow();else save();G.ldLeaving=2;try{sessionStorage.setItem('ld-cont','1');sessionStorage.removeItem('ldtt-autoh');}catch(e){}
       const go=()=>{if(G.ldGone)return;G.ldGone=1;try{location.reload();}catch(e){}};
       try{const id=typeof curSlot==='function'&&curSlot(),raw=localStorage.getItem(SKEY);if(id)sessionStorage.setItem('ld-cont-id',id);if(id&&raw&&typeof LIDB==='object'&&LIDB.ok){const tx=LIDB.db.transaction('s','readwrite');tx.objectStore('s').put({raw,ts:Date.now()+5},SKEY+'#'+id);tx.oncomplete=()=>setTimeout(go,350);}}catch(e){}
       setTimeout(go,2500);return true;}catch(e){console.warn('dời điểm neo',e);DL.busy=0;return false;}}
-  setInterval(()=>{try{if(DL.on&&typeof G==='object'&&G.on&&!G.ldLeaving&&!DL.busy&&P.model&&G.animals&&G.animals.length){const el=document.getElementById('ldhole');if(el&&!el.classList.contains('out'))ldHoleOff();}}catch(e){}},400);
+  /* dựng lại thế giới quanh điểm neo mới ngay trong trang */
+  function dlRebuild(){const t0=performance.now(),old=G.sc,olds=[G.terrain,G.water,DL.ring,DL.sea,G.grass];G.on=false;
+    try{SI.clear();RI.clear();BYID.clear();OCC.cell.clear();OCC.edge.clear();}catch(e){}
+    try{if(typeof MT==='object')MT.o.clear();}catch(e){}try{if(typeof L4==='object'&&L4.po)L4.po.clear();}catch(e){}try{if(typeof SL3==='object')SL3.rest.clear();}catch(e){}try{if(typeof LD==='object')LD.objs.length=0;}catch(e){}
+    try{for(const q of S.pets||[]){q._o=null;}for(const f of S.folk||[]){f._o=null;f._rig=null;}}catch(e){}
+    try{if(typeof LT==='object'){LT.o=null;LT.id=null;}}catch(e){}try{if(typeof KP==='object')KP.sig='';}catch(e){}try{if(typeof T3==='object'){T3.rocks=[];T3.brooks=[];T3.wmats=[];T3.mist=null;T3.smoke=null;T3.terr=null;}}catch(e){}
+    G.grass=null;G.gLast=null;DL.ring=null;DL.sea=null;G.animals=[];G.foes=[];G.npcs=[];G.village=null;G.camp=null;MAPIMG=null;G.mapDet=null;
+    G._reuse=1;try{sceneInit();}finally{G._reuse=0;}
+    try{uiHud(true);uiHotbar();}catch(e){}
+    /* bỏ cảnh cũ: trả bộ nhớ đồ hoạ của mọi lưới trong cảnh cũ. Khuôn dùng chung (thú, người) còn giữ dữ liệu nên lần vẽ sau tự nạp lại; lưới mặt đất cũ thì bỏ hẳn. */
+    try{const seen=new Set();old.traverse(m=>{const g=m.geometry;if(g&&g.dispose&&!seen.has(g)){seen.add(g);try{g.dispose();}catch(e){}}});for(const o of olds){if(o&&o.parent)o.parent.remove(o);}}catch(e){}
+    DL.lastMs=Math.round(performance.now()-t0);return G.on===true;}
+  setInterval(()=>{try{if(DL.on&&typeof G==='object'&&G.on&&!G.ldLeaving&&!DL.busy&&P.model&&G.animals&&G.animals.length){const el=document.getElementById('ldhole');if(el&&!el.classList.contains('out')){ldHoleOff();if(DL.shiftAt){DL.doneMs=Math.round(performance.now()-DL.shiftAt);DL.shiftAt=0;}}}}catch(e){}},200);
   setInterval(()=>{try{if(!DL.on||typeof G!=='object'||!G.on||G.ldLeaving||DL.busy||!S||G.work||G.build||G.panel)return;if(Math.hypot(P.x,P.z)>WR*0.8)dlShift();}catch(e){}},700);
 
 }

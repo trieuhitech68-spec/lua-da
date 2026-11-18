@@ -41,11 +41,11 @@ function unlockCheck(){if(!S)return;const fresh=[];RECIPES.forEach(r=>{if(!S.kno
   if(fresh.length&&G.on){uiToast('💡 Học được cách làm: '+fresh.slice(0,3).join(', ')+(fresh.length>3?'…':''),'idea');sfx('idea');}}
 /* ---------- cảnh 3D ---------- */
 const P={x:0,z:0,y:0,vy:0,air:false,ry:0,speed:0,model:null,rig:null,tool:null,toolId:null,anim:'idle',hurtT:0};
-function sceneInit(){const T=THREE,cv=document.createElement('canvas');cv.id='gl';$('#game').prepend(cv);const mob=Math.min(innerWidth,innerHeight)<600;
+function sceneInit(){/* G._reuse: dựng lại thế giới NGAY TRONG TRANG (đại lục dời vùng nạp): dùng lại khung vẽ và bộ vẽ cũ, giữ nguyên shader đã dựng */const T=THREE,ru=!!(G._reuse&&G.R),cv=ru?G.R.domElement:document.createElement('canvas');if(!ru){cv.id='gl';$('#game').prepend(cv);}const mob=Math.min(innerWidth,innerHeight)<600;
   startQ();/* Khử răng cưa của khung vẽ chính: khi có lớp hậu kỳ (hầu hết máy) cảnh được vẽ vào bộ đệm riêng đã tự khử răng cưa, nên khử thêm ở khung chính là làm hai lần, tốn sức card hình mà hình không đổi. Chỉ bật khi máy không có hậu kỳ hoặc người chơi tắt hậu kỳ. */
   let postOk=false;try{const c2=document.createElement('canvas'),g2=c2.getContext('webgl2');postOk=!!(g2&&g2.getExtension('EXT_color_buffer_float'));const lc=g2&&g2.getExtension('WEBGL_lose_context');if(lc)lc.loseContext();}catch(e){}let postOff=false;try{postOff=typeof SET!=='undefined'&&SET.post==='off';}catch(e){}
-  const R=new T.WebGLRenderer({canvas:cv,antialias:(devicePixelRatio||1)<1.5&&G.q>0&&(!postOk||postOff),powerPreference:'high-performance'});R.outputEncoding=T.sRGBEncoding;R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;G.R=R;
-  cv.addEventListener('webglcontextlost',e=>{e.preventDefault();G.lost=true;try{localStorage.setItem('ldtt-lost',String((+localStorage.getItem('ldtt-lost')||0)+1));}catch(_){}save();uiError('Thiết bị tạm dừng đồ họa. Tải lại trang để chơi tiếp (đã lưu).');},false);
+  const R=ru?G.R:new T.WebGLRenderer({canvas:cv,antialias:(devicePixelRatio||1)<1.5&&G.q>0&&(!postOk||postOff),powerPreference:'high-performance'});R.outputEncoding=T.sRGBEncoding;R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;G.R=R;
+  (ru?{addEventListener(){}}:cv).addEventListener('webglcontextlost',e=>{e.preventDefault();G.lost=true;try{localStorage.setItem('ldtt-lost',String((+localStorage.getItem('ldtt-lost')||0)+1));}catch(_){}save();uiError('Thiết bị tạm dừng đồ họa. Tải lại trang để chơi tiếp (đã lưu).');},false);
   const sc=new T.Scene();G.sc=sc;G.L=K3.lights(sc,0,R,{size:mob?380:520,fogNear:1500,fogFar:4400,shadowMap:mob?1536:2048,sky:true});G.sky=sc.children.find(o=>o.userData&&o.userData.sky);
   const sh=G.L.sun.shadow.camera;sh.near=10;sh.far=2600;G.moon=new T.DirectionalLight(0x8aa6ff,0);sc.add(G.moon);sc.add(G.moon.target);
   G.cam=new T.PerspectiveCamera(40,1,4,3000);resize();
