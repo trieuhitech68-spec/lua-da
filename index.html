@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118083114">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118084354">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -18284,13 +18284,13 @@ async function mpSrvNew(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v,i=MP.w
     if(d&&ok(d.seed)){const w={id:'s'+i,seed:d.seed,n:0,wv:d.wv>=4?4:3,dl:d.dl===1};MP.worlds.push(w);return w;}}catch(e){console.warn('máy chủ mới',e);}return null;}
 // chọn máy chủ cho nhân vật mới (tự động, trừ khi người chơi đã bấm chọn)
 async function mpSrvPick(){if(MP.srvBusy||!MP.ok)return;MP.srvBusy=true;try{if(!MP.srvAt||mpNow()-MP.srvAt>60000)await mpSrvCount();
-    if(!MP.srvUser){let w=MP.worlds.find(x=>(x.n||0)<MP_SRVCAP);if(!w)w=await mpSrvNew();if(!w)w=MP.worlds.slice().sort((a,b)=>(a.n||0)-(b.n||0))[0];MP.srv=w.id;MP.seed=w.seed;}}catch(e){console.warn('chọn máy chủ',e);}MP.srvBusy=false;mpFormRefresh();}
+    if(!MP.srvUser){/* nhân vật mới ở thế giới chung mặc định vào MÁY CHỦ ĐẠI LỤC (bản đồ rộng, sức chứa 1500); chưa có máy chủ đại lục nào thì mở một máy. Máy chủ bản đồ cũ vẫn chọn tay được. */let wantDl=true;try{wantDl=localStorage.getItem('ld-dl')!=='0';}catch(e){}let w=wantDl?MP.worlds.find(x=>x.dl&&(x.n||0)<1500):null;if(!w&&wantDl&&!MP.worlds.some(x=>x.dl))w=await mpSrvNew();if(!w)w=MP.worlds.find(x=>(x.n||0)<MP_SRVCAP);if(!w)w=await mpSrvNew();if(!w)w=MP.worlds.slice().sort((a,b)=>(a.n||0)-(b.n||0))[0];MP.srv=w.id;MP.seed=w.seed;}}catch(e){console.warn('chọn máy chủ',e);}MP.srvBusy=false;mpFormRefresh();}
 function mpSrvSet(id){const w=(MP.worlds||[]).find(x=>x.id===id);if(!w)return;MP.srvUser=1;MP.srv=w.id;MP.seed=w.seed;mpFormRefresh();}
 // danh sách máy chủ trong bảng tạo nhân vật
 function mpSrvForm(row){const f=document.querySelector('.ov-card.form');
   // trình tạo nhân vật (creator.js): một nút nhỏ cạnh chế độ chơi, bấm để đổi sang máy chủ kế
   const cs=document.querySelector('.ov-card.cr .crfr.mds small');if(cs&&G.nworld==='mp'&&MP.ok&&MP.worlds){if(!MP.srvAt||mpNow()-MP.srvAt>60000)mpSrvPick();const w=MP.worlds.find(x=>x.id===MP.srv)||MP.worlds[0],k=MP.srv+':'+w.n+':'+MP.worlds.length+':'+MP.worlds.some(x=>x.wv>=4);
-    if(cs.dataset.k!==k){cs.dataset.k=k;cs.innerHTML=`<button class="tb sm" data-a="mpsrvnext" title="Bấm để đổi máy chủ">🌐 ${mpSrvName(w.id)}${w.n==null?'':' · '+w.n+'/'+MP_SRVCAP}${MP.worlds.length>1?' ⇄':''}</button>`+(MP.worlds.some(x=>x.wv>=4)||MP.worlds.length>=MP_SRVMAX?'':' <button class="tb sm" data-a="mpsrvS" title="Mở máy chủ mới dùng bản đồ hình chữ S">＋ 🗺️ Chữ S</button>');}}
+    if(cs.dataset.k!==k){cs.dataset.k=k;cs.innerHTML=`<button class="tb sm" data-a="mpsrvnext" title="Bấm để đổi máy chủ">🌐 ${mpSrvName(w.id)}${w.dl?' · 🌏 Đại lục':''}${w.n==null?'':' · '+w.n+'/'+(w.dl?1500:MP_SRVCAP)}${MP.worlds.length>1?' ⇄':''}</button>`+(MP.worlds.some(x=>x.wv>=4)||MP.worlds.length>=MP_SRVMAX?'':' <button class="tb sm" data-a="mpsrvS" title="Mở máy chủ mới dùng bản đồ hình chữ S">＋ 🗺️ Chữ S</button>');}}
   if(!f)return;
   let sv=document.querySelector('.ov-card.form .mpsrv');if(G.nworld==='mp'&&MP.ok&&MP.worlds){if(!sv){sv=document.createElement('div');sv.className='mpsrv';if(row)row.after(sv);else{const st=f.querySelector('[data-a="start"]');if(st)st.before(sv);else f.appendChild(sv);}}
     if(!MP.srvAt||mpNow()-MP.srvAt>60000)mpSrvPick();
@@ -22504,7 +22504,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   const dlA=()=>DL.TS*6;
   function dlKey(ox,oz){const A=dlA();return 'q'+(Math.round(ox/A)+18).toString(36)+(Math.round(oz/A)+18).toString(36);}
   function dlAnchor(seed,pick){dlInit(seed);const A=dlA(),L=[];for(let ix=-8;ix<=8;ix++)for(let iz=-8;iz<=8;iz++){const ox=ix*A,oz=iz*A;if(Math.hypot(ox,oz)>DL.R*0.55)continue;const h=dlBase(ox,oz);if(h<8||h>70)continue;let land=0,wat=0,hi=0,n=0;for(let i=0;i<48;i++){const b=i*0.131*6.283,d=600+(i%6)*1000,hh=dlBase(ox+Math.cos(b)*d,oz+Math.sin(b)*d);n++;if(hh<0)wat++;else{land++;if(hh>230)hi++;}}
-      const sc=land/n*3+Math.min(0.2,wat/n)*4-hi/n*2-Math.abs(h-25)/60;L.push({ox,oz,sc});}L.sort((a,b)=>b.sc-a.sc);if(!L.length)return {ox:0,oz:0};/* chơi chung: rải người vào 16 tỉnh tốt nhất theo mã người chơi, khỏi dồn một chỗ */const top=L.slice(0,16);return pick!=null?top[Math.floor(dlHash(pick,5,seed)*top.length)%top.length]:top[0];}
+      const sc=land/n*3+Math.min(0.2,wat/n)*4-hi/n*2-Math.abs(h-25)/60;L.push({ox,oz,sc});}L.sort((a,b)=>b.sc-a.sc);if(!L.length)return {ox:0,oz:0};/* chơi chung: rải người vào 16 tỉnh tốt nhất theo mã người chơi, khỏi dồn một chỗ */const top=L.slice(0,40);return pick!=null?top[Math.floor(dlHash(pick,5,seed)*top.length)%top.length]:top[0];}
   {const _wc=worldCfg;worldCfg=function(v){DL.on=!!(typeof S==='object'&&S&&S.dl);if(!DL.on)return _wc.apply(this,arguments);const r=_wc.call(this,3);DL.HS=HSTEP;DL.TN=48;DL.TS=DL.HS*DL.TN;dlInit(S.seed0||S.seed);DL.ox=S.dl.ox;DL.oz=S.dl.oz;return r;};}
   {const _bh=baseH;baseH=function(x,z){return DL.on?dlBase(x+DL.ox,z+DL.oz):_bh(x,z);};}
   {const _rp=riversPlan;riversPlan=function(seed){if(!DL.on)return _rp.apply(this,arguments);RIV=[];RBK=null;WFALLS=[];let best=null;for(let r=0;r<2600&&!best;r+=120)for(let i=0;i<12;i++){const a=i/12*6.283+r,x=Math.cos(a)*r,z=Math.sin(a)*r,h=dlBase(x+DL.ox,z+DL.oz);if(h>6&&h<70&&Math.abs(dlBase(x+60+DL.ox,z+DL.oz)-h)<10&&Math.abs(dlBase(x+DL.ox,z+60+DL.oz)-h)<10){best=[x,z];break;}}SPAWN=best||[0,0];};}
@@ -22528,7 +22528,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   /* các hàm dưới đây nằm trong khối riêng (chế độ nghiêm ngặt không tự đưa ra ngoài): gắn lên window để phần máy chủ (mp.js) và bài thử gọi được */
   setTimeout(()=>{try{Object.assign(window,{dlStart,dlShift,dlRebuild,dlKey,dlAnchor,dlRing,dlSeedAt});}catch(e){}},0);
   /* đưa nhân vật (S vừa tạo) lên đại lục; uid có thì chọn tỉnh theo mã người chơi */
-  function dlStart(uid){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);let pk=null;if(uid){pk=0;for(let i=0;i<uid.length;i++)pk=(Math.imul(pk,31)+uid.charCodeAt(i))|0;}const a=dlAnchor(S.seed,pk);S.seed0=S.seed;S.dl={ox:a.ox,oz:a.oz};S.land=dlKey(a.ox,a.oz);S.seed=dlSeedAt(a.ox,a.oz);S.dlNew=1;worldCfg(3);}
+  function dlStart(uid){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);/* mỗi nhân vật mới một chỗ BẤT KỲ trên đại lục: chọn ngẫu nhiên trong các tỉnh đất tốt (đồng bằng, gần nước) */let pk=(Math.random()*1e9)|0;const a=dlAnchor(S.seed,pk);S.seed0=S.seed;S.dl={ox:a.ox,oz:a.oz};S.land=dlKey(a.ox,a.oz);S.seed=dlSeedAt(a.ox,a.oz);S.dlNew=1;worldCfg(3);}
   /* khoáng sản cho đại lục: bản đồ cũ đặt mỏ theo các vùng vẽ tay (dãy núi, bãi muối…), đại lục không có các vùng đó nên gần như không có quặng.
      Giờ một phần đá tảng thành quặng đồng, thiếc, đá lửa, sắt, than; một phần lau cỏ ven nước thành đất sét, bãi muối, bãi sò. Tỉ lệ cố định theo vị trí nên ai trong tỉnh cũng thấy như nhau. */
   {const _rg=resGen;resGen=function(seed){const r=_rg.apply(this,arguments);try{if(DL.on){const sd=(S.seed|0),re=(q,t)=>{if(!RT[t])return;q.t=t;q.s=(0.85+dlHash(q.i,3,sd)*0.35)*(RT[t].sc||1);q.hp=RT[t].hp;};

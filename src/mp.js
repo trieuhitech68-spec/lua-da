@@ -66,13 +66,13 @@ async function mpSrvNew(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v,i=MP.w
     if(d&&ok(d.seed)){const w={id:'s'+i,seed:d.seed,n:0,wv:d.wv>=4?4:3,dl:d.dl===1};MP.worlds.push(w);return w;}}catch(e){console.warn('máy chủ mới',e);}return null;}
 // chọn máy chủ cho nhân vật mới (tự động, trừ khi người chơi đã bấm chọn)
 async function mpSrvPick(){if(MP.srvBusy||!MP.ok)return;MP.srvBusy=true;try{if(!MP.srvAt||mpNow()-MP.srvAt>60000)await mpSrvCount();
-    if(!MP.srvUser){let w=MP.worlds.find(x=>(x.n||0)<MP_SRVCAP);if(!w)w=await mpSrvNew();if(!w)w=MP.worlds.slice().sort((a,b)=>(a.n||0)-(b.n||0))[0];MP.srv=w.id;MP.seed=w.seed;}}catch(e){console.warn('chọn máy chủ',e);}MP.srvBusy=false;mpFormRefresh();}
+    if(!MP.srvUser){/* nhân vật mới ở thế giới chung mặc định vào MÁY CHỦ ĐẠI LỤC (bản đồ rộng, sức chứa 1500); chưa có máy chủ đại lục nào thì mở một máy. Máy chủ bản đồ cũ vẫn chọn tay được. */let wantDl=true;try{wantDl=localStorage.getItem('ld-dl')!=='0';}catch(e){}let w=wantDl?MP.worlds.find(x=>x.dl&&(x.n||0)<1500):null;if(!w&&wantDl&&!MP.worlds.some(x=>x.dl))w=await mpSrvNew();if(!w)w=MP.worlds.find(x=>(x.n||0)<MP_SRVCAP);if(!w)w=await mpSrvNew();if(!w)w=MP.worlds.slice().sort((a,b)=>(a.n||0)-(b.n||0))[0];MP.srv=w.id;MP.seed=w.seed;}}catch(e){console.warn('chọn máy chủ',e);}MP.srvBusy=false;mpFormRefresh();}
 function mpSrvSet(id){const w=(MP.worlds||[]).find(x=>x.id===id);if(!w)return;MP.srvUser=1;MP.srv=w.id;MP.seed=w.seed;mpFormRefresh();}
 // danh sách máy chủ trong bảng tạo nhân vật
 function mpSrvForm(row){const f=document.querySelector('.ov-card.form');
   // trình tạo nhân vật (creator.js): một nút nhỏ cạnh chế độ chơi, bấm để đổi sang máy chủ kế
   const cs=document.querySelector('.ov-card.cr .crfr.mds small');if(cs&&G.nworld==='mp'&&MP.ok&&MP.worlds){if(!MP.srvAt||mpNow()-MP.srvAt>60000)mpSrvPick();const w=MP.worlds.find(x=>x.id===MP.srv)||MP.worlds[0],k=MP.srv+':'+w.n+':'+MP.worlds.length+':'+MP.worlds.some(x=>x.wv>=4);
-    if(cs.dataset.k!==k){cs.dataset.k=k;cs.innerHTML=`<button class="tb sm" data-a="mpsrvnext" title="Bấm để đổi máy chủ">🌐 ${mpSrvName(w.id)}${w.n==null?'':' · '+w.n+'/'+MP_SRVCAP}${MP.worlds.length>1?' ⇄':''}</button>`+(MP.worlds.some(x=>x.wv>=4)||MP.worlds.length>=MP_SRVMAX?'':' <button class="tb sm" data-a="mpsrvS" title="Mở máy chủ mới dùng bản đồ hình chữ S">＋ 🗺️ Chữ S</button>');}}
+    if(cs.dataset.k!==k){cs.dataset.k=k;cs.innerHTML=`<button class="tb sm" data-a="mpsrvnext" title="Bấm để đổi máy chủ">🌐 ${mpSrvName(w.id)}${w.dl?' · 🌏 Đại lục':''}${w.n==null?'':' · '+w.n+'/'+(w.dl?1500:MP_SRVCAP)}${MP.worlds.length>1?' ⇄':''}</button>`+(MP.worlds.some(x=>x.wv>=4)||MP.worlds.length>=MP_SRVMAX?'':' <button class="tb sm" data-a="mpsrvS" title="Mở máy chủ mới dùng bản đồ hình chữ S">＋ 🗺️ Chữ S</button>');}}
   if(!f)return;
   let sv=document.querySelector('.ov-card.form .mpsrv');if(G.nworld==='mp'&&MP.ok&&MP.worlds){if(!sv){sv=document.createElement('div');sv.className='mpsrv';if(row)row.after(sv);else{const st=f.querySelector('[data-a="start"]');if(st)st.before(sv);else f.appendChild(sv);}}
     if(!MP.srvAt||mpNow()-MP.srvAt>60000)mpSrvPick();
