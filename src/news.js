@@ -1,11 +1,11 @@
 /* ===================== CÓ GÌ MỚI: thẻ giới thiệu tính năng, mỗi phiên bản hiện một lần cho mỗi máy ===================== */
-const NEWS_V='2026-11-d',NEWS=[
+const NEWS_V='2026-11-e',NEWS=[
+ ['🌏','Đại lục rộng lớn','Nhân vật MỚI (chơi một mình) giờ sống trên một đại lục liền rộng hơn 20 km²: đồng bằng, sông hồ, rừng, dãy núi phủ tuyết, biển. Không có cổng: đi tới đâu game nạp vùng đất tới đó, nhà cửa giữ nguyên chỗ. Nhân vật cũ vẫn ở bản đồ cũ.'],
+ ['⛰️','Núi cao, vách đá','Núi cao gần gấp đôi, vách đá dựng theo tầng, tuyết trên đỉnh.'],
  ['🌀','9 vùng định cư mới','Gần chỗ bắt đầu có Cổng Muôn Nẻo 🌀: sang được 9 vùng đất mới, mỗi vùng một kiểu (châu thổ, đầm hồ, quần đảo, núi đá, bậc thang, lòng chảo, thảo nguyên, hẻm núi…). Vùng nào cũng cắm mốc lãnh thổ được. Đang cưỡi thú thì cưỡi qua luôn; lính đang «Theo tôi» đi qua cùng bạn.'],
  ['🐎','Thú không còn mất tích','Ngựa, voi hiện trên bản đồ nhỏ, có nút Gọi về. Vật nuôi tự về chuồng hoặc về làng; đói không bỏ đi nữa.'],
  ['🧹','Khu đã khai phá sạch hẳn','Quanh công trình, nền đã san, trong vòng rào: không mọc lại cỏ cây, thú hoang không vào. San nền có rìu thì đốn luôn cây.'],
- ['⚔️','Đạo quân','Dân làng → Đạo quân: đội hình (hàng ngang, cột, mũi nhọn, vòng tròn), mệnh lệnh (theo tôi, giữ chỗ, xung phong, về trại), lính giáo – cung thủ – lính khiên. Có Trại lính thì chiêu mộ dân binh.'],
- ['🐎','Kỵ binh, tượng binh','Cấp ngựa đã thuần cho lính thành kỵ binh. Voi rừng thuần được, cưỡi được, cấp cho lính thành tượng binh.'],
- ['🏘️','Bảng Xây, Chế tạo gọn','Xây: nhà và món có công năng ở trên, trang trí gom một chỗ. Chế tạo: mục «Làm được ngay» và mỗi nhóm một mục gập.']];
+ ['⚔️','Đạo quân','Dân làng → Đạo quân: đội hình (hàng ngang, cột, mũi nhọn, vòng tròn), mệnh lệnh (theo tôi, giữ chỗ, xung phong, về trại), lính giáo – cung thủ – lính khiên. Có Trại lính thì chiêu mộ dân binh.']];
 function newsShow(force){try{if(!force&&localStorage.getItem('ldtt-news')===NEWS_V)return;}catch(e){return;}if(!G.on||!S||G.panel||document.getElementById('newsCard'))return;
   const d=document.createElement('div');d.id='newsCard';d.innerHTML=`<div class="nw-box"><div class="nw-h"><b>🔥 Có gì mới</b><button class="p-x" data-a="newsx" aria-label="Đóng">✕</button></div><div class="nw-l">${NEWS.map(([ic,t,x])=>`<div class="nw-i"><span>${ic}</span><div><b>${t}</b><small>${x}</small></div></div>`).join('')}</div><button class="btn" data-a="newsx">Đã hiểu, chơi thôi</button></div>`;
   document.getElementById('game').appendChild(d);if(document.pointerLockElement)document.exitPointerLock();}

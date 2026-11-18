@@ -61,7 +61,7 @@ const mpBPath=u=>'builds/'+u+(landFar()?'/L/'+S.land:'');
 async function mpSrvCount(){if(!MP.db||!MP.worlds)return;const since=mpNow()-MP_SRVDAYS*86400000;
   await Promise.all(MP.worlds.map(async w=>{try{const s=await mpTO(MP.db.collection('players').where('w','==',w.seed).limit(600).get(),10000);let n=0;for(const d of s.docs){const v=d.data();if(v&&v.lastSeen>since)n++;}w.n=n;}catch(e){if(w.n==null)w.n=0;}}));MP.srvAt=mpNow();}
 async function mpSrvNew(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v,i=MP.worlds.length+1;if(i>MP_SRVMAX||MP.ro)return null;const path='world/s'+i,ref=MP.db.doc(path);
-  try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);let d=await mpGetDoc(path);if((!d||!ok(d.seed))&&L&&L.acquired){d={seed:((Math.random()*2e9)|0)+1,wv:4,createdAt:mpNow()};/* đang bật chế độ thử đại lục (?dailuc=1) thì máy chủ mở mới là máy chủ ĐẠI LỤC: mọi người vào đó đều ở trên đại lục liền */try{if(localStorage.getItem('ld-dl')==='1'){d.dl=1;d.wv=3;}}catch(e){}await ref.set(d);}
+  try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);let d=await mpGetDoc(path);if((!d||!ok(d.seed))&&L&&L.acquired){d={seed:((Math.random()*2e9)|0)+1,wv:4,createdAt:mpNow()};/* máy chủ mở mới từ nay là máy chủ ĐẠI LỤC: mọi người vào đó đều ở trên đại lục liền (máy chủ đã có giữ nguyên bản đồ cũ) */try{if(localStorage.getItem('ld-dl')!=='0'){d.dl=1;d.wv=3;}}catch(e){d.dl=1;d.wv=3;}await ref.set(d);}
     for(let k=0;k<4&&(!d||!ok(d.seed));k++){await mpSleep(1200);d=await mpGetDoc(path);}
     if(d&&ok(d.seed)){const w={id:'s'+i,seed:d.seed,n:0,wv:d.wv>=4?4:3,dl:d.dl===1};MP.worlds.push(w);return w;}}catch(e){console.warn('máy chủ mới',e);}return null;}
 // chọn máy chủ cho nhân vật mới (tự động, trừ khi người chơi đã bấm chọn)

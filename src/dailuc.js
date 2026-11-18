@@ -78,11 +78,16 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   {const _tb=trailsBuild;trailsBuild=function(){if(!DL.on)return _tb.apply(this,arguments);TRAILS=[];TRL=null;};}
   {const _dp=decorPlan;decorPlan=function(){if(!DL.on)return _dp.apply(this,arguments);DECO_PLAN=[];SCOL=[];};}
   if(typeof wIn==='function'){const _wi=wIn;wIn=function(x,z,k){if(!DL.on)return _wi.apply(this,arguments);return Math.hypot(x,z)<WR*(k||1);};}
-  {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')==='1'&&!(G.nworld==='mp')){dlStart(null);}}catch(e){console.warn('đại lục',e);}return r;};}
+  {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')!=='0'&&!(G.nworld==='mp')&&!S.dl){/* MẶC ĐỊNH: nhân vật mới chơi một mình sống trên đại lục (tắt: mở trang với ?dailuc=0) */dlStart(null);}}catch(e){console.warn('đại lục',e);}return r;};}
   /* các hàm dưới đây nằm trong khối riêng (chế độ nghiêm ngặt không tự đưa ra ngoài): gắn lên window để phần máy chủ (mp.js) và bài thử gọi được */
   setTimeout(()=>{try{Object.assign(window,{dlStart,dlShift,dlRebuild,dlKey,dlAnchor,dlRing,dlSeedAt});}catch(e){}},0);
   /* đưa nhân vật (S vừa tạo) lên đại lục; uid có thì chọn tỉnh theo mã người chơi */
   function dlStart(uid){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);let pk=null;if(uid){pk=0;for(let i=0;i<uid.length;i++)pk=(Math.imul(pk,31)+uid.charCodeAt(i))|0;}const a=dlAnchor(S.seed,pk);S.seed0=S.seed;S.dl={ox:a.ox,oz:a.oz};S.land=dlKey(a.ox,a.oz);S.seed=dlSeedAt(a.ox,a.oz);S.dlNew=1;worldCfg(3);}
+  /* khoáng sản cho đại lục: bản đồ cũ đặt mỏ theo các vùng vẽ tay (dãy núi, bãi muối…), đại lục không có các vùng đó nên gần như không có quặng.
+     Giờ một phần đá tảng thành quặng đồng, thiếc, đá lửa, sắt, than; một phần lau cỏ ven nước thành đất sét, bãi muối, bãi sò. Tỉ lệ cố định theo vị trí nên ai trong tỉnh cũng thấy như nhau. */
+  {const _rg=resGen;resGen=function(seed){const r=_rg.apply(this,arguments);try{if(DL.on){const sd=(S.seed|0),re=(q,t)=>{if(!RT[t])return;q.t=t;q.s=(0.85+dlHash(q.i,3,sd)*0.35)*(RT[t].sc||1);q.hp=RT[t].hp;};
+        for(const q of RES){if(q.site)continue;const u=dlHash(q.i,11,sd),t=q.t;if(t==='rock'||t==='boulder'){if(u<0.11)re(q,'copperRock');else if(u<0.25)re(q,'flintRock');else if(u<0.31)re(q,'tinRock');else if(u<0.35)re(q,'ironRock');else if(u<0.39)re(q,'coalRock');}
+          else if(t==='tallgrass'||t==='reeds'){const h=hAt(q.x,q.z);if(h<16){if(u<0.1)re(q,'clay');else if(u<0.14)re(q,'saltPan');else if(u<0.18)re(q,'shellBed');}}}}}catch(e){console.warn('khoáng sản đại lục',e);}return r;};}
   /* ngoài vùng nạp vẫn là đại lục: độ cao lấy thẳng từ mảnh (trước trả về "biển sâu") */
   {const _h=hAt;hAt=function(x,z){const h=_h(x,z);return h===-60&&DL.on?dlH(x+DL.ox,z+DL.oz):h;};}
   /* VÀNH ĐẤT XA: mặt đất thô quanh vùng nạp (ra thêm ~4 mảnh mỗi phía) để đứng ở mép vùng vẫn thấy núi đồi nối tiếp chứ không phải biển giả.

@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118074229">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118083114">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -16907,13 +16907,13 @@ if(typeof heroHtml==='function'){const _hh=heroHtml;heroHtml=function(){let h=_h
 // thông báo nổi không đè lên cụm nút (cụm nút giờ cao 4 hàng)
 {const st=document.createElement('style');st.textContent='@media (max-width:600px){#game .toasts{bottom:calc(var(--u-sb,10px) + 338px)!important}}';document.head.appendChild(st);}
 /* ===================== CÓ GÌ MỚI: thẻ giới thiệu tính năng, mỗi phiên bản hiện một lần cho mỗi máy ===================== */
-const NEWS_V='2026-11-d',NEWS=[
+const NEWS_V='2026-11-e',NEWS=[
+ ['🌏','Đại lục rộng lớn','Nhân vật MỚI (chơi một mình) giờ sống trên một đại lục liền rộng hơn 20 km²: đồng bằng, sông hồ, rừng, dãy núi phủ tuyết, biển. Không có cổng: đi tới đâu game nạp vùng đất tới đó, nhà cửa giữ nguyên chỗ. Nhân vật cũ vẫn ở bản đồ cũ.'],
+ ['⛰️','Núi cao, vách đá','Núi cao gần gấp đôi, vách đá dựng theo tầng, tuyết trên đỉnh.'],
  ['🌀','9 vùng định cư mới','Gần chỗ bắt đầu có Cổng Muôn Nẻo 🌀: sang được 9 vùng đất mới, mỗi vùng một kiểu (châu thổ, đầm hồ, quần đảo, núi đá, bậc thang, lòng chảo, thảo nguyên, hẻm núi…). Vùng nào cũng cắm mốc lãnh thổ được. Đang cưỡi thú thì cưỡi qua luôn; lính đang «Theo tôi» đi qua cùng bạn.'],
  ['🐎','Thú không còn mất tích','Ngựa, voi hiện trên bản đồ nhỏ, có nút Gọi về. Vật nuôi tự về chuồng hoặc về làng; đói không bỏ đi nữa.'],
  ['🧹','Khu đã khai phá sạch hẳn','Quanh công trình, nền đã san, trong vòng rào: không mọc lại cỏ cây, thú hoang không vào. San nền có rìu thì đốn luôn cây.'],
- ['⚔️','Đạo quân','Dân làng → Đạo quân: đội hình (hàng ngang, cột, mũi nhọn, vòng tròn), mệnh lệnh (theo tôi, giữ chỗ, xung phong, về trại), lính giáo – cung thủ – lính khiên. Có Trại lính thì chiêu mộ dân binh.'],
- ['🐎','Kỵ binh, tượng binh','Cấp ngựa đã thuần cho lính thành kỵ binh. Voi rừng thuần được, cưỡi được, cấp cho lính thành tượng binh.'],
- ['🏘️','Bảng Xây, Chế tạo gọn','Xây: nhà và món có công năng ở trên, trang trí gom một chỗ. Chế tạo: mục «Làm được ngay» và mỗi nhóm một mục gập.']];
+ ['⚔️','Đạo quân','Dân làng → Đạo quân: đội hình (hàng ngang, cột, mũi nhọn, vòng tròn), mệnh lệnh (theo tôi, giữ chỗ, xung phong, về trại), lính giáo – cung thủ – lính khiên. Có Trại lính thì chiêu mộ dân binh.']];
 function newsShow(force){try{if(!force&&localStorage.getItem('ldtt-news')===NEWS_V)return;}catch(e){return;}if(!G.on||!S||G.panel||document.getElementById('newsCard'))return;
   const d=document.createElement('div');d.id='newsCard';d.innerHTML=`<div class="nw-box"><div class="nw-h"><b>🔥 Có gì mới</b><button class="p-x" data-a="newsx" aria-label="Đóng">✕</button></div><div class="nw-l">${NEWS.map(([ic,t,x])=>`<div class="nw-i"><span>${ic}</span><div><b>${t}</b><small>${x}</small></div></div>`).join('')}</div><button class="btn" data-a="newsx">Đã hiểu, chơi thôi</button></div>`;
   document.getElementById('game').appendChild(d);if(document.pointerLockElement)document.exitPointerLock();}
@@ -18279,7 +18279,7 @@ const mpBPath=u=>'builds/'+u+(landFar()?'/L/'+S.land:'');
 async function mpSrvCount(){if(!MP.db||!MP.worlds)return;const since=mpNow()-MP_SRVDAYS*86400000;
   await Promise.all(MP.worlds.map(async w=>{try{const s=await mpTO(MP.db.collection('players').where('w','==',w.seed).limit(600).get(),10000);let n=0;for(const d of s.docs){const v=d.data();if(v&&v.lastSeen>since)n++;}w.n=n;}catch(e){if(w.n==null)w.n=0;}}));MP.srvAt=mpNow();}
 async function mpSrvNew(){const ok=v=>mpNum(v,1,4.3e9)&&Math.floor(v)===v,i=MP.worlds.length+1;if(i>MP_SRVMAX||MP.ro)return null;const path='world/s'+i,ref=MP.db.doc(path);
-  try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);let d=await mpGetDoc(path);if((!d||!ok(d.seed))&&L&&L.acquired){d={seed:((Math.random()*2e9)|0)+1,wv:4,createdAt:mpNow()};/* đang bật chế độ thử đại lục (?dailuc=1) thì máy chủ mở mới là máy chủ ĐẠI LỤC: mọi người vào đó đều ở trên đại lục liền */try{if(localStorage.getItem('ld-dl')==='1'){d.dl=1;d.wv=3;}}catch(e){}await ref.set(d);}
+  try{const L=await mpTO(ref.acquire({holder:MP.uid,ttlMs:8000}),10000);let d=await mpGetDoc(path);if((!d||!ok(d.seed))&&L&&L.acquired){d={seed:((Math.random()*2e9)|0)+1,wv:4,createdAt:mpNow()};/* máy chủ mở mới từ nay là máy chủ ĐẠI LỤC: mọi người vào đó đều ở trên đại lục liền (máy chủ đã có giữ nguyên bản đồ cũ) */try{if(localStorage.getItem('ld-dl')!=='0'){d.dl=1;d.wv=3;}}catch(e){d.dl=1;d.wv=3;}await ref.set(d);}
     for(let k=0;k<4&&(!d||!ok(d.seed));k++){await mpSleep(1200);d=await mpGetDoc(path);}
     if(d&&ok(d.seed)){const w={id:'s'+i,seed:d.seed,n:0,wv:d.wv>=4?4:3,dl:d.dl===1};MP.worlds.push(w);return w;}}catch(e){console.warn('máy chủ mới',e);}return null;}
 // chọn máy chủ cho nhân vật mới (tự động, trừ khi người chơi đã bấm chọn)
@@ -19746,7 +19746,7 @@ setInterval(()=>{try{if(!S||!G.on||!AQ.on||P.air||G.swim||G.climb||G.sleeping)re
       if(nearN>=1){let bk=null;for(let i=TK.c.length-1;i>=0;i--){const c=TK.c[i];if(Math.hypot(c[0]-P.x,c[1]-P.z)>260&&wdAt(c[0],c[1])<=0){bk=c;break;}}
         if(!bk){const hb=(typeof aqBed==='function'&&aqBed())||(typeof aqFire==='function'&&aqFire());if(hb&&nearN>=3){/* kẹt mãi một chỗ (thường là bị vây trong vòng tường, rào không lối ra): trước lùi về 'cạnh giường' mà giường cũng nằm trong vòng vây nên kẹt vĩnh viễn.
            Giờ tìm một chỗ trống NGOÀI TRỜI cách đây 8-25 m: không nằm trên ô có công trình, không vướng va chạm, xa công trình nhất có thể. */let bs=-1;for(let r=160;r<=500;r+=60)for(let i=0;i<12;i++){const a=i/12*6.283+r*0.3,x=P.x+Math.cos(a)*r,z=P.z+Math.sin(a)*r;try{if(cellBusy(x,z)||wdAt(x,z)>0||hAt(x,z)<2)continue;const c=collide(x,z);if(Math.hypot(c[0]-x,c[1]-z)>2)continue;let md=1e9;for(const b of S.builds){const d=Math.hypot(b.x-x,b.z-z);if(d<md)md=d;}const sc=Math.min(md,200)-r*0.1;if(sc>bs){bs=sc;bk=[x,z,G.t];}}catch(e2){}}if(!bk)bk=[hb.x+30,hb.z+30,G.t];}}
-        if(bk){AQ.bad.push({x:P.x,z:P.z,t:G.t+900});P.x=bk[0];P.z=bk[1];P.y=groundY(P.x,P.z,hAt(P.x,P.z)+2);P.air=false;P.vy=0;AQ.path=null;AQ.dir=null;j.stuck=0;j.best=1e9;j.pts=null;j.pl=null;TK.c=TK.c.filter(c=>c!==bk);try{G.camInit=0;}catch(e){}
+        if(bk){AQ.bad.push({x:P.x,z:P.z,t:G.t+900});/* kẹt lần thứ ba trở đi quanh cùng một chỗ: coi luôn ĐÍCH ĐẾN là chỗ không tới được, để lần chọn việc sau né nó (trước cứ quay lại đúng cây, đúng người đó, kẹt hàng chục lần) */if(nearN>=2&&typeof j.x==='number')AQ.bad.push({x:j.x,z:j.z,t:G.t+900});P.x=bk[0];P.z=bk[1];P.y=groundY(P.x,P.z,hAt(P.x,P.z)+2);P.air=false;P.vy=0;AQ.path=null;AQ.dir=null;j.stuck=0;j.best=1e9;j.pts=null;j.pl=null;TK.c=TK.c.filter(c=>c!==bk);try{G.camInit=0;}catch(e){}
           uiToast('🤖 Kẹt giữa địa hình: lùi về chỗ đi được trước đó rồi vòng đường khác.','');return AQ_RUN;}}}}catch(e){}return r;};}
 /* ===================== ĐỒNG BỘ NỀN NHÀ VÀ CÂY CỎ GIỮA NGƯỜI CHƠI =====================
    Trước: công trình được chia sẻ, nhưng việc SAN NỀN và DỌN CÂY CỎ chỉ lưu ở máy người xây. Sang xem nhà người khác thấy cỏ, bụi, cây mọc xuyên sàn.
@@ -22216,6 +22216,15 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
         for(const o of out)if(beds.some(b=>Math.hypot(b.x-o.x,b.z-o.z)<150))o.s+=600;}
       else{for(const o of out){for(const m of mine){const d=Math.hypot(m.x-o.x,m.z-o.z);if(d<160)o.s-=120;}}}
       if(ex.length){out=ex.concat(out);}out.sort((a,b)=>a.s-b.s);return out.slice(0,14);}catch(e){return out;}};}
+/* ---------- Tự làm KHÔNG BỊT LỐI VÀO CUỐI CÙNG CỦA NHÀ ----------
+   Nhà đầu tiên 2×2 ô dựng 6 vách, chừa 2 khoảng hở làm lối vào. Về sau có mục cần đặt thêm vách (vách đất…), Tự làm lấy luôn 2 khoảng hở đó → nhà kín:
+   người ở ngoài không vào được tới giường, bếp (kẹt đường hàng chục lần), người ở trong không ra được.
+   Giờ mọi chỗ đặt vách mà làm một cụm nền nhà hết lối vào (không còn cạnh trống hay cửa nào) đều bị loại. */
+function cdSeals(x,z,r){try{const v=r%2===1,i=v?Math.round(x/CELL):Math.floor(x/CELL),j=v?Math.floor(z/CELL):Math.round(z/CELL),me=(v?'v:':'h:')+i+','+j,sides=v?[[i-1,j],[i,j]]:[[i,j-1],[i,j]];
+    const fl=(a,b)=>{const c=OCC.cell.get(a+','+b);return !!(c&&c.floor);},ek=(a,b,da,db)=>da===1?'v:'+(a+1)+','+b:da===-1?'v:'+a+','+b:db===1?'h:'+a+','+(b+1):'h:'+a+','+b;
+    const open=k=>{if(k===me)return false;if(!OCC.edge.has(k))return true;try{const id=OCC.edge.get(k),b=typeof id==='object'&&id?null:BYID.get(id),d=b&&pieceDef(b.k);if(d&&(d.door||d.low||/door|gate/i.test(b.k)))return true;}catch(e){}return false;};
+    for(const [a0,b0] of sides){if(!fl(a0,b0))continue;const seen=new Set([a0+','+b0]),q=[[a0,b0]];let ok=false;while(q.length&&!ok&&seen.size<60){const [a,b]=q.pop();for(const [da,db] of [[1,0],[-1,0],[0,1],[0,-1]]){const k=ek(a,b,da,db);if(!open(k))continue;const na=a+da,nb=b+db;if(!fl(na,nb)){ok=true;break;}const key=na+','+nb;if(!seen.has(key)){seen.add(key);q.push([na,nb]);}}}if(!ok)return true;}return false;}catch(e){return false;}}
+{const _sp=aq2Spots;aq2Spots=function(def){const out=_sp.apply(this,arguments);try{if(def&&def.kind==='edge'&&!def.door&&!def.low&&!/door|gate/i.test(def.id||'')&&Array.isArray(out))return out.filter(o=>!cdSeals(o.x,o.z,o.r|0));}catch(e){}return out;};}
 /* ===================== nhohinh: NHỚ ẢNH BIỂU TƯỢNG GIỮA CÁC LẦN CHƠI =====================
    Đo cú khựng lúc đang chơi thấy: mỗi khi gặp một món MỚI (nhặt được, mở bảng), game dựng ảnh biểu tượng của món đó bằng một
    bộ vẽ 3D phụ rồi đọc ảnh về. Việc này chặn cả game một nhịp, và lần chơi nào cũng phải dựng lại từ đầu.
@@ -22515,11 +22524,16 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   {const _tb=trailsBuild;trailsBuild=function(){if(!DL.on)return _tb.apply(this,arguments);TRAILS=[];TRL=null;};}
   {const _dp=decorPlan;decorPlan=function(){if(!DL.on)return _dp.apply(this,arguments);DECO_PLAN=[];SCOL=[];};}
   if(typeof wIn==='function'){const _wi=wIn;wIn=function(x,z,k){if(!DL.on)return _wi.apply(this,arguments);return Math.hypot(x,z)<WR*(k||1);};}
-  {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')==='1'&&!(G.nworld==='mp')){dlStart(null);}}catch(e){console.warn('đại lục',e);}return r;};}
+  {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')!=='0'&&!(G.nworld==='mp')&&!S.dl){/* MẶC ĐỊNH: nhân vật mới chơi một mình sống trên đại lục (tắt: mở trang với ?dailuc=0) */dlStart(null);}}catch(e){console.warn('đại lục',e);}return r;};}
   /* các hàm dưới đây nằm trong khối riêng (chế độ nghiêm ngặt không tự đưa ra ngoài): gắn lên window để phần máy chủ (mp.js) và bài thử gọi được */
   setTimeout(()=>{try{Object.assign(window,{dlStart,dlShift,dlRebuild,dlKey,dlAnchor,dlRing,dlSeedAt});}catch(e){}},0);
   /* đưa nhân vật (S vừa tạo) lên đại lục; uid có thì chọn tỉnh theo mã người chơi */
   function dlStart(uid){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);let pk=null;if(uid){pk=0;for(let i=0;i<uid.length;i++)pk=(Math.imul(pk,31)+uid.charCodeAt(i))|0;}const a=dlAnchor(S.seed,pk);S.seed0=S.seed;S.dl={ox:a.ox,oz:a.oz};S.land=dlKey(a.ox,a.oz);S.seed=dlSeedAt(a.ox,a.oz);S.dlNew=1;worldCfg(3);}
+  /* khoáng sản cho đại lục: bản đồ cũ đặt mỏ theo các vùng vẽ tay (dãy núi, bãi muối…), đại lục không có các vùng đó nên gần như không có quặng.
+     Giờ một phần đá tảng thành quặng đồng, thiếc, đá lửa, sắt, than; một phần lau cỏ ven nước thành đất sét, bãi muối, bãi sò. Tỉ lệ cố định theo vị trí nên ai trong tỉnh cũng thấy như nhau. */
+  {const _rg=resGen;resGen=function(seed){const r=_rg.apply(this,arguments);try{if(DL.on){const sd=(S.seed|0),re=(q,t)=>{if(!RT[t])return;q.t=t;q.s=(0.85+dlHash(q.i,3,sd)*0.35)*(RT[t].sc||1);q.hp=RT[t].hp;};
+        for(const q of RES){if(q.site)continue;const u=dlHash(q.i,11,sd),t=q.t;if(t==='rock'||t==='boulder'){if(u<0.11)re(q,'copperRock');else if(u<0.25)re(q,'flintRock');else if(u<0.31)re(q,'tinRock');else if(u<0.35)re(q,'ironRock');else if(u<0.39)re(q,'coalRock');}
+          else if(t==='tallgrass'||t==='reeds'){const h=hAt(q.x,q.z);if(h<16){if(u<0.1)re(q,'clay');else if(u<0.14)re(q,'saltPan');else if(u<0.18)re(q,'shellBed');}}}}}catch(e){console.warn('khoáng sản đại lục',e);}return r;};}
   /* ngoài vùng nạp vẫn là đại lục: độ cao lấy thẳng từ mảnh (trước trả về "biển sâu") */
   {const _h=hAt;hAt=function(x,z){const h=_h(x,z);return h===-60&&DL.on?dlH(x+DL.ox,z+DL.oz):h;};}
   /* VÀNH ĐẤT XA: mặt đất thô quanh vùng nạp (ra thêm ~4 mảnh mỗi phía) để đứng ở mép vùng vẫn thấy núi đồi nối tiếp chứ không phải biển giả.

@@ -1,7 +1,7 @@
 // Thuần thú không bị đánh nhầm; người Giữ cổng khi chưa có cổng không đứng dồn ở bếp; việc mới của người làng: thợ xây, chăn nuôi, đi săn, đánh cá.
 const {chromium}=require('playwright');const HTML=process.argv[2]||require('path').resolve(__dirname,'../../index.html');
 (async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});const c=await b.newContext({viewport:{width:400,height:240}});
-await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-d');localStorage.setItem('ldtt-nohd','1')}catch(e){}});const p=await c.newPage();const logs=[];p.on('pageerror',e=>logs.push('ERR '+e.message));p.on('console',m=>{if(m.type()==='warning'&&/việc thêm|canh gác/.test(m.text()))logs.push(m.text())});
+await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-e');localStorage.setItem('ldtt-nohd','1');localStorage.setItem('ld-dl','0')}catch(e){}});const p=await c.newPage();const logs=[];p.on('pageerror',e=>logs.push('ERR '+e.message));p.on('console',m=>{if(m.type()==='warning'&&/việc thêm|canh gác/.test(m.text()))logs.push(m.text())});
 await p.goto('file://'+HTML);await p.waitForTimeout(5000);
 const click=async t=>{await p.evaluate(t=>{const b=[...document.querySelectorAll('button')].filter(b=>b.offsetParent).find(b=>b.innerText.includes(t));b&&b.click()},t);await p.waitForTimeout(1500)};
 await click('Tạo nhân vật mới');await click('Bắt đầu');await p.waitForFunction(()=>typeof G==='object'&&G.on&&G.animals&&G.animals.length&&P.model,null,{timeout:240000});await p.waitForTimeout(3000);

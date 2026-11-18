@@ -63,3 +63,12 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
         for(const o of out)if(beds.some(b=>Math.hypot(b.x-o.x,b.z-o.z)<150))o.s+=600;}
       else{for(const o of out){for(const m of mine){const d=Math.hypot(m.x-o.x,m.z-o.z);if(d<160)o.s-=120;}}}
       if(ex.length){out=ex.concat(out);}out.sort((a,b)=>a.s-b.s);return out.slice(0,14);}catch(e){return out;}};}
+/* ---------- Tự làm KHÔNG BỊT LỐI VÀO CUỐI CÙNG CỦA NHÀ ----------
+   Nhà đầu tiên 2×2 ô dựng 6 vách, chừa 2 khoảng hở làm lối vào. Về sau có mục cần đặt thêm vách (vách đất…), Tự làm lấy luôn 2 khoảng hở đó → nhà kín:
+   người ở ngoài không vào được tới giường, bếp (kẹt đường hàng chục lần), người ở trong không ra được.
+   Giờ mọi chỗ đặt vách mà làm một cụm nền nhà hết lối vào (không còn cạnh trống hay cửa nào) đều bị loại. */
+function cdSeals(x,z,r){try{const v=r%2===1,i=v?Math.round(x/CELL):Math.floor(x/CELL),j=v?Math.floor(z/CELL):Math.round(z/CELL),me=(v?'v:':'h:')+i+','+j,sides=v?[[i-1,j],[i,j]]:[[i,j-1],[i,j]];
+    const fl=(a,b)=>{const c=OCC.cell.get(a+','+b);return !!(c&&c.floor);},ek=(a,b,da,db)=>da===1?'v:'+(a+1)+','+b:da===-1?'v:'+a+','+b:db===1?'h:'+a+','+(b+1):'h:'+a+','+b;
+    const open=k=>{if(k===me)return false;if(!OCC.edge.has(k))return true;try{const id=OCC.edge.get(k),b=typeof id==='object'&&id?null:BYID.get(id),d=b&&pieceDef(b.k);if(d&&(d.door||d.low||/door|gate/i.test(b.k)))return true;}catch(e){}return false;};
+    for(const [a0,b0] of sides){if(!fl(a0,b0))continue;const seen=new Set([a0+','+b0]),q=[[a0,b0]];let ok=false;while(q.length&&!ok&&seen.size<60){const [a,b]=q.pop();for(const [da,db] of [[1,0],[-1,0],[0,1],[0,-1]]){const k=ek(a,b,da,db);if(!open(k))continue;const na=a+da,nb=b+db;if(!fl(na,nb)){ok=true;break;}const key=na+','+nb;if(!seen.has(key)){seen.add(key);q.push([na,nb]);}}}if(!ok)return true;}return false;}catch(e){return false;}}
+{const _sp=aq2Spots;aq2Spots=function(def){const out=_sp.apply(this,arguments);try{if(def&&def.kind==='edge'&&!def.door&&!def.low&&!/door|gate/i.test(def.id||'')&&Array.isArray(out))return out.filter(o=>!cdSeals(o.x,o.z,o.r|0));}catch(e){}return out;};}
