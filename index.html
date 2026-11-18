@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118043521">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118060430">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -7363,6 +7363,9 @@ float t3h=0.5,t3wet=0.0,t3rk=0.0,t3far=0.0;
  #endif
  col*=1.0-uWet*0.2;
  float snow=uSnow*smoothstep(0.55,0.9,N.y)*(0.62+0.38*smoothstep(0.35,0.65,m2.b+(1.0-t3h)*0.25))*(1.0-uw);col=mix(col,vec3(0.86,0.9,0.95),snow);
+ /* núi cao: tuyết phủ mặt thoải trên đỉnh, cỏ rêu bám trên các thềm đá lưng chừng núi */
+ {float sn=smoothstep(760.0,960.0,wp.y+m2.r*120.0)*smoothstep(0.45,0.8,N.y);col=mix(col,vec3(0.90,0.93,0.97),sn*0.92);
+  float lg=smoothstep(0.80,0.94,N.y)*smoothstep(250.0,330.0,wp.y)*(1.0-smoothstep(640.0,800.0,wp.y));col=mix(col,vec3(0.17,0.30,0.10)*(0.8+m2.g*0.5),lg*0.62);}
  diffuseColor.rgb=col;t3wet=max(wb*0.85,max(uw,uWet*0.6));}`;
 const T3_TERR_BUMP=`
 #if T3D>0
@@ -7377,7 +7380,7 @@ terrainSplatMat=function(m){const tx=t3Tex(),U=t3U();m.userData.noSea=1;T3.terr=
       .replace('#include <color_fragment>','#include <color_fragment>\n'+T3_TERR_FS)
       .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\n  roughnessFactor=clamp(roughnessFactor-t3rk*0.1-t3wet*0.55,0.32,1.0);')
       .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n'+T3_TERR_BUMP);};
-  m.customProgramCacheKey=()=>'t3terr4'+(G.q|0);m.needsUpdate=true;};
+  m.customProgramCacheKey=()=>'t3terr5'+(G.q|0);m.needsUpdate=true;};
 /* ---------- shader nước: sông/suối (RIVER), biển/hồ (mặc định), thác (FALL) ---------- */
 const T3_WATER_VS=`
 #ifdef RIVER
@@ -22421,6 +22424,16 @@ function sl3Rest(){try{if(!G.sc||!S||typeof ltS!=='function')return;const L=ltS(
     for(const [k,o] of SL3.rest){if(!want.has(k)||SL3.sig!==sig){G.sc.remove(o);SL3.rest.delete(k);}}SL3.sig=sig;
     for(const [k,s] of want){if(SL3.rest.has(k))continue;const p=rest.find(x=>(x.id+':'+(x.st||0)+':'+x.k)===k);if(!p)continue;const o=ltModel(p);o.position.set(s[0],hAt(s[0],s[1])+(s[2]?1.2:0),s[1]);o.rotation.y=(p.id*2.4)%6.283;G.sc.add(o);try{seasonPatchAll(o);}catch(e){}SL3.rest.set(k,o);}}catch(e){}}
 setInterval(()=>{try{if(typeof G==='object'&&G.on&&S)sl3Rest();}catch(e){}},2000);
+/* ===================== nuicao: NÚI CAO, VÁCH ĐÁ DỰNG THEO TẦNG =====================
+   Trước: đỉnh cao nhất chỉ ~700 đơn vị (35 m), dáng tròn thoải như đồi, nhìn xa không ra núi.
+   Giờ, từ độ cao 230 trở lên (vùng núi; đồng bằng, đồi thấp, làng mạc KHÔNG đổi):
+     · núi được kéo cao gần gấp đôi;
+     · sườn núi gãy thành từng tầng vách dựng xen thềm phẳng (mỗi tầng ~150 đơn vị, mép tầng uốn lượn theo nhiễu) → có vách đá thật sự,
+       lớp vân đá phân tầng sẵn có trong shader hiện rõ trên vách; thềm phẳng là chỗ đứng, chỗ dựng chòi canh.
+   Sông suối khoét lòng theo độ cao mới nên vẫn khớp. Công trình đã dựng ở độ cao trên 230 sẽ lệch mặt đất (hiếm). */
+{const _bh=baseH;baseH=function(x,z){const h=_bh(x,z);if(!(h>230))return h;const v=230+(h-230)*1.75,n=NS.fbm(x/900+31,z/900-17,2)*60,s=150,q=(v+n)/s,f=q-Math.floor(q),st=(Math.floor(q)+ss(0.3,0.7,f))*s-n,k=ss(230,420,h)*0.65;return v*(1-k)+st*k;};}
+/* cột đá, tảng đá trang trí vốn đặt trên đồi thoải; giờ sườn núi dựng đứng nên chúng treo lơ lửng trên vách: bỏ những cái nằm trên sườn dốc hoặc trên cao */
+{const _dp=decorPlan;decorPlan=function(){const r=_dp.apply(this,arguments);try{const bad=d=>(d.k==='karst'||d.k==='cliffRock')&&(hAt(d.x,d.z)>300||slopeAt(d.x,d.z)>0.5);const gone=DECO_PLAN.filter(bad);if(gone.length){DECO_PLAN=DECO_PLAN.filter(d=>!bad(d));SCOL=SCOL.filter(c=>!gone.some(d=>d.x===c.x&&d.z===c.z));}}catch(e){}return r;};}
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.

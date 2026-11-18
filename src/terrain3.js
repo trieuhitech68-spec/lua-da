@@ -180,6 +180,9 @@ float t3h=0.5,t3wet=0.0,t3rk=0.0,t3far=0.0;
  #endif
  col*=1.0-uWet*0.2;
  float snow=uSnow*smoothstep(0.55,0.9,N.y)*(0.62+0.38*smoothstep(0.35,0.65,m2.b+(1.0-t3h)*0.25))*(1.0-uw);col=mix(col,vec3(0.86,0.9,0.95),snow);
+ /* núi cao: tuyết phủ mặt thoải trên đỉnh, cỏ rêu bám trên các thềm đá lưng chừng núi */
+ {float sn=smoothstep(760.0,960.0,wp.y+m2.r*120.0)*smoothstep(0.45,0.8,N.y);col=mix(col,vec3(0.90,0.93,0.97),sn*0.92);
+  float lg=smoothstep(0.80,0.94,N.y)*smoothstep(250.0,330.0,wp.y)*(1.0-smoothstep(640.0,800.0,wp.y));col=mix(col,vec3(0.17,0.30,0.10)*(0.8+m2.g*0.5),lg*0.62);}
  diffuseColor.rgb=col;t3wet=max(wb*0.85,max(uw,uWet*0.6));}`;
 const T3_TERR_BUMP=`
 #if T3D>0
@@ -194,7 +197,7 @@ terrainSplatMat=function(m){const tx=t3Tex(),U=t3U();m.userData.noSea=1;T3.terr=
       .replace('#include <color_fragment>','#include <color_fragment>\n'+T3_TERR_FS)
       .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\n  roughnessFactor=clamp(roughnessFactor-t3rk*0.1-t3wet*0.55,0.32,1.0);')
       .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n'+T3_TERR_BUMP);};
-  m.customProgramCacheKey=()=>'t3terr4'+(G.q|0);m.needsUpdate=true;};
+  m.customProgramCacheKey=()=>'t3terr5'+(G.q|0);m.needsUpdate=true;};
 /* ---------- shader nước: sông/suối (RIVER), biển/hồ (mặc định), thác (FALL) ---------- */
 const T3_WATER_VS=`
 #ifdef RIVER
