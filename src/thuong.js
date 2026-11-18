@@ -65,3 +65,15 @@ try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITE
     const night=typeof isNight==='function'&&isNight(),dai=(AQ.fl3||[]).filter(t=>G.t-t<120).length>=3;if(!(S.p.hp<60||night||dai))return r;
     const f=aqFire(true);if(!f)return r;const d=aqD(f.x,f.z);if(d<160||d>800)return r;/* gần lửa sẵn rồi, hoặc lửa xa quá thì cứ né như cũ */
     AQ.jobs.pop();AQ.path=null;AQ.dir=null;const t2=AQ.jobs[AQ.jobs.length-1];if(t2&&!aqHasUrgent('camp')){aqPush({k:'camp',urgent:1},t2);aqSay('🤖 Thú dữ tới gần: chạy về bên bếp lửa, chúng sợ lửa.','bad');}}catch(e){}return r;};}
+/* ---------- Tự làm: sống sót ổn định hơn ở giai đoạn sau ----------
+   Chạy thử dài: (1) buồn ngủ là đi ngủ ngay dù bụng đang đói, khát → ngủ dậy thì đói khát cạn, lại gặp sói nên không kịp ăn uống;
+   (2) đang cắm mốc công trình mà bị thú dữ cắt ngang, Tự làm dừng nhưng vẫn kẹt ở chế độ xây → bấm Tự làm lại không chạy.
+   Giờ: trước khi ngủ, nếu no hoặc nước dưới 40 thì ăn uống trước; Tự làm dừng thì tự thoát chế độ xây do chính nó mở. */
+{const _ps=aqPush;aqPush=function(j,par){const r=_ps.apply(this,arguments);try{if(j&&j.k==='sleep'&&AQ.on&&!j._pre){j._pre=1;const p=S.p;if(p.food<40&&aqFood(p.food<12))_ps.call(this,{k:'eat',urgent:1,tries:0},j);if(p.water<40)_ps.call(this,{k:'drink',urgent:1,tries:0},j);}}catch(e){}return r;};}
+{const _st=aqStop;aqStop=function(){const was=(AQ.on||AQ.pause)&&(AQ.jobs||[]).some(j=>/place|bp|qh|site/.test(j.k||''));const r=_st.apply(this,arguments);try{if(was&&G.build&&typeof buildEnd==='function')buildEnd();}catch(e){}return r;};}
+/* (3) Việc đang làm thất bại (không có chỗ đặt, không thấy nguyên liệu, không có đường…) thì Tự làm dừng hẳn — nếu lúc đó thú dữ / kẻ địch đang ở gần,
+   nhân vật đứng yên chịu đòn tới chết. Giờ: dừng vì thất bại mà có mối nguy trong 300 thì KHÔNG đứng lại, lánh về trại (bếp lửa / chỗ ngủ) trước; tới nơi mới dừng.
+   Không quá 3 lần trong 2 phút để khỏi lặp vô hạn. */
+{const _st=aqStop;aqStop=function(msg,kind){try{if(AQ.on&&msg&&/Dừng tự làm/.test(msg)&&!G.sleeping&&S.p.hp>0){let near=false;for(const a of aqPred())if(Math.hypot(a.x-P.x,a.z-P.z)<300){near=true;break;}
+      const hb=near&&(aqFire(true)||aqFire()||aqBed());AQ._esc=(AQ._esc||[]).filter(t=>G.t-t<120);
+      if(hb&&aqD(hb.x,hb.z)>70&&AQ._esc.length<3){AQ._esc.push(G.t);AQ.jobs=[];aqPush({k:'camp',urgent:1},null);uiToast(msg.replace('Dừng tự làm','Việc này chưa làm được')+' Có mối nguy ở gần: lánh về trại đã.','bad');return;}}}catch(e){}return _st.apply(this,arguments);};}
