@@ -90,9 +90,11 @@ function aqFindRes(types,o){o=o||{};const maxR=o.max||aqCfg().max,key=types.join
         const wd=wdAt(q.x,q.z);if(wd>3.2)continue;if(pr.length&&pr.some(p=>Math.hypot(p.x-q.x,p.z-q.z)<210))continue;let sc=d*(o.w?o.w(q):1)+(wd>0.8?120:0);if(sc<bs){bs=sc;best=q;}}}}
   AQ.cache.set(key,{t:G.t,q:best});if(AQ.cache.size>60)AQ.cache.delete(AQ.cache.keys().next().value);return best;}
 // nước gần nhất: điểm nước + chỗ đứng trên bờ
+/* bến nước đã thử mà KHÔNG tới được (vách đá, nước sâu chắn đường): [x,z,hết hạn]. Nhớ qua các lần bấm Tự làm, 15 phút, để không quay lại đúng bến đó mãi tới khát cạn */
+const AQW=[];
 function aqFindWater(){const C=AQ.wC;if(C&&G.t-C.t<4&&Math.hypot(C.px-P.x,C.pz-P.z)<60)return C.w;let w=null;const maxR=aqCfg().max,PR=AQ._noPr?[]:aqPred();/* tránh bến nước có thú dữ rình (cá sấu, hổ): trước cứ ra đúng bến đó, bị đuổi, quay lại… tới khát lả */
   for(const b of S.builds){if(b.prog!=null||b.k!=='well')continue;const d=aqD(b.x,b.z);if(d<maxR&&(!w||d<w.d))w={well:b,sx:b.x,sz:b.z,wx:b.x,wz:b.z,d};}
-  for(let r=0;r<=maxR&&!(w&&w.d<r);r+=24){const n=Math.max(1,Math.ceil(r*6.283/26));for(let k=0;k<n;k++){const a=k/n*6.283,x=P.x+Math.cos(a)*r,z=P.z+Math.sin(a)*r,wd=wdAt(x,z);if(wd<0.5||wd>7)continue;
+  for(let r=0;r<=maxR&&!(w&&w.d<r);r+=24){const n=Math.max(1,Math.ceil(r*6.283/26));for(let k=0;k<n;k++){const a=k/n*6.283,x=P.x+Math.cos(a)*r,z=P.z+Math.sin(a)*r,wd=wdAt(x,z);if(wd<0.5||wd>7)continue;if(AQW.length&&AQW.some(b=>b[2]>G.t&&Math.hypot(b[0]-x,b[1]-z)<220))continue;
       let sx=x,sz=z;const ux=(P.x-x)/(r||1),uz=(P.z-z)/(r||1);for(let s=0;s<16&&wdAt(sx,sz)>0.25;s++){sx+=ux*6;sz+=uz*6;}if(wdAt(sx,sz)>0.6)continue;if(slopeAt(sx,sz)>0.9)continue;if(PR.length&&PR.some(q=>Math.hypot(q.x-sx,q.z-sz)<320))continue;
       const d=Math.hypot(sx-P.x,sz-P.z),L=Math.hypot(x-sx,z-sz)||1;if(!w||d<w.d)w={sx,sz,wx:x,wz:z,fx:sx+(x-sx)/L*Math.min(24,L),fz:sz+(z-sz)/L*Math.min(24,L),d};}if(w&&!w.well)break;}
   if(!w&&PR.length&&!AQ._noPr){AQ._noPr=1;AQ.wC=null;try{return aqFindWater();}finally{AQ._noPr=0;}}
