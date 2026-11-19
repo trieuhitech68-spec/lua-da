@@ -16,9 +16,9 @@ const KNS=[
  {id:'rally',lv:6,ic:'📣',n:'Hiệu triệu',d:'Người nhà trong 60 m xông tới đánh cùng, mạnh +50% trong 15 giây.',st:0,cd:45,key:'KeyC'},
  {id:'heal',lv:8,ic:'🩹',n:'Băng bó',d:'Hồi 30 máu, cầm máu. Tốn 2 sợi cỏ.',st:0,cd:60,key:'KeyN'},
  {id:'roar',lv:10,ic:'🦁',n:'Gầm thét',d:'Thú dữ, chiến binh trong 15 m hoảng sợ bỏ chạy 6 giây.',st:20,cd:40,key:'KeyB'},
- {id:'spin',lv:15,ic:'🌀',n:'Quét vòng',d:'Đánh mọi kẻ địch trong 5 m quanh mình.',st:25,cd:15,key:'KeyH'}];
+ {id:'spin',lv:20,ic:'🌀',n:'Quét vòng',d:'Đánh mọi kẻ địch trong 5 m quanh mình.',st:25,cd:15,key:'KeyH'}];
 const knLv=()=>typeof heroLv==='function'?heroLv():1;
-const knHas=k=>knLv()>=k.lv;
+const knHas=k=>typeof knLearned==='function'?knLearned(k):knLv()>=k.lv;/* chiêu phải HỌC (mokhoa.js); chưa nạp phần đó thì theo cấp như cũ */
 function knUse(id){const k=KNS.find(x=>x.id===id);if(!k||!S||!G.on||G.sleeping)return;if(!knHas(k)){uiToast(`${k.n}: học được khi nhân vật đạt cấp ${k.lv}.`,'');return;}const left=(KN.cd[id]||0)-G.t;if(left>0){uiToast(`${k.n} còn hồi ${Math.ceil(left)} giây.`,'');return;}
   if(S.p.stam<k.st){uiToast('Không đủ thể lực.','bad');sfx('no');return;}
   if(id==='heal'){if(invCount('fiber')<2){uiToast('Cần 2 sợi cỏ để băng bó.','bad');sfx('no');return;}invTake('fiber',2);S.p.hp=Math.min(100,S.p.hp+30);try{delete S.st.bleed;}catch(e){}uiHotbar();}

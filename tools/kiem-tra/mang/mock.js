@@ -1,5 +1,5 @@
 // window.claude giả: db trong bộ nhớ (giống Firestore), user, không có room
-(()=>{const D=new Map(),L=new Set();const now=Date.now();try{localStorage.setItem('ld-dl','0');}catch(e){}
+(()=>{const D=new Map(),L=new Set();const now=Date.now();try{localStorage.setItem('ld-dl','0');localStorage.setItem('ldtt-kt','1');}catch(e){}
   const put=(p,v)=>{D.set(p,JSON.parse(JSON.stringify(v)));L.forEach(f=>{try{f(p)}catch(e){}});};
   window.__db=D;window.__put=put;
   put('world/main',{seed:12345,wv:3});put('world/s2',{seed:777,wv:3});

@@ -85,6 +85,7 @@ echo "26. Chăn nuôi: có dê núi, thuần dê và thỏ, thả con giống, l
 OUT=$(timeout 400 node chan-nuoi.js 2>&1); echo "$OUT" | grep -q "^CNU-DAT" && ok "chăn nuôi, nhà mới" || bad "chăn nuôi, nhà mới: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
 OUT=$(timeout 400 node thu-khon.js 2>&1); echo "$OUT" | grep -q "^THK-DAT" && ok "vật nuôi khôn: chó trông nhà, đi săn; gà tối về chuồng; chiến thú canh nhà; thú cưỡi tự về; voi vẽ lại" || bad "vật nuôi khôn: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
 OUT=$(timeout 400 node dao-hao.js 2>&1); echo "$OUT" | grep -q "^DAO-DAT" && ok "đào hào, đào hố: lún thật, dụng cụ quyết định độ sâu, địa hình quyết định đào được, lấp lại được" || bad "đào hào: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
+OUT=$(timeout 400 node mo-khoa.js 2>&1); echo "$OUT" | grep -q "^MK-DAT" && ok "mở khoá theo cấp (tối đa 50), học chiêu, di tích cổ mở theo giờ, quản trị mở hết" || bad "mở khoá: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo "27. Thuần thú không bị đánh nhầm (cầm rìu vẫn cho ăn, hết thức ăn không đánh); Giữ cổng khi chưa có cổng không dồn ở bếp; việc mới: thợ xây, chăn nuôi, đi săn, đánh cá; nhiệm vụ ngày 5 việc"
 OUT=$(timeout 500 node viec-them.js 2>&1); echo "$OUT" | grep -q "^VT-DAT" && ok "việc mới của người làng, thuần thú" || bad "việc mới, thuần thú: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-900)"
 echo "28. Người nấu ăn: một hay hai người bên bếp đều đứng yên, mỗi người một chỗ, không giật qua lại"

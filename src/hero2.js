@@ -7,7 +7,8 @@
        · Dụng cụ +5% tốc độ chặt, đào/bậc. Tốn vật liệu tăng dần (đá, da, gỗ; từ bậc 6 cần đồng thau, từ bậc 9 cần sắt). Phải đứng gần Bàn chế tác.
    Lưu: S.hero.en={wp,ar,tl}. */
 /* 10 bậc danh hiệu, hai bậc cuối rất xa (cấp 70, 90): theo thứ bậc thời Hùng Vương — Bồ chính (đầu làng) → Lạc tướng → Lạc hầu → Quan lang → Hùng Vương */
-const HERO_RANK=[[1,'Người hái lượm','🌿'],[5,'Thợ săn','🏹'],[10,'Chiến binh','🗡️'],[15,'Dũng sĩ','🛡️'],[20,'Thủ lĩnh','🔥'],[30,'Bồ chính','🏘️'],[40,'Lạc tướng','🐉'],[55,'Lạc hầu','👑'],[70,'Quan lang','🦅'],[90,'Hùng Vương','☀️']];
+/* 10 danh hiệu trải trên 50 cấp (cấp tối đa 50, xem mokhoa.js) */
+const HERO_RANK=[[1,'Người hái lượm','🌿'],[4,'Thợ săn','🏹'],[8,'Chiến binh','🗡️'],[12,'Dũng sĩ','🛡️'],[17,'Thủ lĩnh','🔥'],[22,'Bồ chính','🏘️'],[28,'Lạc tướng','🐉'],[35,'Lạc hầu','👑'],[42,'Quan lang','🦅'],[50,'Hùng Vương','☀️']];
 const HERO_EN=[['wp','⚔️','Vũ khí','+6% sát thương mỗi bậc',0.06],['ar','🛡️','Giáp phục','−2% sát thương nhận vào mỗi bậc',0.02],['tl','🪓','Dụng cụ','+5% tốc độ chặt, đào mỗi bậc',0.05]];
 const HERO_ENMAX=10;
 function heroRankI(){const lv=heroLv();let i=0;for(let k=0;k<HERO_RANK.length;k++)if(lv>=HERO_RANK[k][0])i=k;return i;}
