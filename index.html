@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119040419">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119040856">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -23263,7 +23263,10 @@ const mkTest=()=>{try{return localStorage.getItem('ldtt-kt')==='1';}catch(e){ret
 const mkAdmin=()=>{try{return typeof ADM==='object'&&ADM.admin===true;}catch(e){return false;}};
 const mkFree=()=>mkAdmin()||mkTest();
 function mkLv(k){const e=MK.find(x=>x[0]===k);return e?e[1]:1;}
-function mkOk(k){return mkFree()||(typeof heroLv==='function'?heroLv():1)>=mkLv(k);}
+/* nhiệm vụ hướng dẫn đang đòi đúng tính năng này thì cho dùng dù chưa đủ cấp (không để người chơi kẹt giữa chuỗi nhiệm vụ) */
+const MKQ={thuan:/thuần|gà rừng|lợn rừng/i,ngua:/ngựa/i,chienthu:/khỉ|gấu|hổ|báo/i,dao:/đào hào|đào hố/i,cuonghoa:/cường hoá|đập đồ/i,lanhtho:/lãnh thổ|cắm mốc/i,nghiencuu:/nghiên cứu/i,lienminh:/liên minh|bộ tộc/i,quan:/chiêu mộ lính|trại lính/i,tuong:/phong tướng/i,voi:/voi/i};
+function mkGoalNeeds(k){try{const g=typeof GOALS!=='undefined'&&S&&GOALS[S.goal],q=MKQ[k];return !!(g&&q&&q.test(String(g.t||'')+' '+String(g.d||'')));}catch(e){return false;}}
+function mkOk(k){return mkFree()||(typeof heroLv==='function'?heroLv():1)>=mkLv(k)||mkGoalNeeds(k);}
 function mkWhy(k){if(mkOk(k))return '';const e=MK.find(x=>x[0]===k);return `🔒 ${e[3]}: mở khi nhân vật đạt cấp ${e[1]} (đang cấp ${heroLv()}). Xem lộ trình trong ☰ → 📈 Phát triển.`;}
 function mkStop(k){const w=mkWhy(k);if(w){uiToast(w,'bad');try{sfx('no');}catch(e){}return true;}return false;}
 /* cấp tối đa 50 */
