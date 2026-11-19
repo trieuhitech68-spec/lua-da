@@ -101,12 +101,12 @@ setInterval(()=>{try{if(typeof G!=='object'||!G.on||!S||!S.pets)return;for(const
 /* ---------- SỬA: CHIẾN THÚ Ở NHÀ CHỚP TẮT ----------
    Bản cũ (sualoi3.js) cứ 2 giây tính lại "các chỗ nằm"; chỗ nằm phụ thuộc va chạm quanh đó nên hay đổi, mỗi lần đổi là XOÁ hết hình rồi dựng lại ở chỗ mới
    → con thú biến mất rồi mọc lại, phần đi lại canh nhà bị đặt lại từ đầu. Giờ: mỗi con một hình giữ nguyên suốt; chỉ thêm khi có con mới nghỉ, chỉ bỏ khi con đó
-   xuất chiến / không còn. Chỗ nằm chỉ dùng làm "nhà" lúc mới hiện; dựng Chuồng thú chiến sau đó thì dời nhà về chuồng (con thú tự đi bộ về). */
+   xuất chiến / không còn. Chỗ nằm chỉ dùng làm "nhà" lúc mới hiện; dựng Chuồng thú chiến sau đó thì con thú được đưa về chuồng ngay. */
 sl3Rest=function(){try{if(!G.sc||!S||typeof ltS!=='function')return;const L=ltS(),rest=L.list.filter(p=>p.id!==L.act),keys=new Set(rest.map(p=>p.id+':'+(p.st||0)+':'+p.k));
     for(const [k,o] of SL3.rest){if(!keys.has(k)||o.parent!==G.sc){try{G.sc.remove(o);}catch(e){}SL3.rest.delete(k);}}if(!rest.length)return;
     const dens=[];for(const b of S.builds)if(b.ht==='qh_chuongthu'&&b.prog==null&&!b.remote&&pieceDef(b.k)&&pieceDef(b.k).kind==='floor')dens.push([b.x,b.z]);const dsig=dens.map(d=>Math.round(d[0])+','+Math.round(d[1])).join(';');
     let need=false;for(const p of rest)if(!SL3.rest.has(p.id+':'+(p.st||0)+':'+p.k))need=true;const moved=THK.dsig!==dsig;THK.dsig=dsig;if(!need&&!moved)return;const sp=sl3RestSpots(rest.length);
-    rest.forEach((p,i)=>{const k=p.id+':'+(p.st||0)+':'+p.k,s=sp[i]||sp[sp.length-1];if(!s)return;let o=SL3.rest.get(k);if(!o){o=ltModel(p);o.position.set(s[0],hAt(s[0],s[1]),s[1]);o.rotation.y=(p.id*2.4)%6.283;G.sc.add(o);try{seasonPatchAll(o);}catch(e){}SL3.rest.set(k,o);}else if(moved&&o.userData.thk){o.userData.thk.hx=s[0];o.userData.thk.hz=s[1];o.userData.thk.m='idle';o.userData.thk.t=0;}});}catch(e){}};
+    rest.forEach((p,i)=>{const k=p.id+':'+(p.st||0)+':'+p.k,s=sp[i]||sp[sp.length-1];if(!s)return;let o=SL3.rest.get(k);if(!o){o=ltModel(p);o.position.set(s[0],hAt(s[0],s[1]),s[1]);o.rotation.y=(p.id*2.4)%6.283;G.sc.add(o);try{seasonPatchAll(o);}catch(e){}SL3.rest.set(k,o);}else if(moved){/* vừa dựng (hoặc dỡ) Chuồng thú chiến: đưa con thú về chỗ nằm mới ngay */o.position.set(s[0],hAt(s[0],s[1]),s[1]);const t=o.userData.thk;if(t){t.hx=t.x=s[0];t.hz=t.z=s[1];t.m='idle';t.t=3;}}});}catch(e){}};
 /* ---------- NGỰA, VOI Ở NHÀ: đi lại quanh chỗ đứng; VOI canh nhà ----------
    Thú cưỡi rảnh (không ai cưỡi, không cấp cho lính) trước đứng im như tượng. Giờ chúng thong thả đi quanh chỗ đứng (trong chuồng thì quanh quẩn hẹp hơn), cúi gặm cỏ, vẫy đuôi;
    chủ lại gần thì đứng yên quay nhìn để dễ leo lên. VOI thấy thú dữ / kẻ địch tới gần chỗ nó đứng thì xông ra húc (đòn mạnh), rồi quay về. */
