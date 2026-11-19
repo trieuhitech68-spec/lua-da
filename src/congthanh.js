@@ -21,7 +21,7 @@ function cthOut(){const k=S&&S.ct&&S.ct.k;if(!k)return null;const o={},now=cthNo
 function cthIn(docs){const o={},now=cthNow();for(const d of docs){const v=d.data();if(!v||v.w!==seed0()||!v.K||typeof v.K!=='object'||!mpIdOk(d.id))continue;const e={};let n=0;for(const k in v.K){if(n++>=8)break;if(typeof k==='string'&&k.length<40&&mpNum(v.K[k],1e12,now+600000))e[k]=v.K[k];}o[d.id]=e;}
   CTH.k=o;if(!S||!S.rlm)return;const C=cthS(),pf=cthPf(),me=rlGrp(MP.uid);
   for(const s of RL.sites){const kn=cthKnock(s.id);if(!kn||kn.uid===MP.uid||kn.g===me||kn.at<=(C.seen[pf+s.id]||0))continue;C.seen[pf+s.id]=kn.at;const st=S.rlm.s[s.id];if(!st||st.own!=='me')continue;
-    for(const i in st.stock)st.stock[i]=Math.floor(st.stock[i]/2);uiToast(`🔥 ${esc(rlGName(kn.g))} đã công phá tiền đồn ${s.def.n} của bạn! Mất nửa kho, 24 giờ tới không tính điểm giữ đất.`,'bad');sfx('hurt');save();}
+    for(const i in st.stock)st.stock[i]=Math.floor(st.stock[i]/2);uiToast(`🔥 ${rlGName(kn.g)} đã công phá tiền đồn ${s.def.n} của bạn! Mất nửa kho, 24 giờ tới không tính điểm giữ đất.`,'bad');sfx('hurt');save();}
   try{rlMpCalc();}catch(e){}}
 // trong 24 giờ sau khi bị công phá: chỉ phe công phá được tính giữ đất
 {const _c=rlMpCalc;rlMpCalc=function(){_c.apply(this,arguments);try{for(const s of RL.sites){const c=RL.mp.ctl[s.id];if(!c)continue;const kn=cthKnock(s.id);if(!kn)continue;const L=c.all.filter(a=>a[0]===kn.g);

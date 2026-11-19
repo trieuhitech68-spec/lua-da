@@ -5,7 +5,7 @@
      📅 Ngày          : quà điểm danh, việc hằng ngày, việc tuần (lấy từ bảng Làng), làm và nhận ngay tại đây.
      📋 Phụ           : nhiệm vụ phụ nhận thưởng như cũ. */
 {const _old=nvHtml;
-  const parts=()=>{const d=document.createElement('div');d.innerHTML=_old();const secs=[];let cur=null;for(const n of [...d.childNodes]){if(n.nodeType===1&&n.tagName==='H3'){cur={h:n.outerHTML,b:''};secs.push(cur);}else if(cur)cur.b+=n.nodeType===1?n.outerHTML:(n.textContent||'');}return secs;};
+  const parts=()=>{const d=document.createElement('div');d.innerHTML=_old();const secs=[];let cur=null;for(const n of [...d.childNodes]){if(n.nodeType===1&&n.tagName==='H3'){cur={h:n.outerHTML,b:''};secs.push(cur);}else if(cur)cur.b+=n.nodeType===1?n.outerHTML:esc(n.textContent||'');}return secs;};
   const chHtml=()=>{if(typeof TR_CH==='undefined')return '';const by={};GOALS.forEach((g,i)=>{const c=trCh(i);(by[c]=by[c]||[]).push(i);});const cur=trCh(Math.min(S.goal,GOALS.length-1));
     return TR_CH.map((C,c)=>{const L=by[c]||[];if(!L.length)return '';const done=L.filter(i=>i<S.goal).length,open=c===cur&&S.goal<GOALS.length;
       const rows=L.map(i=>{const g=GOALS[i],st=i<S.goal?'got':i===S.goal?'run':'lock',[v,n]=st==='run'?goalProg(g):[0,g.n];return `<div class="nv-st ${st}"><span>${st==='got'?'✔':st==='run'?'▶':'○'}</span><div><b>${esc(g.t)}</b>${st==='run'?`<small>${esc(g.d)}</small>${n>1?`<div class="h2-bar"><i style="width:${v/n*100}%"></i></div><small>${v}/${n}</small>`:''}`:''}</div></div>`;}).join('');

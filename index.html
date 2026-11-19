@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119033820">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119034621">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -18337,7 +18337,7 @@ function mpZoneL(z){return z&&typeof z.l==='string'&&/^[a-z0-9]{1,6}$/.test(z.l)
 function mpZoneRaw(z){const v=mpValZone(z);if(!v)return null;const l=mpZoneL(z);if(l!=='c')v.l=l;return v;}
 function mpZoneHere(z){const v=mpValZone(z);return v&&mpZoneL(z)===((typeof S==='object'&&S&&S.land)||'c')?v:null;}
 function mpValZone(z){if(!z||typeof z!=='object'||!mpNum(z.x,-2e4,2e4)||!mpNum(z.z,-2e4,2e4)||!mpNum(z.r,40,600))return null;return {x:z.x,z:z.z,r:z.r};}
-function mpValClan(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;const name=mpTxt(d.name,24);if(!name||d.leader!==id||!Array.isArray(d.members))return null;
+function mpValClan(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;const name=mpTxt(d.name,24).replace(/[<>"'&`]/g,'');/* phòng xa: mọi chỗ hiện tên đều đã thoát ký tự, nhưng bỏ luôn ký tự HTML để một chỗ hiện mới viết thiếu cũng không thành lỗ hổng */if(!name||d.leader!==id||!Array.isArray(d.members))return null;
   const members=[...new Set(d.members.filter(mpIdOk))].slice(0,MP_CLANMAX);if(!members.includes(id))members.unshift(id);
   return {id,name,leader:id,members,color:typeof d.color==='string'&&/^#[0-9a-fA-F]{6}$/.test(d.color)?d.color:MPCOL[7],emblem:MPEMB.includes(d.emblem)?d.emblem:'🔥',createdAt:mpNum(d.createdAt,0,1e14)?d.createdAt:0,zone:mpZoneHere(d.zone),zoneRaw:mpZoneRaw(d.zone),deny:Array.isArray(d.deny)?d.deny.filter(mpIdOk).slice(0,60):[]};}
 /* lãnh thổ thuộc vùng nào thì chỉ có hiệu lực ở vùng đó. ĐẠI LỤC: lãnh thổ ở 8 TỈNH KỀ BÊN cũng được giữ, dời toạ độ sang hệ của tỉnh đang đứng
@@ -18571,7 +18571,7 @@ function mpOffer(n){const r=MP.rp.get(G.mpGiftTo),s=S.inv[G.mpGs];if(!r||!s||!r.
   n=Math.max(1,Math.min(n|0,invCount(s.id)));const tid=mpTid();MP.offers.set(tid,{peer:r.peer,uid:r.uid,id:s.id,n,at:mpNow()});
   mpEmit('trade',{k:'offer',to:r.peer,tid,id:s.id,n}).then(ok=>{if(ok)uiToast(`Đã mời ${mpName(r.uid)} nhận ${n} ${ITEMS[s.id].n}. Chờ họ đồng ý…`,'');});G.mpGiftTo=null;G.mpGs=null;}
 function mpTradeHear(m){if(!m||m.isMe||!mpOn()||!m.data||typeof m.data!=='object')return;const d=m.data;if(d.to!==MP.myPeer||typeof d.tid!=='string'||!/^[a-z0-9]{6,24}$/.test(d.tid)||!mpIdOk(m.by))return;
-  if(d.k==='offer'){if(!ITEMS[d.id]||!mpNum(d.n,1,999)||Math.floor(d.n)!==d.n||MP.inbox.length>4||S.mpGot.includes(d.tid))return;MP.inbox.push({tid:d.tid,peer:m.peer,uid:m.by,id:d.id,n:d.n,at:mpNow()});mpAskShow();return;}
+  if(d.k==='offer'){if(typeof d.id!=='string'||!ITEMS[d.id]||!mpNum(d.n,1,999)||Math.floor(d.n)!==d.n||MP.inbox.length>4||S.mpGot.includes(d.tid))return;MP.inbox.push({tid:d.tid,peer:m.peer,uid:m.by,id:d.id,n:d.n,at:mpNow()});mpAskShow();return;}
   const o=MP.offers.get(d.tid);if(!o||o.peer!==m.peer||o.uid!==m.by)return;
   if(d.k==='no'){MP.offers.delete(d.tid);uiToast(`${mpName(o.uid)} chưa nhận ${ITEMS[o.id].n}.`,'');return;}
   if(d.k==='acc'){MP.offers.delete(d.tid);if(mpNow()-o.at>90000){uiToast('Lời tặng đã quá hạn.','');return;}if(invCount(o.id)<o.n){uiToast('Bạn không còn đủ đồ để tặng.','bad');mpEmit('trade',{k:'no',to:o.peer,tid:d.tid});return;}mpGiftSend(d.tid,o);}}
@@ -20307,7 +20307,7 @@ if(typeof HD_L!=='undefined')HD_L.push({id:'sungthu',ic:'🐾',t:'Sủng thú v�
      📅 Ngày          : quà điểm danh, việc hằng ngày, việc tuần (lấy từ bảng Làng), làm và nhận ngay tại đây.
      📋 Phụ           : nhiệm vụ phụ nhận thưởng như cũ. */
 {const _old=nvHtml;
-  const parts=()=>{const d=document.createElement('div');d.innerHTML=_old();const secs=[];let cur=null;for(const n of [...d.childNodes]){if(n.nodeType===1&&n.tagName==='H3'){cur={h:n.outerHTML,b:''};secs.push(cur);}else if(cur)cur.b+=n.nodeType===1?n.outerHTML:(n.textContent||'');}return secs;};
+  const parts=()=>{const d=document.createElement('div');d.innerHTML=_old();const secs=[];let cur=null;for(const n of [...d.childNodes]){if(n.nodeType===1&&n.tagName==='H3'){cur={h:n.outerHTML,b:''};secs.push(cur);}else if(cur)cur.b+=n.nodeType===1?n.outerHTML:esc(n.textContent||'');}return secs;};
   const chHtml=()=>{if(typeof TR_CH==='undefined')return '';const by={};GOALS.forEach((g,i)=>{const c=trCh(i);(by[c]=by[c]||[]).push(i);});const cur=trCh(Math.min(S.goal,GOALS.length-1));
     return TR_CH.map((C,c)=>{const L=by[c]||[];if(!L.length)return '';const done=L.filter(i=>i<S.goal).length,open=c===cur&&S.goal<GOALS.length;
       const rows=L.map(i=>{const g=GOALS[i],st=i<S.goal?'got':i===S.goal?'run':'lock',[v,n]=st==='run'?goalProg(g):[0,g.n];return `<div class="nv-st ${st}"><span>${st==='got'?'✔':st==='run'?'▶':'○'}</span><div><b>${esc(g.t)}</b>${st==='run'?`<small>${esc(g.d)}</small>${n>1?`<div class="h2-bar"><i style="width:${v/n*100}%"></i></div><small>${v}/${n}</small>`:''}`:''}</div></div>`;}).join('');
@@ -21165,7 +21165,7 @@ function cthOut(){const k=S&&S.ct&&S.ct.k;if(!k)return null;const o={},now=cthNo
 function cthIn(docs){const o={},now=cthNow();for(const d of docs){const v=d.data();if(!v||v.w!==seed0()||!v.K||typeof v.K!=='object'||!mpIdOk(d.id))continue;const e={};let n=0;for(const k in v.K){if(n++>=8)break;if(typeof k==='string'&&k.length<40&&mpNum(v.K[k],1e12,now+600000))e[k]=v.K[k];}o[d.id]=e;}
   CTH.k=o;if(!S||!S.rlm)return;const C=cthS(),pf=cthPf(),me=rlGrp(MP.uid);
   for(const s of RL.sites){const kn=cthKnock(s.id);if(!kn||kn.uid===MP.uid||kn.g===me||kn.at<=(C.seen[pf+s.id]||0))continue;C.seen[pf+s.id]=kn.at;const st=S.rlm.s[s.id];if(!st||st.own!=='me')continue;
-    for(const i in st.stock)st.stock[i]=Math.floor(st.stock[i]/2);uiToast(`🔥 ${esc(rlGName(kn.g))} đã công phá tiền đồn ${s.def.n} của bạn! Mất nửa kho, 24 giờ tới không tính điểm giữ đất.`,'bad');sfx('hurt');save();}
+    for(const i in st.stock)st.stock[i]=Math.floor(st.stock[i]/2);uiToast(`🔥 ${rlGName(kn.g)} đã công phá tiền đồn ${s.def.n} của bạn! Mất nửa kho, 24 giờ tới không tính điểm giữ đất.`,'bad');sfx('hurt');save();}
   try{rlMpCalc();}catch(e){}}
 // trong 24 giờ sau khi bị công phá: chỉ phe công phá được tính giữ đất
 {const _c=rlMpCalc;rlMpCalc=function(){_c.apply(this,arguments);try{for(const s of RL.sites){const c=RL.mp.ctl[s.id];if(!c)continue;const kn=cthKnock(s.id);if(!kn)continue;const L=c.all.filter(a=>a[0]===kn.g);
@@ -23336,6 +23336,10 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 .mk-r{font-size:12.5px;opacity:.7;display:flex;gap:6px;align-items:baseline}.mk-r.ok{opacity:1;color:#bfe59a}.mk-r em{margin-left:auto;font-style:normal;font-size:11px;opacity:.8;white-space:nowrap}.mk-adm{padding:8px 10px;border-radius:12px;border:1px dashed #f2c55a;display:flex;flex-direction:column;gap:6px}.mk-adm .row{flex-wrap:wrap;gap:6px}
 .mk-knb{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px;padding:10px;border-radius:14px;border:1px solid rgba(255,210,122,.4);background:rgba(60,48,34,.45)}.mk-kn{display:flex;align-items:center;gap:8px}.mk-kn>div{flex:1;min-width:0}.mk-ki{font-size:22px}.mk-kn .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}`;document.head.appendChild(st);}
 if(typeof HD_L!=='undefined')HD_L.push({id:'mokhoa',ic:'🔓',t:'Mở khoá theo cấp',w:()=>typeof heroLv==='function'&&heroLv()>=2&&!mkTest(),p:['Nhân vật lên tới <b>cấp 50</b>, qua bốn giai đoạn: Khởi đầu, Lập làng, Mở mang, Xưng hùng. Mỗi tính năng lớn <b>mở ở một cấp</b>: thuần thú cấp 3, đào hào cấp 4, ngựa cấp 8, nghiên cứu và liên minh cấp 10, lính cấp 12, tướng cấp 15, di tích cổ cấp 20, voi cấp 25… tới cấp 35 là mở hết.','Xem cả lộ trình trong <b>☰ → 📈 Phát triển</b>. <b>Chiêu chiến đấu phải học</b>: đủ cấp rồi vào Nhân vật → Kỹ năng, dâng lễ vật để học.','<b>Di tích cổ</b> hiện trên bản đồ, chỉ mở vào vài khung giờ mỗi ngày. Hạ lính canh, mở rương lấy <b>cổ vật</b> (3 cái đổi 1 điểm thuộc tính) và <b>thẻ tre bí kíp</b> để học chiêu cao.']});
+/* ---------- GIA CỐ BẢO MẬT ----------
+   Bảng ITEMS được dùng làm "danh sách món hợp lệ" khi nhận mã món từ người chơi khác (thư, chợ, tặng quà). Đối tượng thường thì ITEMS['constructor'], ITEMS['toString']… vẫn "có",
+   nên một mã giả kiểu đó lọt qua kiểm tra. Bỏ nguyên mẫu của bảng: chỉ còn đúng các món có thật. */
+try{Object.setPrototypeOf(ITEMS,null);}catch(e){}
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.

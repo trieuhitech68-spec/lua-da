@@ -102,7 +102,7 @@ function mpZoneL(z){return z&&typeof z.l==='string'&&/^[a-z0-9]{1,6}$/.test(z.l)
 function mpZoneRaw(z){const v=mpValZone(z);if(!v)return null;const l=mpZoneL(z);if(l!=='c')v.l=l;return v;}
 function mpZoneHere(z){const v=mpValZone(z);return v&&mpZoneL(z)===((typeof S==='object'&&S&&S.land)||'c')?v:null;}
 function mpValZone(z){if(!z||typeof z!=='object'||!mpNum(z.x,-2e4,2e4)||!mpNum(z.z,-2e4,2e4)||!mpNum(z.r,40,600))return null;return {x:z.x,z:z.z,r:z.r};}
-function mpValClan(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;const name=mpTxt(d.name,24);if(!name||d.leader!==id||!Array.isArray(d.members))return null;
+function mpValClan(id,d){if(!mpIdOk(id)||!d||typeof d!=='object')return null;const name=mpTxt(d.name,24).replace(/[<>"'&`]/g,'');/* phòng xa: mọi chỗ hiện tên đều đã thoát ký tự, nhưng bỏ luôn ký tự HTML để một chỗ hiện mới viết thiếu cũng không thành lỗ hổng */if(!name||d.leader!==id||!Array.isArray(d.members))return null;
   const members=[...new Set(d.members.filter(mpIdOk))].slice(0,MP_CLANMAX);if(!members.includes(id))members.unshift(id);
   return {id,name,leader:id,members,color:typeof d.color==='string'&&/^#[0-9a-fA-F]{6}$/.test(d.color)?d.color:MPCOL[7],emblem:MPEMB.includes(d.emblem)?d.emblem:'🔥',createdAt:mpNum(d.createdAt,0,1e14)?d.createdAt:0,zone:mpZoneHere(d.zone),zoneRaw:mpZoneRaw(d.zone),deny:Array.isArray(d.deny)?d.deny.filter(mpIdOk).slice(0,60):[]};}
 /* lãnh thổ thuộc vùng nào thì chỉ có hiệu lực ở vùng đó. ĐẠI LỤC: lãnh thổ ở 8 TỈNH KỀ BÊN cũng được giữ, dời toạ độ sang hệ của tỉnh đang đứng
@@ -336,7 +336,7 @@ function mpOffer(n){const r=MP.rp.get(G.mpGiftTo),s=S.inv[G.mpGs];if(!r||!s||!r.
   n=Math.max(1,Math.min(n|0,invCount(s.id)));const tid=mpTid();MP.offers.set(tid,{peer:r.peer,uid:r.uid,id:s.id,n,at:mpNow()});
   mpEmit('trade',{k:'offer',to:r.peer,tid,id:s.id,n}).then(ok=>{if(ok)uiToast(`Đã mời ${mpName(r.uid)} nhận ${n} ${ITEMS[s.id].n}. Chờ họ đồng ý…`,'');});G.mpGiftTo=null;G.mpGs=null;}
 function mpTradeHear(m){if(!m||m.isMe||!mpOn()||!m.data||typeof m.data!=='object')return;const d=m.data;if(d.to!==MP.myPeer||typeof d.tid!=='string'||!/^[a-z0-9]{6,24}$/.test(d.tid)||!mpIdOk(m.by))return;
-  if(d.k==='offer'){if(!ITEMS[d.id]||!mpNum(d.n,1,999)||Math.floor(d.n)!==d.n||MP.inbox.length>4||S.mpGot.includes(d.tid))return;MP.inbox.push({tid:d.tid,peer:m.peer,uid:m.by,id:d.id,n:d.n,at:mpNow()});mpAskShow();return;}
+  if(d.k==='offer'){if(typeof d.id!=='string'||!ITEMS[d.id]||!mpNum(d.n,1,999)||Math.floor(d.n)!==d.n||MP.inbox.length>4||S.mpGot.includes(d.tid))return;MP.inbox.push({tid:d.tid,peer:m.peer,uid:m.by,id:d.id,n:d.n,at:mpNow()});mpAskShow();return;}
   const o=MP.offers.get(d.tid);if(!o||o.peer!==m.peer||o.uid!==m.by)return;
   if(d.k==='no'){MP.offers.delete(d.tid);uiToast(`${mpName(o.uid)} chưa nhận ${ITEMS[o.id].n}.`,'');return;}
   if(d.k==='acc'){MP.offers.delete(d.tid);if(mpNow()-o.at>90000){uiToast('Lời tặng đã quá hạn.','');return;}if(invCount(o.id)<o.n){uiToast('Bạn không còn đủ đồ để tặng.','bad');mpEmit('trade',{k:'no',to:o.peer,tid:d.tid});return;}mpGiftSend(d.tid,o);}}
