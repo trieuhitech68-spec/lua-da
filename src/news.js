@@ -1,8 +1,8 @@
 /* ===================== CÓ GÌ MỚI: thẻ giới thiệu tính năng, mỗi phiên bản hiện một lần cho mỗi máy ===================== */
-const NEWS_V='2026-11-g',NEWS=[
+const NEWS_V='2026-11-h',NEWS=[
  ['🗺️','Đại lục chia sáu miền','Phía bắc lạnh, rừng thông; phía nam là rừng nhiệt đới có chuối, cọ, tre; có thảo nguyên khô, đồi tre trúc, đồng cỏ hoa. Mỗi miền một dáng đất, một kiểu cây, khí hậu riêng. Cây cối giờ giống nhau dù đứng ở tỉnh nào, sang tỉnh bên không còn màn đen.'],
  ['🔓','Mở khoá theo cấp · cấp tối đa 50','Mỗi tính năng lớn mở ở một cấp: thuần thú 3, đào hào 4, ngựa 8, nghiên cứu và liên minh 10, lính 12, tướng 15, di tích cổ 20, voi 25… tới cấp 35 là mở hết. Xem lộ trình trong ☰ → 📈 Phát triển. Chiêu chiến đấu giờ phải HỌC (Nhân vật → Kỹ năng).'],
- ['🏛️','Di tích cổ','Trên bản đồ có di tích cổ, chỉ mở vài khung giờ mỗi ngày. Hạ lính canh, mở rương lấy cổ vật (3 cái đổi 1 điểm thuộc tính) và thẻ tre bí kíp để học chiêu cao.'],
+ ['🏛️','Di tích cổ: phải vào trong mới lấy được báu vật','Di tích giờ là một toà thành cổ có tường bao, vào qua cổng (tối đa 4 người). Bên trong có ba lớp canh mạnh dần: lính cổ, vệ binh đồng, rồi tướng giữ mộ. Hạ hết mới mở được rương: cổ vật, thẻ tre bí kíp và báu vật riêng của từng loại di tích (bùa hộ mệnh, vòng đồng, ấn đồng). Rút ra giữa chừng thì lính canh hồi lại. Lấy xong, di tích phong ấn 20 giờ mới mở lại.'],
  ['⛏️','Đào hào, đào hố','Xây → ⛏️ Đào: đào hào hẹp hoặc hố rộng ngay trước mặt, đào chồng lên để sâu thêm, lấp lại được. Đất mềm dùng Gậy đào, đất lẫn đá cần Cuốc đá, núi đá cứng cần Cuốc chim sắt. Kẻ địch lội qua hào bị chậm hẳn. Đứng sát chân đồi còn đào được ĐƯỜNG HẦM xuyên sang bên kia (tối đa 45 m) rồi chui qua.'],
  ['🐕','Chó biết trông nhà, đi săn','Chạm vào chó để đổi việc: Trông nhà (mặc định: đi tuần, sủa báo và đuổi thú dữ, mừng khi bạn về), Đi theo, Đi săn (bắt thỏ, gà rừng tha về giỏ). Gà, lợn đi theo đàn, tối tự về chuồng.'],
  ['🐘','Voi vẽ lại · chiến thú canh nhà','Voi có vòi cong, ngà cong, tai quạt. Ngựa, voi bị bỏ lại xa sẽ tự tìm về làng và gọi được từ bất cứ đâu. Chiến thú không xuất chiến đi lại canh nhà, lao ra cắn thú dữ.'],

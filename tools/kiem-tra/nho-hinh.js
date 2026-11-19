@@ -2,7 +2,7 @@
 const {chromium}=require('playwright');const HTML=process.argv[2]||require('path').resolve(__dirname,'../../index.html');const os=require('os'),fs=require('fs'),path=require('path');
 (async()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ld-nhh-'));const out=[];const logs=[];
 for(let lan=1;lan<=2;lan++){const c=await chromium.launchPersistentContext(dir,{args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'],viewport:{width:390,height:800}});
- await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-g');localStorage.setItem('ldtt-nohd','1');localStorage.setItem('ldtt-kt','1');localStorage.setItem('ld-dl','0')}catch(e){}});const p=c.pages()[0]||await c.newPage();p.on('pageerror',e=>logs.push('ERR '+e.message));
+ await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-h');localStorage.setItem('ldtt-nohd','1');localStorage.setItem('ldtt-kt','1');localStorage.setItem('ld-dl','0')}catch(e){}});const p=c.pages()[0]||await c.newPage();p.on('pageerror',e=>logs.push('ERR '+e.message));
  await p.goto('file://'+HTML);await p.waitForTimeout(5000);
  const click=async t=>{await p.evaluate(t=>{const b=[...document.querySelectorAll('button')].filter(b=>b.offsetParent).find(b=>b.innerText.includes(t));b&&b.click()},t);await p.waitForTimeout(1500)};
  await click(lan===1?'Tạo nhân vật mới':'Chơi tiếp');if(lan===1)await click('Bắt đầu');else await click('Tạo nhân vật mới').then(()=>click('Bắt đầu'));

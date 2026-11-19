@@ -1,7 +1,7 @@
 // Rà tương tác: đặt TỪNG công trình (đã dựng xong), đứng cạnh, bấm Hành động; không lỗi chạy, không cảnh báo, nhân vật không văng đi đâu, không kẹt trạng thái.
 const {chromium}=require('playwright');const path=require('path');
 (async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});const c=await b.newContext({viewport:{width:400,height:240}});
-await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-g');localStorage.setItem('ldtt-nohd','1');localStorage.setItem('ldtt-kt','1');localStorage.setItem('ld-dl','0')}catch(e){}});const p=await c.newPage();const logs=[];
+await c.addInitScript(()=>{try{localStorage.setItem('ldtt-news','2026-11-h');localStorage.setItem('ldtt-nohd','1');localStorage.setItem('ldtt-kt','1');localStorage.setItem('ld-dl','0')}catch(e){}});const p=await c.newPage();const logs=[];
 p.on('pageerror',e=>logs.push('ERR '+e.message+' '+(e.stack||'').split('\n').slice(1,3).join(' | ').slice(0,200)));p.on('console',m=>{if((m.type()==='warning'||m.type()==='error')&&!/GPU stall|fallback|net::|Failed to load|THREE\.|deprecated|AudioContext/i.test(m.text()))logs.push('['+(globalThis.__cur||'')+'] '+m.text().slice(0,200))});
 await p.goto('file://'+path.resolve(__dirname,'../../index.html'));await p.waitForTimeout(5000);
 const click=async t=>{await p.evaluate(t=>{const b=[...document.querySelectorAll('button')].filter(b=>b.offsetParent).find(b=>b.innerText.includes(t));b&&b.click()},t);await p.waitForTimeout(1500)};

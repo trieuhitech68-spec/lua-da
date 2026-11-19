@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119082619">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119083939">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -16921,10 +16921,10 @@ if(typeof heroHtml==='function'){const _hh=heroHtml;heroHtml=function(){let h=_h
 // thông báo nổi không đè lên cụm nút (cụm nút giờ cao 4 hàng)
 {const st=document.createElement('style');st.textContent='@media (max-width:600px){#game .toasts{bottom:calc(var(--u-sb,10px) + 338px)!important}}';document.head.appendChild(st);}
 /* ===================== CÓ GÌ MỚI: thẻ giới thiệu tính năng, mỗi phiên bản hiện một lần cho mỗi máy ===================== */
-const NEWS_V='2026-11-g',NEWS=[
+const NEWS_V='2026-11-h',NEWS=[
  ['🗺️','Đại lục chia sáu miền','Phía bắc lạnh, rừng thông; phía nam là rừng nhiệt đới có chuối, cọ, tre; có thảo nguyên khô, đồi tre trúc, đồng cỏ hoa. Mỗi miền một dáng đất, một kiểu cây, khí hậu riêng. Cây cối giờ giống nhau dù đứng ở tỉnh nào, sang tỉnh bên không còn màn đen.'],
  ['🔓','Mở khoá theo cấp · cấp tối đa 50','Mỗi tính năng lớn mở ở một cấp: thuần thú 3, đào hào 4, ngựa 8, nghiên cứu và liên minh 10, lính 12, tướng 15, di tích cổ 20, voi 25… tới cấp 35 là mở hết. Xem lộ trình trong ☰ → 📈 Phát triển. Chiêu chiến đấu giờ phải HỌC (Nhân vật → Kỹ năng).'],
- ['🏛️','Di tích cổ','Trên bản đồ có di tích cổ, chỉ mở vài khung giờ mỗi ngày. Hạ lính canh, mở rương lấy cổ vật (3 cái đổi 1 điểm thuộc tính) và thẻ tre bí kíp để học chiêu cao.'],
+ ['🏛️','Di tích cổ: phải vào trong mới lấy được báu vật','Di tích giờ là một toà thành cổ có tường bao, vào qua cổng (tối đa 4 người). Bên trong có ba lớp canh mạnh dần: lính cổ, vệ binh đồng, rồi tướng giữ mộ. Hạ hết mới mở được rương: cổ vật, thẻ tre bí kíp và báu vật riêng của từng loại di tích (bùa hộ mệnh, vòng đồng, ấn đồng). Rút ra giữa chừng thì lính canh hồi lại. Lấy xong, di tích phong ấn 20 giờ mới mở lại.'],
  ['⛏️','Đào hào, đào hố','Xây → ⛏️ Đào: đào hào hẹp hoặc hố rộng ngay trước mặt, đào chồng lên để sâu thêm, lấp lại được. Đất mềm dùng Gậy đào, đất lẫn đá cần Cuốc đá, núi đá cứng cần Cuốc chim sắt. Kẻ địch lội qua hào bị chậm hẳn. Đứng sát chân đồi còn đào được ĐƯỜNG HẦM xuyên sang bên kia (tối đa 45 m) rồi chui qua.'],
  ['🐕','Chó biết trông nhà, đi săn','Chạm vào chó để đổi việc: Trông nhà (mặc định: đi tuần, sủa báo và đuổi thú dữ, mừng khi bạn về), Đi theo, Đi săn (bắt thỏ, gà rừng tha về giỏ). Gà, lợn đi theo đàn, tối tự về chuồng.'],
  ['🐘','Voi vẽ lại · chiến thú canh nhà','Voi có vòi cong, ngà cong, tai quạt. Ngựa, voi bị bỏ lại xa sẽ tự tìm về làng và gọi được từ bất cứ đâu. Chiến thú không xuất chiến đi lại canh nhà, lao ra cắn thú dữ.'],
@@ -23344,10 +23344,11 @@ function daoRemote(u,str,pc){try{if(!DAO.rm)DAO.rm=new Map();const key=(typeof s
         Khởi đầu 1–9 · Lập làng 10–19 · Mở mang 20–34 · Xưng hùng 35–50 (từ cấp 35 đã mở hết, phần còn lại là mạnh lên).
       Lên cấp mà có tính năng mới thì báo. Xem cả lộ trình trong ☰ → 📈 Phát triển.
    2. CHIÊU CHIẾN ĐẤU PHẢI HỌC: đủ cấp rồi còn phải trả vật liệu (màn Nhân vật → Kỹ năng → Học). Chiêu cao cần Thẻ tre bí kíp, chỉ có trong di tích cổ.
-   3. DI TÍCH CỔ: mỗi vùng có di tích (hiện trên bản đồ). Mỗi di tích chỉ MỞ vào vài khung giờ trong ngày (giờ thật); lúc mở, vào thì lính canh cổ hiện ra,
-      hạ hết thì rương mở: Cổ vật (3 cổ vật đổi 1 điểm thuộc tính), Thẻ tre bí kíp, ngọc, vàng, đồng. Mỗi lần mở chỉ lấy một lần. Cần cấp 20.
-   4. QUẢN TRỊ VIÊN (máy chủ xác nhận, xem admin.js): mọi khoá đều mở, chiêu coi như đã học, di tích lúc nào cũng mở; có thêm vài nút thử nhanh trong bảng Phát triển.
-   Lưu: S.mkSeen (cấp đã báo) · S.knL {mã chiêu:1} · S.dt {mã di tích: mã lần mở đã lấy} · S.hero.cv (điểm thuộc tính đổi từ cổ vật).
+   3. DI TÍCH CỔ: mỗi vùng có di tích (hiện trên bản đồ) là một toà thành có tường vòng, vào qua cổng. Bên trong ba lớp canh mạnh dần
+      (lính cổ, vệ binh đồng, tướng giữ mộ); hạ hết mới mở rương: Cổ vật, Thẻ tre bí kíp, kim loại quý, báu vật riêng từng loại di tích.
+      Tối đa 4 người trong thành. Lấy xong di tích phong ấn 20 giờ thật. Cần cấp 20.
+   4. QUẢN TRỊ VIÊN (máy chủ xác nhận, xem admin.js): mọi khoá đều mở, chiêu coi như đã học, di tích không bị phong ấn; có thêm vài nút thử nhanh trong bảng Phát triển.
+   Lưu: S.mkSeen (cấp đã báo) · S.knL {mã chiêu:1} · S.dt {mã di tích: mốc giờ lấy rương} · S.dtR {báu vật/di tích đã từng lấy} · S.hero.cv (điểm thuộc tính đổi từ cổ vật).
    Bài kiểm tra tự động đặt localStorage 'ldtt-kt'='1' để bỏ khoá (trừ bài kiểm tra riêng của phần này). */
 const MKMAX=50;
 const MK=[['thuan',3,'🐔','Thuần gà, lợn, dê, chó'],['dao',4,'⛏️','Đào hào, đào hố'],['cuonghoa',6,'🔨','Cường hoá trang bị'],['chienthu',6,'🐯','Thuần chiến thú (khỉ, gấu, hổ, báo)'],
@@ -23374,12 +23375,12 @@ function mkStop(k){const w=mkWhy(k);if(w){uiToast(w,'bad');try{sfx('no');}catch(
 setInterval(()=>{try{if(typeof G!=='object'||!G.on||!S||G.panel||mkTest())return;const lv=heroLv();if(S.mkSeen==null){S.mkSeen=lv;return;}if(lv<=S.mkSeen)return;const L=MK.filter(e=>e[1]>S.mkSeen&&e[1]<=lv);S.mkSeen=lv;if(L.length){uiToast('🔓 Cấp '+lv+': mở '+L.map(e=>e[2]+' '+e[3]).join(' · ')+'.','gold');try{sfx('level');}catch(e){}}const g=MKG.filter(x=>x[0]===lv)[0];if(g)uiToast('🏅 Bước sang giai đoạn «'+g[1]+'».','gold');save();}catch(e){}},4000);
 function mkHtml(){const lv=heroLv(),gi=MKG.filter(g=>lv>=g[0]).length-1,nx=MK.find(e=>e[1]>lv);let h=`<div class="mk-box"><div class="mk-h"><b>🔓 Lộ trình mở khoá</b><span class="small">Cấp ${lv}/${MKMAX} · giai đoạn <b>${MKG[gi][1]}</b>${nx?` · sắp mở: ${nx[2]} ${esc(nx[3])} (cấp ${nx[1]})`:''}</span></div>`;
   MKG.forEach((g,i)=>{const hi=MKG[i+1]?MKG[i+1][0]-1:MKMAX,L=MK.filter(e=>e[1]>=g[0]&&e[1]<=hi);h+=`<div class="mk-g${i===gi?' cur':''}"><b>${g[1]} <small>cấp ${g[0]}–${hi}</small></b>${i===0?'<span class="mk-r ok">✓ Hái lượm, chế tạo, xây nhà, san nền, săn bắn, trồng trọt</span>':''}${L.map(e=>`<span class="mk-r${lv>=e[1]||mkAdmin()?' ok':''}">${lv>=e[1]||mkAdmin()?'✓':'🔒'} ${e[2]} ${esc(e[3])} <em>cấp ${e[1]}</em></span>`).join('')}</div>`;});
-  if(mkAdmin())h+=`<div class="mk-adm"><b>🛠️ Quản trị: mọi khoá đang mở</b><div class="row"><button class="btn sm" data-mk="lv">+5 cấp</button><button class="btn sm" data-mk="mat">+ Vật liệu thử</button><button class="btn sm" data-mk="kn">Học hết chiêu</button><button class="btn sm" data-mk="dt">${DT.force?'Di tích: theo giờ':'Di tích: mở ngay'}</button></div></div>`;return h+'</div>';}
+  if(mkAdmin())h+=`<div class="mk-adm"><b>🛠️ Quản trị: mọi khoá đang mở</b><div class="row"><button class="btn sm" data-mk="lv">+5 cấp</button><button class="btn sm" data-mk="mat">+ Vật liệu thử</button><button class="btn sm" data-mk="kn">Học hết chiêu</button><button class="btn sm" data-mk="dt">${DT.force?'Di tích: phong ấn như thường':'Di tích: bỏ phong ấn'}</button></div></div>`;return h+'</div>';}
 if(typeof ptHtml==='function'){const _p=ptHtml;ptHtml=function(){let h=_p.apply(this,arguments);try{const i=h.lastIndexOf('</div>');h=h.slice(0,i)+mkHtml()+h.slice(i);}catch(e){}return h;};}
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-mk]');if(!b||!S||!mkAdmin())return;e.stopImmediatePropagation();const v=b.dataset.mk;
   if(v==='lv'){const t=heroLv()+5,need=30*(t-1)*(t-1)-heroXp(),ks=Object.keys(SKILL);if(need>0)for(const k of ks)S.sk[k]=(S.sk[k]||0)+Math.ceil(need/ks.length);uiToast('🛠️ Nhân vật lên cấp '+heroLv()+'.','gold');}
-  else if(v==='mat'){for(const k of ['wood','stone','fiber','stick','plank','rope','meatCooked','hide','bone','flint','clay','bronze','iron','covat','bikip','buaho','vongdong'])if(ITEMS[k])invAdd(k,k==='buaho'||k==='vongdong'?1:k==='covat'||k==='bikip'?3:40);uiToast('🛠️ Đã thêm vật liệu thử vào túi.','');}
-  else if(v==='kn'){S.knL=S.knL||{};for(const k of KNS)S.knL[k.id]=1;uiToast('🛠️ Đã học hết chiêu.','');}else if(v==='dt'){DT.force=!DT.force;uiToast(DT.force?'🛠️ Di tích mở ngay bây giờ.':'🛠️ Di tích mở theo giờ.','');}
+  else if(v==='mat'){for(const k of ['wood','stone','fiber','stick','plank','rope','meatCooked','hide','bone','flint','clay','bronze','iron','covat','bikip','buaho','vongdong','andong'])if(ITEMS[k])invAdd(k,k==='buaho'||k==='vongdong'||k==='andong'?1:k==='covat'||k==='bikip'?3:40);uiToast('🛠️ Đã thêm vật liệu thử vào túi.','');}
+  else if(v==='kn'){S.knL=S.knL||{};for(const k of KNS)S.knL[k.id]=1;uiToast('🛠️ Đã học hết chiêu.','');}else if(v==='dt'){DT.force=!DT.force;uiToast(DT.force?'🛠️ Di tích không phong ấn.':'🛠️ Di tích phong ấn như thường.','');}
   try{save();uiHotbar();ptDraw();}catch(er){}},true);
 /* ---------- 2. HỌC CHIÊU ---------- */
 /* hai chiêu mới: Thủ thế (học bằng vật liệu thường) và Cuồng nộ (cần bí kíp + cổ vật từ di tích) */
@@ -23397,37 +23398,86 @@ if(typeof heroHtml==='function'){const _hh=heroHtml;heroHtml=function(){let h=_h
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="knlearn"]');if(!b||!S)return;e.stopImmediatePropagation();knLearn(b.dataset.k);try{if(typeof H4==='object'&&H4.on)h4Draw(true);else if(G.panel)uiOpenRefresh();}catch(er){}},true);
 /* ---------- 3. DI TÍCH CỔ ---------- */
 try{Object.assign(ITEMS,{covat:{n:'Cổ vật',t:'res'},bikip:{n:'Thẻ tre bí kíp',t:'res'}});if(typeof EMO==='object')Object.assign(EMO,{covat:'🏺',bikip:'📜'});if(typeof M2V==='object')Object.assign(M2V,{covat:60,bikip:120});}catch(e){}
-const DT={sites:[],objs:[],sc:null,force:false,T:[['Đền đá cổ','🏛️',[[12,13],[20,21]]],['Mộ thuyền cổ','⚱️',[[7,8],[18,19]]],['Thành đất hoang','🏯',[[15,16],[21.5,22.5]]]]};
-function dtPlan(){DT.sites=[];try{if(!S)return;const sd=((S.seed0||S.seed)|0),dl=!!S.dl,key=dl?S.land:'c',n=dl?(typeof dlHash==='function'&&dlHash(Math.round(S.dl.ox/100),Math.round(S.dl.oz/100),sd+71)<0.6?1:0):2;
-    for(let i=0;i<n;i++){const hh=(a)=>{let x=(Math.imul(sd^(i*7919+a*104729+(dl?Math.round(S.dl.ox*3+S.dl.oz):0)),2654435761)>>>0);x^=x>>>15;x=Math.imul(x,2246822519)>>>0;return (x>>>0)/4294967296;},a0=hh(1)*6.283,r0=dl?1700+hh(2)*1700:2500+i*1500+hh(2)*500;let best=null;
-      for(let k=0;k<60&&!best;k++){const a=a0+k*0.4,r=r0+(k%5)*120,x=(dl?0:SPAWN[0])+Math.cos(a)*r,z=(dl?0:SPAWN[1])+Math.sin(a)*r;if(typeof wIn==='function'&&!wIn(x,z,0.9))continue;if(wdAt(x,z)>0||hAt(x,z)<5||slopeAt(x,z)>0.25)continue;let wet=false;for(let q=0;q<6;q++)if(wdAt(x+Math.cos(q)*110,z+Math.sin(q)*110)>0)wet=true;if(wet)continue;if(Math.hypot(x-SPAWN[0],z-SPAWN[1])<900)continue;best=[x,z];}
-      if(best){const ty=Math.floor(hh(3)*DT.T.length);DT.sites.push({id:key+':'+i,x:best[0],z:best[1],ty});}}}catch(e){console.warn('di tích',e);}}
-function dtWin(s){/* trả [đang mở?, mã lần mở, giờ mở kế tiếp] theo giờ thật */const d=new Date(),h=d.getHours()+d.getMinutes()/60,W=DT.T[s.ty][2],day=d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();if(DT.force||mkAdmin())return [true,day+':adm:'+Math.floor(Date.now()/600000),0];for(let i=0;i<W.length;i++)if(h>=W[i][0]&&h<W[i][1])return [true,day+':'+i,0];let nx=W.find(w=>w[0]>h);return [false,'',nx?nx[0]:W[0][0]];}
-const dtHM=v=>{const h=Math.floor(v),m=Math.round((v-h)*60);return h+':'+String(m).padStart(2,'0');};
-function dtModel(s){const T=THREE,g=new T.Group(),st=new T.MeshLambertMaterial({color:0x8d8a80}),dk=new T.MeshLambertMaterial({color:0x5f5c55}),ms=new T.MeshLambertMaterial({color:0x5f7a45});
+/* Di tích là một toà thành cổ có tường vòng (bán kính DT.RW). Ngoài tường không đi xuyên vào được: phải qua CỔNG.
+   Vào trong: 3 lớp canh mạnh dần (lính cổ → vệ binh đồng → tướng giữ mộ). Hạ hết mới mở được rương ở giữa.
+   Ra cổng giữa chừng (hoặc chết) thì lính canh hồi lại từ đầu. Lấy rương xong di tích PHONG ẤN DT.CD giờ thật rồi mới mở lại.
+   Sức chứa: tối đa DT.CAP người trong thành cùng lúc. Mỗi loại di tích có một báu vật riêng (lần đầu hạ loại đó chắc chắn có). */
+const DT={sites:[],objs:[],sc:null,force:false,RW:150,CD:20,CAP:4,in:null,
+  T:[['Đền đá cổ','🏛️','buaho'],['Mộ thuyền cổ','⚱️','vongdong'],['Thành đất hoang','🏯','andong']],
+  W:[['Lính cổ',3,l=>2+l/25,1.2,1],['Vệ binh đồng',2,l=>3.6+l/15,1.6,1.15],['Tướng giữ mộ',1,l=>12+l/5,2.2,1.45]]};
+function dtPlan(){DT.sites=[];try{if(!S)return;const sd=((S.seed0||S.seed)|0),dl=!!S.dl,key=dl?S.land:'c',n=dl?(typeof dlHash==='function'&&dlHash(Math.round(S.dl.ox/100),Math.round(S.dl.oz/100),sd+71)<0.6?1:0):2,RW=DT.RW;
+    const bad=(x,z)=>{if(typeof wIn==='function'&&!wIn(x,z,0.86))return true;const h0=hAt(x,z);if(wdAt(x,z)>0||h0<5||slopeAt(x,z)>0.22)return true;for(let q=0;q<10;q++){const a=q*0.628,px=x+Math.cos(a)*RW,pz=z+Math.sin(a)*RW,h=hAt(px,pz);if(wdAt(px,pz)>0||wdAt(x+Math.cos(a)*(RW+70),z+Math.sin(a)*(RW+70))>0||h<5||Math.abs(h-h0)>46)return true;}
+      if(Math.hypot(x-SPAWN[0],z-SPAWN[1])<900)return true;try{if(G.camp&&Math.hypot(x-G.camp.x,z-G.camp.z)<700)return true;for(const b of (S.builds||[]))if(Math.hypot(x-b.x,z-b.z)<RW+90)return true;for(const r of (typeof REG!=='undefined'?REG:[]))if(r&&typeof r.x==='number'&&!/^ruin_/.test(r.id||'')&&Math.hypot(x-r.x,z-r.z)<(r.r||200)+RW)return true;}catch(e){}return false;};
+    for(let i=0;i<n;i++){const hh=(a)=>{let x=(Math.imul(sd^(i*7919+a*104729+(dl?Math.round(S.dl.ox*3+S.dl.oz):0)),2654435761)>>>0);x^=x>>>15;x=Math.imul(x,2246822519)>>>0;return (x>>>0)/4294967296;},a0=hh(1)*6.283,r0=dl?1700+hh(2)*1500:2500+i*1500+hh(2)*500;let best=null;
+      for(let k=0;k<90&&!best;k++){const a=a0+k*0.4,r=r0+(k%5)*120,x=(dl?0:SPAWN[0])+Math.cos(a)*r,z=(dl?0:SPAWN[1])+Math.sin(a)*r;if(bad(x,z))continue;if(DT.sites.some(o=>Math.hypot(o.x-x,o.z-z)<900))continue;best=[x,z];}
+      if(best){const ty=Math.floor(hh(3)*DT.T.length),ga=Math.atan2(SPAWN[1]-best[1],SPAWN[0]-best[0]);DT.sites.push({id:key+':'+i,x:best[0],z:best[1],ty,ga,cx:Math.cos(ga),cz:Math.sin(ga)});}}}catch(e){console.warn('di tích',e);}}
+/* phong ấn: S.dt[id] = mốc giờ thật lúc lấy rương (bản lưu cũ ghi chuỗi → coi như đã hết hạn) */
+function dtCool(s){if(DT.force||mkAdmin())return 0;const t=S.dt&&S.dt[s.id];if(typeof t!=='number')return 0;return Math.max(0,t+DT.CD*3600000-Date.now());}
+const dtHM=ms=>{const m=Math.ceil(ms/60000),h=Math.floor(m/60);return h?h+' giờ '+(m%60)+' phút':m+' phút';};
+function dtModel(s){const T=THREE,g=new T.Group(),st=new T.MeshLambertMaterial({color:0x8d8a80}),dk=new T.MeshLambertMaterial({color:0x5f5c55}),ms=new T.MeshLambertMaterial({color:0x5f7a45}),ea=new T.MeshLambertMaterial({color:0x7d6a50}),RW=DT.RW,y0=hAt(s.x,s.z),N=34;
+  /* tường vòng: từng đoạn bám theo mặt đất, chừa cổng ở hướng s.ga */
+  for(let i=1;i<N;i++){const a=s.ga+i/N*6.283,px=Math.cos(a)*RW,pz=Math.sin(a)*RW,hy=hAt(s.x+px,s.z+pz)-y0,h=44+((i*29)%13),w=new T.Mesh(new T.BoxGeometry(14,h+24,RW*6.283/N+3),i%4===1?ea:i%3?st:dk);w.position.set(px,hy+h/2-12,pz);w.rotation.y=-a;g.add(w);
+    if(i%3===0){const c=new T.Mesh(new T.BoxGeometry(18,7,12),dk);c.position.set(px,hy+h+3,pz);c.rotation.y=-a;g.add(c);}else if(i%3===1){const m=new T.Mesh(new T.SphereGeometry(9,8,6),ms);m.scale.y=0.4;m.position.set(px,hy+h,pz);g.add(m);}}
+  /* cổng: hai trụ lớn + xà ngang + bậc đá */
+  {const gx=Math.cos(s.ga)*RW,gz=Math.sin(s.ga)*RW,hy=hAt(s.x+gx,s.z+gz)-y0,tx=-Math.sin(s.ga),tz=Math.cos(s.ga);for(const k of [-1,1]){const p=new T.Mesh(new T.CylinderGeometry(9,11,92,8),dk);p.position.set(gx+tx*k*19,hy+34,gz+tz*k*19);g.add(p);const c=new T.Mesh(new T.BoxGeometry(24,8,24),st);c.position.set(gx+tx*k*19,hy+82,gz+tz*k*19);g.add(c);}
+    const l=new T.Mesh(new T.BoxGeometry(16,12,62),st);l.position.set(gx,hy+70,gz);l.rotation.y=-s.ga;g.add(l);const sg=new T.Mesh(new T.BoxGeometry(5,16,22),new T.MeshLambertMaterial({color:0xc9a23a}));sg.position.set(gx+Math.cos(s.ga)*9,hy+70,gz+Math.sin(s.ga)*9);sg.rotation.y=-s.ga;g.add(sg);
+    const sl=new T.Mesh(new T.BoxGeometry(40,5,30),st);sl.position.set(gx,hy+0.5,gz);sl.rotation.y=-s.ga;g.add(sl);
+    /* phiến đá phong ấn chắn cổng: chỉ hiện khi di tích đang đóng */
+    const seal=new T.Mesh(new T.BoxGeometry(9,58,28),new T.MeshLambertMaterial({color:0x4a4a52}));seal.position.set(gx,hy+28,gz);seal.rotation.y=-s.ga;g.add(seal);g.userData.seal=seal;}
   for(let i=0;i<7;i++){const a=i/7*6.283,h=34+((i*37)%19),p=new T.Mesh(new T.CylinderGeometry(5,6.2,h,7),i%3?st:dk);p.position.set(Math.cos(a)*62,h/2-1,Math.sin(a)*62);p.rotation.z=((i*13)%7-3)*0.03;g.add(p);if(i%2===0){const c=new T.Mesh(new T.BoxGeometry(15,5,15),dk);c.position.set(Math.cos(a)*62,h+1.5,Math.sin(a)*62);g.add(c);}else{const m=new T.Mesh(new T.SphereGeometry(5.6,8,6),ms);m.scale.y=0.45;m.position.set(Math.cos(a)*62,h,Math.sin(a)*62);g.add(m);}}
   for(let i=0;i<3;i++){const b=new T.Mesh(new T.BoxGeometry(46-i*10,5,46-i*10),i===2?dk:st);b.position.y=2.5+i*5;g.add(b);}const ch=new T.Mesh(new T.BoxGeometry(15,10,10),new T.MeshLambertMaterial({color:0x7a5230}));ch.position.y=20;g.add(ch);const lid=new T.Mesh(new T.BoxGeometry(16,3,11),new T.MeshLambertMaterial({color:0xc9a23a}));lid.position.y=26.5;g.add(lid);
   for(let i=0;i<5;i++){const a=i*1.31+0.4,r=30+i*9,b=new T.Mesh(new T.BoxGeometry(12,7,9),i%2?st:dk);b.position.set(Math.cos(a)*r,2.5,Math.sin(a)*r);b.rotation.set(0.2*i,a,0.3);g.add(b);}g.traverse(m=>{if(m.isMesh)m.castShadow=true;});return g;}
-function dtObjs(){try{if(!G.sc||!G.terrain||!S)return;if(DT.sc!==G.sc||DT.key!==(S.land||'c')+':'+(S.seed|0)){DT.objs=[];DT.sc=G.sc;DT.key=(S.land||'c')+':'+(S.seed|0);dtPlan();for(const s of DT.sites){const o=dtModel(s);o.position.set(s.x,hAt(s.x,s.z)-0.5,s.z);G.sc.add(o);try{seasonPatchAll(o);}catch(e){}DT.objs.push(o);
-        try{if(typeof REG!=='undefined'&&!REG.some(r=>r.id==='ruin_'+s.id))REG.push({id:'ruin_'+s.id,n:DT.T[s.ty][0],d:'Di tích cổ: mở vào '+DT.T[s.ty][2].map(w=>dtHM(w[0])+'–'+dtHM(w[1])).join(' và ')+' mỗi ngày. Có lính canh, có rương cổ vật. Cần cấp 20.',ic:DT.T[s.ty][1],x:s.x,z:s.z,r:120});}catch(e){}}}}catch(e){}}
+function dtObjs(){try{if(!G.sc||!G.terrain||!S)return;if(DT.sc!==G.sc||DT.key!==(S.land||'c')+':'+(S.seed|0)){DT.objs=[];DT.sc=G.sc;DT.key=(S.land||'c')+':'+(S.seed|0);DT.in=null;dtPlan();for(const s of DT.sites){const o=dtModel(s);o.position.set(s.x,hAt(s.x,s.z)-0.5,s.z);G.sc.add(o);try{seasonPatchAll(o);}catch(e){}DT.objs.push(o);s.o=o;
+        try{if(typeof REG!=='undefined'&&!REG.some(r=>r.id==='ruin_'+s.id))REG.push({id:'ruin_'+s.id,n:DT.T[s.ty][0],d:'Di tích cổ có tường thành bao quanh: vào qua cổng, bên trong có ba lớp canh giữ mạnh dần. Hạ hết mới mở được rương báu. Lấy xong di tích phong ấn '+DT.CD+' giờ. Cần cấp 20, nên đem theo lính và chiến thú.',ic:DT.T[s.ty][1],x:s.x,z:s.z,r:DT.RW+40});}catch(e){}}}
+    for(const s of DT.sites)if(s.o&&s.o.userData.seal)s.o.userData.seal.visible=dtCool(s)>0;}catch(e){}}
 setInterval(()=>{try{if(typeof G==='object'&&G.on)dtObjs();}catch(e){}},2000);
-function dtNear(){for(const s of DT.sites){const d=Math.hypot(s.x-P.x,s.z-P.z);if(d<58)return {type:'ruin',s,d,b:{x:s.x,y:hAt(s.x,s.z)+34,z:s.z}};}return null;}
-function dtState(s){const w=dtWin(s),took=S.dt&&S.dt[s.id]===w[1]&&w[0],alive=(G.foes||[]).filter(f=>f.ruin===s.id&&f.alive).length,fought=DT.run&&DT.run.id===s.id&&DT.run.w===w[1];return {open:w[0],w:w[1],next:w[2],took,alive,fought};}
-{const _ft=findTarget;findTarget=function(){const r=_ft.apply(this,arguments);try{if(!S||!DT.sites.length||G.work||G.sit||G.build)return r;if(r&&(r.type==='animal'||r.type==='foe'||r.type==='npc'||r.type==='drop'))return r;const g=dtNear();if(g&&(!r||g.d<54))return g;}catch(e){}return r;};}
-{const _ti=targetInfo;targetInfo=function(t){if(t&&t.type==='ruin'){const s=t.s,T=DT.T[s.ty],st=dtState(s),lock=!mkOk('ditich');let verb,ok=false,need=null;if(lock){verb='🔒 Cần cấp '+mkLv('ditich');need='Di tích cổ mở cho nhân vật từ cấp '+mkLv('ditich');}else if(!st.open){verb='Đang đóng · mở lúc '+dtHM(st.next);need='Di tích chỉ mở vào '+T[2].map(w=>dtHM(w[0])+'–'+dtHM(w[1])).join(' và ');}else if(st.took){verb='Đã lấy rương lần mở này';}else if(st.fought&&!st.alive){verb='Mở rương cổ';ok=true;}else if(st.fought){verb='Hạ hết lính canh ('+st.alive+')';}else{verb='Vào di tích';ok=true;}return {name:T[1]+' '+T[0],verb,ok,need,icon:'torch'};}return _ti.apply(this,arguments);};}
-{const _as=actStart;actStart=function(t){if(t&&t.type==='ruin'&&!G.work){const s=t.s,st=dtState(s);if(mkStop('ditich'))return;if(!st.open){uiToast('🏛️ '+DT.T[s.ty][0]+' đang đóng. Mở vào '+DT.T[s.ty][2].map(w=>dtHM(w[0])+'–'+dtHM(w[1])).join(' và ')+' mỗi ngày.','');return;}if(st.took){uiToast('Lần mở này bạn đã lấy rương rồi. Đợi lần mở sau.','');return;}
-    if(!st.fought){const n=3+Math.floor(heroLv()/10);DT.run={id:s.id,w:st.w};for(let i=0;i<n;i++){const a=i/n*6.283+0.5;try{const f=foeSpawn(s.x+Math.cos(a)*84,s.z+Math.sin(a)*84,'guard');if(f){f.ruin=s.id;f.n='Lính canh cổ';f.hp=Math.round(FOE.hp*(1.3+heroLv()/40));f.state='chase';}}catch(e){}}uiToast(`🏛️ Bước vào ${DT.T[s.ty][0]}: ${n} lính canh cổ trỗi dậy! Hạ hết rồi mở rương.`,'bad');try{sfx('roar');}catch(e){}return;}
-    if(st.alive){uiToast('Còn '+st.alive+' lính canh cổ. Hạ hết đã.','bad');return;}
-    const first=!S.dtN,got={covat:1+(Math.random()<0.35?1:0)};if(first||Math.random()<0.35)got.bikip=1;const R=[['jade',1],['gold',1],['bronze',2],['iron',1],['copper',2]].filter(e=>ITEMS[e[0]]);if(R.length){const e=R[Math.floor(Math.random()*R.length)];got[e[0]]=e[1];}
-    if(first||Math.random()<0.12){const have=k=>invCount(k)>0||dtWorn(k),rare=['buaho','vongdong'].filter(k=>ITEMS[k]),need=rare.filter(k=>!have(k));if(!first||Math.random()<0.5){const pick=(need.length?need:rare)[Math.floor(Math.random()*(need.length?need.length:rare.length))];if(pick)got[pick]=1;}}
-    S.dt=S.dt||{};S.dt[s.id]=st.w;S.dtN=(S.dtN||0)+1;DT.run=null;give(got,[s.x,hAt(s.x,s.z)+26,s.z]);try{sfx('level');addXp('hunt',20);cnt('cnt','ruin');}catch(e){}uiToast('🏺 Mở rương cổ: '+Object.entries(got).map(([k,v])=>v+' '+ITEMS[k].n.toLowerCase()).join(', ')+'. 3 cổ vật đổi được 1 điểm thuộc tính (màn Nhân vật → Thuộc tính).','gold');save();return;}return _as.apply(this,arguments);};}
-/* ĐỒ CỔ HIẾM chỉ rơi trong rương di tích (12% mỗi rương, chưa có món nào thì ưu tiên món đó): đeo vào có tác dụng thật.
-     Bùa hộ mệnh cổ (đeo cổ): chịu đòn nhẹ hơn 6% · Vòng đồng cổ (đeo tay): đánh mạnh hơn 8% */
-try{Object.assign(ITEMS,{buaho:{n:'Bùa hộ mệnh cổ',t:'wear',warm:0,slot:'neck',rare:1,ds:'Miếng ngọc khắc hình chim Lạc, lấy từ rương di tích. Đeo vào chịu đòn nhẹ hơn 6%.'},vongdong:{n:'Vòng đồng cổ',t:'wear',warm:0,slot:'acc',rare:1,ds:'Vòng tay đồng thau chạm sóng nước, lấy từ rương di tích. Đeo vào đánh mạnh hơn 8%.'}});
-  if(typeof EMO==='object')Object.assign(EMO,{buaho:'🧿',vongdong:'⭕'});if(typeof M2V==='object')Object.assign(M2V,{buaho:200,vongdong:200});if(typeof WEAR_NECK==='object')WEAR_NECK.buaho=['#2f7a5a',2];}catch(e){}
+const dtGate=(s,k)=>[s.x+s.cx*(DT.RW+k),s.z+s.cz*(DT.RW+k)];
+const dtAlive=s=>(G.foes||[]).filter(f=>f.ruin===s.id&&f.alive).length;
+const dtCrowd=s=>{let n=0;try{if(typeof MP==='object'&&MP.rp)for(const r of MP.rp.values())if(r.ok!==false&&Math.hypot(r.x-s.x,r.z-s.z)<DT.RW)n++;}catch(e){}return n;};
+function dtWave(s,w){const W=DT.W[w],lv=heroLv(),n=W[1];for(let i=0;i<n;i++){const a=s.ga+3.1416+(i-(n-1)/2)*0.5,r=w===2?20:70;try{const f=foeSpawn(s.x+Math.cos(a)*r,s.z+Math.sin(a)*r,'guard');if(f){f.ruin=s.id;f.n=W[0];f.hp=Math.round(FOE.hp*W[2](lv));f.dk=W[3];f._lvA=1;f.lv=1;f.state='chase';if(W[4]!==1&&f.o)f.o.scale.multiplyScalar(W[4]);if(w===2)f.boss=1;}}catch(e){}}
+  DT.in.w=w;DT.in.nt=0;uiToast(w===0?`🏛️ Cổng đá khép lại sau lưng. ${n} lính cổ trỗi dậy!`:w===1?`🛡️ Lớp thứ hai: ${n} vệ binh đồng bước ra từ hàng cột!`:'👑 Tướng giữ mộ thức giấc. Hạ được hắn mới mở được rương!','bad');try{sfx('roar');}catch(e){}}
+function dtLeave(msg){const I=DT.in;if(!I)return;DT.in=null;for(const f of (G.foes||[]))if(f.ruin===I.id){f.alive=false;f.gone=1;try{G.sc.remove(f.o);}catch(e){}}if(msg)uiToast(msg,'');}
+function dtEnter(s){if(mkStop('ditich'))return;const cd=dtCool(s);if(cd>0){uiToast('🏛️ '+DT.T[s.ty][0]+' đang phong ấn. Mở lại sau '+dtHM(cd)+'.','');return;}if(G.ride){uiToast('Xuống thú cưỡi rồi mới vào được cổng di tích.','bad');return;}
+  if(dtCrowd(s)>=DT.CAP){uiToast('Trong di tích đã đủ '+DT.CAP+' người. Đợi có người ra rồi vào.','bad');return;}
+  const p=dtGate(s,-36);P.x=p[0];P.z=p[1];P.y=hAt(P.x,P.z);DT.in={id:s.id,w:-1,nt:0,done:false};dtWave(s,0);}
+/* mỗi khung hình: tường chắn, đợt canh kế tiếp, lính canh không ra khỏi thành */
+function dtTick(dt){if(!S||!DT.sites.length||!G.on)return;const RW=DT.RW,I=DT.in;
+  for(const s of DT.sites){const dx=P.x-s.x,dz=P.z-s.z,d=Math.hypot(dx,dz)||1;if(I&&I.id===s.id){
+      if(d>RW+80||G.dying){dtLeave('');continue;}if(G.ride){const p=dtGate(s,24);P.x=p[0];P.z=p[1];dtLeave('Thú cưỡi không ở trong di tích được: bạn bị đẩy ra cổng, lính canh hồi lại.');continue;}
+      if(d>RW-13){P.x=s.x+dx/d*(RW-13);P.z=s.z+dz/d*(RW-13);}
+      for(const f of G.foes||[])if(f.ruin===s.id&&f.alive){const fx=f.x-s.x,fz=f.z-s.z,fd=Math.hypot(fx,fz);if(fd>RW-18){f.x=s.x+fx/fd*(RW-18);f.z=s.z+fz/fd*(RW-18);}}
+      if(!I.done&&!dtAlive(s)){I.nt+=dt;if(I.nt>2.2){if(I.w<DT.W.length-1)dtWave(s,I.w+1);else{I.done=true;uiToast('🏺 Di tích lặng im. Rương cổ ở giữa thành đã mở được.','gold');try{sfx('level');}catch(e){}}}}
+    }else if(d<RW+11){P.x=s.x+dx/d*(RW+11);P.z=s.z+dz/d*(RW+11);}}}
+{const _ft=foesTick;foesTick=function(dt){try{dtTick(dt);}catch(e){}return _ft.apply(this,arguments);};}
+{const _fh=foeHit;foeHit=function(f,t){if(!f||!f.dk)return _fh.apply(this,arguments);const old=FOE.dmg;FOE.dmg=old*f.dk;try{return _fh.apply(this,arguments);}finally{FOE.dmg=old;}};}
+{const _fd=foeDamage;foeDamage=function(f){const was=f&&f.alive&&f.ruin;const r=_fd.apply(this,arguments);try{if(was&&!f.alive){addXp('hunt',f.boss?40:10);if(f.boss)uiToast('👑 Tướng giữ mộ gục xuống!','gold');}}catch(e){}return r;};}
+function dtNear(){const I=DT.in;for(const s of DT.sites){if(I&&I.id===s.id){const dc=Math.hypot(s.x-P.x,s.z-P.z),g=dtGate(s,-36),dg=Math.hypot(g[0]-P.x,g[1]-P.z);if(dc<56)return {type:'ruin',part:'chest',s,d:dc,b:{x:s.x,y:hAt(s.x,s.z)+34,z:s.z}};if(dg<44)return {type:'ruin',part:'exit',s,d:dg,b:{x:g[0],y:hAt(g[0],g[1])+30,z:g[1]}};}
+    else{const g=dtGate(s,14),dg=Math.hypot(g[0]-P.x,g[1]-P.z);if(dg<62)return {type:'ruin',part:'gate',s,d:dg,b:{x:g[0],y:hAt(g[0],g[1])+40,z:g[1]}};}}return null;}
+{const _ft=findTarget;findTarget=function(){const r=_ft.apply(this,arguments);try{if(!S||!DT.sites.length||G.work||G.sit||G.build)return r;if(r&&(r.type==='animal'||r.type==='foe'||r.type==='npc'||r.type==='drop'))return r;const g=dtNear();if(g&&(!r||g.d<58))return g;}catch(e){}return r;};}
+{const _ti=targetInfo;targetInfo=function(t){if(t&&t.type==='ruin'){const s=t.s,T=DT.T[s.ty],I=DT.in,lock=!mkOk('ditich');let verb,ok=false,need=null;
+    if(t.part==='exit'){verb=I&&I.done?'Ra khỏi di tích':'Rút ra cổng (lính canh sẽ hồi lại)';ok=true;}
+    else if(t.part==='chest'){const al=dtAlive(s);if(I&&I.done){verb='Mở rương cổ';ok=true;}else{verb=al?'Hạ hết '+DT.W[Math.max(0,I?I.w:0)][0].toLowerCase()+' ('+al+')':'Lớp canh kế tiếp sắp ra…';need='Phải hạ đủ ba lớp canh: lính cổ, vệ binh đồng, tướng giữ mộ.';}}
+    else if(lock){verb='🔒 Cần cấp '+mkLv('ditich');need='Di tích cổ mở cho nhân vật từ cấp '+mkLv('ditich');}
+    else{const cd=dtCool(s);if(cd>0){verb='Đang phong ấn · còn '+dtHM(cd);need='Lấy rương xong, di tích phong ấn '+DT.CD+' giờ rồi mới mở lại.';}else{verb='Vào di tích';ok=true;need='Bên trong có ba lớp canh giữ rất mạnh. Nên đem theo lính, chiến thú và thuốc.';}}
+    return {name:T[1]+' '+T[0],verb,ok,need,icon:'torch'};}return _ti.apply(this,arguments);};}
+function dtLoot(s){const first=!S.dtN,T=DT.T[s.ty];S.dtR=S.dtR||{};const got={covat:2+(Math.random()<0.4?1:0)};if(first||!S.dtR['s'+s.id]||Math.random()<0.5)got.bikip=1;
+  const R=[['jade',2],['gold',2],['bronze',3],['iron',2]].filter(e=>ITEMS[e[0]]);if(R.length){const e=R[Math.floor(Math.random()*R.length)];got[e[0]]=e[1];}
+  /* báu vật riêng của loại di tích: lần đầu hạ loại này chắc chắn có, về sau 12% */
+  const rare=T[2];if(ITEMS[rare]&&(!S.dtR[rare]||Math.random()<0.12)){got[rare]=1;S.dtR[rare]=1;}S.dtR['s'+s.id]=1;return got;}
+{const _as=actStart;actStart=function(t){if(t&&t.type==='ruin'&&!G.work){const s=t.s,I=DT.in;
+    if(t.part==='gate'){dtEnter(s);return;}
+    if(t.part==='exit'){const p=dtGate(s,24);P.x=p[0];P.z=p[1];P.y=hAt(P.x,P.z);dtLeave(I&&I.done?'':'Bạn rút khỏi di tích. Lính canh cổ trở về chỗ cũ.');return;}
+    if(!I||I.id!==s.id)return;if(!I.done){const al=dtAlive(s);uiToast(al?'Còn '+al+' kẻ canh giữ. Hạ hết ba lớp canh đã.':'Lớp canh kế tiếp sắp ra…','bad');return;}
+    const got=dtLoot(s);S.dt=S.dt||{};S.dt[s.id]=Date.now();S.dtN=(S.dtN||0)+1;give(got,[s.x,hAt(s.x,s.z)+26,s.z]);try{sfx('level');addXp('hunt',30);cnt('cnt','ruin');}catch(e){}
+    uiToast('🏺 Mở rương cổ: '+Object.entries(got).map(([k,v])=>v+' '+ITEMS[k].n.toLowerCase()).join(', ')+'. Di tích phong ấn lại '+DT.CD+' giờ.','gold');const p=dtGate(s,24);P.x=p[0];P.z=p[1];P.y=hAt(P.x,P.z);dtLeave('');try{dtObjs();}catch(e){}save();return;}return _as.apply(this,arguments);};}
+/* BÁU VẬT CỔ chỉ có trong rương di tích, mỗi loại di tích một món (lần đầu hạ loại đó chắc chắn có, về sau 12%): đeo vào có tác dụng thật.
+     Bùa hộ mệnh cổ (cổ): chịu đòn nhẹ hơn 6% · Vòng đồng cổ (tay): đánh mạnh hơn 8% · Ấn đồng cổ (tay): kinh nghiệm +10% */
+try{Object.assign(ITEMS,{buaho:{n:'Bùa hộ mệnh cổ',t:'wear',warm:0,slot:'neck',rare:1,ds:'Miếng ngọc khắc hình chim Lạc, báu vật của Đền đá cổ. Đeo vào chịu đòn nhẹ hơn 6%.'},vongdong:{n:'Vòng đồng cổ',t:'wear',warm:0,slot:'acc',rare:1,ds:'Vòng tay đồng thau chạm sóng nước, báu vật của Mộ thuyền cổ. Đeo vào đánh mạnh hơn 8%.'},andong:{n:'Ấn đồng cổ',t:'wear',warm:0,slot:'acc',rare:1,ds:'Chiếc ấn đồng của thủ lĩnh xưa, báu vật của Thành đất hoang. Đeo vào học nhanh hơn: kinh nghiệm nhận thêm 10%.'}});
+  if(typeof EMO==='object')Object.assign(EMO,{buaho:'🧿',vongdong:'⭕',andong:'🔱'});if(typeof M2V==='object')Object.assign(M2V,{buaho:200,vongdong:200,andong:200});if(typeof WEAR_NECK==='object')WEAR_NECK.buaho=['#2f7a5a',2];}catch(e){}
 const dtWorn=id=>{try{const w=S&&S.wear;if(!w)return false;for(const k in w){const v=w[k];if(v===id||(v&&v.id===id))return true;}}catch(e){}return false;};
 {const _hd=heroDef;heroDef=function(){let v=_hd.apply(this,arguments);try{if(dtWorn('buaho'))v=Math.min(0.85,v+0.06);}catch(e){}return v;};}
 {const k=()=>dtWorn('vongdong')?1.08:1;const _ad=animalDamage;animalDamage=function(a,dmg){return _ad.call(this,a,dmg*k());};const _fd=foeDamage;foeDamage=function(f,dmg){return _fd.call(this,f,dmg*k());};}
+{const _ax=addXp;addXp=function(k,n){try{if(n>0&&dtWorn('andong'))n=n*1.1;}catch(e){}return _ax.call(this,k,n);};}
 if(typeof nvmQ==='function'){const _q=nvmQ;nvmQ=function(id){try{if(ITEMS[id]&&ITEMS[id].rare)return 4;}catch(e){}return _q.apply(this,arguments);};}
 /* cổ vật → điểm thuộc tính */
 {const _hp=heroPts;heroPts=function(){let v=_hp.apply(this,arguments);try{v+=(heroS().cv|0);}catch(e){}return v;};}
