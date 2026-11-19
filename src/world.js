@@ -101,7 +101,9 @@ const BCOL={water:'#5c6a52',beach:'#d8c48e',meadow:'#8db552',edge:'#6f9e44',fore
 let TCN=8,TCS=WSEG/TCN;let TCOL=null,TNRM=null,TSPL=null,TCH=[];
 /* TGX/TGZ: độ dời sang toạ độ đại lục (0 ở bản đồ cũ) để các vệt màu đất liền nhau qua ranh giới tỉnh */
 let TGX=0,TGZ=0;
-function terrainColors(){const T=THREE,c=new T.Color(),c2=new T.Color();try{const dl=typeof DL==='object'&&DL.on;TGX=dl?DL.ox:0;TGZ=dl?DL.oz:0;}catch(e){TGX=TGZ=0;}TCOL=new Float32Array(HN*HN*3);TNRM=new Float32Array(HN*HN*3);TSPL=new Float32Array(HN*HN*4);
+function terrainColors(){const T=THREE,c=new T.Color(),c2=new T.Color();try{const dl=typeof DL==='object'&&DL.on;TGX=dl?DL.ox:0;TGZ=dl?DL.oz:0;}catch(e){TGX=TGZ=0;}
+  /* ĐỌC MÃ MÀU NHANH: Color.set('#8db552') phải phân tích chuỗi mỗi lần gọi; tô màu mặt đất gọi nó hàng triệu lần (chiếm quá nửa thời gian tô). Nhớ kết quả theo chuỗi: lần sau chỉ chép ba số. */
+  if(!T.Color.prototype._ldFast){const CP=T.Color.prototype,_set=CP.set,MC=new Map();CP._ldFast=1;CP.set=function(v){if(typeof v==='string'&&arguments.length===1){const q=MC.get(v);if(q){this.r=q[0];this.g=q[1];this.b=q[2];return this;}_set.call(this,v);if(MC.size<5000)MC.set(v,[this.r,this.g,this.b]);return this;}return _set.apply(this,arguments);};}TCOL=new Float32Array(HN*HN*3);TNRM=new Float32Array(HN*HN*3);TSPL=new Float32Array(HN*HN*4);
   for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const k=j*HN+i,x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,h=HG[k];
     const hl=HG[j*HN+Math.max(0,i-1)],hr=HG[j*HN+Math.min(HN-1,i+1)],hu=HG[Math.max(0,j-1)*HN+i],hd=HG[Math.min(HN-1,j+1)*HN+i];let nx=hl-hr,ny=2*HSTEP,nz=hu-hd;const nl=Math.hypot(nx,ny,nz);TNRM[k*3]=nx/nl;TNRM[k*3+1]=ny/nl;TNRM[k*3+2]=nz/nl;
     const sl=Math.hypot(hr-hl,hd-hu)/(2*HSTEP);let b=BG?BCODE[bgAt(x,z)]:biome(x,z);const wet=WG[k]>-900&&WG[k]-h>0.3;if(wet)b='water';
