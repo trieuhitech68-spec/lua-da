@@ -149,6 +149,11 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   function dlBiome(x,z,h0){const h=h0==null?hAt(x,z):h0;if(h<-0.4)return 'water';if(h>450)return 'peak';const sl=slopeAt(x,z);if(h>260||sl>0.8)return 'rock';const gx=x+DL.ox,gz=z+DL.oz;
     if(h<9&&dlWet(gx,gz,110)){/* sát nước: biển, hồ lớn thì là bãi cát; sông, lạch thì là bờ */let big=0;if(dlH(gx+600,gz)<-6)big++;if(dlH(gx-600,gz)<-6)big++;if(dlH(gx,gz+600)<-6)big++;if(dlH(gx,gz-600)<-6)big++;return big>=2?'beach':'bank';}
     const c=dlClimL(x,z),m=dlMoistG(gx,gz)+dlJunG(gx,gz)*0.35-dlSavG(gx,gz)*0.5+(h>140?-0.05:0)+c[0]*0.06+c[1]*0.22-c[2]*0.45+c[3]*0.12-c[4]*0.2;return m>0.06?'forest':(m>-0.1?'edge':'meadow');}
+  /* LƯỚI ĐỘ CAO cho đại lục, bản nhanh: độ cao lấy thẳng từ các mảnh đã tính; chỉ những ô nằm gần lòng suối mới phải hỏi "cách suối bao xa" để khoét lòng và đặt mặt nước
+     (bản chung hỏi câu đó hai lần cho MỌI ô, rồi còn dựng lưới "vùng mới" của bản đồ cũ mà đại lục không dùng). */
+  {const _hb=heightsBuild;heightsBuild=function(){if(!DL.on)return _hb.apply(this,arguments);riversSurface();HG=new Float32Array(HN*HN);WG=new Float32Array(HN*HN);try{if(typeof W4==='object')W4.ZG=null;}catch(e){}const C=400,has=RBK&&RBK.size?RBK:null;
+      for(let j=0;j<HN;j++){const z=-WOZ+j*HSTEP,bz=Math.floor(z/C);let bx0=1e9,near=false;for(let i=0;i<HN;i++){const x=-WSIZE/2+i*HSTEP,k=j*HN+i;if(has){const bx=Math.floor(x/C);if(bx!==bx0){bx0=bx;near=has.has(bx+','+bz);}}
+          if(near){const h=rawH(x,z);HG[k]=h;const q=riverQ(x,z);let w=h<0?0:-999;if(q.r>=0&&q.d<q.w*0.5+HSTEP&&q.s>0.5)w=Math.max(w,q.s);WG[k]=w;}else{const h=baseH(x,z);HG[k]=h;WG[k]=h<0?0:-999;}}}};}
   /* lưới sinh cảnh: tính MỘT lần mỗi lần dựng vùng (trước hai lần) và tính thưa gấp đôi (một điểm cho mỗi khối 2×2 ô, bám toạ độ đại lục) */
   {const _bg=biomeGridBuild;biomeGridBuild=function(){if(!DL.on)return _bg.apply(this,arguments);const key=DL.ox+','+DL.oz+':'+(DL.bgN|0);if(DL.bgKey===key&&typeof BG!=='undefined'&&BG&&BG.length===HN*HN)return;DL.bgKey=key;BG=new Uint8Array(HN*HN);
       for(let j=0;j<HN;j+=2)for(let i=0;i<HN;i+=2){const x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,c=Math.max(0,BCODE.indexOf(biome(x,z))),k=j*HN+i;BG[k]=c;if(i+1<HN)BG[k+1]=c;if(j+1<HN){BG[k+HN]=c;if(i+1<HN)BG[k+HN+1]=c;}}};}
