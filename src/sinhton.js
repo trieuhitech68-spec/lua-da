@@ -12,12 +12,13 @@ const stRain=()=>{let k=0;for(const s in (S.wear||{})){const I=ITEMS[S.wear[s]];
 const stHasItem=id=>Object.values(S.wear||{}).includes(id)||invCount(id)>0;
 function stWearAll(){try{for(let i=0;i<S.inv.length;i++){const s=S.inv[i],I=s&&ITEMS[s.id];if(!I||I.t!=='wear'||!I.slot||(S.wear&&S.wear[I.slot]))continue;wearItem(i);return true;}}catch(e){}return false;}
 // ----- sưởi ấm, hong khô -----
-AUJ.warm=function(j){const p=S.p;if(j.T0==null)j.T0=G.t;if(G.t-j.T0>260)return AQ_DONE;/* không sưởi quá 4 phút */if(j.cf){j.cf=null;if(++j.alt>3)return aqFail('Không tìm được chỗ sưởi.');}
+AUJ.warm=function(j){const p=S.p;if(j.T0==null)j.T0=G.t;/* không sưởi quá 4 phút; riêng lúc còn rét thật (thân nhiệt dưới 30) thì ở lại tới 15 phút: ra ngoài mưa rét lúc đó là mất máu */if(G.t-j.T0>(p.warm<30?900:260))return AQ_DONE;if(j.cf){j.cf=null;if(++j.alt>3)return aqFail('Không tìm được chỗ sưởi.');}
   const here=fireHeat(P.x,P.z)>0.3,roof=underRoof(P.x,P.z)||fireSheltered(P.x,P.z);
-  if(j.t0!=null){if((p.warm>=46&&p.wet<35)||(!here&&roof&&p.warm>=30&&p.wet<20)||G.t-j.t0>110)return AQ_DONE;}
+  if(j.t0!=null){if((p.warm>=46&&p.wet<35)||(!here&&roof&&p.warm>=30&&p.wet<20)||(G.t-j.t0>110&&!(p.warm<30&&(roof||here))))return AQ_DONE;}
   const site=S.builds.find(b=>b.prog!=null&&GD_FIRE.test(b.k));if(site&&j.built&&!j.sited){j.sited=1;aqPush({k:'site',b:site},j);return AQ_RUN;}
   let f=aqFire(true);const f0=aqFire(false),rain=typeof isRaining==='function'&&isRaining();
-  if(!f&&f0&&!j.lit&&aqD(f0.x,f0.z)<2600&&!(rain&&!fireSheltered(f0.x,f0.z))){j.lit=1;j.lab='Về nhóm lại bếp';aqPush({k:'light',b:f0,force:1},j);return AQ_RUN;}
+  /* chỉ nhóm lại bếp khi ĐANG CÓ củi trong túi: đang rét ướt mà còn đi nhặt que dưới mưa thì càng lạnh (chạy thử: cứ "nhóm lửa → đi tìm que" tới khi thân nhiệt chạm đáy); không có củi thì vào chỗ trú hong khô trước */
+  if(!f&&f0&&!j.lit&&(invCount('stick')>0||invCount('wood')>0||invCount('tinder')>0)&&aqD(f0.x,f0.z)<2600&&!(rain&&!fireSheltered(f0.x,f0.z))){j.lit=1;j.lab='Về nhóm lại bếp';aqPush({k:'light',b:f0,force:1},j);return AQ_RUN;}
   const bed=aqBed();let tg=null;if(f&&(!bed||aqD(f.x,f.z)<aqD(bed.x,bed.z)*1.6+200))tg=f;else if(bed)tg=bed;else if(f)tg=f;
   const lsite=S.builds.find(b=>b.prog!=null&&b.k==='leanto');if(lsite&&j.builtL&&!j.sitedL){j.sitedL=1;aqPush({k:'site',b:lsite},j);return AQ_RUN;}
   if(!tg||aqD(tg.x,tg.z)>3200){if(!j.built&&!rain){j.built=1;j.lab='Dựng bếp sưởi tại chỗ';aqPush({k:'place',piece:'campfire'},j);return AQ_RUN;}if(!tg&&!j.builtL){j.builtL=1;j.lab='Dựng lều trú mưa';aqPush({k:'place',piece:'leanto'},j);return AQ_RUN;}if(!tg)return aqFail('Không có bếp lửa hay chỗ trú nào để sưởi.');}

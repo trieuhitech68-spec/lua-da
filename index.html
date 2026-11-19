@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119053037">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119060638">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -19474,12 +19474,13 @@ const stRain=()=>{let k=0;for(const s in (S.wear||{})){const I=ITEMS[S.wear[s]];
 const stHasItem=id=>Object.values(S.wear||{}).includes(id)||invCount(id)>0;
 function stWearAll(){try{for(let i=0;i<S.inv.length;i++){const s=S.inv[i],I=s&&ITEMS[s.id];if(!I||I.t!=='wear'||!I.slot||(S.wear&&S.wear[I.slot]))continue;wearItem(i);return true;}}catch(e){}return false;}
 // ----- sưởi ấm, hong khô -----
-AUJ.warm=function(j){const p=S.p;if(j.T0==null)j.T0=G.t;if(G.t-j.T0>260)return AQ_DONE;/* không sưởi quá 4 phút */if(j.cf){j.cf=null;if(++j.alt>3)return aqFail('Không tìm được chỗ sưởi.');}
+AUJ.warm=function(j){const p=S.p;if(j.T0==null)j.T0=G.t;/* không sưởi quá 4 phút; riêng lúc còn rét thật (thân nhiệt dưới 30) thì ở lại tới 15 phút: ra ngoài mưa rét lúc đó là mất máu */if(G.t-j.T0>(p.warm<30?900:260))return AQ_DONE;if(j.cf){j.cf=null;if(++j.alt>3)return aqFail('Không tìm được chỗ sưởi.');}
   const here=fireHeat(P.x,P.z)>0.3,roof=underRoof(P.x,P.z)||fireSheltered(P.x,P.z);
-  if(j.t0!=null){if((p.warm>=46&&p.wet<35)||(!here&&roof&&p.warm>=30&&p.wet<20)||G.t-j.t0>110)return AQ_DONE;}
+  if(j.t0!=null){if((p.warm>=46&&p.wet<35)||(!here&&roof&&p.warm>=30&&p.wet<20)||(G.t-j.t0>110&&!(p.warm<30&&(roof||here))))return AQ_DONE;}
   const site=S.builds.find(b=>b.prog!=null&&GD_FIRE.test(b.k));if(site&&j.built&&!j.sited){j.sited=1;aqPush({k:'site',b:site},j);return AQ_RUN;}
   let f=aqFire(true);const f0=aqFire(false),rain=typeof isRaining==='function'&&isRaining();
-  if(!f&&f0&&!j.lit&&aqD(f0.x,f0.z)<2600&&!(rain&&!fireSheltered(f0.x,f0.z))){j.lit=1;j.lab='Về nhóm lại bếp';aqPush({k:'light',b:f0,force:1},j);return AQ_RUN;}
+  /* chỉ nhóm lại bếp khi ĐANG CÓ củi trong túi: đang rét ướt mà còn đi nhặt que dưới mưa thì càng lạnh (chạy thử: cứ "nhóm lửa → đi tìm que" tới khi thân nhiệt chạm đáy); không có củi thì vào chỗ trú hong khô trước */
+  if(!f&&f0&&!j.lit&&(invCount('stick')>0||invCount('wood')>0||invCount('tinder')>0)&&aqD(f0.x,f0.z)<2600&&!(rain&&!fireSheltered(f0.x,f0.z))){j.lit=1;j.lab='Về nhóm lại bếp';aqPush({k:'light',b:f0,force:1},j);return AQ_RUN;}
   const bed=aqBed();let tg=null;if(f&&(!bed||aqD(f.x,f.z)<aqD(bed.x,bed.z)*1.6+200))tg=f;else if(bed)tg=bed;else if(f)tg=f;
   const lsite=S.builds.find(b=>b.prog!=null&&b.k==='leanto');if(lsite&&j.builtL&&!j.sitedL){j.sitedL=1;aqPush({k:'site',b:lsite},j);return AQ_RUN;}
   if(!tg||aqD(tg.x,tg.z)>3200){if(!j.built&&!rain){j.built=1;j.lab='Dựng bếp sưởi tại chỗ';aqPush({k:'place',piece:'campfire'},j);return AQ_RUN;}if(!tg&&!j.builtL){j.builtL=1;j.lab='Dựng lều trú mưa';aqPush({k:'place',piece:'leanto'},j);return AQ_RUN;}if(!tg)return aqFail('Không có bếp lửa hay chỗ trú nào để sưởi.');}
@@ -20057,6 +20058,8 @@ try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITE
 {const _f=AUJ.fight;AUJ.fight=function(j){try{const a=j.a;if(a&&a.kind==='raider'&&a.alive&&S.p.hp<28&&!j._bail){j._bail=1;AQ.noFoeT=G.t+60;G.act=null;const i=AQ.jobs.indexOf(j);if(i>=0)AQ.jobs.splice(i,1);const top=AQ.jobs[AQ.jobs.length-1],hb=aqFire(true)||aqFire()||aqBed();if(top&&hb&&aqD(hb.x,hb.z)>70&&!aqHasUrgent('camp'))aqPush({k:'camp',urgent:1},top);aqSay('🤖 Đánh không lại: lánh về trại, băng bó đã.','bad');return AQ_RUN;}}catch(e){}return _f.apply(this,arguments);};}
 /* (5) Bến nước không tới được: ghi vào AQW để lần sau tìm bến khác (chạy thử: cứ đi về đúng một bến bị vách chắn, báo "không tìm được đường", dừng, rồi lặp lại tới khi nước về 0) */
 {const _d=AUJ.drink;AUJ.drink=function(j){const w0=AQ.wC&&AQ.wC.w&&!AQ.wC.w.well?[AQ.wC.w.wx,AQ.wC.w.wz]:null,n0=(j.bw||[]).length;const r=_d.apply(this,arguments);try{if(w0&&((r&&r.fail)||(j.bw||[]).length>n0)){for(let i=AQW.length-1;i>=0;i--)if(AQW[i][2]<G.t||AQW[i][2]>G.t+2000)AQW.splice(i,1);if(AQW.length<40)AQW.push([w0[0],w0[1],G.t+900]);AQ.wC=null;}}catch(e){}return r;};}
+/* (6) Máu thấp mà đang rét ướt: vào chỗ trú / bên lửa hong khô TRƯỚC rồi mới nghỉ hồi máu (chạy thử: ngồi nghỉ giữa mưa rét, máu tụt nhanh hơn hồi) */
+if(typeof AUJ.heal==='function'){const _h=AUJ.heal;AUJ.heal=function(j){try{if(!j._w&&S.p.warm<28){j._w=1;aqPush({k:'warm',urgent:1},j);return AQ_RUN;}}catch(e){}return _h.apply(this,arguments);};}
 /* ===================== GIỮ MÀN HÌNH SÁNG KHI TỰ LÀM · TỰ LÀM TIẾP SAU KHI TRANG TẢI LẠI =====================
    Trên điện thoại, bật Tự làm rồi để yên thì: (1) không ai chạm nên máy tự tắt màn hình, game ngừng; (2) quay lại, trình duyệt / ứng dụng thường tải lại trang,
    mà chế độ Tự làm trước đây không được ghi nhớ nên phải bấm lại. Giờ:
