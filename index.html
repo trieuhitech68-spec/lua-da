@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119013447">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119015937">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -16914,7 +16914,11 @@ if(typeof heroHtml==='function'){const _hh=heroHtml;heroHtml=function(){let h=_h
 // thông báo nổi không đè lên cụm nút (cụm nút giờ cao 4 hàng)
 {const st=document.createElement('style');st.textContent='@media (max-width:600px){#game .toasts{bottom:calc(var(--u-sb,10px) + 338px)!important}}';document.head.appendChild(st);}
 /* ===================== CÓ GÌ MỚI: thẻ giới thiệu tính năng, mỗi phiên bản hiện một lần cho mỗi máy ===================== */
-const NEWS_V='2026-11-f',NEWS=[
+const NEWS_V='2026-11-g',NEWS=[
+ ['🗺️','Đại lục chia sáu miền','Phía bắc lạnh, rừng thông; phía nam là rừng nhiệt đới có chuối, cọ, tre; có thảo nguyên khô, đồi tre trúc, đồng cỏ hoa. Mỗi miền một dáng đất, một kiểu cây, khí hậu riêng. Cây cối giờ giống nhau dù đứng ở tỉnh nào, sang tỉnh bên không còn màn đen.'],
+ ['🐕','Chó biết trông nhà, đi săn','Chạm vào chó để đổi việc: Trông nhà (mặc định: đi tuần, sủa báo và đuổi thú dữ, mừng khi bạn về), Đi theo, Đi săn (bắt thỏ, gà rừng tha về giỏ). Gà, lợn đi theo đàn, tối tự về chuồng.'],
+ ['🐘','Voi vẽ lại · chiến thú canh nhà','Voi có vòi cong, ngà cong, tai quạt. Ngựa, voi bị bỏ lại xa sẽ tự tìm về làng và gọi được từ bất cứ đâu. Chiến thú không xuất chiến đi lại canh nhà, lao ra cắn thú dữ.'],
+ ['🏰','Liên minh, tướng, thiên phú','Liên minh lên cấp nhờ thành viên góp vật liệu. Tướng cấp 5 chọn tài riêng. Thiên phú 5 bậc, 8 hướng. Nhà kho rộng 4×3 ô, chứa 178 ô.'],
  ['🎖️','Tướng lĩnh và quân số','Phong lính làm tướng (cần Trại lính). Tướng lên cấp nhờ ra trận, thăng sao bằng vật liệu, có sở trường binh chủng. Quân số tối đa do tướng quyết định; có chiến thuật Tấn công, Phòng thủ, Vây bắn.'],
  ['📈','Bảng Phát triển','☰ → 📈: sáu trụ cột (Nhân vật, Làng, Học vấn, Quân đội, Tướng lĩnh, Liên minh), điểm Thế lực và bước tiếp theo. Nghiên cứu giờ có 10 bậc, bậc cao tốn nhiều giờ.'],
  ['🌏','Đại lục rộng lớn','Nhân vật MỚI (chơi một mình) giờ sống trên một đại lục liền rộng hơn 20 km²: đồng bằng, sông hồ, rừng, dãy núi phủ tuyết, biển. Không có cổng: đi tới đâu game nạp vùng đất tới đó, nhà cửa giữ nguyên chỗ. Nhân vật cũ vẫn ở bản đồ cũ.'],
@@ -21981,21 +21985,30 @@ setInterval(qdBar,600);
    · CƯỠI VOI: lại gần bấm Hành động như cưỡi ngựa. Ngồi cao, đi chậm hơn ngựa nhưng lội được nước sâu hơn.
    · TƯỢNG BINH: trong Dân làng → Đạo quân, bấm + Kỵ binh khi có voi rảnh thì lính nhận voi: đòn mạnh gấp 2,5, đứng hai cánh đội hình. */
 const VOI={seat:52,sc:1};
-function voiModel(decor){const T=THREE,g=new T.Group(),M=(c,o)=>new T.MeshLambertMaterial(Object.assign({color:c},o||{})),sk=M('#857d72'),dk=M('#655e55'),lt=M('#9a9186'),iv=M('#efe8d4'),ey=M('#17120e'),pk=M('#b08a80');
-  const sp=new T.SphereGeometry(1,18,12),add=(geo,mt,x,y,z,sx,sy,sz,par,rx,rz,ry)=>{const m=new T.Mesh(geo,mt);m.position.set(x,y,z);m.scale.set(sx,sy,sz);if(rx)m.rotation.x=rx;if(rz)m.rotation.z=rz;if(ry)m.rotation.y=ry;(par||g).add(m);return m;};
-  const body=new T.Group();g.add(body);add(sp,sk,0,45,2,18.5,17.5,27,body);add(sp,sk,0,48,-13,17.5,16,19,body);add(sp,sk,0,50,12,16,14,16,body);add(sp,dk,0,35,0,15.5,9.5,25,body);add(sp,lt,0,57,-2,11,6,22,body);
-  const head=new T.Group();head.position.set(0,52,27);g.add(head);add(sp,sk,0,1,7,12,13.5,11.5,head);add(sp,sk,-4.6,10.5,5,6.2,5.4,6.4,head);add(sp,sk,4.6,10.5,5,6.2,5.4,6.4,head);add(sp,sk,0,-5,12.5,7.5,7,7,head);
-  for(const s of [1,-1]){/* tai to hình quạt, hơi xoè ra sau */const ear=new T.Mesh(new T.CircleGeometry(13,14),M('#7a7268',{side:T.DoubleSide}));ear.position.set(s*13.5,2,1);ear.scale.set(0.78,1.08,1);ear.rotation.set(0,s*(Math.PI/2-0.55),s*0.12);head.add(ear);const in2=new T.Mesh(new T.CircleGeometry(9,12),M('#a08a82',{side:T.DoubleSide}));in2.position.set(s*13.9,1.4,1.6);in2.scale.set(0.74,1.02,1);in2.rotation.copy(ear.rotation);head.add(in2);
-    add(sp,ey,s*8.3,4.6,14.6,0.95,0.95,0.6,head);add(sp,lt,s*8.3,6.2,14.2,1.8,0.7,0.9,head);
-    /* ngà cong vểnh lên: ba đoạn */let px=s*5.4,py=-7.5,pz=15.5,ax=1.25;for(let i=0;i<4;i++){const len=6.2,r0=1.7-i*0.36,c=new T.Mesh(new T.CylinderGeometry(Math.max(0.25,r0-0.36),r0,len,7),iv);c.position.set(px,py-Math.cos(ax)*len/2,pz+Math.sin(ax)*len/2);c.rotation.set(Math.PI-ax,0,0);head.add(c);py-=Math.cos(ax)*len;pz+=Math.sin(ax)*len;ax+=0.42;px+=s*0.5;}}
-  /* vòi: 9 đốt thuôn dần, rủ xuống rồi cong nhẹ ra trước */{let py=-8,pz=16.5,ax=0.12;for(let i=0;i<9;i++){const r=5.3-i*0.5,len=5.6,c=new T.Mesh(new T.CylinderGeometry(Math.max(1,r-0.5),r,len,9),sk);c.position.set(0,py-Math.cos(ax)*len/2,pz+Math.sin(ax)*len/2);c.rotation.x=Math.PI-ax;head.add(c);py-=Math.cos(ax)*len*0.94;pz+=Math.sin(ax)*len*0.94;ax+=i<5?-0.03:0.2;}add(sp,pk,0,py+0.6,pz+0.4,1.3,1,1.3,head);}
-  const leg=(x,z,front)=>{const L=new T.Group();L.position.set(x,33,z);g.add(L);add(new T.CylinderGeometry(6.6,5.6,17,10),sk,0,-8.5,0,1,1,1,L);add(sp,sk,0,-17,front?0.6:-0.4,5.9,3.4,5.9,L);add(new T.CylinderGeometry(5.3,6.4,14,10),sk,0,-24.5,0,1,1,1,L);add(new T.CylinderGeometry(6.9,7.1,2.6,10),dk,0,-31.8,0.5,1,1,1,L);for(let k=-1;k<=1;k++)add(sp,iv,k*3.4,-32,6.6,1.5,1.2,0.9,L);return L;};
-  const tail=new T.Group();tail.position.set(0,52,-31);g.add(tail);add(new T.CylinderGeometry(0.8,1.5,24,6),dk,0,-12,-1.6,1,1,1,tail,0.14);add(sp,ey,0,-25,-3.2,1.5,3,1.5,tail);
-  g.userData.rig={body,head,tail,legFL:leg(-10.5,17,1),legFR:leg(10.5,17,1),legBL:leg(-10.5,-18,0),legBR:leg(10.5,-18,0)};
-  if(decor){/* voi nhà: tấm phủ lưng đỏ viền vàng, miếng che trán */const cl=M('#b3261e',{side:T.DoubleSide}),gd=M('#e6b422',{side:T.DoubleSide});const cover=new T.Mesh(new T.SphereGeometry(1,18,10,0,Math.PI*2,0,1.2),cl);cover.position.set(0,45.5,-1);cover.scale.set(19.6,18.6,21);body.add(cover);
-    const band=new T.Mesh(new T.SphereGeometry(1,18,4,0,Math.PI*2,1.2,0.16),gd);band.position.copy(cover.position);band.scale.set(19.9,18.9,21.3);body.add(band);const fr=new T.Mesh(new T.SphereGeometry(1,10,6,0,Math.PI*2,0,0.75),gd);fr.position.set(0,2.5,8.2);fr.scale.set(8,9,11);fr.rotation.x=1.2;head.add(fr);
-    const seat=new T.Mesh(new T.BoxGeometry(15,2.4,18),M('#5a3a22'));seat.position.set(0,63.6,-2);body.add(seat);}
-  g.userData.h=68;g.userData.len=78;g.userData.r=30;g.userData.kind='elephant';return g;}
+/* ống thuôn dần uốn theo đường cong (vòi, ngà, đuôi): pts=[[x,y,z]…], bán kính r0 → r1 */
+function voiTube(pts,r0,r1,rad,mat){const T=THREE,cv=new T.CatmullRomCurve3(pts.map(q=>new T.Vector3(q[0],q[1],q[2]))),N=pts.length*5,pos=[],idx=[],fr=cv.computeFrenetFrames(N,false);
+  for(let i=0;i<=N;i++){const t=i/N,c=cv.getPointAt(t),r=r0+(r1-r0)*t,n=fr.normals[i],b=fr.binormals[i];for(let k=0;k<rad;k++){const a=k/rad*6.283,cs=Math.cos(a)*r,sn=Math.sin(a)*r;pos.push(c.x+n.x*cs+b.x*sn,c.y+n.y*cs+b.y*sn,c.z+n.z*cs+b.z*sn);}}
+  for(let i=0;i<N;i++)for(let k=0;k<rad;k++){const a=i*rad+k,b=i*rad+(k+1)%rad,c=a+rad,d=b+rad;idx.push(a,c,b,b,c,d);}
+  const ge=new T.BufferGeometry();ge.setAttribute('position',new T.Float32BufferAttribute(pos,3));ge.setIndex(idx);ge.computeVertexNormals();return new T.Mesh(ge,mat);}
+/* VOI vẽ lại: thân có vai, hông, sống lưng cong; đầu vồng hai u; vòi cong thuôn dần, đầu vòi hơi cuộn; ngà cong vểnh; tai quạt có độ dày; chân liền khối có đầu gối, móng. */
+function voiModel(decor){const T=THREE,g=new T.Group(),M=(c,o)=>new T.MeshLambertMaterial(Object.assign({color:c},o||{})),sk=M('#8a8279'),dk=M('#6b645b'),lt=M('#9d948a'),iv=M('#f1ead6',{side:T.DoubleSide}),ey=M('#17120e'),pk=M('#b39088'),sk2=M('#8a8279',{side:T.DoubleSide}),dk2=M('#5f5850',{side:T.DoubleSide});
+  const sp=new T.SphereGeometry(1,20,14),add=(geo,mt,x,y,z,sx,sy,sz,par,rx,rz,ry)=>{const m=new T.Mesh(geo,mt);m.position.set(x,y,z);m.scale.set(sx,sy,sz);if(rx)m.rotation.x=rx;if(rz)m.rotation.z=rz;if(ry)m.rotation.y=ry;(par||g).add(m);return m;};
+  const body=new T.Group();g.add(body);add(sp,sk,0,46,0,19,18,30,body);add(sp,sk,0,47.5,15,17.5,17.5,15,body);add(sp,sk,0,46,-16,18.5,17.5,16,body);add(sp,lt,0,57.5,-1,10.5,7.5,25,body);add(sp,dk,0,36.5,0,15.5,10,23,body);add(sp,sk,0,51,25,13.5,13.5,10,body);
+  const head=new T.Group();head.position.set(0,54,31);g.add(head);add(sp,sk,0,1,3,12.5,13,12,head);add(sp,lt,-4.6,11.5,3,5.8,5.2,6.2,head);add(sp,lt,4.6,11.5,3,5.8,5.2,6.2,head);add(sp,sk,0,-5.5,6,9.2,8,9,head);add(sp,sk,0,-3.5,11.5,6.6,7,6.6,head);
+  for(const s of [1,-1]){/* tai quạt: dày, xoè chếch ra sau, mép dưới nhọn dần */const ear=add(sp,dk,s*12.6,2.5,-1.5,10.5,13.5,1.5,head,0,s*0.1,s*(Math.PI/2-0.78));add(sp,pk,s*13.1,2,-1.1,7.6,10.2,1.62,head,0,s*0.1,s*(Math.PI/2-0.78));add(sp,dk,s*13.6,-9,-3.4,5.2,6.5,1.4,head,0,s*0.22,s*(Math.PI/2-0.78));
+    add(sp,ey,s*8.9,3.6,10.2,1.05,1.05,0.7,head);add(sp,lt,s*8.7,5.4,9.8,2,0.8,1.1,head);
+    /* ngà cong vểnh ra trước rồi lên */const tk=voiTube([[s*4.6,-6.5,11],[s*6.6,-12.5,17.5],[s*7.6,-14,25],[s*7.2,-11,32],[s*6.4,-6.5,36]],1.9,0.35,8,iv);head.add(tk);add(sp,lt,s*4.9,-6,11.2,2.6,2.6,2.6,head);}
+  /* vòi: rủ xuống, cong nhẹ ra trước, đầu vòi cuộn lên */{const tr=voiTube([[0,1,8],[0,-4,14.5],[0,-11,18.5],[0,-21,20.5],[0,-31,19.5],[0,-39,19],[0,-44,21.5],[0,-45,26],[0,-42,29]],5.9,1.7,12,sk2);head.add(tr);add(sp,pk,0,-41.6,29.4,1.6,1.5,1.5,head);
+    /* vài nếp nhăn ngang trên vòi */for(let i=0;i<5;i++){const y=-9-i*6.2,r=5.1-i*0.62;const rg=new T.Mesh(new T.TorusGeometry(r,0.32,5,14),dk);rg.position.set(0,y,18.6+Math.min(2,i*0.5));rg.rotation.x=Math.PI/2-0.12;head.add(rg);}}
+  const leg=(x,z,front)=>{const L=new T.Group();L.position.set(x,34,z);g.add(L);add(new T.CylinderGeometry(front?7.4:7.8,front?6:6.3,34,12),sk,0,-17,0,1,1,1,L);add(sp,sk,0,-1,0,front?7.6:8.2,6,front?7.6:8.6,L);add(sp,lt,0,-16.5,front?1.4:-1,6.5,3.6,6.3,L);add(new T.CylinderGeometry(6.2,7.3,4,12),dk,0,-32,0.4,1,1,1,L);for(let k=-1;k<=1;k++)add(sp,iv,k*3.5,-32.6,6.3-Math.abs(k)*0.9,1.6,1.4,1,L);return L;};
+  const tail=new T.Group();tail.position.set(0,52,-30);g.add(tail);tail.add(voiTube([[0,0,0],[0,-8,-3.5],[0,-17,-4.2],[0,-25,-3.6]],1.7,0.7,7,dk2));add(sp,ey,0,-27,-3.6,1.5,3.2,1.5,tail);
+  g.userData.rig={body,head,tail,legFL:leg(-10.5,18,1),legFR:leg(10.5,18,1),legBL:leg(-11,-18,0),legBR:leg(11,-18,0)};
+  if(decor){/* voi nhà: tấm phủ lưng đỏ viền vàng, miếng che trán, bành ngồi */const cl=M('#b3261e',{side:T.DoubleSide}),gd=M('#e6b422',{side:T.DoubleSide});const cover=new T.Mesh(new T.SphereGeometry(1,20,10,0,Math.PI*2,0,1.2),cl);cover.position.set(0,46.4,-1);cover.scale.set(20,19,23);body.add(cover);
+    const band=new T.Mesh(new T.SphereGeometry(1,20,4,0,Math.PI*2,1.2,0.16),gd);band.position.copy(cover.position);band.scale.set(20.3,19.3,23.3);body.add(band);const fr=new T.Mesh(new T.SphereGeometry(1,10,6,0,Math.PI*2,0,0.75),gd);fr.position.set(0,3.5,5.5);fr.scale.set(8.6,9.4,11.6);fr.rotation.x=1.2;head.add(fr);
+    const seat=new T.Mesh(new T.BoxGeometry(15,2.4,18),M('#5a3a22'));seat.position.set(0,65.2,-2);body.add(seat);for(const s of [1,-1]){const rl=new T.Mesh(new T.BoxGeometry(1.2,3.4,18),M('#7a5230'));rl.position.set(s*7.5,67.6,-2);body.add(rl);}}
+  /* voi to, đứng sát máy quay thì từng khối dễ bị bộ vẽ loại nhầm khi tâm khối ra ngoài khung hình: không loại khối nào của voi */
+  g.traverse(m=>{if(m.isMesh)m.frustumCulled=false;});
+  g.userData.h=70;g.userData.len=80;g.userData.r=30;g.userData.kind='elephant';return g;}
 ANIMALS.elephant={n:'Voi rừng',hp:40,spd:140,r:30,flee:0,drop:{meat:14,hide:8,bone:6},bio:['meadow','edge','forest'],n0:0,aggro:'defend',dmg:30,herd:3};
 try{if(typeof H3WT==='object')H3WT.elephant=900;}catch(e){}
 if(typeof TAME!=='undefined')TAME.elephant={to:'elephant',food:['banana','gourd','sugarcane','yam','taro','berry'].filter(k=>ITEMS[k]),n:'voi'};
@@ -23028,6 +23041,99 @@ if(typeof tgArmyCap==='function'){const _c=tgArmyCap;tgArmyCap=function(){return
 .lmc-h{display:flex;align-items:center;gap:10px}.lmc-lv{flex:none;width:48px;height:48px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#ffe7a8,#d99a2b 60%,#8a5a12);color:#2a1a06}.lmc-lv small{font-size:8px;font-weight:800;letter-spacing:1px;line-height:1}.lmc-lv b{font-size:19px;line-height:1}
 .lmc-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}.lmc-g{flex-wrap:wrap;gap:6px}.lmc-g .btn{min-height:38px;display:inline-flex;align-items:center;gap:4px}.lmc-t{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;opacity:.9}`;document.head.appendChild(st);}
 if(typeof HD_L!=='undefined')HD_L.push({id:'lmcap',ic:'🏰',t:'Cấp liên minh',w:()=>{try{return mpOn()&&!!mpMyClan();}catch(e){return false;}},p:['Bạn đang ở trong một liên minh. Mở bảng <b>Liên minh</b>: mỗi người <b>góp vật liệu</b> để lấy điểm công hiến; tổng công hiến của mọi người quyết định <b>cấp liên minh</b> (tới cấp 10).','Mỗi cấp cho <b>cả liên minh</b>: làm việc nhanh hơn 2%, lính đánh mạnh hơn 2%; cứ 2 cấp mỗi người chỉ huy thêm 1 lính. Mỗi ngày mỗi người góp tối đa 200 điểm, nên liên minh đông và chăm thì lên nhanh hơn.']});
+/* ===================== thukhon: VẬT NUÔI KHÔN HƠN =====================
+   Trước: chó chỉ biết chạy theo sau lưng; gà, lợn, dê đi lung tung từng con một quanh chuồng.
+   CHÓ có ba việc, chạm vào chó để đổi (mặc định TRÔNG NHÀ):
+     🏠 Trông nhà : đi tuần quanh nhà, ngửi đất, ngồi nghỉ, đêm nằm ngủ gần chỗ ngủ của chủ; thấy thú dữ / kẻ địch tới gần nhà thì SỦA BÁO (có dòng báo hướng), lao ra đuổi cắn;
+                    chủ đi xa về thì chạy ra mừng; đói thì tự đi bắt thỏ, gà rừng quanh làng.
+     🐾 Đi theo   : như trước (theo sát chủ, cắn thú dữ lao vào chủ).
+     🦴 Đi săn    : ra quanh làng săn thỏ, gà rừng, khỉ; bắt được thì tha thịt về cất vào giỏ / rương gần nhà.
+   GIA SÚC, GIA CẦM: đi theo đàn (cả đàn cùng dạt về một bãi rồi mới tản ra), cúi gặm cỏ / mổ thóc, tối về chuồng đứng yên ngủ, thấy chủ lại gần thì ngoảnh nhìn.
+   Lưu: p.job ('nha' | 'theo' | 'san'), p.jv=1 (đã chuyển cách cũ). p.stay giữ đồng bộ để các bảng cũ (Chuồng thú, gọi thú về) vẫn đúng. */
+const THK={JOB:{nha:['🏠','Trông nhà','đi tuần quanh nhà, sủa báo và đuổi thú dữ, đói thì tự đi kiếm mồi'],theo:['🐾','Đi theo','theo sát bạn, cắn thú dữ lao vào bạn'],san:['🦴','Đi săn','săn thỏ, gà rừng quanh làng, tha thịt về giỏ']},herd:{},warnT:-99,greetT:-99};
+const tkDog=p=>p&&(p.k==='dog'||p.k==='puppy');
+function tkJob(p){if(!p.jv){p.jv=1;p.job='nha';p.stay=true;if(p.hx==null){p.hx=p.x;p.hz=p.z;}}/* bảng cũ đổi p.stay thì theo đó */if(p.stay===false&&p.job!=='theo')p.job='theo';else if(p.stay===true&&p.job==='theo')p.job='nha';if(!THK.JOB[p.job])p.job='nha';return p.job;}
+function tkSet(p,job){if(!THK.JOB[job])return;p.jv=1;p.job=job;p.stay=job!=='theo';p.hx=p.x;p.hz=p.z;p._st=null;const J=THK.JOB[job];try{sfx('bark');}catch(e){}uiToast(`🐕 ${J[0]} ${J[1]}: ${J[2]}.`,'');save();}
+function tkHome(p){let h=null;try{h=homePos();}catch(e){}return h||{x:p.hx!=null?p.hx:p.x,z:p.hz!=null?p.hz:p.z};}
+const tkNight=()=>{const h=S.hour;return h>=21||h<5;};
+/* thú dữ / kẻ địch gần nhà hoặc gần con chó */
+function tkThreat(p,home){let best=null,bd=1e9;for(const a of G.animals||[]){if(!a.alive||a.tame>0)continue;const D=ANIMALS[a.kind];if(!D)continue;const bad=a.angry||a.state==='chase'||(D.aggro&&D.aggro!=='never'&&D.aggro!=='defend'&&(D.dmg||0)>=9);if(!bad)continue;const dh=Math.hypot(a.x-home.x,a.z-home.z),dd=Math.hypot(a.x-p.x,a.z-p.z);if(dh>300&&dd>170)continue;if(dd<bd){bd=dd;best=a;}}
+  for(const f of G.foes||[]){if(!f.alive)continue;const dh=Math.hypot(f.x-home.x,f.z-home.z),dd=Math.hypot(f.x-p.x,f.z-p.z);if(dh>340&&dd>170)continue;if(dd<bd){bd=dd;best=f;}}return best;}
+function tkPrey(p,home){let best=null,bd=1e9;for(const a of G.animals||[]){if(!a.alive||a.tame>0||a.boss)continue;const D=ANIMALS[a.kind];if(!D||D.aggro!=='never'||(D.hp||9)>2)continue;if(Math.hypot(a.x-home.x,a.z-home.z)>650)continue;const dd=Math.hypot(a.x-p.x,a.z-p.z);if(dd<bd){bd=dd;best=a;}}return best;}
+/* cất mồi: giỏ / rương gần nhà còn chỗ → túi của chủ nếu chủ ở gần → rơi mất */
+function tkStore(home,items){let where='';const L=[];for(const b of S.builds){if(b.prog!=null||b.k==='trough')continue;const d=pieceDef(b.k);if(d&&d.store&&S.store[b.id]&&Math.hypot(b.x-home.x,b.z-home.z)<240)L.push(b);}
+  for(const k in items){let n=items[k];for(const b of L){if(n<=0)break;const left=slotsAdd(S.store[b.id],k,n);if(left<n)where=pieceDef(b.k).n.toLowerCase();n=left;}if(n>0&&Math.hypot(P.x-home.x,P.z-home.z)<260){const left=invAdd(k,n);if(left<n)where=where||'túi của bạn';n=left;}}return where;}
+function tkDogTick(p,dt){const o=p._o,R=p._rig||{},home=tkHome(p),pup=p.k==='puppy',job=tkJob(p);let st=p._st;if(!st)st=p._st={m:'idle',t:0,cd:G.t+20+Math.random()*40,scan:0,far:0};
+  const dP=Math.hypot(P.x-p.x,P.z-p.z);let tx=p.x,tz=p.z,sp=0,pose='stand';
+  /* mối nguy */st.scan-=dt;if(st.scan<=0){st.scan=0.4;const th=tkThreat(p,home);if(th){if(st.m!=='alert'){st.m='alert';st.t=0;}st.a=th;}else if(st.m==='alert'){st.m='idle';st.t=1;}}
+  if(dP>460)st.far=1;else if(st.far&&dP<240&&st.m!=='alert'&&st.m!=='hunt'&&st.m!=='fetch'){st.far=0;st.m='greet';st.t=0;}
+  if(st.m==='alert'){const a=st.a;if(!a||!a.alive||Math.hypot(a.x-home.x,a.z-home.z)>460){st.m='idle';st.t=1;}else{tx=a.x;tz=a.z;sp=pup?120:178;const d=Math.hypot(a.x-p.x,a.z-p.z);
+      if(d<(a.r||9)+14){sp=0;pose='bite';if(G.t-(p._bite||0)>1.2){p._bite=G.t;try{if((G.foes||[]).includes(a))foeDamage(a,pup?0.4:1);else animalDamage(a,pup?0.5:1.5);}catch(e){}}}
+      if(G.t-(p._bark||0)>1.8){p._bark=G.t;try{if(dP<700)sfx('bark');}catch(e){}}
+      if(G.t-THK.warnT>25){THK.warnT=G.t;const nm=(a.n||(ANIMALS[a.kind]&&ANIMALS[a.kind].n)||'thú dữ').toLowerCase();uiToast(`🐕 Chó sủa dữ: có ${nm} ${Math.hypot(a.x-home.x,a.z-home.z)<340?'gần nhà':'gần đây'}, ${typeof tvFar==='function'?tvFar(a.x,a.z):''}!`,'bad');}}}
+  if(st.m==='greet'){tx=P.x;tz=P.z;sp=165;if(dP<38){sp=0;pose='wag';st.t+=dt;if(st.t>3.2){st.m='idle';st.t=2;}if(G.t-THK.greetT>150){THK.greetT=G.t;uiToast('🐕 Chó chạy ra vẫy đuôi mừng bạn về.','');try{sfx('bark');}catch(e){}}}else if(dP>320){st.m='idle';st.t=1;}}
+  if(st.m==='hunt'){const a=st.a;st.t+=dt;if(!a||!a.alive||st.t>26){st.m='idle';st.t=1;st.cd=G.t+60;}else{tx=a.x;tz=a.z;sp=188;if(Math.hypot(a.x-p.x,a.z-p.z)<(a.r||6)+10){/* bắt được: con mồi biến mất như bị săn, chó ngậm mồi chạy về */a.alive=false;a.dieT=0.001;a.back=TNOW()+1+Math.random();try{sfx('thud');puff(a.x,a.y+10,a.z,'#c0392b',4);}catch(e){}
+          const D=ANIMALS[a.kind]||{},c={meat:1};if(D.drop&&D.drop.feather)c.feather=1;else if(D.drop&&D.drop.hide&&Math.random()<0.5)c.hide=1;st.carry=c;st.who=(D.n||'con mồi').toLowerCase();st.m='fetch';st.t=0;}}}
+  if(st.m==='fetch'){tx=home.x+18;tz=home.z+18;sp=125;st.t+=dt;if(Math.hypot(tx-p.x,tz-p.z)<26||st.t>40){const w=tkStore(home,st.carry||{});p.fed=TNOW();uiToast(w?`🐕 Chó bắt được ${st.who}, tha về cất vào ${w}: ${Object.entries(st.carry).map(([k,v])=>v+' '+(ITEMS[k]?ITEMS[k].n.toLowerCase():k)).join(', ')}.`:`🐕 Chó bắt được ${st.who} và ăn no rồi (không còn chỗ cất).`,w?'gold':'');try{cnt('cnt','doghunt');}catch(e){}st.carry=null;st.m='idle';st.t=3;st.cd=G.t+(job==='san'?150:420);save();}}
+  if(st.m==='idle'||st.m==='walk'||st.m==='sniff'||st.m==='sit'||st.m==='sleep'){
+    /* tự đi kiếm mồi: đang ở việc Đi săn, hoặc Trông nhà mà đói */
+    if(!pup&&G.t>st.cd&&!tkNight()&&(job==='san'||TNOW()-(p.fed||0)>0.6)){const a=tkPrey(p,home);if(a){st.m='hunt';st.a=a;st.t=0;}else st.cd=G.t+90;}
+    if(st.m==='hunt'){/* vừa nhận mồi: lượt sau mới đuổi */}
+    else if(st.m==='sleep'){pose='sleep';if(!tkNight())st.m='idle';}
+    else if(st.m==='walk'){tx=st.wx;tz=st.wz;sp=pup?62:52;st.t-=dt;if(Math.hypot(tx-p.x,tz-p.z)<8||st.t<=0){const r=Math.random();st.m=r<0.45?'sniff':r<0.8?'sit':'idle';st.t=st.m==='sit'?5+Math.random()*7:2+Math.random()*3;}}
+    else{pose=st.m==='sniff'?'sniff':st.m==='sit'?'sit':'stand';st.t-=dt;if(st.t<=0){if(tkNight()&&Math.hypot(p.x-home.x,p.z-home.z)<70){st.m='sleep';}else{/* điểm tuần kế tiếp: vòng quanh nhà; đêm thì về sát nhà */const a=Math.random()*6.283,r=tkNight()?20+Math.random()*30:(job==='san'?90+Math.random()*160:55+Math.random()*120);let wx=home.x+Math.cos(a)*r,wz=home.z+Math.sin(a)*r;try{if(wdAt(wx,wz)>0.3){wx=home.x+Math.cos(a)*30;wz=home.z+Math.sin(a)*30;}}catch(e){}st.wx=wx;st.wz=wz;st.m='walk';st.t=25;}}}}
+  /* đi */const dx=tx-p.x,dz=tz-p.z,d=Math.hypot(dx,dz);if(d>3&&sp>0){const step=Math.min(d,sp*dt),nx=p.x+dx/d*step,nz=p.z+dz/d*step;let wet=0;try{wet=wdAt(nx,nz);}catch(e){}if(wet>2.5&&st.m!=='greet'){st.t=0;if(st.m==='hunt'){st.m='idle';st.cd=G.t+60;}sp=0;}else{p.x=nx;p.z=nz;p._ry=Math.atan2(dx,dz);}}else sp=0;
+  if(pose==='wag'||pose==='bite'||(pose==='stand'&&dP<90&&st.m!=='walk'))p._ry=pose==='bite'&&st.a?Math.atan2(st.a.x-p.x,st.a.z-p.z):Math.atan2(P.x-p.x,P.z-p.z);
+  /* dáng */if(o.rotation.order!=='YXZ')o.rotation.order='YXZ';if(!st.H){try{const bx=new THREE.Box3().setFromObject(o);st.H=Math.max(6,bx.max.y-bx.min.y);}catch(e){st.H=14;}}const y=Math.max(hAt(p.x,p.z),waterAt(p.x,p.z)),lie=pose==='sleep',sit=pose==='sit';st.py=(st.py||0)+((lie?-0.42*st.H:sit?-0.16*st.H:pose==='wag'?Math.abs(Math.sin(G.t*9))*0.12*st.H:0)-(st.py||0))*Math.min(1,dt*5);st.px=(st.px||0)+((sit?-0.5:0)-(st.px||0))*Math.min(1,dt*5);
+  o.position.set(p.x,y+st.py,p.z);o.rotation.y=lerpAng(o.rotation.y,p._ry||0,Math.min(1,dt*(sp>100?9:5)));o.rotation.x=st.px;
+  const sw=Math.sin(G.t*(sp>100?15:9)+p._ph)*Math.min(0.75,sp/70),fold=lie?1.45:0;if(R.legFL){R.legFL.rotation.x=sw-(lie?fold:sit?-0.5:0);R.legBR.rotation.x=sw+(lie?fold:sit?1.35:0);R.legFR.rotation.x=-sw-(lie?fold:sit?-0.5:0);R.legBL.rotation.x=-sw+(lie?fold:sit?1.35:0);}
+  if(R.head)R.head.rotation.x=lie?0.55:pose==='sniff'?0.75+Math.sin(G.t*7+p._ph)*0.1:pose==='bite'?0.25+Math.sin(G.t*14)*0.3:sp>1?0:Math.sin(G.t*1.1+p._ph)*0.18;if(R.head)R.head.rotation.y=(pose==='stand'||sit)&&dP>90?Math.sin(G.t*0.6+p._ph)*0.6:0;
+  if(R.tail)R.tail.rotation.y=lie?0:Math.sin(G.t*(pose==='wag'?16:st.m==='alert'?3:dP<120?11:5)+p._ph)*(pose==='wag'?0.9:st.m==='alert'?0.15:dP<120?0.6:0.3);}
+/* gia súc, gia cầm: bãi chung của đàn, tối về chuồng */
+function tkHerd(p,dt){const h=(typeof tvHome==='function'&&tvHome(p))||(typeof petHome==='function'&&petHome(p))||null,cx=h?h.x:(p.hx!=null?p.hx:p.x),cz=h?h.z:(p.hz!=null?p.hz:p.z),key=p.k.replace(/^(chick)$/,'chicken').replace(/^piglet$/,'pig')+':'+Math.round(cx/60)+','+Math.round(cz/60);
+  let H=THK.herd[key];if(!H||G.t>H.t){const a=Math.random()*6.283,r=14+Math.random()*(h&&h.shed?34:52);H=THK.herd[key]={x:cx+Math.cos(a)*r,z:cz+Math.sin(a)*r,t:G.t+16+Math.random()*22};}
+  if(tkNight()){/* tối: về sát chuồng rồi đứng yên */if(Math.hypot(p.x-cx,p.z-cz)>20){if(Math.hypot((p._tx||0)-cx,(p._tz||0)-cz)>16){const a=p._ph||0;p._tx=cx+Math.cos(a)*9;p._tz=cz+Math.sin(a)*9;}p._t=1.5;}else{p._tx=p.x;p._tz=p.z;p._t=8;}return;}
+  if(p._t<=dt+0.02){p._tx=H.x+(Math.random()-0.5)*40;p._tz=H.z+(Math.random()-0.5)*40;p._t=2.5+Math.random()*6.5;}}
+function tkHerdAnim(p){const o=p._o,R=p._rig||{};if(!o||!R.head)return;const moved=Math.hypot(p.x-(p._qx!=null?p._qx:p.x),p.z-(p._qz!=null?p._qz:p.z))>0.02;p._qx=p.x;p._qz=p.z;if(moved)return;
+  if(tkNight()){R.head.rotation.x=0.5;return;}const bird=/^(chicken|chick|duck)/.test(p.k),ph=p._ph||0,cyc=Math.sin(G.t*0.45+ph*3);
+  /* đứng yên: phần lớn thời gian cúi gặm cỏ / mổ thóc, thỉnh thoảng ngẩng lên nhìn quanh; chủ lại gần thì ngoảnh nhìn */
+  const dP=Math.hypot(P.x-p.x,P.z-p.z);if(dP<75&&cyc<0.3&&!bird){o.rotation.y=lerpAng(o.rotation.y,Math.atan2(P.x-p.x,P.z-p.z),0.08);R.head.rotation.x=0.05;return;}
+  R.head.rotation.x=cyc>-0.25?(bird?0.85+Math.max(0,Math.sin(G.t*8+ph))*0.35:0.8+Math.sin(G.t*3+ph)*0.08):Math.sin(G.t*1.2+ph)*0.15;if(R.head.rotation.y!==undefined)R.head.rotation.y=cyc>-0.25?0:Math.sin(G.t*0.9+ph)*0.5;}
+{const _pt=petsTick;petsTick=function(dt){if(!S||!S.pets||!S.pets.length)return _pt.apply(this,arguments);const all=S.pets,mine=[],rest=[];for(const p of all){if(tkDog(p)&&tkJob(p)!=='theo')mine.push(p);else rest.push(p);}
+    try{for(const p of rest)if(!tkDog(p)&&!p.hitch)tkHerd(p,dt);}catch(e){if(!THK.e1){THK.e1=1;console.warn('đàn vật nuôi',e);}}
+    S.pets=rest;let r;try{r=_pt.apply(this,arguments);}finally{/* nơi khác có thể thêm bớt vật nuôi trong lúc chạy: ghép lại danh sách */const now=S.pets;S.pets=now===rest?all:now.concat(mine.filter(p=>!now.includes(p)));}
+    try{for(const p of mine){if(!S.pets.includes(p))continue;if(!p._o)petSpawn(p);tkDogTick(p,dt);}for(const p of rest)if(!tkDog(p)&&!p.hitch)tkHerdAnim(p);}catch(e){if(!THK.e2){THK.e2=1;console.warn('chó khôn',e);}}return r;};}
+/* ---------- CHIẾN THÚ ĐANG NGHỈ: canh nhà ----------
+   Con không xuất chiến trước chỉ là hình đứng yên ở chuồng. Giờ chúng đi lại quanh chỗ nằm, đêm nằm ngủ; thú dữ / kẻ địch tới gần nhà thì gầm lên lao ra cắn (đòn theo cấp của con thú). */
+function thkBeasts(dt){if(typeof SL3!=='object'||!SL3.rest||!SL3.rest.size||typeof ltS!=='function')return;const L=ltS().list;
+  for(const [k,o] of SL3.rest){let st=o.userData.thk;if(!st){st=o.userData.thk={hx:o.position.x,hz:o.position.z,x:o.position.x,z:o.position.z,m:'idle',t:1+Math.random()*4,scan:Math.random(),ph:Math.random()*6,ry:o.rotation.y,py:0};if(o.rotation.order!=='YXZ')o.rotation.order='YXZ';}
+    const R=o.userData.rig||{},pid=+String(k).split(':')[0],p=L.find(x=>x.id===pid),lv=(p&&p.lv)||1,home={x:st.hx,z:st.hz};let tx=st.x,tz=st.z,sp=0,pose='stand';
+    st.scan-=dt;if(st.scan<=0){st.scan=0.5;const th=tkThreat(st,home);if(th){st.m='alert';st.a=th;}else if(st.m==='alert'){st.m='idle';st.t=1;}}
+    if(st.m==='alert'){const a=st.a;if(!a||!a.alive||Math.hypot(a.x-st.hx,a.z-st.hz)>480){st.m='idle';st.t=1;}else{tx=a.x;tz=a.z;sp=205;if(Math.hypot(a.x-st.x,a.z-st.z)<(a.r||9)+18){sp=0;pose='bite';if(G.t-(st.bite||0)>1.1){st.bite=G.t;try{if((G.foes||[]).includes(a))foeDamage(a,1.5+0.1*lv);else animalDamage(a,2+0.15*lv);}catch(e){}}}
+        if(G.t-THK.warnT>25){THK.warnT=G.t;const nm=(a.n||(ANIMALS[a.kind]&&ANIMALS[a.kind].n)||'thú dữ').toLowerCase();uiToast(`🐯 ${p?esc(p.n):'Chiến thú'} gầm lên lao ra: có ${nm} gần nhà, ${typeof tvFar==='function'?tvFar(a.x,a.z):''}!`,'bad');try{sfx('roar');}catch(e){}}}}
+    if(st.m==='idle'){pose=tkNight()?'sleep':'stand';st.t-=dt;if(st.t<=0&&!tkNight()){const a=Math.random()*6.283,r=14+Math.random()*46;st.wx=st.hx+Math.cos(a)*r;st.wz=st.hz+Math.sin(a)*r;try{if(wdAt(st.wx,st.wz)>0.3){st.wx=st.hx;st.wz=st.hz;}}catch(e){}st.m='walk';st.t=20;}}
+    else if(st.m==='walk'){tx=st.wx;tz=st.wz;sp=46;st.t-=dt;if(Math.hypot(tx-st.x,tz-st.z)<8||st.t<=0){st.m='idle';st.t=4+Math.random()*9;}}
+    const dx=tx-st.x,dz=tz-st.z,d=Math.hypot(dx,dz);if(d>3&&sp>0){const step=Math.min(d,sp*dt);st.x+=dx/d*step;st.z+=dz/d*step;st.ry=Math.atan2(dx,dz);}else sp=0;if(pose==='bite'&&st.a)st.ry=Math.atan2(st.a.x-st.x,st.a.z-st.z);
+    const lie=pose==='sleep',sc=o.scale.y||1;st.py+=((lie?-3.4*sc:0)-st.py)*Math.min(1,dt*4);o.position.set(st.x,Math.max(hAt(st.x,st.z),waterAt(st.x,st.z))+st.py,st.z);o.rotation.y=lerpAng(o.rotation.y,st.ry,Math.min(1,dt*(sp>100?9:4)));
+    const sw=Math.sin(G.t*(sp>100?14:8)+st.ph)*Math.min(0.75,sp/70);if(R.legFL){R.legFL.rotation.x=sw-(lie?1.2:0);R.legBR.rotation.x=sw+(lie?1.2:0);R.legFR.rotation.x=-sw-(lie?1.2:0);R.legBL.rotation.x=-sw+(lie?1.2:0);}
+    if(R.head)R.head.rotation.x=lie?0.5:pose==='bite'?0.2+Math.sin(G.t*13)*0.3:sp>1?0:Math.sin(G.t*0.9+st.ph)*0.2;if(R.tail)R.tail.rotation.y=lie?0:Math.sin(G.t*(st.m==='alert'?7:2.5)+st.ph)*0.35;}}
+{const _pt=petsTick;petsTick=function(dt){const r=_pt.apply(this,arguments);try{thkBeasts(dt);}catch(e){if(!THK.e3){THK.e3=1;console.warn('chiến thú canh nhà',e);}}return r;};}
+/* ---------- THÚ CƯỠI (ngựa, voi): tự tìm về, gọi được từ bất cứ đâu trên đại lục ----------
+   · Đại lục không có "cổng vùng": mọi thú cưỡi đều thuộc vùng đang đứng (trước con thu phục ở tỉnh khác bị coi là "ở vùng đất khác": không hiện, không có nút gọi).
+   · Thú cưỡi rảnh bị bỏ lại xa (chủ đã đi cách nó hơn 900, nó cách làng hơn 500) quá một phút thì tự tìm về làng đứng chờ. */
+function thkMounts(){try{if(typeof G!=='object'||!G.on||!S||!Array.isArray(S.mounts)||!S.mounts.length||G.paused)return;const here=S.land||'c';
+    if(S.dl)for(const m of S.mounts)if((m.land||'c')!==here&&m.x!=null){m.land=here;try{if(typeof mtShow==='function')mtShow(m);}catch(e){}}
+    const hp=typeof homePos==='function'&&homePos();if(!hp)return;
+    for(const m of S.mounts){if(G.mnt===m||m.sol!=null||(m.land||'c')!==here||m.x==null)continue;const dH=Math.hypot(m.x-hp.x,m.z-hp.z),dPl=Math.hypot(m.x-P.x,m.z-P.z);if(dH<500||dPl<900){m._away=0;continue;}m._away=(m._away||0)+1;if(m._away<6)continue;m._away=0;
+      let sx=hp.x+40,sz=hp.z+40;try{if(typeof sl3Spot==='function'){const q=sl3Spot(hp.x+40,hp.z+40,m,40);if(q){sx=q[0];sz=q[1];}}else{const a=(m.id*2.4)%6.283;sx=hp.x+Math.cos(a)*70;sz=hp.z+Math.sin(a)*70;}}catch(e){}
+      m.x=+sx.toFixed(1);m.z=+sz.toFixed(1);const o=typeof MT==='object'&&MT.o.get(m.id);if(o)o.position.set(m.x,hAt(m.x,m.z),m.z);uiToast((m.k==='elephant'?'🐘 ':'🐎 ')+esc(m.n||'Thú cưỡi')+' đã tự tìm đường về làng.','');save();}}catch(e){}}
+setInterval(thkMounts,10000);
+/* chạm vào chó: đổi việc */
+{const _pi=petInfo;petInfo=function(p){if(!tkDog(p))return _pi.apply(this,arguments);const job=tkJob(p),K=Object.keys(THK.JOB),nx=THK.JOB[K[(K.indexOf(job)+1)%K.length]],r=_pi.apply(this,arguments);r.name=(PETN[p.k]||'Chó')+' · '+THK.JOB[job][0]+' '+THK.JOB[job][1];r.verb='Đổi việc: '+nx[1];return r;};}
+{const _pu=petUse;petUse=function(p){if(!tkDog(p))return _pu.apply(this,arguments);const K=Object.keys(THK.JOB);tkSet(p,K[(K.indexOf(tkJob(p))+1)%K.length]);};}
+if(typeof HD_L!=='undefined')HD_L.push({id:'thukhon',ic:'🐕',t:'Chó và vật nuôi',w:()=>!!(S.pets&&S.pets.some(tkDog)),p:['Chó của bạn giờ có <b>ba việc</b>, chạm vào chó để đổi: <b>🏠 Trông nhà</b> (mặc định), <b>🐾 Đi theo</b>, <b>🦴 Đi săn</b>.','<b>Trông nhà</b>: chó đi tuần quanh nhà, đêm nằm ngủ gần chỗ bạn ngủ. Thú dữ hay kẻ địch tới gần là chó <b>sủa báo</b> (có dòng báo hướng) rồi lao ra đuổi cắn. Đói thì tự đi bắt thỏ, gà rừng.','<b>Đi săn</b>: chó ra quanh làng săn thỏ, gà rừng, khỉ và <b>tha thịt về cất vào giỏ, rương</b> gần nhà. Gà, lợn, dê thì đi theo đàn, tối tự về chuồng.']});
+/* bảng 🐾: nói rõ con đang nghỉ làm gì và gợi ý dựng chuồng */
+if(typeof ltHtml==='function'){const _h=ltHtml;ltHtml=function(){let h=_h.apply(this,arguments);try{const L=ltS(),rest=L.list.filter(p=>p.id!==L.act).length;if(rest){const den=typeof qhHas==='function'&&qhHas('qh_chuongthu');h=`<div class="tv-box"><div class="tv-r"><span>🛡️ <b>${rest}</b> chiến thú không xuất chiến đang <b>canh nhà</b>: đi lại quanh ${den?'chuồng thú chiến':'chỗ ngủ của bạn'}, thú dữ hay kẻ địch tới gần là lao ra cắn.${den?'':' Dựng <b>Chuồng thú chiến</b> (Xây → Quy hoạch làng → Quân sự) để chúng có chỗ nằm riêng.'}</span></div></div>`+h;}}catch(e){}return h;};}
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.

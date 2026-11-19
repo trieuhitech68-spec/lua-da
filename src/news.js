@@ -1,5 +1,9 @@
 /* ===================== CÓ GÌ MỚI: thẻ giới thiệu tính năng, mỗi phiên bản hiện một lần cho mỗi máy ===================== */
-const NEWS_V='2026-11-f',NEWS=[
+const NEWS_V='2026-11-g',NEWS=[
+ ['🗺️','Đại lục chia sáu miền','Phía bắc lạnh, rừng thông; phía nam là rừng nhiệt đới có chuối, cọ, tre; có thảo nguyên khô, đồi tre trúc, đồng cỏ hoa. Mỗi miền một dáng đất, một kiểu cây, khí hậu riêng. Cây cối giờ giống nhau dù đứng ở tỉnh nào, sang tỉnh bên không còn màn đen.'],
+ ['🐕','Chó biết trông nhà, đi săn','Chạm vào chó để đổi việc: Trông nhà (mặc định: đi tuần, sủa báo và đuổi thú dữ, mừng khi bạn về), Đi theo, Đi săn (bắt thỏ, gà rừng tha về giỏ). Gà, lợn đi theo đàn, tối tự về chuồng.'],
+ ['🐘','Voi vẽ lại · chiến thú canh nhà','Voi có vòi cong, ngà cong, tai quạt. Ngựa, voi bị bỏ lại xa sẽ tự tìm về làng và gọi được từ bất cứ đâu. Chiến thú không xuất chiến đi lại canh nhà, lao ra cắn thú dữ.'],
+ ['🏰','Liên minh, tướng, thiên phú','Liên minh lên cấp nhờ thành viên góp vật liệu. Tướng cấp 5 chọn tài riêng. Thiên phú 5 bậc, 8 hướng. Nhà kho rộng 4×3 ô, chứa 178 ô.'],
  ['🎖️','Tướng lĩnh và quân số','Phong lính làm tướng (cần Trại lính). Tướng lên cấp nhờ ra trận, thăng sao bằng vật liệu, có sở trường binh chủng. Quân số tối đa do tướng quyết định; có chiến thuật Tấn công, Phòng thủ, Vây bắn.'],
  ['📈','Bảng Phát triển','☰ → 📈: sáu trụ cột (Nhân vật, Làng, Học vấn, Quân đội, Tướng lĩnh, Liên minh), điểm Thế lực và bước tiếp theo. Nghiên cứu giờ có 10 bậc, bậc cao tốn nhiều giờ.'],
  ['🌏','Đại lục rộng lớn','Nhân vật MỚI (chơi một mình) giờ sống trên một đại lục liền rộng hơn 20 km²: đồng bằng, sông hồ, rừng, dãy núi phủ tuyết, biển. Không có cổng: đi tới đâu game nạp vùng đất tới đó, nhà cửa giữ nguyên chỗ. Nhân vật cũ vẫn ở bản đồ cũ.'],
