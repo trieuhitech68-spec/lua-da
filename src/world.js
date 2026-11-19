@@ -142,11 +142,14 @@ function waterMesh(){const T=THREE,g=new T.PlaneGeometry(WSIZE*2.5,WSIZE*2.5,1,1
   grp.material=w.material;w.material.userData.noSea=1;return grp;}
 // ---------- tài nguyên: sinh theo vùng, có hạt giống ----------
 const RES=[];let RGRID=new Map();const RG=140;
+/* ĐẠI LỤC: bộ sinh theo ô lưới cố định (dailuc.js) đặt RESREC=[] trước khi gọi resGen: các lệnh rải (scatter) không rải nữa mà chỉ GHI LẠI công thức; phần rải do dailuc làm theo toạ độ đại lục */
+let RESREC=null;
+function denseK(x,z){return ss(0.02,0.25,NS.fbm(x/900+80,z/900-40,3))+jungleK(x,z)*0.5;}
 function rKey(x,z){return Math.floor(x/RG)+','+Math.floor(z/RG);}
 function resGen(seed){RES.length=0;RGRID=new Map();const R=rng(seed*13+5);
   const okFree=(x,z,r)=>{for(const i of near(x,z,r+30)){const q=RES[i],d=Math.hypot(q.x-x,q.z-z);if(d<r+(RT[q.t].r||4)*0.8)return false;}return true;};
   const isTree=t=>/^(pine|oak|birch|dead|savannaTree)$/.test(t);const put=(t,x,z,s)=>{const q={i:RES.length,t,x,z,ry:R()*6.283,s:(s||(isTree(t)?0.62+R()*0.7:0.85+R()*0.35))*(RT[t].sc||1),hp:RT[t].hp,st:0,rg:0};RES.push(q);const k=rKey(x,z);if(!RGRID.has(k))RGRID.set(k,[]);RGRID.get(k).push(q.i);return q;};
-  const scatter=(t,n,want,tries)=>{n=Math.round(n*2.6*WRES*(WV>=4?1.24:1));let c=0,k=0;while(c<n&&k<(tries||n*40)){k++;const a=R()*6.283,rr=Math.sqrt(R())*WR*0.95;let x=Math.cos(a)*rr,z=Math.sin(a)*rr;if(WV>=4&&R()<0.2){x=V5.box[0]+R()*V5.box[2];z=V5.box[1]+R()*V5.box[3];}const h=hAt(x,z);if(h<2||wdAt(x,z)>0)continue;
+  const scatter=(t,n,want,tries)=>{if(RESREC){RESREC.push([t,n,want,tries||0]);return;}n=Math.round(n*2.6*WRES*(WV>=4?1.24:1));let c=0,k=0;while(c<n&&k<(tries||n*40)){k++;const a=R()*6.283,rr=Math.sqrt(R())*WR*0.95;let x=Math.cos(a)*rr,z=Math.sin(a)*rr;if(WV>=4&&R()<0.2){x=V5.box[0]+R()*V5.box[2];z=V5.box[1]+R()*V5.box[3];}const h=hAt(x,z);if(h<2||wdAt(x,z)>0)continue;
       const b=biome(x,z);const w=want(b,x,z,h);if(!w||R()>w)continue;if(decoBlock(x,z))continue;const sd=Math.hypot(x-SPAWN[0],z-SPAWN[1]);if(sd<60||(sd<230&&!RT[t].pass))continue;if(!RT[t].pass&&typeof trailAt==='function'&&trailAt(x,z)>0.15)continue;if(!okFree(x,z,(RT[t].r||4)+4))continue;put(t,x,z);c++;}};
   // gần chỗ bắt đầu: đủ đồ cho những bước đầu tiên
   const ring=(t,n,r0,r1)=>{let c=0,k=0;while(c<n&&k<400){k++;const a=R()*6.283,rr=r0+R()*(r1-r0),x=SPAWN[0]+Math.cos(a)*rr,z=SPAWN[1]+Math.sin(a)*rr;if(hAt(x,z)<3)continue;if(!okFree(x,z,(RT[t].r||4)+6))continue;put(t,x,z);c++;}};
@@ -157,7 +160,7 @@ function resGen(seed){RES.length=0;RGRID=new Map();const R=rng(seed*13+5);
   scatter('dead',30,(b)=>b==='rock'?0.5:b==='meadow'?0.2:b==='edge'?0.2:0);
   scatter('young',90,(b)=>b==='edge'||b==='meadow'?0.6:b==='forest'?0.4:0);
   // rừng rậm: mảng cây mọc sát nhau, cây non dưới tán, cây cổ thụ rải rác
-  const dense=(x,z)=>ss(0.02,0.25,NS.fbm(x/900+80,z/900-40,3))+jungleK(x,z)*0.5;
+  const dense=denseK;
   scatter('pine',260,(b,x,z,h)=>b==='forest'&&h>30&&dense(x,z)>0.4?1:0,40000);scatter('oak',220,(b,x,z)=>(b==='forest'||b==='edge')&&dense(x,z)>0.4?1:0,40000);
   scatter('pineY',140,(b,x,z)=>b==='forest'?0.5+dense(x,z)*0.4:b==='edge'?0.25:0);scatter('birchY',90,(b)=>b==='edge'?0.6:b==='meadow'?0.15:0);scatter('young',90,(b,x,z)=>b==='forest'?dense(x,z):0);
   scatter('pineG',14,(b,x,z,h)=>b==='forest'&&h>40?0.6:0,20000);scatter('oakG',18,(b,x,z)=>(b==='forest'||b==='edge')&&dense(x,z)<0.5?0.5:0,20000);
@@ -191,7 +194,7 @@ function resGen(seed){RES.length=0;RGRID=new Map();const R=rng(seed*13+5);
   scatter('flowerW',50,(b)=>b==='meadow'?0.8:b==='bank'?0.3:0);scatter('flowerP',50,(b)=>b==='edge'?0.6:b==='meadow'?0.5:0);
   scatter('beehive',14,(b)=>b==='forest'?0.6:b==='edge'?0.5:0,3000);
   // thực vật vùng nhiệt đới & đá cuội ven đường mòn
-  const RG_=id=>REG.find(r=>r.id===id),around=(t,n,id,k)=>{const r=RG_(id);if(!r)return;let c=0,tr=0;while(c<n&&tr<n*30){tr++;const a=R()*6.283,d=Math.sqrt(R())*r.r*(k||1),x=r.x+Math.cos(a)*d,z=r.z+Math.sin(a)*d;if(hAt(x,z)<1.5||trailAt(x,z)>0.2||decoBlock(x,z))continue;if(!okFree(x,z,(RT[t].r||4)+3))continue;put(t,x,z);c++;}};
+  const RG_=id=>REG.find(r=>r.id===id),around=(t,n,id,k)=>{if(RESREC)return;const r=RG_(id);if(!r)return;let c=0,tr=0;while(c<n&&tr<n*30){tr++;const a=R()*6.283,d=Math.sqrt(R())*r.r*(k||1),x=r.x+Math.cos(a)*d,z=r.z+Math.sin(a)*d;if(hAt(x,z)<1.5||trailAt(x,z)>0.2||decoBlock(x,z))continue;if(!okFree(x,z,(RT[t].r||4)+3))continue;put(t,x,z);c++;}};
   around('savannaTree',40,'savanna',1);scatter('savannaTree',30,(b,x,z)=>b==='meadow'&&savannaK(x,z)>0.3?0.6:0);scatter('deadLog',50,(b)=>b==='forest'?0.6:b==='edge'?0.2:0);
   around('reedBed',30,'delta',1);around('reedBed',20,'lake',1.2);scatter('reedBed',60,(b)=>b==='bank'?0.5:0);scatter('scree',90,(b,x,z)=>slopeAt(x,z)>0.45&&slopeAt(x,z)<0.9?0.7:0,20000);
   around('bamboo',26,'bamboo',1);scatter('bamboo',40,(b,x,z,h)=>b==='bank'&&h>2?0.35:b==='edge'?0.05:0);
@@ -199,7 +202,7 @@ function resGen(seed){RES.length=0;RGRID=new Map();const R=rng(seed*13+5);
   around('palm',16,'beach',1.2);scatter('palm',30,(b)=>b==='beach'?0.5:0);
   scatter('fern',260,(b)=>b==='forest'?0.9:b==='edge'?0.25:b==='bank'?0.2:0);
   around('tallgrass',160,'savanna',1);scatter('tallgrass',160,(b)=>b==='meadow'?0.5:b==='edge'?0.15:b==='beach'?0.05:0);
-  {const L=RG_('lake');if(L){let c=0,tr=0;while(c<26&&tr<2000){tr++;const a=R()*6.283,d=R()*L.r*1.1,x=L.x+Math.cos(a)*d,z=L.z+Math.sin(a)*d,h=hAt(x,z);if(h>-0.8||h<-8)continue;if(!okFree(x,z,14))continue;const q=put('lotus',x,z);q.wy=0.4;c++;}}}
+  {const L=RESREC?null:RG_('lake');if(L){let c=0,tr=0;while(c<26&&tr<2000){tr++;const a=R()*6.283,d=R()*L.r*1.1,x=L.x+Math.cos(a)*d,z=L.z+Math.sin(a)*d,h=hAt(x,z);if(h>-0.8||h<-8)continue;if(!okFree(x,z,14))continue;const q=put('lotus',x,z);q.wy=0.4;c++;}}}
   for(const t of TRAILS){for(let i=3;i<t.p.length;i+=7){const [x,z]=t.p[i];const ox=x+(R()-0.5)*26,oz=z+(R()-0.5)*26;if(hAt(ox,oz)<1||R()<0.45)continue;if(!okFree(ox,oz,6))continue;put('pathStone',ox,oz,0.7+R()*0.6);}}}
 function near(x,z,r){const out=[];const i0=Math.floor((x-r)/RG),i1=Math.floor((x+r)/RG),j0=Math.floor((z-r)/RG),j1=Math.floor((z+r)/RG);
   for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const n=(i+4096)*8192+(j+4096);let ks=NEARK.get(n);if(ks===undefined){if(NEARK.size>60000)NEARK.clear();ks=i+','+j;NEARK.set(n,ks);}const L=RGRID.get(ks);if(L)for(let q=0;q<L.length;q++)out.push(L[q]);}return out;}

@@ -96,9 +96,51 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   function dlStart(uid){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);/* mỗi nhân vật mới một chỗ BẤT KỲ trên đại lục: chọn ngẫu nhiên trong các tỉnh đất tốt (đồng bằng, gần nước) */let pk=(Math.random()*1e9)|0;const a=dlAnchor(S.seed,pk);S.seed0=S.seed;S.dl={ox:a.ox,oz:a.oz};S.land=dlKey(a.ox,a.oz);S.seed=dlSeedAt(a.ox,a.oz);S.dlNew=1;worldCfg(3);}
   /* khoáng sản cho đại lục: bản đồ cũ đặt mỏ theo các vùng vẽ tay (dãy núi, bãi muối…), đại lục không có các vùng đó nên gần như không có quặng.
      Giờ một phần đá tảng thành quặng đồng, thiếc, đá lửa, sắt, than; một phần lau cỏ ven nước thành đất sét, bãi muối, bãi sò. Tỉ lệ cố định theo vị trí nên ai trong tỉnh cũng thấy như nhau. */
-  {const _rg=resGen;resGen=function(seed){const r=_rg.apply(this,arguments);try{if(DL.on){const sd=(S.seed|0),re=(q,t)=>{if(!RT[t])return;q.t=t;q.s=(0.85+dlHash(q.i,3,sd)*0.35)*(RT[t].sc||1);q.hp=RT[t].hp;};
-        for(const q of RES){if(q.site)continue;const u=dlHash(q.i,11,sd),t=q.t;if(t==='rock'||t==='boulder'){if(u<0.11)re(q,'copperRock');else if(u<0.25)re(q,'flintRock');else if(u<0.31)re(q,'tinRock');else if(u<0.35)re(q,'ironRock');else if(u<0.39)re(q,'coalRock');}
-          else if(t==='tallgrass'||t==='reeds'){const h=hAt(q.x,q.z);if(h<16){if(u<0.1)re(q,'clay');else if(u<0.14)re(q,'saltPan');else if(u<0.18)re(q,'shellBed');}}}}}catch(e){console.warn('khoáng sản đại lục',e);}return r;};}
+  /* ===================== SINH CẢNH + CÂY ĐÁ THEO TOẠ ĐỘ ĐẠI LỤC =====================
+     Trước: rừng / đồng cỏ / bãi và mọi cây đá đều tính quanh TÂM TỈNH đang đứng bằng một dãy số ngẫu nhiên chạy tuần tự → bước qua ranh giới là đổi hết.
+     Giờ: · sinh cảnh là hàm của toạ độ đại lục (độ cao, độ dốc, nhiễu ẩm, mảng rừng rậm, mảng đồng cỏ khô) — đứng ở tỉnh nào nhìn cũng ra một kết quả;
+          · cây đá rải theo Ô LƯỚI CỐ ĐỊNH 650 đơn vị của đại lục, mỗi ô một hạt giống riêng (từ hạt giống máy chủ), không phụ thuộc tỉnh;
+          · công thức rải (loài nào, sinh cảnh nào, mật độ) vẫn lấy từ world.js: resGen chạy ở chế độ GHI (RESREC) rồi phần này rải theo ô.
+     Riêng của từng tỉnh chỉ còn: vài món quanh chỗ bắt đầu, bãi trống quanh chỗ bắt đầu, lòng suối. */
+  const dlMoistG=(gx,gz)=>dlFbm(gx/2400+31,gz/2400-17,4,DL.seed+211)*0.85+0.02;
+  const dlSavG=(gx,gz)=>dlSS(0.16,0.4,dlFbm(gx/5200-9,gz/5200+4,2,DL.seed+307));
+  const dlJunG=(gx,gz)=>dlSS(0.18,0.42,dlFbm(gx/4600+3,gz/4600+29,2,DL.seed+401));
+  const dlDenseG=(gx,gz)=>dlSS(0.02,0.25,dlFbm(gx/900+80,gz/900-40,3,DL.seed+503))+dlJunG(gx,gz)*0.5;
+  const dlWet=(gx,gz,d)=>dlH(gx+d,gz)<0||dlH(gx-d,gz)<0||dlH(gx,gz+d)<0||dlH(gx,gz-d)<0;
+  function dlBiome(x,z,h0){const h=h0==null?hAt(x,z):h0;if(h<-0.4)return 'water';if(h>450)return 'peak';const sl=slopeAt(x,z);if(h>260||sl>0.8)return 'rock';const gx=x+DL.ox,gz=z+DL.oz;
+    if(h<9&&dlWet(gx,gz,110)){/* sát nước: biển, hồ lớn thì là bãi cát; sông, lạch thì là bờ */let big=0;if(dlH(gx+600,gz)<-6)big++;if(dlH(gx-600,gz)<-6)big++;if(dlH(gx,gz+600)<-6)big++;if(dlH(gx,gz-600)<-6)big++;return big>=2?'beach':'bank';}
+    const m=dlMoistG(gx,gz)+dlJunG(gx,gz)*0.35-dlSavG(gx,gz)*0.5+(h>140?-0.05:0);return m>0.06?'forest':(m>-0.1?'edge':'meadow');}
+  {const _b=biome;biome=function(x,z){if(!DL.on)return _b(x,z);if(wdAt(x,z)>0.4)return 'water';return dlBiome(x,z);};}
+  {const _m=moist;moist=function(x,z){return DL.on?dlMoistG(x+DL.ox,z+DL.oz):_m(x,z);};}
+  {const _m=savannaK;savannaK=function(x,z){return DL.on?dlSavG(x+DL.ox,z+DL.oz):_m(x,z);};}
+  {const _m=jungleK;jungleK=function(x,z){return DL.on?dlJunG(x+DL.ox,z+DL.oz):_m(x,z);};}
+  {const _m=denseK;denseK=function(x,z){return DL.on?dlDenseG(x+DL.ox,z+DL.oz):_m(x,z);};}
+  /* các "vùng mới" của bản đồ cũ (cao nguyên thông, thung lũng tre…) nằm theo tâm cửa sổ: đại lục không dùng */
+  {const _z=z4At;z4At=function(x,z){if(DL.on){_z4.id=null;_z4.k=0;_z4.Z=null;return _z4;}return _z(x,z);};}
+  function dlResCells(specs,base){const C=650,H=WSIZE/2-40,A0=Math.PI*Math.pow(WR*0.95,2),s0=DL.seed|0,isTree=t=>/^(pine|oak|birch|dead|savannaTree)$/.test(t);
+    const SP=[];for(const [t,n,want,tries] of specs){if(!RT[t])continue;const n2=n*2.6*WRES,/* số lượt thử cho cả cửa sổ: 3,2 lượt cho mỗi món muốn có; loài hiếm (world.js cho số lượt thử riêng) được thử nhiều hơn, tối đa 14 lượt */tot=n2*(tries?Math.max(3.2,Math.min(14,tries/n2*0.08)):3.2);SP.push({t,want:t==='copperRock'?null:want,per:tot*C*C/A0*(/^(pine|oak|birch|young|pineY|birchY|pineG|oakG)$/.test(t)?0.72:1)/* cây lớn nặng máy: bớt lại để tổng số cây ngang bản trước */,r:(RT[t].r||4)+4,pass:!!RT[t].pass,tree:isTree(t)});}
+    if(RT.lotus)SP.push({t:'lotus',lotus:1,per:1.6,r:14,pass:true,tree:false});
+    const i0=Math.ceil((DL.ox-H)/C),i1=Math.floor((DL.ox+H)/C)-1,j0=Math.ceil((DL.oz-H)/C),j1=Math.floor((DL.oz+H)/C)-1;let made=0;
+    const put=(t,x,z,s,ry)=>{const q={i:RES.length,t,x,z,ry,s:s*(RT[t].sc||1),hp:RT[t].hp,st:0,rg:0};RES.push(q);const k=rKey(x,z);if(!RGRID.has(k))RGRID.set(k,[]);RGRID.get(k).push(q.i);made++;return q;};
+    for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const R=rng(((dlHash(i,j,s0+977)*4294967296)>>>0)||1),loc=[];
+      for(const sp of SP){let n=Math.floor(sp.per);if(R()<sp.per-n)n++;
+        for(let k=0;k<n;k++){/* mỗi lượt thử luôn rút đúng 5 số: kết quả của lượt này không kéo lệch các lượt sau */const u1=R(),u2=R(),u3=R(),u4=R(),u5=R(),gx=(i+0.015+u1*0.97)*C,gz=(j+0.015+u2*0.97)*C,x=gx-DL.ox,z=gz-DL.oz,h=hAt(x,z);
+          if(sp.lotus){if(h>-0.8||h<-8||u3>0.4)continue;}
+          else{if(h<2)continue;const b=dlBiome(x,z,h);if(b==='water'||!sp.want)continue;const w=sp.want(b,x,z,h);if(!w||u3>w)continue;}
+          let ok=true;for(let q=0;q<loc.length;q++){const o=loc[q],dx=o[0]-gx,dz=o[1]-gz,rr=sp.r+o[2]*0.8;if(dx*dx+dz*dz<rr*rr){ok=false;break;}}if(!ok)continue;loc.push([gx,gz,sp.r-4]);
+          /* phần riêng của tỉnh (không ảnh hưởng tới các lượt khác): bãi trống quanh chỗ bắt đầu, lòng suối, món đã đặt sẵn quanh chỗ bắt đầu */
+          const sd=Math.hypot(x-SPAWN[0],z-SPAWN[1]);if(sd<60||(sd<230&&!sp.pass))continue;if(!sp.lotus&&wdAt(x,z)>0)continue;
+          if(base){let hit=false;for(const ix of near(x,z,sp.r+30)){if(ix>=base)continue;const o=RES[ix];if(Math.hypot(o.x-x,o.z-z)<sp.r+(RT[o.t].r||4)*0.8){hit=true;break;}}if(hit)continue;}
+          const q=put(sp.t,x,z,sp.tree?0.62+u4*0.7:0.85+u4*0.35,u5*6.283);if(sp.lotus)q.wy=0.4;}}}
+    DL.resMade=made;}
+  {const _rg=resGen;resGen=function(seed){if(!DL.on)return _rg.apply(this,arguments);let r,specs=null;RESREC=[];try{r=_rg.apply(this,arguments);}finally{specs=RESREC;RESREC=null;}
+      try{const t0=performance.now(),base=RES.length;DL.resBase=base;dlResCells(specs||[],base);
+        /* khoáng sản, đất sét, muối: đổi loài theo TOẠ ĐỘ ĐẠI LỤC của từng món (trước theo số thứ tự nên mỗi tỉnh một khác) */
+        const sd=DL.seed|0,re=(q,t,u)=>{if(!RT[t])return;q.t=t;q.s=(0.85+u*0.35)*(RT[t].sc||1);q.hp=RT[t].hp;};
+        for(let n=base;n<RES.length;n++){const q=RES[n],gx=Math.round(q.x+DL.ox),gz=Math.round(q.z+DL.oz),u=dlHash(gx,gz,sd+11),u2=dlHash(gx,gz,sd+3),t=q.t;
+          if(t==='rock'||t==='boulder'){if(u<0.11)re(q,'copperRock',u2);else if(u<0.25)re(q,'flintRock',u2);else if(u<0.31)re(q,'tinRock',u2);else if(u<0.35)re(q,'ironRock',u2);else if(u<0.39)re(q,'coalRock',u2);}
+          else if(t==='tallgrass'||t==='reeds'){if(hAt(q.x,q.z)<16){if(u<0.1)re(q,'clay',u2);else if(u<0.14)re(q,'saltPan',u2);else if(u<0.18)re(q,'shellBed',u2);}}}
+        DL.resMs=Math.round(performance.now()-t0);}catch(e){console.warn('cây đá đại lục',e);}return r;};}
   /* ngoài vùng nạp vẫn là đại lục: độ cao lấy thẳng từ mảnh (trước trả về "biển sâu") */
   {const _h=hAt;hAt=function(x,z){const h=_h(x,z);return h===-60&&DL.on?dlH(x+DL.ox,z+DL.oz):h;};}
   /* VÀNH ĐẤT XA: mặt đất thô quanh vùng nạp (ra thêm ~4 mảnh mỗi phía) để đứng ở mép vùng vẫn thấy núi đồi nối tiếp chứ không phải biển giả.

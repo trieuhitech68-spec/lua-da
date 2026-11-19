@@ -309,7 +309,7 @@ function res4Detail(seed){const R=rng((seed|0)*23+515),Q=W4.Z;
   patches('terrace',14,['flowerW','centella','flowerW'],7,0.9);patches('basalt',16,['flowerR','boulder','flowerR'],6);patches('hotspring',8,['aloe','boulder','flowerR'],5,1.3);
   patches('trangan',12,['flowerP','shrub','flowerP'],6);patches('halong',8,['pebble','aloe'],5);patches('mangrove',8,['flowerP','reeds'],5);
   {const v=REG.find(g=>g.id==='vista');if(v)for(let k=0;k<5;k++){const a=R()*6.283,d=40+R()*90,cx=v.x+Math.cos(a)*d,cz=v.z+Math.sin(a)*d;const t=['flowerY','flowerY','pebble'][k%3];for(let m=0;m<6;m++){const x=cx+(R()-0.5)*30,z=cz+(R()-0.5)*30;if(okAt(x,z))put(t,x,z,1+R()*0.5);}}}}
-{const _rg=resGen;resGen=function(seed){_rg(seed);if(WV>=3)try{res4Thin();res4Gen(seed);}catch(e){console.warn('tài nguyên vùng mới',e);}
+{const _rg=resGen;resGen=function(seed){_rg(seed);if(WV>=3&&!RESREC)try{res4Thin();res4Gen(seed);}catch(e){console.warn('tài nguyên vùng mới',e);}
   if(WV>=3){try{res4Glades(seed);}catch(e){console.warn('trảng rừng',e);}try{res4Detail(seed);}catch(e){console.warn('chi tiết vùng',e);}}};}
 /* ---------- sương vùng cao & hơi nước suối nóng ---------- */
 function w4Fx(){const T=THREE,U=t3U(),tx=t3Tex(),R=rng(((S&&S.seed)|0)+8181),L=[],Q=W4.Z;U.uMist=U.uMist||{value:new T.Vector4(0,1,0,0)};
