@@ -1,6 +1,7 @@
 /* ===================== CÓ GÌ MỚI: thẻ giới thiệu tính năng, mỗi phiên bản hiện một lần cho mỗi máy ===================== */
 const NEWS_V='2026-11-g',NEWS=[
  ['🗺️','Đại lục chia sáu miền','Phía bắc lạnh, rừng thông; phía nam là rừng nhiệt đới có chuối, cọ, tre; có thảo nguyên khô, đồi tre trúc, đồng cỏ hoa. Mỗi miền một dáng đất, một kiểu cây, khí hậu riêng. Cây cối giờ giống nhau dù đứng ở tỉnh nào, sang tỉnh bên không còn màn đen.'],
+ ['⛏️','Đào hào, đào hố','Xây → ⛏️ Đào: đào hào hẹp hoặc hố rộng ngay trước mặt, đào chồng lên để sâu thêm, lấp lại được. Đất mềm dùng Gậy đào, đất lẫn đá cần Cuốc đá, núi đá cứng cần Cuốc chim sắt. Kẻ địch lội qua hào bị chậm hẳn.'],
  ['🐕','Chó biết trông nhà, đi săn','Chạm vào chó để đổi việc: Trông nhà (mặc định: đi tuần, sủa báo và đuổi thú dữ, mừng khi bạn về), Đi theo, Đi săn (bắt thỏ, gà rừng tha về giỏ). Gà, lợn đi theo đàn, tối tự về chuồng.'],
  ['🐘','Voi vẽ lại · chiến thú canh nhà','Voi có vòi cong, ngà cong, tai quạt. Ngựa, voi bị bỏ lại xa sẽ tự tìm về làng và gọi được từ bất cứ đâu. Chiến thú không xuất chiến đi lại canh nhà, lao ra cắn thú dữ.'],
  ['🏰','Liên minh, tướng, thiên phú','Liên minh lên cấp nhờ thành viên góp vật liệu. Tướng cấp 5 chọn tài riêng. Thiên phú 5 bậc, 8 hướng. Nhà kho rộng 4×3 ô, chứa 178 ô.'],

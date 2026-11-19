@@ -1,0 +1,54 @@
+/* ===================== dao: ĐÀO HÀO, ĐÀO HỐ, XẺ ĐỒI =====================
+   Đào đất ngay TRƯỚC MẶT (Xây → ⛏️ Đào): mặt đất lún xuống thật, đào chồng lên chỗ cũ thì sâu thêm, lấp lại được.
+     · Hào hẹp (rộng ~3 m) để chặn lối, vây làng; hố rộng (~5,5 m) để làm hầm trũng, ao cạn, mở lối qua gò đồi.
+     · ĐỊA HÌNH quyết định đào được hay không:  đất mềm (đồng cỏ, rừng, bờ bãi)  → Gậy đào là đủ;
+                                                 đất lẫn đá, sườn dốc, núi thấp   → cần Cuốc đá;
+                                                 núi đá cứng, vách dựng, đỉnh cao → cần Cuốc chim sắt ("phá núi").
+     · DỤNG CỤ quyết định đào SÂU tới đâu: Gậy đào 1 lớp · Cuốc đá / Cuốc đồng 2 lớp · Cuốc chim sắt 3 lớp (mỗi lớp sâu 0,8 m).
+     · Đào ra đất, đá: đất mềm cho ít đá cuội (bờ nước cho đất sét); đất đá cho đá; núi đá cho đá, đá lửa, đôi khi quặng.
+     · Kẻ địch và thú đang đuổi lội qua hào bị chậm còn một phần ba.
+   Lưu: S.dig=[{x,z,r,d}] (d: độ sâu đã đào). Áp vào lưới độ cao mỗi lần tải, sau các nền đã san. */
+const DAO={L:16,KIND:{hao:['Hào hẹp',30],ho:['Hố rộng',56]},HN:['đất mềm','đất lẫn đá','núi đá cứng']};
+function daoK(g,x,z){return 1-ss(g.r*0.45,g.r*1.1,Math.hypot(x-g.x,z-g.z));}
+function daoApply(g,sign){const R=g.r*1.15,i0=Math.max(0,Math.floor((g.x-R+WSIZE/2)/HSTEP)),i1=Math.min(HN-1,Math.ceil((g.x+R+WSIZE/2)/HSTEP)),j0=Math.max(0,Math.floor((g.z-R+WOZ)/HSTEP)),j1=Math.min(HN-1,Math.ceil((g.z+R+WOZ)/HSTEP)),s=sign||1;
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const k=daoK(g,-WSIZE/2+i*HSTEP,-WOZ+j*HSTEP);if(k>0)HG[j*HN+i]-=s*g.d*k;}}
+function daoAt(x,z){let d=0;const L=S&&S.dig;if(!L||!L.length)return 0;for(const g of L){if(Math.abs(x-g.x)>g.r*1.15||Math.abs(z-g.z)>g.r*1.15)continue;const k=daoK(g,x,z);if(k>0)d+=g.d*k;}return d;}
+{const _cf=caveFlatten;caveFlatten=function(){_cf();try{(S.dig||[]).forEach(g=>daoApply(g));}catch(e){console.warn('đào',e);}};}
+/* màu đất mới đào: nâu sẫm */
+{const _tc=terrainColors;terrainColors=function(){_tc();try{if(!S.dig||!S.dig.length)return;const c=new THREE.Color(),e=new THREE.Color('#6a4f35');
+    for(const g of S.dig){const R=g.r*1.15,i0=Math.max(0,Math.floor((g.x-R+WSIZE/2)/HSTEP)),i1=Math.min(HN-1,Math.ceil((g.x+R+WSIZE/2)/HSTEP)),j0=Math.max(0,Math.floor((g.z-R+WOZ)/HSTEP)),j1=Math.min(HN-1,Math.ceil((g.z+R+WOZ)/HSTEP));
+      for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const k=daoK(g,-WSIZE/2+i*HSTEP,-WOZ+j*HSTEP)*0.85;if(k<=0)continue;const n=j*HN+i;c.setRGB(TCOL[n*3],TCOL[n*3+1],TCOL[n*3+2]).lerp(e,k);TCOL[n*3]=c.r;TCOL[n*3+1]=c.g;TCOL[n*3+2]=c.b;const s=TSPL;s[n*4]=s[n*4]*(1-k);s[n*4+1]=s[n*4+1]*(1-k)+k;s[n*4+2]=s[n*4+2]*(1-k);s[n*4+3]=s[n*4+3]*(1-k);}}}catch(e){}};}
+/* độ cứng của đất tại một điểm: 0 đất mềm · 1 đất lẫn đá / dốc · 2 núi đá cứng */
+function daoHard(x,z){const h=hAt(x,z),sl=slopeAt(x,z);let b='';try{b=biome(x,z);}catch(e){}if(b==='peak'||h>450||sl>1.05)return 2;if(b==='rock'||sl>0.6||h>230)return 1;return 0;}
+/* bậc dụng cụ: 0 không có · 1 gậy đào · 2 cuốc đá / cuốc đồng · 3 cuốc chim sắt */
+function daoTier(){if(invCount('pickIron')>0)return 3;if(hasTool('pick')||invCount('bronzeHoe')>0)return 2;if(hasTool('dig')||hasTool('hoe'))return 1;return 0;}
+function daoSpot(r){const ry=P.ry||0,d=r*0.9+10;return [P.x+Math.sin(ry)*d,P.z+Math.cos(ry)*d];}
+function daoFind(x,z,r){let best=null,bd=1e9;for(const g of S.dig||[]){if(g.r!==r)continue;const d=Math.hypot(g.x-x,g.z-z);if(d<r*0.6&&d<bd){bd=d;best=g;}}return best;}
+function daoCheck(kind){const K=DAO.KIND[kind];if(!K)return 'Không rõ kiểu đào.';const r=K[1],[x,z]=daoSpot(r),tier=daoTier();if(!tier)return 'Cần Gậy đào để đào đất (đất đá thì cần Cuốc đá, núi đá cần Cuốc chim sắt).';
+  if(wdAt(x,z)>0.2||wdAt(P.x,P.z)>0.6)return 'Không đào dưới nước.';try{if(typeof nearWater==='function'&&nearWater(x,z,r+40))return 'Sát mép nước quá: đào xuống là nước tràn vào. Lùi xa bờ thêm vài bước.';}catch(e){}if(typeof inCave==='function'&&inCave(x,z))return 'Trong hang không đào được.';if(typeof wIn==='function'&&!wIn(x,z,0.97))return 'Sát mép vùng đất rồi, lùi vào trong.';
+  const hd=daoHard(x,z);if(hd===2&&tier<3)return 'Chỗ này là núi đá cứng: phải có Cuốc chim sắt mới phá nổi.';if(hd===1&&!(hasTool('pick')||tier>=3))return 'Chỗ này đất lẫn đá, dốc: cần Cuốc đá (gậy đào, cuốc đồng không ăn thua).';
+  const g=daoFind(x,z,r),cur=g?g.d:0,max=DAO.L*(hd===2?(tier>=3?2:0):hd===1?(tier>=3?3:1):Math.min(3,tier));if(cur+DAO.L>max+0.01)return cur?`Chỗ này đã sâu ${(cur/20).toFixed(1)} m: với dụng cụ đang có trên ${DAO.HN[hd]} thì không đào sâu thêm được${tier<3?' (dụng cụ tốt hơn đào được sâu hơn)':''}.`:'Dụng cụ này không đào nổi chỗ này.';
+  for(const b of S.builds)if(Math.hypot(b.x-x,b.z-z)<r+26)return 'Sát công trình quá: đào ở đây sẽ làm sụt móng. Lùi ra xa một chút.';
+  for(const i of near(x,z,r+20)){const q=RES[i];if(q.st!==0||q.lock)continue;if(Math.hypot(q.x-x,q.z-z)<r*0.8&&RT[q.t].tool==='axe'&&q.t!=='log')return 'Có cây lớn ngay chỗ định đào: chặt bằng rìu trước đã.';}return null;}
+function daoStart(kind){const why=daoCheck(kind);if(why){uiToast(why,'bad');try{sfx('no');}catch(e){}return;}try{const ng=needGate(true);if(ng){uiToast(ng,'bad');sfx('no');return;}}catch(e){}
+  const K=DAO.KIND[kind],r=K[1],[x,z]=daoSpot(r),hd=daoHard(x,z),tier=daoTier(),k=(r/30)*(hd===2?3:hd===1?1.8:1)/(tier>=3?1.5:tier===2?1.2:1);uiClose();try{buildEnd&&buildEnd();}catch(e){}
+  G.work={r:{out:{},in:{}},steps:[{n:hd?'Bẩy đá, bổ từng nhát cuốc':'Xắn đất, bới rễ',a:hd?'mine':'dig',t:2.6*k,fx:hd?'thud':'step'},{n:'Xúc đất đá hất lên bờ',a:'dig',t:2.4*k,fx:'step'},{n:'Vỗ thành cho chắc',a:'hammer',t:1.4*k,fx:'thud'}],i:0,t:0,left:1,done:0,x:P.x,z:P.z,sk:'build',icon:hd?'pick':'digStick',fn:()=>daoDone(kind,x,z,hd)};workUi();}
+function daoDone(kind,x,z,hd){const r=DAO.KIND[kind][1];S.dig=S.dig||[];let g=daoFind(x,z,r);const add={x:g?g.x:+x.toFixed(1),z:g?g.z:+z.toFixed(1),r,d:DAO.L};daoApply(add);if(g)g.d+=DAO.L;else{g=add;S.dig.push(g);}
+  /* cây cỏ trong lòng hào: nhổ sạch, không mọc lại; quanh mép thì đặt lại theo mặt đất mới */
+  for(const i of near(x,z,r*1.2+30)){const q=RES[i];if(!q||q.lock)continue;const d=Math.hypot(q.x-g.x,q.z-g.z);if(d<r*0.8&&q.st===0){q.st=1;q.hp=0;q.rg=1e12;S.res[q.i]=[1,1e12];try{resShow(q);}catch(e){}}else if(q.wy==null){const ny=hAt(q.x,q.z)-1.2;if(Math.abs(ny-q.y)>0.3){q.y=ny;try{resShow(q);}catch(e){}}}}
+  try{RI.forEach(v=>v.api.flush());}catch(e){}landRebuild({x:g.x,z:g.z,r:r});P.y=hAt(P.x,P.z);
+  const big=r>40?2:1,got={};if(hd===0){got.pebble=big;try{if(biome(x,z)==='bank'||hAt(x,z)<10)got.clay=big;}catch(e){}}else if(hd===1){got.stone=3*big;}else{got.stone=4*big;got.flint=1;const u=Math.random();if(u<0.18&&ITEMS.copper)got.copper=1;else if(u<0.3&&ITEMS.tin)got.tin=1;}for(const k in got)if(!ITEMS[k])delete got[k];
+  if(Object.keys(got).length)give(got,[g.x,hAt(g.x,g.z)+10,g.z]);try{puff(g.x,hAt(g.x,g.z)+6,g.z,'#8a6a48',12);sfx('build');addXp('build',3+big*2+hd*3);cnt('cnt','dig');}catch(e){}S.p.stam=Math.max(0,S.p.stam-(4+big*3)*(1+hd*0.6));
+  uiToast(`⛏️ Đào xong: ${DAO.KIND[kind][0].toLowerCase()} sâu ${(g.d/20).toFixed(1)} m trên ${DAO.HN[hd]}. Đào tiếp ngay chỗ này để sâu thêm, bước sang bên để nối dài.`,'gold');save();}
+function daoFill(){let best=null,bd=1e9;for(const g of S.dig||[]){const d=Math.hypot(g.x-P.x,g.z-P.z);if(d<g.r+70&&d<bd){bd=d;best=g;}}if(!best){uiToast('Không có chỗ đào nào ngay gần đây để lấp.','bad');return;}if(!daoTier()){uiToast('Cần Gậy đào hoặc cuốc để xúc đất lấp lại.','bad');return;}
+  const g=best;uiClose();G.work={r:{out:{},in:{}},steps:[{n:'Xúc đất lấp lại',a:'dig',t:2.4*(g.r/30),fx:'step'},{n:'Nện cho chặt',a:'hammer',t:1.6,fx:'thud'}],i:0,t:0,left:1,done:0,x:P.x,z:P.z,sk:'build',icon:'digStick',fn:()=>{try{const i=S.dig.indexOf(g);if(i<0)return;daoApply(g,-1);S.dig.splice(i,1);for(const k of near(g.x,g.z,g.r*1.2+30)){const q=RES[k];if(q&&q.wy==null){const ny=hAt(q.x,q.z)-1.2;if(Math.abs(ny-q.y)>0.3){q.y=ny;try{resShow(q);}catch(e){}}}}try{RI.forEach(v=>v.api.flush());}catch(e){}landRebuild({x:g.x,z:g.z,r:g.r});P.y=hAt(P.x,P.z);sfx('build');uiToast('🟫 Đã lấp lại chỗ đào.','');save();}catch(e){console.warn('lấp',e);}}};workUi();}
+/* kẻ địch, thú đang đuổi lội qua hào thì chậm còn một phần ba */
+{const slow=L=>{for(const f of L||[]){if(!f||!f.alive){continue;}if(f._dqx!=null&&S.dig&&S.dig.length&&daoAt(f.x,f.z)>DAO.L*0.6){f.x=f._dqx+(f.x-f._dqx)*0.34;f.z=f._dqz+(f.z-f._dqz)*0.34;}f._dqx=f.x;f._dqz=f.z;}};
+  if(typeof foesTick==='function'){const _ft=foesTick;foesTick=function(dt){const r=_ft.apply(this,arguments);try{if(S&&S.dig&&S.dig.length)slow(G.foes);}catch(e){}return r;};}
+  if(typeof animalsTick==='function'){const _at=animalsTick;animalsTick=function(dt){const r=_at.apply(this,arguments);try{if(S&&S.dig&&S.dig.length)slow((G.animals||[]).filter(a=>a.state==='chase'||a.angry));}catch(e){}return r;};}}
+/* bảng Xây: khung Đào */
+{const _bh=buildHtml;buildHtml=function(){let box='';try{const tier=daoTier(),n=(S.dig||[]).length,tn=['chưa có dụng cụ đào','Gậy đào: đất mềm, sâu 1 lớp','Cuốc đá / Cuốc đồng: sâu 2 lớp; Cuốc đá đào được đất lẫn đá','Cuốc chim sắt: mọi địa hình, sâu 3 lớp, phá được núi đá'][tier];
+      box=`<div class="landbox"><b>⛏️ Đào hào, đào hố, xẻ đồi</b><span class="small muted">Đào ngay trước mặt bạn. Đào chồng lên chỗ cũ thì sâu thêm (mỗi lớp 0,8 m), bước sang bên rồi đào tiếp để nối thành hào. Kẻ địch lội qua hào bị chậm hẳn. Đất mềm dùng Gậy đào; đất lẫn đá, sườn dốc cần Cuốc đá; núi đá cứng cần Cuốc chim sắt.</span><span class="small">Đang có: <b>${tn}</b></span><div class="row"><button class="btn sm" data-a="dao" data-v="hao">⛏️ Hào hẹp · 3 m</button><button class="btn sm" data-a="dao" data-v="ho">⛏️ Hố rộng · 5,5 m</button>${n?`<button class="btn sm ghost" data-a="daofill">🟫 Lấp chỗ đào gần nhất</button>`:''}</div></div>`;}catch(e){}return box+_bh.apply(this,arguments);};}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="dao"],[data-a="daofill"]');if(!b||!S)return;e.stopImmediatePropagation();if(b.dataset.a==='dao')daoStart(b.dataset.v);else daoFill();},true);
+if(typeof UI6_TOOLS!=='undefined'&&!UI6_TOOLS.some(t=>t[0]==='dao'))UI6_TOOLS.push(['dao','⛏️','Đào']);
+if(typeof HD_L!=='undefined')HD_L.push({id:'daohao',ic:'⛏️',t:'Đào hào, đào hố',w:()=>G.panel==='build'&&typeof daoTier==='function'&&daoTier()>0&&!!(S.hd&&S.hd.xay),p:['Bảng Xây có nút <b>⛏️ Đào</b>: đào <b>hào hẹp</b> hoặc <b>hố rộng</b> ngay trước mặt. Đào chồng lên chỗ cũ thì sâu thêm, bước sang bên đào tiếp thì nối thành hào quanh làng.','<b>Địa hình</b> quyết định đào được hay không: đất mềm chỉ cần Gậy đào; đất lẫn đá, sườn dốc cần <b>Cuốc đá</b>; núi đá cứng phải có <b>Cuốc chim sắt</b>. Dụng cụ càng tốt đào càng sâu.','Kẻ địch và thú dữ lội qua hào bị <b>chậm hẳn</b>. Đào nhầm thì bấm <b>Lấp chỗ đào gần nhất</b>.']});

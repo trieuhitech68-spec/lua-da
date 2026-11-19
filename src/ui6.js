@@ -11,7 +11,7 @@ function ui6Menu(){const m=document.querySelector('#menu .ui5-more');if(!m)retur
 setInterval(()=>{try{if(G.on)ui6Menu();}catch(e){}},1200);
 const UI6_TOOLS=[['road','🧭','Lộ trình'],['upg','⬆️','Nâng cấp'],['ed','🏗️','Sửa, dời'],['land','🟫','San nền']];
 function ui6Build(){const body=document.querySelector('#panel .p-body');if(!body||G.panel!=='build'||body.querySelector('.ui6-tools'))return;const boxes=[...body.querySelectorAll(':scope > .landbox')];if(boxes.length<2)return;
-  const kind=b=>b.classList.contains('tr-road')?'road':b.classList.contains('edbox')?'ed':b.querySelector('[data-a="upopen"]')?'upg':b.querySelector('[data-a="land"]')?'land':null;
+  const kind=b=>b.classList.contains('tr-road')?'road':b.classList.contains('edbox')?'ed':b.querySelector('[data-a="upopen"]')?'upg':b.querySelector('[data-a="land"]')?'land':b.querySelector('[data-a="dao"]')?'dao':null;
   const map={};boxes.forEach(b=>{const k=kind(b);if(k){map[k]=b;b.classList.add('ui6-box');b.dataset.k=k;if(k==='road')b.open=true;}});
   const bar=document.createElement('div');bar.className='ui6-tools';bar.innerHTML=UI6_TOOLS.filter(t=>map[t[0]]).map(([k,ic,n])=>`<button class="tb sm" data-a="ui6tool" data-k="${k}"><span>${ic}</span>${n}</button>`).join('');
   body.insertBefore(bar,body.firstChild);ui6Show(G.ui6tool||null);}
@@ -22,5 +22,5 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 #game .ui5-more .ui6-h:first-of-type{padding-top:0}
 @media (pointer:fine) and (min-width:1000px) and (min-height:560px){#game .ui5-more .ui6-h{display:none}}
 @media (max-width:600px){#game .menu .ui5-more{top:calc(-1 * var(--ui5-mini))!important;bottom:auto!important;transform-origin:100% 0;max-height:calc(100dvh - 2 * var(--u-st) - 8px);overflow-y:auto;gap:5px}#game .menu .ui5-more>button{min-height:54px}}
-.ui6-tools{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}.ui6-tools .tb{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;padding:6px 2px;font-size:11.5px;white-space:nowrap}.ui6-tools .tb span{font-size:18px;line-height:1}
+.ui6-tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(58px,1fr));gap:6px;margin-bottom:10px}.ui6-tools .tb{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;padding:6px 2px;font-size:11.5px;white-space:nowrap}.ui6-tools .tb span{font-size:18px;line-height:1}
 .ui6-box[hidden]{display:none!important}.ui6-box.tr-road>summary{pointer-events:none}`;document.head.appendChild(st);}
