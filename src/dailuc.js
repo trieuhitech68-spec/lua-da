@@ -80,7 +80,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
       const sc=land/n*3+Math.min(0.2,wat/n)*4-hi/n*2-Math.abs(h-25)/60;L.push({ox,oz,sc});}L.sort((a,b)=>b.sc-a.sc);if(!L.length)return {ox:0,oz:0};/* chơi chung: rải người vào 16 tỉnh tốt nhất theo mã người chơi, khỏi dồn một chỗ */const top=L.slice(0,40);return pick!=null?top[Math.floor(dlHash(pick,5,seed)*top.length)%top.length]:top[0];}
   /* tên tỉnh cho người đọc: cột chữ cái (tây → đông), hàng số (bắc → nam); tỉnh giữa đại lục là J10 */
   function dlProvName(ox,oz){const A=DL.TS*6;return String.fromCharCode(74+Math.round(ox/A))+(Math.round(oz/A)+10);}
-  {const _wc=worldCfg;worldCfg=function(v){DL.on=!!(typeof S==='object'&&S&&S.dl);if(!DL.on)return _wc.apply(this,arguments);const r=_wc.call(this,3);DL.HS=HSTEP;DL.TN=48;DL.TS=DL.HS*DL.TN;dlInit(S.seed0||S.seed);DL.ox=S.dl.ox;DL.oz=S.dl.oz;
+  {const _wc=worldCfg;worldCfg=function(v){DL.bgN=(DL.bgN|0)+1;DL.on=!!(typeof S==='object'&&S&&S.dl);if(!DL.on)return _wc.apply(this,arguments);const r=_wc.call(this,3);DL.HS=HSTEP;DL.TN=48;DL.TS=DL.HS*DL.TN;dlInit(S.seed0||S.seed);DL.ox=S.dl.ox;DL.oz=S.dl.oz;
       /* tỉnh đang đứng là "vùng đất hiện tại": bảng trạng thái, bản đồ, lãnh thổ ghi tên tỉnh thay cho "Đất Trung Tâm" */try{if(typeof LANDS!=='undefined'&&S.land&&/^q/.test(S.land)){const nm='Tỉnh '+dlProvName(DL.ox,DL.oz);let L=LANDS.find(x=>x.id===S.land);if(!L){L={id:S.land,lv:0,need:1,home:1,prov:1};LANDS.push(L);}L.n=nm;L.ic='🌏';L.d='Một tỉnh của đại lục. Đi sang địa phận tỉnh bên là game nạp tỉnh đó, không cần cổng.';}}catch(e){}return r;};}
   {const _bh=baseH;baseH=function(x,z){return DL.on?dlBase(x+DL.ox,z+DL.oz):_bh(x,z);};}
   {const _rp=riversPlan;riversPlan=function(seed){if(!DL.on)return _rp.apply(this,arguments);RIV=[];RBK=null;WFALLS=[];SPAWN=dlSpawnOf(DL.ox,DL.oz);
@@ -140,16 +140,24 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   const dlJunG=(gx,gz)=>dlSS(0.18,0.42,dlFbm(gx/4600+3,gz/4600+29,2,DL.seed+401));
   const dlDenseG=(gx,gz)=>dlSS(0.02,0.25,dlFbm(gx/900+80,gz/900-40,3,DL.seed+503))+dlJunG(gx,gz)*0.5;
   const dlWet=(gx,gz,d)=>dlH(gx+d,gz)<0||dlH(gx-d,gz)<0||dlH(gx,gz+d)<0||dlH(gx,gz-d)<0;
+  /* KHÍ HẬU NHỚ SẴN trên lưới thưa (8 ô địa hình một điểm) của vùng đang nạp: sinh cảnh và màu đất hỏi khí hậu cho hàng trăm nghìn điểm mỗi lần dựng vùng,
+     tính nhiễu lại từng điểm là phần chậm nhất lúc sang tỉnh. Lưới bám theo toạ độ đại lục nên tỉnh nào nội suy cũng ra cùng giá trị. */
+  function dlClimL(x,z){let C=DL.cg;if(!C||C.ox!==DL.ox||C.oz!==DL.oz||C.w!==WSIZE){const st=HSTEP*8,n=Math.ceil(WSIZE/st)+2,T=new Float32Array(n*n),W=new Float32Array(n*n),x0=-WSIZE/2,z0=-WSIZE/2;for(let j=0;j<n;j++)for(let i=0;i<n;i++){const tw=dlClimTW(x0+i*st+DL.ox,z0+j*st+DL.oz);T[j*n+i]=tw[0];W[j*n+i]=tw[1];}C=DL.cg={ox:DL.ox,oz:DL.oz,w:WSIZE,st,n,T,W,x0,z0};}
+    const fx=(x-C.x0)/C.st,fz=(z-C.z0)/C.st,i=Math.floor(fx),j=Math.floor(fz);if(i<0||j<0||i>=C.n-1||j>=C.n-1)return dlClim(x+DL.ox,z+DL.oz);const u=fx-i,v=fz-j,k=j*C.n+i,n=C.n;
+    return dlClimW((C.T[k]*(1-u)+C.T[k+1]*u)*(1-v)+(C.T[k+n]*(1-u)+C.T[k+n+1]*u)*v,(C.W[k]*(1-u)+C.W[k+1]*u)*(1-v)+(C.W[k+n]*(1-u)+C.W[k+n+1]*u)*v);}
   function dlBiome(x,z,h0){const h=h0==null?hAt(x,z):h0;if(h<-0.4)return 'water';if(h>450)return 'peak';const sl=slopeAt(x,z);if(h>260||sl>0.8)return 'rock';const gx=x+DL.ox,gz=z+DL.oz;
     if(h<9&&dlWet(gx,gz,110)){/* sát nước: biển, hồ lớn thì là bãi cát; sông, lạch thì là bờ */let big=0;if(dlH(gx+600,gz)<-6)big++;if(dlH(gx-600,gz)<-6)big++;if(dlH(gx,gz+600)<-6)big++;if(dlH(gx,gz-600)<-6)big++;return big>=2?'beach':'bank';}
-    const c=dlClim(gx,gz),m=dlMoistG(gx,gz)+dlJunG(gx,gz)*0.35-dlSavG(gx,gz)*0.5+(h>140?-0.05:0)+c[0]*0.06+c[1]*0.22-c[2]*0.45+c[3]*0.12-c[4]*0.2;return m>0.06?'forest':(m>-0.1?'edge':'meadow');}
+    const c=dlClimL(x,z),m=dlMoistG(gx,gz)+dlJunG(gx,gz)*0.35-dlSavG(gx,gz)*0.5+(h>140?-0.05:0)+c[0]*0.06+c[1]*0.22-c[2]*0.45+c[3]*0.12-c[4]*0.2;return m>0.06?'forest':(m>-0.1?'edge':'meadow');}
+  /* lưới sinh cảnh: tính MỘT lần mỗi lần dựng vùng (trước hai lần) và tính thưa gấp đôi (một điểm cho mỗi khối 2×2 ô, bám toạ độ đại lục) */
+  {const _bg=biomeGridBuild;biomeGridBuild=function(){if(!DL.on)return _bg.apply(this,arguments);const key=DL.ox+','+DL.oz+':'+(DL.bgN|0);if(DL.bgKey===key&&typeof BG!=='undefined'&&BG&&BG.length===HN*HN)return;DL.bgKey=key;BG=new Uint8Array(HN*HN);
+      for(let j=0;j<HN;j+=2)for(let i=0;i<HN;i+=2){const x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,c=Math.max(0,BCODE.indexOf(biome(x,z))),k=j*HN+i;BG[k]=c;if(i+1<HN)BG[k+1]=c;if(j+1<HN){BG[k+HN]=c;if(i+1<HN)BG[k+HN+1]=c;}}};}
   {const _b=biome;biome=function(x,z){if(!DL.on)return _b(x,z);if(wdAt(x,z)>0.4)return 'water';return dlBiome(x,z);};}
   {const _m=moist;moist=function(x,z){return DL.on?dlMoistG(x+DL.ox,z+DL.oz):_m(x,z);};}
-  {const _m=savannaK;savannaK=function(x,z){if(!DL.on)return _m(x,z);const gx=x+DL.ox,gz=z+DL.oz;return Math.max(dlSavG(gx,gz)*0.6,dlClim(gx,gz)[2]);};}
-  {const _m=jungleK;jungleK=function(x,z){if(!DL.on)return _m(x,z);const gx=x+DL.ox,gz=z+DL.oz;return Math.max(dlJunG(gx,gz),dlClim(gx,gz)[1]);};}
+  {const _m=savannaK;savannaK=function(x,z){if(!DL.on)return _m(x,z);const gx=x+DL.ox,gz=z+DL.oz;return Math.max(dlSavG(gx,gz)*0.6,dlClimL(x,z)[2]);};}
+  {const _m=jungleK;jungleK=function(x,z){if(!DL.on)return _m(x,z);const gx=x+DL.ox,gz=z+DL.oz;return Math.max(dlJunG(gx,gz),dlClimL(x,z)[1]);};}
   {const _m=denseK;denseK=function(x,z){return DL.on?dlDenseG(x+DL.ox,z+DL.oz):_m(x,z);};}
   /* màu mặt đất theo miền (world.js gọi sau khi tô màu sinh cảnh): bắc xanh sẫm ngả lam, nhiệt đới xanh đậm tươi, đồi tre xanh nõn, đồng hoa xanh vàng nhạt; thảo nguyên đã có màu cỏ khô sẵn */
-  window.zoneTint=function(c,c2,x,z,b){if(!DL.on||b==='water'||b==='beach'||b==='rock'||b==='peak')return;const cw=dlClim(x+DL.ox,z+DL.oz);if(cw[0]>0.02){c2.set('#3d6b52');c.lerp(c2,cw[0]*0.38);}if(cw[1]>0.02){c2.set('#2f8f3a');c.lerp(c2,cw[1]*0.34);}if(cw[3]>0.02){c2.set('#86b84c');c.lerp(c2,cw[3]*0.3);}if(cw[4]>0.02){c2.set('#a9c468');c.lerp(c2,cw[4]*0.32);}if(cw[2]>0.02&&b!=='meadow'){c2.set('#a6a24e');c.lerp(c2,cw[2]*0.3);}};
+  window.zoneTint=function(c,c2,x,z,b){if(!DL.on||b==='water'||b==='beach'||b==='rock'||b==='peak')return;const cw=dlClimL(x,z);if(cw[0]>0.02){c2.set('#3d6b52');c.lerp(c2,cw[0]*0.38);}if(cw[1]>0.02){c2.set('#2f8f3a');c.lerp(c2,cw[1]*0.34);}if(cw[3]>0.02){c2.set('#86b84c');c.lerp(c2,cw[3]*0.3);}if(cw[4]>0.02){c2.set('#a9c468');c.lerp(c2,cw[4]*0.32);}if(cw[2]>0.02&&b!=='meadow'){c2.set('#a6a24e');c.lerp(c2,cw[2]*0.3);}};
   /* khí hậu theo miền: bắc lạnh hơn 7 độ, nhiệt đới nóng hơn 4, thảo nguyên nóng hơn 5 */
   {const _at=ambientTemp;ambientTemp=function(){let t=_at.apply(this,arguments);try{if(DL.on&&S&&S.dl){if(!(DL.ctT>Date.now())){const cw=dlClim(S.dl.ox+P.x,S.dl.oz+P.z);DL.ctV=-7*cw[0]+4*cw[1]+5*cw[2];DL.ctT=Date.now()+3000;}t+=DL.ctV||0;}}catch(e){}return t;};}
   /* các "vùng mới" của bản đồ cũ (cao nguyên thông, thung lũng tre…) nằm theo tâm cửa sổ: đại lục không dùng */
@@ -310,7 +318,10 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
     try{for(const q of S.pets||[]){q._o=null;}for(const f of S.folk||[]){f._o=null;f._rig=null;}}catch(e){}
     try{if(typeof LT==='object'){LT.o=null;LT.id=null;}}catch(e){}try{if(typeof KP==='object')KP.sig='';}catch(e){}try{if(typeof T3==='object'){T3.rocks=[];T3.brooks=[];T3.wmats=[];T3.mist=null;T3.smoke=null;T3.terr=null;}}catch(e){}
     G.grass=null;G.gLast=null;DL.ring=null;DL.sea=null;G.animals=[];G.foes=[];G.npcs=[];G.village=null;G.camp=null;MAPIMG=null;G.mapDet=null;
-    G._reuse=1;try{sceneInit();}finally{G._reuse=0;}
+    /* làng, trại cướp, thú rừng không cần có ngay lúc cảnh hiện ra: tạm gác lại, dựng nối tiếp ngay sau đó (mỗi thứ một nhịp) để người chơi thấy vùng mới sớm hơn ~1 giây */
+    const later=[],o1=villageInit,o2=campInit,o3=animalsInit;villageInit=function(){later.push(()=>{o1();try{if(typeof villageGrow==='function')villageGrow();}catch(e){}});};campInit=function(){later.push(o2);};animalsInit=function(){later.push(o3);};
+    G._reuse=1;try{sceneInit();}finally{G._reuse=0;villageInit=o1;campInit=o2;animalsInit=o3;}
+    DL.later=later.length;later.forEach((f,i)=>setTimeout(()=>{try{f();}catch(e){console.warn('dựng nối tiếp',e);}DL.later--;},60+i*90));
     try{uiHud(true);uiHotbar();}catch(e){}
     /* bỏ cảnh cũ: trả bộ nhớ đồ hoạ của mọi lưới trong cảnh cũ. Khuôn dùng chung (thú, người) còn giữ dữ liệu nên lần vẽ sau tự nạp lại; lưới mặt đất cũ thì bỏ hẳn. */
     try{const seen=new Set();old.traverse(m=>{const g=m.geometry;if(g&&g.dispose&&!seen.has(g)){seen.add(g);try{g.dispose();}catch(e){}}});for(const o of olds){if(o&&o.parent)o.parent.remove(o);}}catch(e){}
