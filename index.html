@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119084659">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119085010">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -23449,23 +23449,41 @@ function dtTick(dt){if(!S||!DT.sites.length||!G.on)return;const RW=DT.RW,I=DT.in
   for(const s of DT.sites){const dx=P.x-s.x,dz=P.z-s.z,d=Math.hypot(dx,dz)||1;if(I&&I.id===s.id){
       if(d>RW+80||G.dying){dtLeave('');continue;}if(G.ride){const p=dtGate(s,24);P.x=p[0];P.z=p[1];dtLeave('Thú cưỡi không ở trong di tích được: bạn bị đẩy ra cổng, lính canh hồi lại.');continue;}
       if(d>RW-13){P.x=s.x+dx/d*(RW-13);P.z=s.z+dz/d*(RW-13);}
-      for(const f of G.foes||[])if(f.ruin===s.id&&f.alive){const fx=f.x-s.x,fz=f.z-s.z,fd=Math.hypot(fx,fz);if(fd>RW-18){f.x=s.x+fx/fd*(RW-18);f.z=s.z+fz/fd*(RW-18);}}
       if(!I.done&&!dtAlive(s)){I.nt+=dt;if(I.nt>2.2){if(I.w<DT.W.length-1)dtWave(s,I.w+1);else{I.done=true;dtSend({k:'w',wv:DT.W.length});uiToast('🏺 Di tích lặng im. Rương cổ ở giữa thành đã mở được.','gold');try{sfx('level');}catch(e){}}}}
     }else if(d<RW+11){P.x=s.x+dx/d*(RW+11);P.z=s.z+dz/d*(RW+11);}}}
-{const _ft=foesTick;foesTick=function(dt){try{dtTick(dt);}catch(e){}return _ft.apply(this,arguments);};}
+/* LÍNH CANH DI TÍCH tự chạy riêng (không qua foesTick gốc) để nhiều người cùng thấy MỘT trận:
+   máy có mã phòng nhỏ nhất trong thành làm CHỦ TRẬN: lính của nó đuổi người gần nhất (kể cả người chơi khác) và phát vị trí 3 lần/giây;
+   các máy còn lại kéo lính của mình về đúng vị trí đó. Ai đứng sát lính thì máy người đó tự tính đòn trúng mình. */
+function dtSlave(){const N=DT.net;return !!(N.hostT&&Date.now()-N.hostT<1500);}
+function dtInside(s){const L=[];try{if(typeof MP==='object'&&MP.rp)for(const r of MP.rp.values())if(r.ok!==false&&Math.hypot(r.x-s.x,r.z-s.z)<DT.RW)L.push(r);}catch(e){}return L;}
+function dtFoeTick(s,f,dt,others,slave){if(!f.alive){if(f.dieT!=null){f.dieT+=dt;f.o.rotation.z=Math.min(1.5,f.dieT*2.5);if(f.dieT>4){G.sc.remove(f.o);f.gone=1;}}return;}
+  const RW=DT.RW,now=Date.now();let pose='idle',sp=0;
+  if(slave&&f.nt&&now-f.nt<1500){const dx=f.nx-f.x,dz=f.nz-f.z,d=Math.hypot(dx,dz);if(d>220){f.x=f.nx;f.z=f.nz;}else if(d>2){const st=Math.min(d,Math.max(FOE.spd*1.25*dt,d*dt*4));f.x+=dx/d*st;f.z+=dz/d*st;if(d>6){sp=FOE.spd;f.ry=Math.atan2(dx,dz);}}if(!sp){if(f.nry!=null)f.ry=f.nry;if(f.na)pose='chop';}}
+  else{let tx=P.x,tz=P.z,td=Math.hypot(P.x-f.x,P.z-f.z);for(const r of others){const d=Math.hypot(r.x-f.x,r.z-f.z);if(d<td-30){td=d;tx=r.x;tz=r.z;}}const dx=tx-f.x,dz=tz-f.z;f.ry=Math.atan2(dx,dz);f.na=td<f.r+16?1:0;if(f.na)pose='chop';else{sp=FOE.spd;const st=Math.min(td,sp*dt);f.x+=dx/td*st;f.z+=dz/td*st;}}
+  const dP=Math.hypot(P.x-f.x,P.z-f.z);if(dP<f.r+18){pose='chop';f.atkT-=dt;if(f.atkT<=0){f.atkT=1.3;foeHit(f,{pl:1,x:P.x,z:P.z});}}
+  const fx=f.x-s.x,fz=f.z-s.z,fd=Math.hypot(fx,fz);if(fd>RW-18){f.x=s.x+fx/fd*(RW-18);f.z=s.z+fz/fd*(RW-18);}
+  if(sp>0){pose=pose==='chop'?pose:'run';f.g=(f.g||0)+dt*2;}f.state='chase';
+  f.y=groundY(f.x,f.z,f.y+10);f.o.visible=dP<1800;f.o.position.set(f.x,f.y,f.z);f.o.rotation.y=lerpAng(f.o.rotation.y,f.ry,Math.min(1,dt*8));
+  if(f.o.visible&&K3.char2Pose&&f.rig&&dP<800){try{K3.char2Pose(f.rig,pose,pose==='run'?f.g:pose==='chop'?1-Math.max(0,f.atkT)/1.3:G.t+f.ph,{tool:'spear'});}catch(e){}}}
+function dtFoesRun(dt,mine){const I=DT.in,s=I&&DT.sites.find(x=>x.id===I.id);if(!s){for(const f of mine){f.alive=false;f.gone=1;try{G.sc.remove(f.o);}catch(e){}}return;}const others=dtInside(s),slave=dtSlave(),N=DT.net;
+  for(const f of mine)if(f.ruin===s.id)dtFoeTick(s,f,dt,others,slave);else{f.gone=1;try{G.sc.remove(f.o);}catch(e){}}
+  if(!slave&&others.length){N.pt=(N.pt||0)+dt;if(N.pt>=0.3){N.pt=0;const L=mine.filter(f=>f.alive&&f.ri!=null).slice(0,6).map(f=>[f.ri,Math.round(f.x-s.x),Math.round(f.z-s.z),Math.round(f.ry*10)/10,f.na?1:0]);if(L.length)dtSend({k:'p',wv:I.w,f:L});}}}
+{const _ft=foesTick;foesTick=function(dt){try{dtTick(dt);}catch(e){}const all=G.foes;if(!all||!all.some(f=>f.ruin))return _ft.apply(this,arguments);
+    const mine=all.filter(f=>f.ruin);G.foes=all.filter(f=>!f.ruin);let r;try{r=_ft.apply(this,arguments);}finally{try{dtFoesRun(dt,mine);}catch(e){}G.foes=(G.foes||[]).concat(mine.filter(f=>!f.gone));}return r;};}
 {const _fh=foeHit;foeHit=function(f,t){if(!f||!f.dk)return _fh.apply(this,arguments);const old=FOE.dmg;FOE.dmg=old*f.dk;try{return _fh.apply(this,arguments);}finally{FOE.dmg=old;}};}
 /* ĐÁNH CHUNG: những người cùng ở trong một di tích chia nhau MÁU của lính canh và ĐỢT canh.
-   Mỗi máy tự dựng lính của mình (vị trí không soi gương), nhưng đòn ai đánh trúng lính số mấy thì máy người kia cũng trừ máu lính số đó;
+   Mỗi máy tự dựng lính của mình (vị trí theo máy chủ trận, xem dtFoeTick), đòn ai đánh trúng lính số mấy thì máy người kia cũng trừ máu lính số đó;
    ai mở đợt kế thì cả nhóm sang đợt kế; người vào sau nhận lại tình trạng đang đánh. Càng đông, lính canh càng nhiều máu. */
 DT.net={acc:{},t:0,rx:0,room:null,rate:new Map()};
 function dtSend(o){try{if(DT.net.rx||!DT.in||typeof mpOn!=='function'||!mpOn()||!MP.room)return;o.s=DT.in.id;mpEmit('dt',o);}catch(e){}}
-function dtFlush(dt){const N=DT.net;N.t+=dt;if(N.t<0.35)return;N.t=0;const ks=Object.keys(N.acc);if(!ks.length)return;const I=DT.in;if(I){const h=ks.filter(k=>+k.split(':')[0]===I.w).slice(0,6).map(k=>[+k.split(':')[1],Math.round(N.acc[k]*10)/10]);if(h.length)dtSend({k:'h',wv:I.w,h});}N.acc={};}
+function dtFlush(dt){const N=DT.net;N.t+=dt;if(N.t<0.4)return;N.t=0;const ks=Object.keys(N.acc);if(!ks.length)return;const I=DT.in;if(I){const h=ks.filter(k=>+k.split(':')[0]===I.w).slice(0,6).map(k=>[+k.split(':')[1],Math.round(N.acc[k]*10)/10]);if(h.length)dtSend({k:'h',wv:I.w,h});}N.acc={};}
 function dtSub(){try{const N=DT.net;if(typeof MP!=='object'||!MP.room||!MP.roomOn||N.room===MP.room)return;N.room=MP.room;MP.unsubs.push(MP.room.on('dt',dtHear,()=>{}));}catch(e){}}
 function dtHear(m){try{const I=DT.in,d=m&&m.data;if(!I||!d||m.isMe||typeof d!=='object'||d.s!==I.id)return;const s=DT.sites.find(x=>x.id===I.id),r=MP.rp&&MP.rp.get(m.peer);if(!s||!r||Math.hypot(r.x-s.x,r.z-s.z)>DT.RW+40)return;
     const N=DT.net,now=Date.now(),rt=N.rate.get(m.peer)||[now,0];if(now-rt[0]>1000){rt[0]=now;rt[1]=0;}if(++rt[1]>10)return;N.rate.set(m.peer,rt);const mine=()=>(G.foes||[]).filter(f=>f.ruin===s.id&&f.alive),wipe=()=>{for(const f of G.foes||[])if(f.ruin===s.id){f.alive=false;f.gone=1;try{G.sc.remove(f.o);}catch(e){}}};
     N.rx=1;try{
       if(d.k==='h'&&d.wv===I.w&&Array.isArray(d.h)){for(const e of d.h.slice(0,6)){if(!Array.isArray(e)||!(e[1]>0)||!(e[1]<=600))continue;const f=mine().find(f=>f.ri===e[0]);if(!f)continue;if(f.hp-e[1]>0){f.hp-=+e[1];f.state='chase';try{puff(f.x,f.y+20,f.z,'#c0392b',3);}catch(er){}}else{f.hp=0.01;foeDamage(f,1e6);}}}
       else if(d.k==='w'&&Number.isInteger(d.wv)&&d.wv>I.w&&d.wv<=DT.W.length&&!I.done){wipe();if(d.wv===DT.W.length){I.w=DT.W.length-1;I.done=true;uiToast('🏺 Cả nhóm đã hạ hết lính canh. Rương cổ ở giữa thành đã mở được.','gold');}else dtWave(s,d.wv,true);}
+      else if(d.k==='p'&&d.wv===I.w&&Array.isArray(d.f)&&typeof MP.myPeer==='string'&&typeof m.peer==='string'&&m.peer<MP.myPeer){N.hostT=now;const cl=v=>Math.max(-DT.RW,Math.min(DT.RW,+v||0));for(const e of d.f.slice(0,6)){if(!Array.isArray(e))continue;const f=mine().find(f=>f.ri===e[0]);if(f){f.nx=s.x+cl(e[1]);f.nz=s.z+cl(e[2]);f.nry=Number.isFinite(+e[3])?+e[3]:null;f.na=e[4]?1:0;f.nt=now;}}}
       else if(d.k==='q'&&!I.done){N.rx=0;dtSend({k:'st',wv:I.w,hp:[0,1,2,3,4,5].map(i=>{const f=mine().find(f=>f.ri===i);return f?Math.round(f.hp/f.hp0*100)/100:0;})});}
       else if(d.k==='st'&&now-(I.t0||0)<8000&&Number.isInteger(d.wv)&&d.wv>=I.w&&d.wv<DT.W.length&&Array.isArray(d.hp)&&!I.joined){I.joined=1;if(d.wv>I.w){wipe();dtWave(s,d.wv,true);}for(const f of mine()){const k=+d.hp[f.ri];if(k>=0&&k<1){if(k<=0){f.alive=false;f.gone=1;try{G.sc.remove(f.o);}catch(e){}}else f.hp=Math.min(f.hp,Math.max(1,Math.round(f.hp0*k)));}}uiToast('🤝 Bạn nhập vào trận đang đánh trong di tích.','');}
     }finally{N.rx=0;}}catch(e){DT.net.rx=0;}}
