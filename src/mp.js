@@ -183,6 +183,9 @@ function mpLandHtml(){const c=MP.claims[MP.uid],cid=mpMyClan(),cl=cid&&MP.clans[
 function mpZoneR(cl){const n=cl?cl.members.length:1;return Math.min(600,220+25*Math.min(10,n)+3*Math.max(0,n-10));}
 function mpChatHtml(){const cid=mpMyClan();if(!cid)return '<p class="small">Gia nhập một liên minh để trò chuyện cùng mọi người.</p>';
   return `<div class="mp-chat"></div><div class="mp-send"><input id="mpChat" maxlength="160" placeholder="Nhắn cả liên minh…"><button class="btn sm" data-a="mpsay">Gửi</button></div><p class="hint">Tin nhắn hiện cho người trong liên minh. Đừng gửi thông tin riêng tư.</p>`;}
+/* AI ĐƯỢC THẤY CHẤM NGƯỜI CHƠI KHÁC TRÊN BẢN ĐỒ: quản trị viên thấy tất cả; người thường chỉ thấy người CÙNG LIÊN MINH với mình.
+   (Trước ai cũng thấy chấm của mọi người đang chơi: dễ bị dò vị trí để phục kích. Gặp nhau ngoài đời trong game thì vẫn thấy nhân vật như cũ.) */
+function mpSeeDot(uid){try{if(typeof ADM==='object'&&ADM.admin===true)return true;const my=mpMyClan();return !!(my&&uid&&mpClanOf(uid)===my);}catch(e){return false;}}
 function mpNearHtml(){if(G.mpGiftTo)return mpGiftHtml();const L=[...MP.rp.values()].filter(r=>r.ok).map(r=>({r,d:Math.hypot(r.x-P.x,r.z-P.z)})).sort((a,b)=>a.d-b.d).slice(0,30);
   if(!MP.room)return '<p class="small muted">Chưa kết nối kênh trực tiếp nên chưa thấy ai đang chơi.</p>';
   if(!L.length)return '<p class="small">Chưa có ai khác đang ở thế giới chung lúc này.</p>';
@@ -379,14 +382,14 @@ function mpMini(){const cv=$('#mini');if(!cv)return;const pr=Math.min(2,devicePi
   const P2=(x,z)=>[W/2+(x-P.x)*sc,W/2+(z-P.z)*sc];c.setLineDash([3,3]);c.lineWidth=1.5;
   const ring=(x,z,r,col)=>{if(Math.hypot(x-P.x,z-P.z)>R*1.5+r)return;const [a,b]=P2(x,z);c.strokeStyle=col;c.beginPath();c.arc(a,b,r*sc,0,7);c.stroke();};
   for(const u in MP.claims){const k=MP.claims[u];ring(k.x,k.z,k.r,u===MP.uid?'#f2c55a':mpColOf(u)||'rgba(240,230,210,.8)');}for(const id in MP.clans){const z=MP.clans[id].zone;if(z)ring(z.x,z.z,z.r,MP.clans[id].color);}
-  c.setLineDash([]);for(const r of MP.rp.values()){if(Math.abs(r.x-P.x)>R||Math.abs(r.z-P.z)>R)continue;const [a,b]=P2(r.x,r.z);c.fillStyle=mpColOf(r.uid)||'#ffffff';c.strokeStyle='#1a0e06';c.lineWidth=1.2;c.beginPath();c.arc(a,b,3.4,0,7);c.fill();c.stroke();}c.restore();}
+  c.setLineDash([]);for(const r of MP.rp.values()){if(!mpSeeDot(r.uid))continue;if(Math.abs(r.x-P.x)>R||Math.abs(r.z-P.z)>R)continue;const [a,b]=P2(r.x,r.z);c.fillStyle=mpColOf(r.uid)||'#ffffff';c.strokeStyle='#1a0e06';c.lineWidth=1.2;c.beginPath();c.arc(a,b,3.4,0,7);c.fill();c.stroke();}c.restore();}
 {const _md=mapDraw;mapDraw=function(){_md();if(!mpOn())return;try{mpMapDraw();}catch(e){}};}
 function mpMapDraw(){const cv=$('#mapcv');if(!cv)return;const pr=Math.min(2,devicePixelRatio||1),W=cv.width/pr,V=mapView(),c=cv.getContext('2d');c.setTransform(pr,0,0,pr,0,0);const sx=x=>(x-V.x0)/V.span*W,sy=z=>(z-V.z0)/V.span*W,k=W/V.span;
   const ring=(x,z,r,col,fill)=>{c.beginPath();c.arc(sx(x),sy(z),Math.max(2,r*k),0,7);if(fill){c.fillStyle=fill;c.fill();}c.setLineDash([4,3]);c.lineWidth=2;c.strokeStyle=col;c.stroke();c.setLineDash([]);};
   for(const id in MP.clans){const z=MP.clans[id].zone;if(z)ring(z.x,z.z,z.r,MP.clans[id].color,'rgba(255,240,200,.18)');}
   for(const u in MP.claims){const q=MP.claims[u];ring(q.x,q.z,q.r,u===MP.uid?'#c8901a':mpColOf(u)||'rgba(70,50,30,.7)');}
   c.font='700 11px "Be Vietnam Pro",system-ui,sans-serif';c.textAlign='center';
-  for(const r of MP.rp.values()){const x=sx(r.x),y=sy(r.z);if(x<-10||y<-10||x>W+10||y>W+10)continue;c.fillStyle=mpColOf(r.uid)||'#ffffff';c.strokeStyle='#2a1808';c.lineWidth=1.5;c.beginPath();c.arc(x,y,4.5,0,7);c.fill();c.stroke();
+  for(const r of MP.rp.values()){if(!mpSeeDot(r.uid))continue;const x=sx(r.x),y=sy(r.z);if(x<-10||y<-10||x>W+10||y>W+10)continue;c.fillStyle=mpColOf(r.uid)||'#ffffff';c.strokeStyle='#2a1808';c.lineWidth=1.5;c.beginPath();c.arc(x,y,4.5,0,7);c.fill();c.stroke();
     if(V.z>=1.5){const n=mpName(r.uid);c.lineWidth=3;c.strokeStyle='rgba(255,246,226,.9)';c.strokeText(n,x,y-8);c.fillStyle='#3a2410';c.fillText(n,x,y-8);}}}
 /* ---------- tên người chơi (gộp một lượt hỏi) ---------- */
 function mpNamesFlush(){if(!MP.user||!MP.nameQ.size||MP.nameBusy)return;const ids=[...MP.nameQ].slice(0,60);ids.forEach(i=>MP.nameQ.delete(i));MP.nameBusy=true;

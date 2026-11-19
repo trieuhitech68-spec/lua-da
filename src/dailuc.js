@@ -257,7 +257,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
       /* chơi chung: lãnh thổ theo tỉnh, cụm nhà người khác */
       try{if(typeof mpOn==='function'&&mpOn()){const dec=q=>/^q[a-z0-9]{2}$/.test(q)?[(parseInt(q[1],36)-18)*A,(parseInt(q[2],36)-18)*A]:null;c.font='bold 11px system-ui';
           for(const q in MP.landPop||{}){const o=dec(q);if(!o)continue;c.fillStyle='rgba(0,0,0,.55)';c.fillText('🚩'+MP.landPop[q],X(o[0])+1,Z(o[1])+A*k*0.38+1);c.fillStyle='#ffe9b0';c.fillText('🚩'+MP.landPop[q],X(o[0]),Z(o[1])+A*k*0.38);}
-          c.fillStyle='#ff9a3a';for(const u in MP.players||{}){if(u===MP.uid)continue;const fl=MP.players[u].fl||{};for(const q in fl){const o=dec(q),f=fl[q];if(!o||!f)continue;c.beginPath();c.arc(X(o[0]+f[0]),Z(o[1]+f[1]),3,0,7);c.fill();}}
+          c.fillStyle='#ff9a3a';for(const u in MP.players||{}){if(u===MP.uid||(typeof mpSeeDot==='function'&&!mpSeeDot(u)))continue;const fl=MP.players[u].fl||{};for(const q in fl){const o=dec(q),f=fl[q];if(!o||!f)continue;c.beginPath();c.arc(X(o[0]+f[0]),Z(o[1]+f[1]),3,0,7);c.fill();}}
           if(DL.mv.z>=5)for(const u in MP.claims||{}){const q=MP.claims[u];c.strokeStyle=u===MP.uid?'#f2c55a':'rgba(240,230,210,.8)';c.lineWidth=1.5;c.beginPath();c.arc(X(q.x+DL.ox),Z(q.z+DL.oz),q.r*k,0,7);c.stroke();}}}catch(e){}
       /* trong tỉnh đang đứng: nhà cửa, làng, trại, cờ, thú cưỡi */
       if(DL.mv.z>=6){c.fillStyle='#7a2e12';for(const b of S.builds||[]){const d=pieceDef(b.k);if(!d||d.kind==='edge'||d.kind==='roof'||d.kind==='corner')continue;const a=X(b.x+DL.ox),z=Z(b.z+DL.oz);if(a<0||z<0||a>W||z>W)continue;c.fillRect(a-1.5,z-1.5,3,3);}}
