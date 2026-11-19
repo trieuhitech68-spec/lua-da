@@ -39,7 +39,7 @@ function dlBase(x,z){const s=DL.seed,R=DL.R;
   const hill=dlSS(0.05,0.5,dlFbm(x/4200+13,z/4200-4,3,s+41));h+=hill*(40+dlFbm(x/900,z/900,3,s+43)*45)*(1+0.4*wB-0.7*wS);
   /* đồi tre: đồi lượn sóng */if(wT>0.03)h+=wT*(6+dlFbm(x/520+7,z/520-3,2,s+97)*22);
   /* thảo nguyên: đồi bàn đỉnh bằng rải rác */if(wS>0.03){const ms=dlSS(0.3,0.38,dlFbm(x/1500+17,z/1500+5,3,s+101));if(ms>0)h+=wS*ms*(55+dlFbm(x/300,z/300,2,s+103)*8);}
-  /* nhiệt đới: núi đá vôi dựng đứng từng cụm */if(wN>0.03){const km=dlSS(0.05,0.3,dlFbm(x/3400-11,z/3400+7,2,s+107));if(km>0){const tk=dlSS(0.12,0.3,dlFbm(x/380+1,z/380+2,2,s+109));if(tk>0)h+=wN*km*tk*(90+dlFbm(x/130,z/130,2,s+113)*40);}}
+  /* nhiệt đới: núi đá vôi dựng đứng từng cụm */if(wN>0.03){const km=dlSS(0.05,0.3,dlFbm(x/3400-11,z/3400+7,2,s+107));if(km>0){const tk=dlSS(0.15,0.235,dlFbm(x/380+1,z/380+2,2,s+109));if(tk>0)h+=wN*km*tk*(120+dlFbm(x/130,z/130,2,s+113)*45);/* chóp đá nhỏ đứng lẻ quanh các khối lớn */const t2=dlSS(0.3,0.36,dlFbm(x/170+9,z/170-4,2,s+117));if(t2>0)h+=wN*km*(1-tk)*t2*(60+dlFbm(x/90,z/90,2,s+119)*30);}}
   /* dãy núi: vài vành đai lớn; trong vành đai là sống núi sắc */
   const belt=dlSS(0.18,0.5,dlFbm(x/7500-21,z/7500+15,3,s+53));if(belt>0){const rg=dlRidge(x/2300+2,z/2300-5,5,s+59);h+=belt*(90+rg*rg*1250)*(1+0.3*wB);}
   /* vách tầng từ độ cao 230 (cùng công thức với nuicao.js) */
