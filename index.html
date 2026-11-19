@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119040856">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119041029">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -1969,18 +1969,20 @@ function biome(x,z){const h=hAt(x,z);if(wdAt(x,z)>0.4)return 'water';const r=WV>
 const BCOL={water:'#5c6a52',beach:'#d8c48e',meadow:'#8db552',edge:'#6f9e44',forest:'#4a7a32',bank:'#7aa04c',rock:'#8a8478',peak:'#c6c2ba'};
 /* ---------- mặt đất chia 8×8 khối, mỗi khối 3 mức chi tiết theo khoảng cách ---------- */
 let TCN=8,TCS=WSEG/TCN;let TCOL=null,TNRM=null,TSPL=null,TCH=[];
-function terrainColors(){const T=THREE,c=new T.Color(),c2=new T.Color();TCOL=new Float32Array(HN*HN*3);TNRM=new Float32Array(HN*HN*3);TSPL=new Float32Array(HN*HN*4);
+/* TGX/TGZ: độ dời sang toạ độ đại lục (0 ở bản đồ cũ) để các vệt màu đất liền nhau qua ranh giới tỉnh */
+let TGX=0,TGZ=0;
+function terrainColors(){const T=THREE,c=new T.Color(),c2=new T.Color();try{const dl=typeof DL==='object'&&DL.on;TGX=dl?DL.ox:0;TGZ=dl?DL.oz:0;}catch(e){TGX=TGZ=0;}TCOL=new Float32Array(HN*HN*3);TNRM=new Float32Array(HN*HN*3);TSPL=new Float32Array(HN*HN*4);
   for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){const k=j*HN+i,x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,h=HG[k];
     const hl=HG[j*HN+Math.max(0,i-1)],hr=HG[j*HN+Math.min(HN-1,i+1)],hu=HG[Math.max(0,j-1)*HN+i],hd=HG[Math.min(HN-1,j+1)*HN+i];let nx=hl-hr,ny=2*HSTEP,nz=hu-hd;const nl=Math.hypot(nx,ny,nz);TNRM[k*3]=nx/nl;TNRM[k*3+1]=ny/nl;TNRM[k*3+2]=nz/nl;
     const sl=Math.hypot(hr-hl,hd-hu)/(2*HSTEP);let b=BG?BCODE[bgAt(x,z)]:biome(x,z);const wet=WG[k]>-900&&WG[k]-h>0.3;if(wet)b='water';
-    c.set(BCOL[b]);const v=NS.fbm(x/140+3,z/140-8,2);c.offsetHSL(v*0.02,v*0.06,v*0.05);
+    c.set(BCOL[b]);const v=NS.fbm((x+TGX)/140+3,(z+TGZ)/140-8,2);c.offsetHSL(v*0.02,v*0.06,v*0.05);
     if(b==='water'){c2.set('#6b6a4e');c.lerp(c2,Math.min(1,(WG[k]-h)/14));}
     if(b==='meadow'){const sv=savannaK(x,z);if(sv>0){c2.set('#a6a24e');c.lerp(c2,sv*0.4);}}
     if(typeof zoneTint==='function')zoneTint(c,c2,x,z,b);
-    if(sl>0.4&&!wet){const band=Math.sin(h*0.21+NS.fbm(x/60,z/60,2)*3)*0.5+0.5;c2.set(band>0.6?'#8a8070':band>0.3?'#6e665a':'#5a5248');c.lerp(c2,ss(0.4,0.85,sl)*0.95);if(sl>1.1){c2.set('#4e483f');c.lerp(c2,ss(1.1,2,sl)*0.35);}}
+    if(sl>0.4&&!wet){const band=Math.sin(h*0.21+NS.fbm((x+TGX)/60,(z+TGZ)/60,2)*3)*0.5+0.5;c2.set(band>0.6?'#8a8070':band>0.3?'#6e665a':'#5a5248');c.lerp(c2,ss(0.4,0.85,sl)*0.95);if(sl>1.1){c2.set('#4e483f');c.lerp(c2,ss(1.1,2,sl)*0.35);}}
     if(h>430){c2.set('#f2f4f6');c.lerp(c2,ss(430,520,h)*(1-ss(0.9,1.5,sl)*0.7));}
     const tr=typeof trailAt==='function'?trailAt(x,z):0;if(tr>0&&!wet){c2.set(b==='beach'?'#c9b282':'#9a7a52');c.lerp(c2,tr*0.85);}
-    const dn=NS.fbm(x/55+9,z/55-4,2);if(b==='meadow'||b==='edge'||b==='forest'){c2.set(dn>0.12?'#6b5a3a':'#a6b85a');c.lerp(c2,Math.max(0,Math.abs(dn)-0.12)*1.4);}
+    const dn=NS.fbm((x+TGX)/55+9,(z+TGZ)/55-4,2);if(b==='meadow'||b==='edge'||b==='forest'){c2.set(dn>0.12?'#6b5a3a':'#a6b85a');c.lerp(c2,Math.max(0,Math.abs(dn)-0.12)*1.4);}
     TCOL[k*3]=c.r;TCOL[k*3+1]=c.g;TCOL[k*3+2]=c.b;TSPL.set(splatAt(k,x,z,h,b,sl,wet),k*4);}}
 function terrainChunk(ci,cj,step){const T=THREE,n=TCS/step+1,pos=[],nor=[],col=[],idx=[],spl=[];const i0=ci*TCS,j0=cj*TCS;
   for(let b=0;b<n;b++)for(let a=0;a<n;a++){const i=Math.min(HN-1,i0+a*step),j=Math.min(HN-1,j0+b*step),k=j*HN+i;pos.push(-WSIZE/2+i*HSTEP,HG[k],-WOZ+j*HSTEP);nor.push(TNRM[k*3],TNRM[k*3+1],TNRM[k*3+2]);col.push(TCOL[k*3],TCOL[k*3+1],TCOL[k*3+2]);spl.push(TSPL[k*4],TSPL[k*4+1],TSPL[k*4+2],TSPL[k*4+3]);}
@@ -2364,13 +2366,13 @@ function actStart(t){if(G.work){workPush();return;}if(t&&t.type==='leave'){boatL
 function swingPer(t){const D=t.type==='res'?RT[t.q.t]:null,hand=!D||!D.tool,sk=D?D.sk:'hunt';let per=(hand&&D&&D.hp<=1?0.42:0.72)/(1+0.06*skLv(sk));if(S.buff&&S.buff.rested>TNOW())per*=0.87;if(S.p.stam<8)per*=1.6;per*=needSlow();return per;}
 function actTick(dt){const A=G.act;if(!A)return;const t=A.t;
   /* nhát đánh / nhát búa tới đích theo THỜI GIAN TRONG GAME (trước hẹn bằng đồng hồ thật: game chạy chậm, tạm dừng hay tua nhanh thì nhát đánh lệch nhịp, có khi mất hẳn) */
-  if(A.hitT&&G.t>=A.hitT){const o=A.hitO;A.hitT=0;A.hitO=null;if(o&&o.site){siteHit(o.site);}else hitTarget(o);if(G.act!==A)return;}
+  if(A.hitT&&G.t>=A.hitT){const o=A.hitO;A.hitT=0;A.hitO=null;if(o&&o.fn){o.fn();}else if(o&&o.site){siteHit(o.site);}else hitTarget(o);if(G.act!==A)return;}
   if(t.type==='rod'){rodTick(A,dt);return;}if(t.type==='uproot'){uprootTick(A,dt);return;}
   if(t.type==='site'){const b=t.b;if(b.prog==null||!BYID.has(b.id)||Math.hypot(b.x-P.x,b.z-P.z)>110){G.act=null;return;}P.ry=isFP()?P.ry:lerpAng(P.ry,Math.atan2(b.x-P.x,b.z-P.z),Math.min(1,dt*10));P.anim='hammer';A.next-=dt;if(A.next<=0){A.per=0.62/(1+skLv('build')*0.05);A.next=A.per;A.hitT=G.t+A.per*0.38;A.hitO={site:b};}return;}
   if(t.type==='fish'){if(Math.hypot(t.x-P.x,t.z-P.z)>60||P.toolId!=='spear'){G.act=null;return;}P.ry=lerpAng(P.ry,Math.atan2(t.x-P.x,t.z-P.z),Math.min(1,dt*12));P.anim='chop';A.next-=dt;
-    if(A.next<=0){A.per=0.9;A.next=A.per;A.n++;S.p.stam=Math.max(0,S.p.stam-1.2);setTimeout(()=>{if(G.act!==A)return;sfx('hit');puff(t.x,1,t.z,'#bfe6ff',5);
+    if(A.next<=0){A.per=0.9;A.next=A.per;A.n++;S.p.stam=Math.max(0,S.p.stam-1.2);A.hitT=G.t+A.per*0.4;A.hitO={fn:()=>{sfx('hit');puff(t.x,1,t.z,'#bfe6ff',5);
       if(Math.random()<0.22+0.04*skLv('hunt')+(seasonIdx()===3?-0.08:0)){G.act=null;give({fish:1},[t.x,4,t.z]);addXp('hunt',3);cnt('cnt','fish');uiToast('🐟 Đâm trúng một con cá!','gold');save();}
-      else if(A.n>=8){G.act=null;uiToast('Cá lặn mất rồi. Thử chỗ nước khác xem.','');}},A.per*400);}return;}if(t.type==='res'&&t.q.st!==0){G.act=null;return;}if(t.type==='animal'&&!t.a.alive){G.act=null;return;}
+      else if(A.n>=8){G.act=null;uiToast('Cá lặn mất rồi. Thử chỗ nước khác xem.','');}}};}return;}if(t.type==='res'&&t.q.st!==0){G.act=null;return;}if(t.type==='animal'&&!t.a.alive){G.act=null;return;}
   const tx=t.type==='res'?t.q.x:t.a.x,tz=t.type==='res'?t.q.z:t.a.z,rr=t.type==='res'?(RT[t.q.t].r||4)*t.q.s*0.7:t.a.r;const d=Math.hypot(tx-P.x,tz-P.z)-rr;
   if(d>REACH+8){if(t.type==='animal'&&d<260){G.walkTo={x:tx,z:tz,t,t0:G.t};}G.act=null;return;}
   P.ry=lerpAng(P.ry,Math.atan2(tx-P.x,tz-P.z),Math.min(1,dt*12));const D=t.type==='res'?RT[t.q.t]:null;P.anim=D&&!D.tool&&D.hp<=2?'gather':'chop';
@@ -22624,6 +22626,8 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
         const fr=dlFind((x,z)=>{const b=biome(x,z);return b==='forest'||b==='jungle';},600,4200);if(far(fr,700))add('forest','Rừng Già','Rừng rậm: gỗ tốt, thú săn, mật ong.','🌲',fr,520);
         const md=dlFind((x,z)=>biome(x,z)==='meadow'&&slopeAt(x,z)<0.15,900,4200);if(far(md,700))add('savanna','Đồng Cỏ Lớn','Đồng cỏ thoáng: thú ăn cỏ từng đàn, dễ dựng làng.','🌾',md,520);
       }catch(e){console.warn('vùng đại lục',e);}REG=R;try{if(typeof LD==='object')LD.gates=[];}catch(e){}};}
+  /* nhiễu dùng cho màu đất: trên đại lục lấy hạt giống MÁY CHỦ (không theo tỉnh) để cùng với TGX/TGZ cho ra một bức màu liền mạch */
+  {const _ni=noiseInit;noiseInit=function(seed){return _ni.call(this,DL.on&&S&&S.seed0?S.seed0:seed);};}
   {const _tb=trailsBuild;trailsBuild=function(){if(!DL.on)return _tb.apply(this,arguments);TRAILS=[];TRL=null;};}
   {const _dp=decorPlan;decorPlan=function(){if(!DL.on)return _dp.apply(this,arguments);DECO_PLAN=[];SCOL=[];};}
   if(typeof wIn==='function'){const _wi=wIn;wIn=function(x,z,k){if(!DL.on)return _wi.apply(this,arguments);return Math.hypot(x,z)<WR*(k||1);};}

@@ -248,13 +248,13 @@ function actStart(t){if(G.work){workPush();return;}if(t&&t.type==='leave'){boatL
 function swingPer(t){const D=t.type==='res'?RT[t.q.t]:null,hand=!D||!D.tool,sk=D?D.sk:'hunt';let per=(hand&&D&&D.hp<=1?0.42:0.72)/(1+0.06*skLv(sk));if(S.buff&&S.buff.rested>TNOW())per*=0.87;if(S.p.stam<8)per*=1.6;per*=needSlow();return per;}
 function actTick(dt){const A=G.act;if(!A)return;const t=A.t;
   /* nhát đánh / nhát búa tới đích theo THỜI GIAN TRONG GAME (trước hẹn bằng đồng hồ thật: game chạy chậm, tạm dừng hay tua nhanh thì nhát đánh lệch nhịp, có khi mất hẳn) */
-  if(A.hitT&&G.t>=A.hitT){const o=A.hitO;A.hitT=0;A.hitO=null;if(o&&o.site){siteHit(o.site);}else hitTarget(o);if(G.act!==A)return;}
+  if(A.hitT&&G.t>=A.hitT){const o=A.hitO;A.hitT=0;A.hitO=null;if(o&&o.fn){o.fn();}else if(o&&o.site){siteHit(o.site);}else hitTarget(o);if(G.act!==A)return;}
   if(t.type==='rod'){rodTick(A,dt);return;}if(t.type==='uproot'){uprootTick(A,dt);return;}
   if(t.type==='site'){const b=t.b;if(b.prog==null||!BYID.has(b.id)||Math.hypot(b.x-P.x,b.z-P.z)>110){G.act=null;return;}P.ry=isFP()?P.ry:lerpAng(P.ry,Math.atan2(b.x-P.x,b.z-P.z),Math.min(1,dt*10));P.anim='hammer';A.next-=dt;if(A.next<=0){A.per=0.62/(1+skLv('build')*0.05);A.next=A.per;A.hitT=G.t+A.per*0.38;A.hitO={site:b};}return;}
   if(t.type==='fish'){if(Math.hypot(t.x-P.x,t.z-P.z)>60||P.toolId!=='spear'){G.act=null;return;}P.ry=lerpAng(P.ry,Math.atan2(t.x-P.x,t.z-P.z),Math.min(1,dt*12));P.anim='chop';A.next-=dt;
-    if(A.next<=0){A.per=0.9;A.next=A.per;A.n++;S.p.stam=Math.max(0,S.p.stam-1.2);setTimeout(()=>{if(G.act!==A)return;sfx('hit');puff(t.x,1,t.z,'#bfe6ff',5);
+    if(A.next<=0){A.per=0.9;A.next=A.per;A.n++;S.p.stam=Math.max(0,S.p.stam-1.2);A.hitT=G.t+A.per*0.4;A.hitO={fn:()=>{sfx('hit');puff(t.x,1,t.z,'#bfe6ff',5);
       if(Math.random()<0.22+0.04*skLv('hunt')+(seasonIdx()===3?-0.08:0)){G.act=null;give({fish:1},[t.x,4,t.z]);addXp('hunt',3);cnt('cnt','fish');uiToast('🐟 Đâm trúng một con cá!','gold');save();}
-      else if(A.n>=8){G.act=null;uiToast('Cá lặn mất rồi. Thử chỗ nước khác xem.','');}},A.per*400);}return;}if(t.type==='res'&&t.q.st!==0){G.act=null;return;}if(t.type==='animal'&&!t.a.alive){G.act=null;return;}
+      else if(A.n>=8){G.act=null;uiToast('Cá lặn mất rồi. Thử chỗ nước khác xem.','');}}};}return;}if(t.type==='res'&&t.q.st!==0){G.act=null;return;}if(t.type==='animal'&&!t.a.alive){G.act=null;return;}
   const tx=t.type==='res'?t.q.x:t.a.x,tz=t.type==='res'?t.q.z:t.a.z,rr=t.type==='res'?(RT[t.q.t].r||4)*t.q.s*0.7:t.a.r;const d=Math.hypot(tx-P.x,tz-P.z)-rr;
   if(d>REACH+8){if(t.type==='animal'&&d<260){G.walkTo={x:tx,z:tz,t,t0:G.t};}G.act=null;return;}
   P.ry=lerpAng(P.ry,Math.atan2(tx-P.x,tz-P.z),Math.min(1,dt*12));const D=t.type==='res'?RT[t.q.t]:null;P.anim=D&&!D.tool&&D.hp<=2?'gather':'chop';
