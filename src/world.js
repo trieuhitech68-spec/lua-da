@@ -106,6 +106,7 @@ function terrainColors(){const T=THREE,c=new T.Color(),c2=new T.Color();TCOL=new
     c.set(BCOL[b]);const v=NS.fbm(x/140+3,z/140-8,2);c.offsetHSL(v*0.02,v*0.06,v*0.05);
     if(b==='water'){c2.set('#6b6a4e');c.lerp(c2,Math.min(1,(WG[k]-h)/14));}
     if(b==='meadow'){const sv=savannaK(x,z);if(sv>0){c2.set('#a6a24e');c.lerp(c2,sv*0.4);}}
+    if(typeof zoneTint==='function')zoneTint(c,c2,x,z,b);
     if(sl>0.4&&!wet){const band=Math.sin(h*0.21+NS.fbm(x/60,z/60,2)*3)*0.5+0.5;c2.set(band>0.6?'#8a8070':band>0.3?'#6e665a':'#5a5248');c.lerp(c2,ss(0.4,0.85,sl)*0.95);if(sl>1.1){c2.set('#4e483f');c.lerp(c2,ss(1.1,2,sl)*0.35);}}
     if(h>430){c2.set('#f2f4f6');c.lerp(c2,ss(430,520,h)*(1-ss(0.9,1.5,sl)*0.7));}
     const tr=typeof trailAt==='function'?trailAt(x,z):0;if(tr>0&&!wet){c2.set(b==='beach'?'#c9b282':'#9a7a52');c.lerp(c2,tr*0.85);}
