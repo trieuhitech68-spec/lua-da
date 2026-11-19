@@ -8,6 +8,8 @@ await click('Tạo nhân vật mới');await click('Bắt đầu');await p.waitF
 const r=await p.evaluate(()=>{const o={},T=[];const _t=uiToast;uiToast=function(m){T.push(String(m));return _t.apply(this,arguments);};needGate=()=>'';const setLv=n=>{for(const k in SKILL)S.sk[k]=0;const ks=Object.keys(SKILL),need=30*(n-1)*(n-1);for(const k of ks)S.sk[k]=Math.ceil(need/ks.length)+1;};
   // cấp 1: đào bị khoá, chiêu chưa học
   setLv(1);o.lv1=heroLv();invAdd('digStick',1);o.daoLock=!mkOk('dao');const n0=T.length;daoStart('hao');o.daoMsg=T.slice(n0).some(t=>/mở khi nhân vật đạt cấp 4/.test(t));o.pow0=knHas(KNS[0]);
+  // nhà: cấp 1 chưa cắm mốc được Nhà kho, Trại lính; bảng Xây ghi rõ cấp mở
+  {o.khoLock=!mkHouseOk('qh_kho')&&mkHouseOk('qh_tre');const m0=T.length;qhBegin('qh_kho');o.khoMsg=T.slice(m0).some(t=>/Nhà kho: mở khi nhân vật đạt cấp 5/.test(t))&&!G.build;G.qhOpen=1;const hh=qhHtml();o.khoTag=/🔒 Mở ở cấp 5/.test(hh)&&/🔒 Mở ở cấp 12/.test(hh);setLv(5);o.khoOpen=mkHouseOk('qh_kho')&&!mkHouseOk('qh_linh');setLv(1);}
   // cấp 4: đào mở; cấp tối đa 50; danh hiệu cuối ở cấp 50
   setLv(4);o.daoOpen=mkOk('dao');setLv(80);o.cap=heroLv();o.rankMax=HERO_RANK[HERO_RANK.length-1][0];o.full=MK.every(e=>mkOk(e[0]));
   // học chiêu: đủ cấp nhưng thiếu lễ vật thì không học được; đủ thì học
@@ -27,5 +29,5 @@ const r=await p.evaluate(()=>{const o={},T=[];const _t=uiToast;uiToast=function(
   // quản trị: mở hết
   setLv(1);S.knL={};o.lockBefore=!mkOk('voi');ADM.admin=true;o.admAll=MK.every(e=>mkOk(e[0]))&&knHas(KNS[KNS.length-1]);o.admRuin=DT.sites.length?dtWin(DT.sites[0])[0]:true;ptOpen();const el=document.getElementById('ptw');o.panel=!!el.querySelector('.mk-box')&&!!el.querySelector('[data-mk="lv"]');el.querySelector('[data-mk="lv"]').click();o.admLv=heroLv();ADM.admin=false;el.hidden=true;return o;});
 console.log(JSON.stringify(r));if(logs.length)console.log(logs.slice(0,5).join('\n'));
-const ok=r.lv1===1&&r.daoLock&&r.daoMsg&&!r.pow0&&r.daoOpen&&r.cap===50&&r.rankMax===50&&r.full&&r.noPay&&r.learned&&r.spinLock&&r.spinNoScroll&&r.spin&&r.guardL&&r.guardFx>=0.3&&r.kns===9&&r.sites>=1&&r.reg>=1&&/Đang đóng/.test(r.closedVerb||'')&&r.openVerb==='Vào di tích'&&r.lvLock&&r.guards>=3&&/Hạ hết lính canh/.test(r.midVerb||'')&&r.chestVerb==='Mở rương cổ'&&r.covat>=1&&r.scroll>=1&&/Đã lấy rương/.test(r.tookVerb||'')&&r.again===r.covat&&r.pts===1&&r.bua>=0.05&&r.rareQ===4&&r.rareItems&&r.lockBefore&&r.admAll&&r.admRuin&&r.panel&&r.admLv===6&&!logs.length;
+const ok=r.lv1===1&&r.daoLock&&r.daoMsg&&!r.pow0&&r.khoLock&&r.khoMsg&&r.khoTag&&r.khoOpen&&r.daoOpen&&r.cap===50&&r.rankMax===50&&r.full&&r.noPay&&r.learned&&r.spinLock&&r.spinNoScroll&&r.spin&&r.guardL&&r.guardFx>=0.3&&r.kns===9&&r.sites>=1&&r.reg>=1&&/Đang đóng/.test(r.closedVerb||'')&&r.openVerb==='Vào di tích'&&r.lvLock&&r.guards>=3&&/Hạ hết lính canh/.test(r.midVerb||'')&&r.chestVerb==='Mở rương cổ'&&r.covat>=1&&r.scroll>=1&&/Đã lấy rương/.test(r.tookVerb||'')&&r.again===r.covat&&r.pts===1&&r.bua>=0.05&&r.rareQ===4&&r.rareItems&&r.lockBefore&&r.admAll&&r.admRuin&&r.panel&&r.admLv===6&&!logs.length;
 console.log(ok?'MK-DAT':'MK-HONG');await b.close();})();
