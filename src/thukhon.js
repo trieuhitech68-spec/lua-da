@@ -127,3 +127,20 @@ function thkMountTick(dt){if(!S||!Array.isArray(S.mounts)||typeof MT!=='object')
     if(R.head)R.head.rotation.x=pose==='graze'?(voi?0.28:0.75):pose==='hit'?-0.25+Math.sin(G.t*10)*0.25:sp>1?0:Math.sin(G.t*0.7+st.ph)*0.08;if(R.tail)R.tail.rotation.z=Math.sin(G.t*(st.m==='alert'?6:1.6)+st.ph)*0.35;
     /* lưu toạ độ gọn (một số thập phân) sau mỗi quãng đi */if(sp===0&&st.sv){st.sv=0;m.x=+st.x.toFixed(1);m.z=+st.z.toFixed(1);}else if(sp>0)st.sv=1;}}
 {const _pt=petsTick;petsTick=function(dt){const r=_pt.apply(this,arguments);try{thkMountTick(dt);}catch(e){if(!THK.e4){THK.e4=1;console.warn('thú cưỡi đi lại',e);}}return r;};}
+
+/* THÚ CƯỠI CỦA NGƯỜI CHƠI KHÁC: trước đây chỉ thấy người (đang cưỡi thì thấy họ lơ lửng chạy bộ), không thấy voi, ngựa của họ.
+   Tín hiệu trực tuyến giờ kèm: đang cưỡi con gì (mt) và tối đa 3 con đứng gần chủ (ms). Ở đây dựng hình cho những người đang hiện trên màn hình. */
+THK.rm=new Map();
+function thkRmMake(k){let o=null;try{o=k==='e'?voiModel(true):mtModel();}catch(e){}if(!o)o=new THREE.Group();try{o.traverse(x=>{if(x.isMesh)x.castShadow=true;});seasonPatchAll(o);}catch(e){}o.userData.mk=k;G.sc.add(o);return o;}
+function thkRmDrop(e){try{if(e.ride&&e.ride.parent)e.ride.parent.remove(e.ride);for(const o of e.park||[])if(o.parent)o.parent.remove(o);}catch(er){}e.ride=null;e.park=[];}
+function thkRemoteMounts(dt){if(typeof MP!=='object'||!MP.rp||!G.sc)return;const vis=MP.vis||new Set();
+  for(const [peer,e] of THK.rm)if(!MP.rp.has(peer)){thkRmDrop(e);THK.rm.delete(peer);}
+  for(const [peer,r] of MP.rp){let e=THK.rm.get(peer);const on=vis.has(r)&&r.o&&(r.mt||(r.ms&&r.ms.length));if(!on){if(e){thkRmDrop(e);THK.rm.delete(peer);}continue;}if(!e){e={ride:null,park:[],sig:''};THK.rm.set(peer,e);}
+    if(e.ride&&(e.ride.parent!==G.sc||e.ride.userData.mk!==r.mt)){if(e.ride.parent)e.ride.parent.remove(e.ride);e.ride=null;}
+    if(r.mt){if(!e.ride)e.ride=thkRmMake(r.mt);const gy=groundY(r.x,r.z,r.y+10),seat=r.mt==='e'?VOI.seat:17*MT.sc-2,mv=r.spd>8;e.ph=(e.ph||0)+dt*(mv?9:0);const bob=mv?Math.abs(Math.sin(e.ph))*0.8:0;
+      e.ride.position.set(r.x,gy+bob,r.z);e.ride.rotation.y=r.ry;r.o.position.set(r.x,gy+bob+seat,r.z);if(r.tag)r.tag.position.y=gy+seat+52;
+      try{const R=r.rig;if(R&&R.legL&&R.legR){if(K3.char2Pose)K3.char2Pose(R,'idle',G.t+r.ph,{});R.legL.rotation.set(0,0,1.28);R.legR.rotation.set(0,0,-1.28);if(R.shinL)R.shinL.rotation.set(0.25,0,-0.7);if(R.shinR)R.shinR.rotation.set(0.25,0,0.7);if(R.armL)R.armL.rotation.set(-0.85,0,0.18);if(R.armR)R.armR.rotation.set(-0.85,0,-0.18);}
+        const rg=e.ride.userData.rig||{},a=mv?0.5:0;if(rg.legFL){rg.legFL.rotation.x=Math.sin(e.ph)*a;rg.legFR.rotation.x=Math.sin(e.ph+Math.PI)*a;rg.legBL.rotation.x=Math.sin(e.ph+Math.PI+0.5)*a;rg.legBR.rotation.x=Math.sin(e.ph+0.5)*a;}}catch(er){}}
+    const sig=(r.ms||[]).map(m=>m[0]).join('');if(e.sig!==sig||e.park.some(o=>o.parent!==G.sc)){for(const o of e.park)if(o.parent)o.parent.remove(o);e.park=(r.ms||[]).map(m=>thkRmMake(m[0]));e.sig=sig;}
+    (r.ms||[]).forEach((m,i)=>{const o=e.park[i];if(!o)return;const k=Math.min(1,dt*3),nx=o.userData.x==null?m[1]:o.userData.x+(m[1]-o.userData.x)*k,nz=o.userData.z==null?m[2]:o.userData.z+(m[2]-o.userData.z)*k;o.userData.x=nx;o.userData.z=nz;o.position.set(nx,hAt(nx,nz),nz);o.rotation.y=m[3]||0;});}}
+if(typeof mpAvTick==='function'){const _av=mpAvTick;mpAvTick=function(dt){const r=_av.apply(this,arguments);try{thkRemoteMounts(dt);}catch(e){}return r;};}

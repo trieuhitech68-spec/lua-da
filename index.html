@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119140416">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119141457">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -18548,15 +18548,15 @@ function mpRoomInit(){const R=MP.room;if(!R||MP.roomOn||!MP.started)return;MP.ro
   try{MP.unsubs.push(R.on('trade',m=>mpTradeHear(m),()=>{}));}catch(e){}}
 function mpPeers(ch){const seen=new Set();try{MP.roomAll=ch.peers.filter(p=>!p.sameTab&&!p.isMe&&p.kind==='viewer'&&p.presence&&mpIdOk(p.by)).map(p=>({uid:p.by,pv:typeof p.presence.pv==='string'&&/^q[a-z0-9]{2,4}$/.test(p.presence.pv)?p.presence.pv:null}));}catch(e){MP.roomAll=[];}for(const p of ch.peers){if(p.sameTab){MP.myPeer=p.peer;continue;}if(p.isMe||p.kind!=='viewer')continue;const v=mpValPres(p);if(!v)continue;seen.add(p.peer);
     let r=MP.rp.get(p.peer);if(!r){r={peer:p.peer,x:v.x,y:v.y,z:v.z,ry:v.ry,o:null,tag:null,tagK:'',gait:0,spd:0,ph:Math.random()*6,ok:true};MP.rp.set(p.peer,r);if(ch.joined&&ch.joined.some(j=>j.peer===p.peer)&&MP.tick.pres>0)uiToast('👋 '+mpName(v.uid)+' đang ở thế giới chung.','');}
-    if(r.pres!==p.presence){r.pres=p.presence;r.tx=v.x;r.ty=v.y;r.tz=v.z;r.tr=v.ry;r.a=v.a;r.uid=v.uid;r.cl=v.cl;if(r.lk!==v.lk&&r.o){G.sc.remove(r.o);r.o=null;}r.lk=v.lk;r.seen=G.t;}}
+    if(r.pres!==p.presence){r.pres=p.presence;r.tx=v.x;r.ty=v.y;r.tz=v.z;r.tr=v.ry;r.a=v.a;r.uid=v.uid;r.mt=v.mt||'';r.ms=v.ms||[];r.cl=v.cl;if(r.lk!==v.lk&&r.o){G.sc.remove(r.o);r.o=null;}r.lk=v.lk;r.seen=G.t;}}
   for(const [k,r] of MP.rp)if(!seen.has(k)){if(r.o)G.sc.remove(r.o);if(r.tag)G.sc.remove(r.tag);MP.rp.delete(k);}MP.dirty.ui=true;}
 function mpValPres(p){const s=p.presence;if(!s||typeof s!=='object'||!S)return null;let off=null;if(s.w!==S.seed){/* người đang đứng ở tỉnh kề bên: dời toạ độ sang hệ của mình */try{off=S.dl&&typeof dlNb==='function'?dlNb().seed[s.w]:null;}catch(e){off=null;}if(!off)return null;}const L=WSIZE;
   if(!mpNum(s.x,-L,L)||!mpNum(s.z,-L,L)||!mpNum(s.y,-1000,5000))return null;const uid=mpIdOk(p.by)?p.by:mpIdOk(s.u)?s.u:null;if(!uid||uid===MP.uid)return null;
-  if(off&&(Math.abs(s.x+off.dx)>WSIZE/2-100||Math.abs(s.z+off.dz)>WSIZE/2-100))return null;return {x:s.x+(off?off.dx:0),y:s.y,z:s.z+(off?off.dz:0),ry:mpNum(s.ry,-100,100)?s.ry:0,a:MPA.has(s.a)?s.a:'idle',lk:mpNum(s.lk,0,LOOKS.length-1)?s.lk|0:0,cl:mpIdOk(s.cl)?s.cl:'',uid};}
+  if(off&&(Math.abs(s.x+off.dx)>WSIZE/2-100||Math.abs(s.z+off.dz)>WSIZE/2-100))return null;return {x:s.x+(off?off.dx:0),y:s.y,z:s.z+(off?off.dz:0),ry:mpNum(s.ry,-100,100)?s.ry:0,a:MPA.has(s.a)?s.a:'idle',lk:mpNum(s.lk,0,LOOKS.length-1)?s.lk|0:0,cl:mpIdOk(s.cl)?s.cl:'',uid,mt:s.mt==='e'||s.mt==='h'?s.mt:'',ms:Array.isArray(s.ms)?s.ms.slice(0,3).filter(m=>Array.isArray(m)&&(m[0]==='e'||m[0]==='h')&&mpNum(m[1],-L,L)&&mpNum(m[2],-L,L)).map(m=>[m[0],m[1]+(off?off.dx:0),m[2]+(off?off.dz:0),mpNum(m[3],-100,100)?m[3]:0]):[]};}
 function mpAnim(){if(G.sleeping)return 'sleep';if(G.ride||G.sit)return 'sit';if(G.work){const st=G.work.steps&&G.work.steps[G.work.i],a=st&&st.a;return MPA.has(a)?a:'whittle';}if(G.swim)return 'swim';
   if(G.act)return P.anim==='chop'&&P.toolId==='pick'?'mine':P.anim==='hammer'?'hammer':P.anim==='gather'?'gather':'chop';if(P.speed>8)return G.sneak?'sneak':G.running?'run':'walk';return 'idle';}
-function mpPresTick(){const R=MP.room;if(!R)return;const r1=v=>Math.round(v*10)/10;const o={w:S.seed,u:MP.uid,x:r1(P.x),y:r1(P.y),z:r1(P.z),ry:Math.round(P.ry*100)/100,a:mpAnim(),lk:S.look|0,ap:typeof crPres==='function'?crPres():'',cl:mpMyClan()||'',wr:typeof wearPres==='function'?wearPres():''};if(S.dl&&S.land)o.pv=S.land;
-  const k=o.x+','+o.y+','+o.z+','+o.ry+o.a+o.cl+o.wr;if(k===MP.presK&&mpNow()-MP.presT<20000)return;MP.presK=k;MP.presT=mpNow();R.presence(o).catch(()=>{});}
+function mpPresTick(){const R=MP.room;if(!R)return;const r1=v=>Math.round(v*10)/10;const o={w:S.seed,u:MP.uid,x:r1(P.x),y:r1(P.y),z:r1(P.z),ry:Math.round(P.ry*100)/100,a:mpAnim(),lk:S.look|0,ap:typeof crPres==='function'?crPres():'',cl:mpMyClan()||'',wr:typeof wearPres==='function'?wearPres():''};if(S.dl&&S.land)o.pv=S.land;/* thú cưỡi: đang cưỡi con gì, và các con đứng gần mình (để người khác cũng thấy) */try{if(G.mnt)o.mt=G.mnt.k==='elephant'?'e':'h';const ms=(S.mounts||[]).filter(m=>m&&m!==G.mnt&&m.x!=null&&m.sol==null&&(m.land||'c')===(S.land||'c')&&Math.hypot(m.x-P.x,m.z-P.z)<900).slice(0,3).map(m=>[m.k==='elephant'?'e':'h',Math.round(m.x),Math.round(m.z),Math.round((m.ry||0)*10)/10]);if(ms.length)o.ms=ms;}catch(e){}
+  const k=o.x+','+o.y+','+o.z+','+o.ry+o.a+o.cl+o.wr+(o.mt||'')+(o.ms?o.ms.length:0);if(k===MP.presK&&mpNow()-MP.presT<20000)return;MP.presK=k;MP.presT=mpNow();R.presence(o).catch(()=>{});}
 function mpModel(lk){let o=null;try{if(K3.char2)o=K3.char2(Object.assign({sleeves:true},(LOOKS[lk]||LOOKS[0]).o,LOOK2[lk]||{}));}catch(e){}if(!o)try{o=K3.char((LOOKS[lk]||LOOKS[0]).o);}catch(e){}
   if(!o)o=new THREE.Group();o.traverse(m=>{if(m.isMesh)m.castShadow=true;});try{seasonPatchAll(o);}catch(e){}return o;}
 function mpTagMake(txt,col){const cv=document.createElement('canvas');cv.width=256;cv.height=64;const c=cv.getContext('2d');c.font='700 28px "Be Vietnam Pro",system-ui,sans-serif';c.textAlign='center';c.textBaseline='middle';
@@ -23253,6 +23253,23 @@ function thkMountTick(dt){if(!S||!Array.isArray(S.mounts)||typeof MT!=='object')
     if(R.head)R.head.rotation.x=pose==='graze'?(voi?0.28:0.75):pose==='hit'?-0.25+Math.sin(G.t*10)*0.25:sp>1?0:Math.sin(G.t*0.7+st.ph)*0.08;if(R.tail)R.tail.rotation.z=Math.sin(G.t*(st.m==='alert'?6:1.6)+st.ph)*0.35;
     /* lưu toạ độ gọn (một số thập phân) sau mỗi quãng đi */if(sp===0&&st.sv){st.sv=0;m.x=+st.x.toFixed(1);m.z=+st.z.toFixed(1);}else if(sp>0)st.sv=1;}}
 {const _pt=petsTick;petsTick=function(dt){const r=_pt.apply(this,arguments);try{thkMountTick(dt);}catch(e){if(!THK.e4){THK.e4=1;console.warn('thú cưỡi đi lại',e);}}return r;};}
+
+/* THÚ CƯỠI CỦA NGƯỜI CHƠI KHÁC: trước đây chỉ thấy người (đang cưỡi thì thấy họ lơ lửng chạy bộ), không thấy voi, ngựa của họ.
+   Tín hiệu trực tuyến giờ kèm: đang cưỡi con gì (mt) và tối đa 3 con đứng gần chủ (ms). Ở đây dựng hình cho những người đang hiện trên màn hình. */
+THK.rm=new Map();
+function thkRmMake(k){let o=null;try{o=k==='e'?voiModel(true):mtModel();}catch(e){}if(!o)o=new THREE.Group();try{o.traverse(x=>{if(x.isMesh)x.castShadow=true;});seasonPatchAll(o);}catch(e){}o.userData.mk=k;G.sc.add(o);return o;}
+function thkRmDrop(e){try{if(e.ride&&e.ride.parent)e.ride.parent.remove(e.ride);for(const o of e.park||[])if(o.parent)o.parent.remove(o);}catch(er){}e.ride=null;e.park=[];}
+function thkRemoteMounts(dt){if(typeof MP!=='object'||!MP.rp||!G.sc)return;const vis=MP.vis||new Set();
+  for(const [peer,e] of THK.rm)if(!MP.rp.has(peer)){thkRmDrop(e);THK.rm.delete(peer);}
+  for(const [peer,r] of MP.rp){let e=THK.rm.get(peer);const on=vis.has(r)&&r.o&&(r.mt||(r.ms&&r.ms.length));if(!on){if(e){thkRmDrop(e);THK.rm.delete(peer);}continue;}if(!e){e={ride:null,park:[],sig:''};THK.rm.set(peer,e);}
+    if(e.ride&&(e.ride.parent!==G.sc||e.ride.userData.mk!==r.mt)){if(e.ride.parent)e.ride.parent.remove(e.ride);e.ride=null;}
+    if(r.mt){if(!e.ride)e.ride=thkRmMake(r.mt);const gy=groundY(r.x,r.z,r.y+10),seat=r.mt==='e'?VOI.seat:17*MT.sc-2,mv=r.spd>8;e.ph=(e.ph||0)+dt*(mv?9:0);const bob=mv?Math.abs(Math.sin(e.ph))*0.8:0;
+      e.ride.position.set(r.x,gy+bob,r.z);e.ride.rotation.y=r.ry;r.o.position.set(r.x,gy+bob+seat,r.z);if(r.tag)r.tag.position.y=gy+seat+52;
+      try{const R=r.rig;if(R&&R.legL&&R.legR){if(K3.char2Pose)K3.char2Pose(R,'idle',G.t+r.ph,{});R.legL.rotation.set(0,0,1.28);R.legR.rotation.set(0,0,-1.28);if(R.shinL)R.shinL.rotation.set(0.25,0,-0.7);if(R.shinR)R.shinR.rotation.set(0.25,0,0.7);if(R.armL)R.armL.rotation.set(-0.85,0,0.18);if(R.armR)R.armR.rotation.set(-0.85,0,-0.18);}
+        const rg=e.ride.userData.rig||{},a=mv?0.5:0;if(rg.legFL){rg.legFL.rotation.x=Math.sin(e.ph)*a;rg.legFR.rotation.x=Math.sin(e.ph+Math.PI)*a;rg.legBL.rotation.x=Math.sin(e.ph+Math.PI+0.5)*a;rg.legBR.rotation.x=Math.sin(e.ph+0.5)*a;}}catch(er){}}
+    const sig=(r.ms||[]).map(m=>m[0]).join('');if(e.sig!==sig||e.park.some(o=>o.parent!==G.sc)){for(const o of e.park)if(o.parent)o.parent.remove(o);e.park=(r.ms||[]).map(m=>thkRmMake(m[0]));e.sig=sig;}
+    (r.ms||[]).forEach((m,i)=>{const o=e.park[i];if(!o)return;const k=Math.min(1,dt*3),nx=o.userData.x==null?m[1]:o.userData.x+(m[1]-o.userData.x)*k,nz=o.userData.z==null?m[2]:o.userData.z+(m[2]-o.userData.z)*k;o.userData.x=nx;o.userData.z=nz;o.position.set(nx,hAt(nx,nz),nz);o.rotation.y=m[3]||0;});}}
+if(typeof mpAvTick==='function'){const _av=mpAvTick;mpAvTick=function(dt){const r=_av.apply(this,arguments);try{thkRemoteMounts(dt);}catch(e){}return r;};}
 /* ===================== dao: ĐÀO HÀO, ĐÀO HỐ, XẺ ĐỒI =====================
    Đào đất ngay TRƯỚC MẶT (Xây → ⛏️ Đào): mặt đất lún xuống thật, đào chồng lên chỗ cũ thì sâu thêm, lấp lại được.
      · Hào hẹp (rộng ~3 m) để chặn lối, vây làng; hố rộng (~5,5 m) để làm hầm trũng, ao cạn, mở lối qua gò đồi.
