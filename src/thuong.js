@@ -36,7 +36,7 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
         else{aqSay('🤖 Né mãi không thoát: mặc kệ nó, lo ăn uống và về trại trước.','bad');try{const hb=aqBed()||aqFire();if(hb&&t2&&aqD(hb.x,hb.z)>120&&!aqHasUrgent('camp'))aqPush({k:'camp',urgent:1},t2);}catch(e){}}}}}catch(e){}return r;};}
 /* 5. Chiến binh bộ lạc thù địch: trước Tự làm KHÔNG BAO GIỜ đánh trả người (mã cũ so sánh nhầm "dg===G.foes"), chỉ né, nên bị một tên đuổi đánh tới gục.
       Giờ: chỉ có MỘT tên ở gần, mình có vũ khí và còn trên 45 máu thì đánh trả; từ hai tên trở lên thì vẫn lánh về trại. */
-{const _sf=aqSafety;aqSafety=function(){try{if(AQ.on&&AQ.jobs.length&&!G.sleeping&&S&&S.p&&G.foes&&G.foes.length&&!aqHasUrgent('fight')&&S.p.hp>45&&aqCfg().fight&&!AQ.jobs.some(j=>j.k==='capture')){
+{const _sf=aqSafety;aqSafety=function(){try{if(AQ.on&&AQ.jobs.length&&!G.sleeping&&S&&S.p&&G.foes&&G.foes.length&&!aqHasUrgent('fight')&&S.p.hp>60&&(AQ.noFoeT||0)<G.t&&aqCfg().fight&&!AQ.jobs.some(j=>j.k==='capture')){
       let near=null,nd=1e9,cnt=0;for(const f of G.foes){if(!f||!f.alive||(f.lone&&!f.prov))continue;const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<340)cnt++;if(d<nd){nd=d;near=f;}}
       if(near&&cnt===1&&nd<210&&(hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'))){const top=AQ.jobs[AQ.jobs.length-1];if(top.k==='flee'){AQ.jobs.pop();}const t2=AQ.jobs[AQ.jobs.length-1];if(t2){if(G.work)workStop('');G.act=null;aqPush({k:'fight',a:near,t0:G.t,urgent:1},t2);aqSay('🤖 Một '+((near.n||'chiến binh').toLowerCase())+' xông tới: đánh trả.','bad');}}}}catch(e){}
   return _sf.apply(this,arguments);};}
@@ -77,3 +77,5 @@ try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITE
 {const _st=aqStop;aqStop=function(msg,kind){try{if(AQ.on&&msg&&/Dừng tự làm/.test(msg)&&!G.sleeping&&S.p.hp>0){let near=false;for(const a of aqPred())if(Math.hypot(a.x-P.x,a.z-P.z)<300){near=true;break;}
       const hb=near&&(aqFire(true)||aqFire()||aqBed());AQ._esc=(AQ._esc||[]).filter(t=>G.t-t<120);
       if(hb&&aqD(hb.x,hb.z)>70&&AQ._esc.length<3){AQ._esc.push(G.t);AQ.jobs=[];aqPush({k:'camp',urgent:1},null);uiToast(msg.replace('Dừng tự làm','Việc này chưa làm được')+' Có mối nguy ở gần: lánh về trại đã.','bad');return;}}}catch(e){}return _st.apply(this,arguments);};}
+/* (4) Đánh trả chiến binh mà đuối (máu dưới 35): thôi đánh, lánh về trại, 60 giây sau mới xét đánh lại (chạy thử: đánh tay đôi tới còn 16 máu). Chỉ đánh trả khi còn trên 60 máu. */
+{const _f=AUJ.fight;AUJ.fight=function(j){try{const a=j.a;if(a&&a.kind==='raider'&&a.alive&&S.p.hp<35&&!j._bail){j._bail=1;AQ.noFoeT=G.t+60;G.act=null;const i=AQ.jobs.indexOf(j);if(i>=0)AQ.jobs.splice(i,1);const top=AQ.jobs[AQ.jobs.length-1],hb=aqFire(true)||aqFire()||aqBed();if(top&&hb&&aqD(hb.x,hb.z)>70&&!aqHasUrgent('camp'))aqPush({k:'camp',urgent:1},top);aqSay('🤖 Đánh không lại: lánh về trại, băng bó đã.','bad');return AQ_RUN;}}catch(e){}return _f.apply(this,arguments);};}

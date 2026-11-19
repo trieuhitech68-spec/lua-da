@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261118233957">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119003743">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -18495,7 +18495,7 @@ function mpNearTick(){const now=new Map();const add=(u,d)=>{if(u===MP.uid||!mpId
 async function mpBuildSnap(u,s,sn){if(MP.bsub.get(u)!==s)return;if(!sn.exists){MP.braw.set(u,[]);mpRemoteApply(u);return;}const d=sn.data()||{};const pc=MP.claims[u]&&MP.claims[u].pl?MP.claims[u]:null;/* hàng xóm tỉnh bên: hạt giống và toạ độ theo tỉnh của họ */if(d.w!==(pc?pc.ps:S.seed)){MP.braw.set(u,[]);mpRemoteApply(u);return;}
   const ver=typeof d.ver==='string'?d.ver.slice(0,40):'';if(ver&&ver===s.ver)return;let str=typeof d.d==='string'?d.d:'';const parts=mpNum(d.parts,0,40)?d.parts|0:0;
   if(parts){str='';for(let i=0;i<parts;i++){const p=await mpGetDoc(mpBPath(u)+'/p/'+i);if(!p||p.ver!==ver||typeof p.s!=='string')return;str+=p.s;}if(MP.bsub.get(u)!==s)return;}
-  s.ver=ver;let arr=mpDecode(str);if(pc){const H=WSIZE/2-200;for(const e of arr){e.x+=pc.dx;e.z+=pc.dz;}arr=arr.filter(e=>Math.abs(e.x)<H&&Math.abs(e.z)<H);}MP.braw.set(u,arr);try{if(!pc&&typeof dbFlats==='function')dbFlats(u,d.fl,MP.braw.get(u));}catch(e){console.warn('đồng bộ nền',e);}mpRemoteApply(u);}
+  s.ver=ver;let arr=mpDecode(str);if(pc){const H=WSIZE/2-200;for(const e of arr){e.x+=pc.dx;e.z+=pc.dz;}arr=arr.filter(e=>Math.abs(e.x)<H&&Math.abs(e.z)<H);}MP.braw.set(u,arr);try{if(typeof dbFlats==='function'){let fl=d.fl;/* hàng xóm tỉnh bên: nền đã san cũng dời theo toạ độ của mình */if(pc&&typeof fl==='string'&&fl)fl=fl.split(';').map(p=>{const f=p.split(',');if(f.length!==4)return '';return [Math.round(+f[0]+pc.dx),Math.round(+f[1]+pc.dz),f[2],f[3]].join(',');}).filter(Boolean).join(';');dbFlats(u,fl,MP.braw.get(u));}}catch(e){console.warn('đồng bộ nền',e);}mpRemoteApply(u);}
 function mpDecode(str){const out=[];if(!str)return out;const L=str.split(';');for(let i=0;i<L.length&&out.length<MP_BCAP;i++){const f=L[i].split(',');if(f.length!==7)continue;
     const id=+f[0],k=f[1],x=+f[2],y=+f[3],z=+f[4],r=+f[5],lv=+f[6];if(!(id>=0&&id<1e9&&Math.floor(id)===id)||!/^[A-Za-z0-9_]{1,40}$/.test(k)||!pieceDef(k))continue;
     if(!mpNum(x,-WSIZE,WSIZE)||!mpNum(z,-WSIZE,WSIZE)||!mpNum(y,-800,4000)||!mpNum(r,0,4)||!mpNum(lv,0,LVMAX)||Math.floor(lv)!==lv)continue;out.push({lid:id,k,x,y,z,r,lv});}return out;}
@@ -19991,7 +19991,7 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
         else{aqSay('🤖 Né mãi không thoát: mặc kệ nó, lo ăn uống và về trại trước.','bad');try{const hb=aqBed()||aqFire();if(hb&&t2&&aqD(hb.x,hb.z)>120&&!aqHasUrgent('camp'))aqPush({k:'camp',urgent:1},t2);}catch(e){}}}}}catch(e){}return r;};}
 /* 5. Chiến binh bộ lạc thù địch: trước Tự làm KHÔNG BAO GIỜ đánh trả người (mã cũ so sánh nhầm "dg===G.foes"), chỉ né, nên bị một tên đuổi đánh tới gục.
       Giờ: chỉ có MỘT tên ở gần, mình có vũ khí và còn trên 45 máu thì đánh trả; từ hai tên trở lên thì vẫn lánh về trại. */
-{const _sf=aqSafety;aqSafety=function(){try{if(AQ.on&&AQ.jobs.length&&!G.sleeping&&S&&S.p&&G.foes&&G.foes.length&&!aqHasUrgent('fight')&&S.p.hp>45&&aqCfg().fight&&!AQ.jobs.some(j=>j.k==='capture')){
+{const _sf=aqSafety;aqSafety=function(){try{if(AQ.on&&AQ.jobs.length&&!G.sleeping&&S&&S.p&&G.foes&&G.foes.length&&!aqHasUrgent('fight')&&S.p.hp>60&&(AQ.noFoeT||0)<G.t&&aqCfg().fight&&!AQ.jobs.some(j=>j.k==='capture')){
       let near=null,nd=1e9,cnt=0;for(const f of G.foes){if(!f||!f.alive||(f.lone&&!f.prov))continue;const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<340)cnt++;if(d<nd){nd=d;near=f;}}
       if(near&&cnt===1&&nd<210&&(hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'))){const top=AQ.jobs[AQ.jobs.length-1];if(top.k==='flee'){AQ.jobs.pop();}const t2=AQ.jobs[AQ.jobs.length-1];if(t2){if(G.work)workStop('');G.act=null;aqPush({k:'fight',a:near,t0:G.t,urgent:1},t2);aqSay('🤖 Một '+((near.n||'chiến binh').toLowerCase())+' xông tới: đánh trả.','bad');}}}}catch(e){}
   return _sf.apply(this,arguments);};}
@@ -20032,6 +20032,8 @@ try{if(ITEMS.berry&&!ITEMS.berry.drink)ITEMS.berry.drink=3;if(ITEMS.banana&&!ITE
 {const _st=aqStop;aqStop=function(msg,kind){try{if(AQ.on&&msg&&/Dừng tự làm/.test(msg)&&!G.sleeping&&S.p.hp>0){let near=false;for(const a of aqPred())if(Math.hypot(a.x-P.x,a.z-P.z)<300){near=true;break;}
       const hb=near&&(aqFire(true)||aqFire()||aqBed());AQ._esc=(AQ._esc||[]).filter(t=>G.t-t<120);
       if(hb&&aqD(hb.x,hb.z)>70&&AQ._esc.length<3){AQ._esc.push(G.t);AQ.jobs=[];aqPush({k:'camp',urgent:1},null);uiToast(msg.replace('Dừng tự làm','Việc này chưa làm được')+' Có mối nguy ở gần: lánh về trại đã.','bad');return;}}}catch(e){}return _st.apply(this,arguments);};}
+/* (4) Đánh trả chiến binh mà đuối (máu dưới 35): thôi đánh, lánh về trại, 60 giây sau mới xét đánh lại (chạy thử: đánh tay đôi tới còn 16 máu). Chỉ đánh trả khi còn trên 60 máu. */
+{const _f=AUJ.fight;AUJ.fight=function(j){try{const a=j.a;if(a&&a.kind==='raider'&&a.alive&&S.p.hp<35&&!j._bail){j._bail=1;AQ.noFoeT=G.t+60;G.act=null;const i=AQ.jobs.indexOf(j);if(i>=0)AQ.jobs.splice(i,1);const top=AQ.jobs[AQ.jobs.length-1],hb=aqFire(true)||aqFire()||aqBed();if(top&&hb&&aqD(hb.x,hb.z)>70&&!aqHasUrgent('camp'))aqPush({k:'camp',urgent:1},top);aqSay('🤖 Đánh không lại: lánh về trại, băng bó đã.','bad');return AQ_RUN;}}catch(e){}return _f.apply(this,arguments);};}
 /* ===================== GIỮ MÀN HÌNH SÁNG KHI TỰ LÀM · TỰ LÀM TIẾP SAU KHI TRANG TẢI LẠI =====================
    Trên điện thoại, bật Tự làm rồi để yên thì: (1) không ai chạm nên máy tự tắt màn hình, game ngừng; (2) quay lại, trình duyệt / ứng dụng thường tải lại trang,
    mà chế độ Tự làm trước đây không được ghi nhớ nên phải bấm lại. Giờ:
