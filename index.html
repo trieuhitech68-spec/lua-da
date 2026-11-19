@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119020337">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119021224">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -23110,7 +23110,8 @@ function tkHerdAnim(p){const o=p._o,R=p._rig||{};if(!o||!R.head)return;const mov
 {const _pt=petsTick;petsTick=function(dt){if(!S||!S.pets||!S.pets.length)return _pt.apply(this,arguments);const all=S.pets,mine=[],rest=[];for(const p of all){if(tkDog(p)&&tkJob(p)!=='theo')mine.push(p);else rest.push(p);}
     try{for(const p of rest)if(!tkDog(p)&&!p.hitch)tkHerd(p,dt);}catch(e){if(!THK.e1){THK.e1=1;console.warn('đàn vật nuôi',e);}}
     S.pets=rest;let r;try{r=_pt.apply(this,arguments);}finally{/* nơi khác có thể thêm bớt vật nuôi trong lúc chạy: ghép lại danh sách */const now=S.pets;S.pets=now===rest?all:now.concat(mine.filter(p=>!now.includes(p)));}
-    try{for(const p of mine){if(!S.pets.includes(p))continue;if(!p._o)petSpawn(p);tkDogTick(p,dt);}for(const p of rest)if(!tkDog(p)&&!p.hitch)tkHerdAnim(p);}catch(e){if(!THK.e2){THK.e2=1;console.warn('chó khôn',e);}}return r;};}
+    try{for(const p of mine){if(!S.pets.includes(p))continue;if(!p._o)petSpawn(p);tkDogTick(p,dt);}
+      /* chó không đứng chồng lên nhau, lên vật nuôi khác */for(const p of mine)for(const q of S.pets){if(q===p||q._o==null)continue;const dx=p.x-q.x,dz=p.z-q.z,d=Math.hypot(dx,dz),min=tkDog(q)?16:13;if(d<min){const k=(min-d)*0.5,ux=d>0.01?dx/d:Math.cos(p.id||1),uz=d>0.01?dz/d:Math.sin(p.id||1);p.x+=ux*k;p.z+=uz*k;if(p._o)p._o.position.x=p.x,p._o.position.z=p.z;}}for(const p of rest)if(!tkDog(p)&&!p.hitch)tkHerdAnim(p);}catch(e){if(!THK.e2){THK.e2=1;console.warn('chó khôn',e);}}return r;};}
 /* ---------- CHIẾN THÚ ĐANG NGHỈ: canh nhà ----------
    Con không xuất chiến trước chỉ là hình đứng yên ở chuồng. Giờ chúng đi lại quanh chỗ nằm, đêm nằm ngủ; thú dữ / kẻ địch tới gần nhà thì gầm lên lao ra cắn (đòn theo cấp của con thú). */
 function thkBeasts(dt){if(typeof SL3!=='object'||!SL3.rest||!SL3.rest.size||typeof ltS!=='function')return;const L=ltS().list;
@@ -23142,6 +23143,8 @@ setInterval(thkMounts,10000);
 if(typeof HD_L!=='undefined')HD_L.push({id:'thukhon',ic:'🐕',t:'Chó và vật nuôi',w:()=>!!(S.pets&&S.pets.some(tkDog)),p:['Chó của bạn giờ có <b>ba việc</b>, chạm vào chó để đổi: <b>🏠 Trông nhà</b> (mặc định), <b>🐾 Đi theo</b>, <b>🦴 Đi săn</b>.','<b>Trông nhà</b>: chó đi tuần quanh nhà, đêm nằm ngủ gần chỗ bạn ngủ. Thú dữ hay kẻ địch tới gần là chó <b>sủa báo</b> (có dòng báo hướng) rồi lao ra đuổi cắn. Đói thì tự đi bắt thỏ, gà rừng.','<b>Đi săn</b>: chó ra quanh làng săn thỏ, gà rừng, khỉ và <b>tha thịt về cất vào giỏ, rương</b> gần nhà. Gà, lợn, dê thì đi theo đàn, tối tự về chuồng.']});
 /* bảng 🐾: nói rõ con đang nghỉ làm gì và gợi ý dựng chuồng */
 if(typeof ltHtml==='function'){const _h=ltHtml;ltHtml=function(){let h=_h.apply(this,arguments);try{const L=ltS(),rest=L.list.filter(p=>p.id!==L.act).length;if(rest){const den=typeof qhHas==='function'&&qhHas('qh_chuongthu');h=`<div class="tv-box"><div class="tv-r"><span>🛡️ <b>${rest}</b> chiến thú không xuất chiến đang <b>canh nhà</b>: đi lại quanh ${den?'chuồng thú chiến':'chỗ ngủ của bạn'}, thú dữ hay kẻ địch tới gần là lao ra cắn.${den?'':' Dựng <b>Chuồng thú chiến</b> (Xây → Quy hoạch làng → Quân sự) để chúng có chỗ nằm riêng.'}</span></div></div>`+h;}}catch(e){}return h;};}
+/* mỗi con chó một màu lông (theo số thứ tự của nó): vàng, đen xám, vện nâu, trắng kem → nhìn là phân biệt được từng con */
+{const _ps=petSpawn;petSpawn=function(p){const r=_ps.apply(this,arguments);try{if(tkDog(p)&&p._o){const T=[[1,1,1],[0.42,0.4,0.42],[0.78,0.58,0.44],[1.22,1.2,1.16]][(p.id|0)%4];if(T[0]!==1||T[1]!==1)p._o.traverse(m=>{if(m.isMesh&&m.material&&m.material.color){m.material=m.material.clone();m.material.color.setRGB(Math.min(1.3,m.material.color.r*T[0]),Math.min(1.3,m.material.color.g*T[1]),Math.min(1.3,m.material.color.b*T[2]));}});}}catch(e){}return r;};}
 /* ---------- CẦM VŨ KHÍ LÀ ĐÁNH, BẮN ĐƯỢC NGAY ----------
    Trước: muốn bắn cung phải biết GIỮ phím G rồi thả (không có nút, không có chỉ dẫn); bấm Hành động khi cầm cung đứng trước cây thì game đòi rìu;
    nút ⚔️ Đánh báo "không có kẻ địch trong 20 m" nên không tập bắn được; tên bay xuyên qua thân cây.
