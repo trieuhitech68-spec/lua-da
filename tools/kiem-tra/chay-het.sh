@@ -127,6 +127,7 @@ echo "45. Chơi chung trên máy chủ đại lục (giả lập): nhân vật l
 OUT=$(timeout 500 node mang/dai-luc.js 2>&1); echo "$OUT" | grep -q "^MDL-DAT" && ok "đại lục: chơi chung" || bad "đại lục chơi chung: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-700)"
 echo "46. Thế giới chung chưa có máy chủ đại lục: nhân vật mới tự vào một máy chủ đại lục mở mới, máy chủ cũ giữ nguyên"
 OUT=$(timeout 500 node mang/dai-luc-moi.js 2>&1); echo "$OUT" | grep -q "^MDM-DAT" && ok "đại lục: máy chủ mới cho người mới" || bad "đại lục máy chủ mới: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-700)"
+OUT=$(timeout 500 node mang/thay-nhau.js 2>&1); echo "$OUT" | grep -q "^TN-DAT" && ok "đại lục: sang tỉnh khác thấy nhà và người, người mới được xếp gần nhau" || bad "đại lục thấy nhau: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-700)"
 echo "47. Tướng lĩnh, quân số theo tướng, sở trường, thăng sao, chiến thuật; nghiên cứu 10 bậc có ngưỡng cấp; bảng Phát triển"
 OUT=$(timeout 500 node tuong-linh.js 2>&1); echo "$OUT" | grep -q "^TG-DAT" && ok "tướng lĩnh, phát triển" || bad "tướng lĩnh: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-800)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

@@ -159,7 +159,7 @@ async function ldlLogout(){uiToast('Đang lưu và đăng xuất…','');try{sav
   try{if(ACC.db&&id)await Promise.race([accPush(id,true),new Promise(r=>setTimeout(r,6000))]);}catch(e){}
   LDB.leaving=true;await LDB.signOut();accLS(SKEY,null);accLS(CURK,null);try{sessionStorage.removeItem('ldtt-auto');localStorage.removeItem('ld-last-uid');}catch(e){}location.reload();}
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-a="ldout"],[data-a="ldup"],[data-a="ldupno"],[data-a="ldretry"],.ov-card.form [data-a="start"],.ov-card.cr [data-a="start"],.ov-card.form [data-a="mpw"]');if(!b)return;const a=b.dataset.a;
-  if(a==='start'||a==='mpw'){if(!ldlShared()||(b.closest('.ov-card.cr')&&!(typeof CRE!=='undefined'&&CRE.mode==='new')))return;G.nworld='mp';if(a==='mpw'){e.stopImmediatePropagation();ldlForm();return;}if(!MP.ok){e.stopImmediatePropagation();uiToast('Đang kết nối thế giới chung, chờ một chút nhé…','');}return;}
+  if(a==='start'||a==='mpw'){if(!ldlShared()||(b.closest('.ov-card.cr')&&!(typeof CRE!=='undefined'&&CRE.mode==='new')))return;G.nworld='mp';if(a==='mpw'){e.stopImmediatePropagation();ldlForm();return;}if(!MP.ok||!MP.srvPicked){e.stopImmediatePropagation();uiToast('Đang kết nối thế giới chung, chờ một chút nhé…','');}return;}
   e.stopImmediatePropagation();try{sfx('pick');}catch(er){}
   if(a==='ldout'){if(!LDL.outArm){LDL.outArm=1;b.textContent='Bấm lần nữa để đăng xuất';setTimeout(()=>{LDL.outArm=0;},4000);return;}LDL.outArm=0;ldlLogout();return;}
   if(a==='ldup'){b.disabled=true;ldlUpload();return;}
