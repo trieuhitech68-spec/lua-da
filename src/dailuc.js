@@ -7,7 +7,7 @@
      · dlTile(tx,tz) một MẢNH 64×64 ô (1920 đơn vị mỗi chiều): mảng độ cao + mực nước, tính khi cần, nhớ tối đa DL.cap mảnh gần đây nhất.
      · dlH / dlW     độ cao / mực nước tại điểm, lấy từ mảnh (nội suy như hAt cũ nên mặt đất liền nhau qua mép mảnh).
    Các đợt sau: lưới mặt đất theo mảnh, cây đá theo mảnh, thú - làng theo mảnh, bản đồ, nhiều người chơi. */
-const DL={seed:1,R:60000,HS:30,TN:64,cap:121,tiles:new Map(),tick:0,made:0};
+const DL={seed:1,R:60000,HS:30,TN:64,cap:320,tiles:new Map(),tick:0,made:0};
 DL.TS=DL.HS*DL.TN;
 /* nhiễu giá trị có đạo hàm mượt, tự chứa (không phụ thuộc bộ nhiễu của thế giới cũ) */
 function dlHash(ix,iz,s){let h=(Math.imul(ix,374761393)^Math.imul(iz,668265263)^Math.imul(s,2147483647))|0;h=Math.imul(h^(h>>>13),1274126177);h^=h>>>16;return (h>>>0)/4294967296;}
@@ -60,7 +60,8 @@ function dlTile(tx,tz){const key=tx+','+tz;let t=DL.tiles.get(key);if(t){t.u=++D
 function dlH(x,z){const TS=DL.TS,tx=Math.floor(x/TS),tz=Math.floor(z/TS),t=dlTile(tx,tz),N=DL.TN+1,fx=(x-tx*TS)/DL.HS,fz=(z-tz*TS)/DL.HS;let i=Math.floor(fx),j=Math.floor(fz);if(i>=DL.TN)i=DL.TN-1;if(j>=DL.TN)j=DL.TN-1;const u=fx-i,v=fz-j,H=t.H,a=H[j*N+i],b=H[j*N+i+1],c=H[(j+1)*N+i],d=H[(j+1)*N+i+1];return a+(b-a)*u+((c+(d-c)*u)-(a+(b-a)*u))*v;}
 /* mực nước: biển, sông, hồ đều ở mực 0 (sông là thung lũng khoét xuống dưới 0) */
 function dlW(x,z){return dlH(x,z)<0?0:-999;}
-function dlInit(seed){DL.seed=(seed|0)||1;DL.tiles.clear();DL.tick=0;DL.made=0;}
+/* chỉ xoá các mảnh đã tính khi ĐỔI hạt giống hoặc đổi cỡ mảnh: trước cứ mỗi lần dựng lại vùng (sang tỉnh) là xoá sạch, phải tính lại cả những mảnh vừa dùng */
+function dlInit(seed){const s=(seed|0)||1,k=s+':'+DL.HS+':'+DL.TN;if(DL.ik===k)return;DL.ik=k;DL.seed=s;DL.tiles.clear();DL.tick=0;DL.made=0;}
 if(typeof module!=='undefined')module.exports={DL,dlBase,dlTile,dlH,dlW,dlInit,dlClim,dlZoneAt};
 /* ===================== đợt 2: NỐI VÀO GAME (thử nghiệm) =====================
    Nhân vật "đại lục" (S.dl) dùng mặt đất của đại lục thay cho bản đồ cũ. Bật thử bằng cách đặt localStorage 'ld-dl'='1' trước khi tạo nhân vật.
@@ -309,6 +310,10 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
 #dlcard .dc i{display:block;position:relative;height:4px;margin-top:12px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden}#dlcard .dc i:after{content:'';position:absolute;top:0;bottom:0;left:0;width:40%;border-radius:2px;background:linear-gradient(90deg,transparent,#ffd27a,transparent);animation:dlcrun 1.1s linear infinite;will-change:transform}@keyframes dlcrun{from{transform:translateX(-110%)}to{transform:translateX(280%)}}`;document.head.appendChild(st);}
     let z={ic:'🧭',n:''};try{z=dlZoneAt(ox+P.x-(ox-S.dl.ox),oz+P.z-(oz-S.dl.oz));}catch(e){}el.innerHTML=`<div class="dc"><u>${z.ic}</u><small>ĐANG TỚI</small><b>Tỉnh ${esc(dlProvName(ox,oz))}</b><span>${esc(z.n)}</span><i></i></div>`;el.classList.remove('out');void el.offsetWidth;el.classList.add('on');}
   function dlCardOff(now){const el=document.getElementById('dlcard');if(!el)return;if(now){el.remove();return;}el.classList.remove('on');el.classList.add('out');setTimeout(()=>{try{if(el.classList.contains('out'))el.remove();}catch(e){}},800);}
+  /* TÍNH SẴN ĐỘ CAO VÙNG SẮP TỚI: khi người chơi đã đi quá nửa đường ra ranh giới, mỗi nhịp tính sẵn hai mảnh độ cao của vùng nạp kế tiếp (lúc rảnh, ~10 ms mỗi nhịp).
+     Tới lúc sang tỉnh thì các mảnh đã có sẵn, không phải tính nữa. */
+  setInterval(()=>{try{if(!DL.on||typeof G!=='object'||!G.on||DL.busy||G.ldLeaving||!S||!S.dl)return;const A=dlA(),ax=Math.abs(P.x),az=Math.abs(P.z);if(Math.max(ax,az)<2400)return;const tox=S.dl.ox+(ax>=az?Math.sign(P.x)*A:0),toz=S.dl.oz+(ax>=az?0:Math.sign(P.z)*A),key=tox+','+toz;
+      if(!DL.pw||DL.pw.key!==key)DL.pw={key,i:0};const TS=DL.TS,t0x=Math.floor((tox-WSIZE/2)/TS),t0z=Math.floor((toz-WSIZE/2)/TS),n=Math.ceil(WSIZE/TS)+1;let made=0;while(DL.pw.i<n*n&&made<2){const tx=t0x+DL.pw.i%n,tz=t0z+Math.floor(DL.pw.i/n);DL.pw.i++;if(!DL.tiles.has(tx+','+tz)){dlTile(tx,tz);made++;}}}catch(e){}},300);
   /* dòng báo nhỏ phía trên màn hình (thay cho màn đen) khi sang tỉnh bên */
   function dlChip(txt,ms){let el=document.getElementById('dlchip');if(!txt){if(el)el.remove();return;}if(!el){el=document.createElement('div');el.id='dlchip';el.style.cssText='position:fixed;left:50%;top:max(64px,calc(env(safe-area-inset-top) + 56px));transform:translateX(-50%);z-index:9000;padding:8px 14px;border-radius:999px;background:rgba(20,14,9,.86);border:1px solid rgba(242,197,90,.6);color:#ffe2a8;font:700 13.5px system-ui,sans-serif;white-space:nowrap;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.5)';document.body.appendChild(el);}el.textContent=txt;clearTimeout(DL.chipT);if(ms)DL.chipT=setTimeout(()=>{try{el.remove();}catch(e){}},ms);}
   /* dựng lại thế giới quanh điểm neo mới ngay trong trang */
