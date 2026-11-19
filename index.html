@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119015937">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119020337">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -22622,7 +22622,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   if(typeof wIn==='function'){const _wi=wIn;wIn=function(x,z,k){if(!DL.on)return _wi.apply(this,arguments);return Math.hypot(x,z)<WR*(k||1);};}
   {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')!=='0'&&!(G.nworld==='mp')&&!S.dl){/* MẶC ĐỊNH: nhân vật mới chơi một mình sống trên đại lục (tắt: mở trang với ?dailuc=0) */dlStart(null);/* LƯU NGAY: các lớp tạo nhân vật bên trong đã lưu một bản CHƯA có đại lục; không lưu đè thì bị văng ra sớm là vào lại thành nhân vật bản đồ cũ */S._new=1;try{if(typeof saveNow==='function')saveNow();else save();}finally{delete S._new;}}}catch(e){console.warn('đại lục',e);}return r;};}
   /* các hàm dưới đây nằm trong khối riêng (chế độ nghiêm ngặt không tự đưa ra ngoài): gắn lên window để phần máy chủ (mp.js) và bài thử gọi được */
-  setTimeout(()=>{try{Object.assign(window,{dlBiome,dlZoneAt,dlClim,dlBase,dlNb,dlStart,dlShift,dlRebuild,dlKey,dlAnchor,dlRing,dlSeedAt,dlMapDraw,dlMapZoom,dlMapSharp,dlProvName,dlSafeZone});}catch(e){}},0);
+  setTimeout(()=>{try{Object.assign(window,{dlResOut,dlResIn,dlBiome,dlZoneAt,dlClim,dlBase,dlNb,dlStart,dlShift,dlRebuild,dlKey,dlAnchor,dlRing,dlSeedAt,dlMapDraw,dlMapZoom,dlMapSharp,dlProvName,dlSafeZone});}catch(e){}},0);
   /* đưa nhân vật (S vừa tạo) lên đại lục; uid có thì chọn tỉnh theo mã người chơi */
   function dlStart(uid){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);/* mỗi nhân vật mới một chỗ BẤT KỲ trên đại lục: chọn ngẫu nhiên trong các tỉnh đất tốt (đồng bằng, gần nước) */let pk=(Math.random()*1e9)|0;const a=dlAnchor(S.seed,pk);S.seed0=S.seed;S.dl={ox:a.ox,oz:a.oz};S.land=dlKey(a.ox,a.oz);S.seed=dlSeedAt(a.ox,a.oz);S.dlNew=1;worldCfg(3);}
   /* khoáng sản cho đại lục: bản đồ cũ đặt mỏ theo các vùng vẽ tay (dãy núi, bãi muối…), đại lục không có các vùng đó nên gần như không có quặng.
@@ -22687,7 +22687,15 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
         for(let n=base;n<RES.length;n++){const q=RES[n],gx=Math.round(q.x+DL.ox),gz=Math.round(q.z+DL.oz),u=dlHash(gx,gz,sd+11),u2=dlHash(gx,gz,sd+3),t=q.t;
           if(t==='rock'||t==='boulder'){if(u<0.11)re(q,'copperRock',u2);else if(u<0.25)re(q,'flintRock',u2);else if(u<0.31)re(q,'tinRock',u2);else if(u<0.35)re(q,'ironRock',u2);else if(u<0.39)re(q,'coalRock',u2);}
           else if(t==='tallgrass'||t==='reeds'){if(hAt(q.x,q.z)<16){if(u<0.1)re(q,'clay',u2);else if(u<0.14)re(q,'saltPan',u2);else if(u<0.18)re(q,'shellBed',u2);}}}
-        DL.resMs=Math.round(performance.now()-t0);}catch(e){console.warn('cây đá đại lục',e);}return r;};}
+        dlResIn();DL.resMs=Math.round(performance.now()-t0);}catch(e){console.warn('cây đá đại lục',e);}return r;};}
+  /* CÂY ĐÃ CHẶT LƯU THEO TOẠ ĐỘ ĐẠI LỤC: S.res vẫn đánh theo số thứ tự trong vùng nạp (mọi chỗ trong game ghi vào đó), còn S.dlR={ 'x,z':[trạng thái, giờ mọc lại] } là bản gốc dùng chung cho mọi tỉnh.
+     · dlResOut: chép trạng thái các món rải theo ô từ S.res ra S.dlR (chạy định kỳ và ngay trước khi sang tỉnh); món đã mọc lại thì xoá khỏi S.dlR.
+     · dlResIn : vừa sinh xong cây đá của vùng mới thì lấy S.dlR đắp vào S.res → cây chặt ở sát ranh giới, sang tỉnh bên vẫn là gốc cây. */
+  const dlRKey=q=>Math.round(q.x+DL.ox)+','+Math.round(q.z+DL.oz);
+  function dlResOut(){try{if(!DL.on||!S||!S.res||DL.resBase==null)return;const D=S.dlR||(S.dlR={});for(let n=DL.resBase;n<RES.length;n++){const m=S.res[n],k=dlRKey(RES[n]);if(m)D[k]=m;else if(D[k])delete D[k];}}catch(e){}}
+  function dlResIn(){try{if(!S||DL.resBase==null)return;if(!S.res)S.res={};if(!S.dlRv){/* bản lưu cũ: lần đầu chỉ chép ra, không xoá gì */S.dlRv=1;dlResOut();return;}const D=S.dlR||(S.dlR={}),now=TNOW();
+      for(let n=DL.resBase;n<RES.length;n++){const k=dlRKey(RES[n]),m=D[k];if(m&&!(m[0]===1&&m[1]<now))S.res[n]=m;else{if(m)delete D[k];if(S.res[n])delete S.res[n];}}}catch(e){}}
+  setInterval(()=>{try{if(DL.on&&typeof G==='object'&&G.on&&!DL.busy&&!G.ldLeaving)dlResOut();}catch(e){}},15000);
   /* ngoài vùng nạp vẫn là đại lục: độ cao lấy thẳng từ mảnh (trước trả về "biển sâu") */
   {const _h=hAt;hAt=function(x,z){const h=_h(x,z);return h===-60&&DL.on?dlH(x+DL.ox,z+DL.oz):h;};}
   /* VÀNH ĐẤT XA: mặt đất thô quanh vùng nạp (ra thêm ~4 mảnh mỗi phía) để đứng ở mép vùng vẫn thấy núi đồi nối tiếp chứ không phải biển giả.
@@ -22762,7 +22770,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
      được quy đổi toạ độ nên vẫn nằm đúng chỗ trên đại lục; trạng thái cây đá đã chặt, bản đồ đã khám phá được nhớ riêng theo từng điểm neo. */
   function dlSeedAt(ox,oz){const s0=(S.seed0||S.seed)|0;return ((Math.imul(s0,31)^Math.imul(Math.round(ox/DL.TS),73856093)^Math.imul(Math.round(oz/DL.TS),19349663))>>>0)%2000000000+1;}
   const DL_PER=['res','disc','fogm','khu','rlm','war','plants','boats','recruited'];
-  function dlShift(){try{if(!DL.on||DL.busy||!S||!S.dl)return false;DL.shiftAt=performance.now();const A=dlA(),dx=Math.round((S.dl.ox+P.x)/A)*A-S.dl.ox,dz=Math.round((S.dl.oz+P.z)/A)*A-S.dl.oz;if(!dx&&!dz)return false;DL.busy=1;
+  function dlShift(){try{if(!DL.on||DL.busy||!S||!S.dl)return false;DL.shiftAt=performance.now();dlResOut();const A=dlA(),dx=Math.round((S.dl.ox+P.x)/A)*A-S.dl.ox,dz=Math.round((S.dl.oz+P.z)/A)*A-S.dl.oz;if(!dx&&!dz)return false;DL.busy=1;
       const k0=S.dl.ox+','+S.dl.oz,nox=S.dl.ox+dx,noz=S.dl.oz+dz,k1=nox+','+noz;S.dlA=S.dlA||{};const keep={};for(const k of DL_PER)if(S[k]!==undefined)keep[k]=S[k];S.dlA[k0]=keep;const nx=S.dlA[k1]||{};
       for(const k of DL_PER){if(nx[k]!==undefined)S[k]=nx[k];else if(typeof LD_DEF==='object'&&LD_DEF[k])S[k]=LD_DEF[k]();else delete S[k];}delete S.dlA[k1];
       const mv=o=>{if(o&&typeof o.x==='number'&&typeof o.z==='number'){o.x=+(o.x-dx).toFixed(1);o.z=+(o.z-dz).toFixed(1);}};

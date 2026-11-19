@@ -11,13 +11,16 @@ const snap=()=>p.evaluate(()=>{const keys=[];let trees=0;for(let n=DL.resBase|0;
   const riv=[];for(const r of RIV)for(const q of r.pts)riv.push('s@'+Math.round(q[0]+DL.ox)+','+Math.round(q[1]+DL.oz));
   return {riv,rivN:RIV.length,n:RES.length,base:DL.resBase|0,ms:DL.resMs,trees,ox:DL.ox,oz:DL.oz,sp:[SPAWN[0]+DL.ox,SPAWN[1]+DL.oz],W:WSIZE,keys,bio,land:S.land};});
 const a=await snap();
+// chặt một cây nằm bên kia ranh giới (thuộc tỉnh phía đông): sang tỉnh đó nó vẫn phải là gốc cây
+const cut=await p.evaluate(()=>{let best=null,bd=1e9;for(let n=DL.resBase|0;n<RES.length;n++){const q=RES[n];if(!/^(pine|oak|birch)$/.test(q.t)||q.st!==0)continue;const d=Math.hypot(q.x-4700,q.z);if(d<bd){bd=d;best=q;}}if(!best)return null;resDeplete(best);return {k:Math.round(best.x+DL.ox)+','+Math.round(best.z+DL.oz),t:best.t,d:Math.round(bd)};});
 await p.evaluate(()=>{const A=DL.TS*6;P.x=A/2+1200;P.z=0;P.y=hAt(P.x,P.z);DL.noIn=0;dlShift();});await p.waitForFunction(o=>typeof DL==='object'&&!DL.busy&&S.dl&&S.dl.ox!==o&&G.on&&G.animals&&G.animals.length,a.ox,{timeout:240000});await p.waitForTimeout(2500);
 const d=await snap();
+const cut2=cut?await p.evaluate(k=>{for(let n=DL.resBase|0;n<RES.length;n++){const q=RES[n];if(Math.round(q.x+DL.ox)+','+Math.round(q.z+DL.oz)===k)return {st:q.st,t:q.t,saved:!!S.res[q.i]};}return null;},cut.k):null;
 // vùng chung: nằm trong cả hai cửa sổ, bỏ dải ô ngoài cùng (ô lưới chỉ rải khi nằm trọn trong cửa sổ) và quanh hai chỗ bắt đầu (bãi trống riêng của từng tỉnh)
 const H=a.W/2-40-700,both=k=>{const [x,z]=k.split('@')[1].split(',').map(Number);if(Math.abs(x-a.ox)>H||Math.abs(z-a.oz)>H||Math.abs(x-d.ox)>H||Math.abs(z-d.oz)>H)return false;for(const s of [a.sp,d.sp])if(Math.hypot(x-s[0],z-s[1])<420)return false;return true;};
 const A=new Set(a.keys.filter(both)),B=new Set(d.keys.filter(both));let same=0;for(const k of A)if(B.has(k))same++;const uni=A.size+B.size-same,ratio=uni?same/uni:0;
 /* suối: các điểm của lòng suối trong vùng chung phải trùng nhau */const RA=new Set(a.riv.filter(both)),RB=new Set(d.riv.filter(both));let rs=0;for(const k of RA)if(RB.has(k))rs++;const ru=RA.size+RB.size-rs;
 let bs=0,bn=0;for(const k in a.bio)if(k in d.bio){bn++;if(a.bio[k]===d.bio[k])bs++;}
-const r={landA:a.land,landB:d.land,resA:a.n,resB:d.n,trees:a.trees,ms:a.ms,chung:same,chiA:A.size-same,chiB:B.size-same,ratio:+ratio.toFixed(4),bioN:bn,bioSame:bs,suoiA:a.rivN,suoiB:d.rivN,suoiChung:rs,suoiLech:ru-rs};console.log(JSON.stringify(r));if(logs.length)console.log(logs.slice(0,4).join('\n'));
-const ok=a.land!==d.land&&same>1500&&ratio>=0.97&&bn>200&&bs/bn>=0.99&&(ru===0||rs/ru>=0.9)&&a.trees>800&&a.trees<9000&&a.n>6000&&a.ms<3000&&!logs.length;
+const r={landA:a.land,landB:d.land,resA:a.n,resB:d.n,trees:a.trees,ms:a.ms,chung:same,chiA:A.size-same,chiB:B.size-same,ratio:+ratio.toFixed(4),bioN:bn,bioSame:bs,suoiA:a.rivN,suoiB:d.rivN,suoiChung:rs,suoiLech:ru-rs,chat:cut,chatSau:cut2};console.log(JSON.stringify(r));if(logs.length)console.log(logs.slice(0,4).join('\n'));
+const ok=a.land!==d.land&&same>1500&&ratio>=0.97&&bn>200&&bs/bn>=0.99&&(ru===0||rs/ru>=0.9)&&cut&&cut2&&cut2.st===1&&cut2.saved&&a.trees>800&&a.trees<9000&&a.n>6000&&a.ms<3000&&!logs.length;
 console.log(ok?'DLK-DAT':'DLK-HONG');await b.close();})();
