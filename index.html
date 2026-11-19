@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119083939">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261119084659">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -23427,30 +23427,49 @@ function dtModel(s){const T=THREE,g=new T.Group(),st=new T.MeshLambertMaterial({
   for(let i=0;i<7;i++){const a=i/7*6.283,h=34+((i*37)%19),p=new T.Mesh(new T.CylinderGeometry(5,6.2,h,7),i%3?st:dk);p.position.set(Math.cos(a)*62,h/2-1,Math.sin(a)*62);p.rotation.z=((i*13)%7-3)*0.03;g.add(p);if(i%2===0){const c=new T.Mesh(new T.BoxGeometry(15,5,15),dk);c.position.set(Math.cos(a)*62,h+1.5,Math.sin(a)*62);g.add(c);}else{const m=new T.Mesh(new T.SphereGeometry(5.6,8,6),ms);m.scale.y=0.45;m.position.set(Math.cos(a)*62,h,Math.sin(a)*62);g.add(m);}}
   for(let i=0;i<3;i++){const b=new T.Mesh(new T.BoxGeometry(46-i*10,5,46-i*10),i===2?dk:st);b.position.y=2.5+i*5;g.add(b);}const ch=new T.Mesh(new T.BoxGeometry(15,10,10),new T.MeshLambertMaterial({color:0x7a5230}));ch.position.y=20;g.add(ch);const lid=new T.Mesh(new T.BoxGeometry(16,3,11),new T.MeshLambertMaterial({color:0xc9a23a}));lid.position.y=26.5;g.add(lid);
   for(let i=0;i<5;i++){const a=i*1.31+0.4,r=30+i*9,b=new T.Mesh(new T.BoxGeometry(12,7,9),i%2?st:dk);b.position.set(Math.cos(a)*r,2.5,Math.sin(a)*r);b.rotation.set(0.2*i,a,0.3);g.add(b);}g.traverse(m=>{if(m.isMesh)m.castShadow=true;});return g;}
+/* cây, đá mọc sẵn trong vòng tường: cất hẳn đi (st=3: không hiện, không hái được, Tự làm không nhắm tới) */
+function dtClear(){try{if(typeof RES==='undefined'||!RES.length)return;let ch=false;const R=DT.RW+26;for(const s of DT.sites){if(!s.res||s.resN!==RES.length){s.res=[];s.resN=RES.length;for(const q of RES)if(q&&Math.hypot(q.x-s.x,q.z-s.z)<R)s.res.push(q);}
+      for(const q of s.res)if(q.st!==3){q.st=3;q.hp=0;q.rg=Infinity;try{RI.get(q.gk).api.hide(q.gi);if(q.sk)RI.get(q.sk).api.hide(q.si);if(q.ek)RI.get(q.ek).api.hide(q.ei);}catch(e){}ch=true;}}
+    if(ch)RI.forEach(v=>{try{v.api.flush();}catch(e){}});}catch(e){}}
 function dtObjs(){try{if(!G.sc||!G.terrain||!S)return;if(DT.sc!==G.sc||DT.key!==(S.land||'c')+':'+(S.seed|0)){DT.objs=[];DT.sc=G.sc;DT.key=(S.land||'c')+':'+(S.seed|0);DT.in=null;dtPlan();for(const s of DT.sites){const o=dtModel(s);o.position.set(s.x,hAt(s.x,s.z)-0.5,s.z);G.sc.add(o);try{seasonPatchAll(o);}catch(e){}DT.objs.push(o);s.o=o;
         try{if(typeof REG!=='undefined'&&!REG.some(r=>r.id==='ruin_'+s.id))REG.push({id:'ruin_'+s.id,n:DT.T[s.ty][0],d:'Di tích cổ có tường thành bao quanh: vào qua cổng, bên trong có ba lớp canh giữ mạnh dần. Hạ hết mới mở được rương báu. Lấy xong di tích phong ấn '+DT.CD+' giờ. Cần cấp 20, nên đem theo lính và chiến thú.',ic:DT.T[s.ty][1],x:s.x,z:s.z,r:DT.RW+40});}catch(e){}}}
-    for(const s of DT.sites)if(s.o&&s.o.userData.seal)s.o.userData.seal.visible=dtCool(s)>0;}catch(e){}}
+    for(const s of DT.sites)if(s.o&&s.o.userData.seal)s.o.userData.seal.visible=dtCool(s)>0;dtClear();dtSub();}catch(e){}}
 setInterval(()=>{try{if(typeof G==='object'&&G.on)dtObjs();}catch(e){}},2000);
 const dtGate=(s,k)=>[s.x+s.cx*(DT.RW+k),s.z+s.cz*(DT.RW+k)];
 const dtAlive=s=>(G.foes||[]).filter(f=>f.ruin===s.id&&f.alive).length;
 const dtCrowd=s=>{let n=0;try{if(typeof MP==='object'&&MP.rp)for(const r of MP.rp.values())if(r.ok!==false&&Math.hypot(r.x-s.x,r.z-s.z)<DT.RW)n++;}catch(e){}return n;};
-function dtWave(s,w){const W=DT.W[w],lv=heroLv(),n=W[1];for(let i=0;i<n;i++){const a=s.ga+3.1416+(i-(n-1)/2)*0.5,r=w===2?20:70;try{const f=foeSpawn(s.x+Math.cos(a)*r,s.z+Math.sin(a)*r,'guard');if(f){f.ruin=s.id;f.n=W[0];f.hp=Math.round(FOE.hp*W[2](lv));f.dk=W[3];f._lvA=1;f.lv=1;f.state='chase';if(W[4]!==1&&f.o)f.o.scale.multiplyScalar(W[4]);if(w===2)f.boss=1;}}catch(e){}}
-  DT.in.w=w;DT.in.nt=0;uiToast(w===0?`🏛️ Cổng đá khép lại sau lưng. ${n} lính cổ trỗi dậy!`:w===1?`🛡️ Lớp thứ hai: ${n} vệ binh đồng bước ra từ hàng cột!`:'👑 Tướng giữ mộ thức giấc. Hạ được hắn mới mở được rương!','bad');try{sfx('roar');}catch(e){}}
+function dtWave(s,w,quiet){const W=DT.W[w],lv=heroLv(),n=W[1],crowd=1+0.6*Math.min(3,dtCrowd(s));for(let i=0;i<n;i++){const a=s.ga+3.1416+(i-(n-1)/2)*0.5,r=w===2?20:70;try{const f=foeSpawn(s.x+Math.cos(a)*r,s.z+Math.sin(a)*r,'guard');if(f){f.ruin=s.id;f.n=W[0];f.hp=f.hp0=Math.round(FOE.hp*W[2](lv)*crowd);f.ri=i;f.dk=W[3];f._lvA=1;f.lv=1;f.state='chase';if(W[4]!==1&&f.o)f.o.scale.multiplyScalar(W[4]);if(w===2)f.boss=1;}}catch(e){}}
+  DT.in.w=w;DT.in.nt=0;if(!quiet)dtSend({k:'w',wv:w});uiToast(w===0?`🏛️ Cổng đá khép lại sau lưng. ${n} lính cổ trỗi dậy!`:w===1?`🛡️ Lớp thứ hai: ${n} vệ binh đồng bước ra từ hàng cột!`:'👑 Tướng giữ mộ thức giấc. Hạ được hắn mới mở được rương!','bad');try{sfx('roar');}catch(e){}}
 function dtLeave(msg){const I=DT.in;if(!I)return;DT.in=null;for(const f of (G.foes||[]))if(f.ruin===I.id){f.alive=false;f.gone=1;try{G.sc.remove(f.o);}catch(e){}}if(msg)uiToast(msg,'');}
 function dtEnter(s){if(mkStop('ditich'))return;const cd=dtCool(s);if(cd>0){uiToast('🏛️ '+DT.T[s.ty][0]+' đang phong ấn. Mở lại sau '+dtHM(cd)+'.','');return;}if(G.ride){uiToast('Xuống thú cưỡi rồi mới vào được cổng di tích.','bad');return;}
   if(dtCrowd(s)>=DT.CAP){uiToast('Trong di tích đã đủ '+DT.CAP+' người. Đợi có người ra rồi vào.','bad');return;}
-  const p=dtGate(s,-36);P.x=p[0];P.z=p[1];P.y=hAt(P.x,P.z);DT.in={id:s.id,w:-1,nt:0,done:false};dtWave(s,0);}
+  const p=dtGate(s,-36);P.x=p[0];P.z=p[1];P.y=hAt(P.x,P.z);DT.in={id:s.id,w:-1,nt:0,done:false,t0:Date.now()};dtWave(s,0,true);dtSend({k:'q'});}
 /* mỗi khung hình: tường chắn, đợt canh kế tiếp, lính canh không ra khỏi thành */
-function dtTick(dt){if(!S||!DT.sites.length||!G.on)return;const RW=DT.RW,I=DT.in;
+function dtTick(dt){if(!S||!DT.sites.length||!G.on)return;const RW=DT.RW,I=DT.in;dtFlush(dt);
   for(const s of DT.sites){const dx=P.x-s.x,dz=P.z-s.z,d=Math.hypot(dx,dz)||1;if(I&&I.id===s.id){
       if(d>RW+80||G.dying){dtLeave('');continue;}if(G.ride){const p=dtGate(s,24);P.x=p[0];P.z=p[1];dtLeave('Thú cưỡi không ở trong di tích được: bạn bị đẩy ra cổng, lính canh hồi lại.');continue;}
       if(d>RW-13){P.x=s.x+dx/d*(RW-13);P.z=s.z+dz/d*(RW-13);}
       for(const f of G.foes||[])if(f.ruin===s.id&&f.alive){const fx=f.x-s.x,fz=f.z-s.z,fd=Math.hypot(fx,fz);if(fd>RW-18){f.x=s.x+fx/fd*(RW-18);f.z=s.z+fz/fd*(RW-18);}}
-      if(!I.done&&!dtAlive(s)){I.nt+=dt;if(I.nt>2.2){if(I.w<DT.W.length-1)dtWave(s,I.w+1);else{I.done=true;uiToast('🏺 Di tích lặng im. Rương cổ ở giữa thành đã mở được.','gold');try{sfx('level');}catch(e){}}}}
+      if(!I.done&&!dtAlive(s)){I.nt+=dt;if(I.nt>2.2){if(I.w<DT.W.length-1)dtWave(s,I.w+1);else{I.done=true;dtSend({k:'w',wv:DT.W.length});uiToast('🏺 Di tích lặng im. Rương cổ ở giữa thành đã mở được.','gold');try{sfx('level');}catch(e){}}}}
     }else if(d<RW+11){P.x=s.x+dx/d*(RW+11);P.z=s.z+dz/d*(RW+11);}}}
 {const _ft=foesTick;foesTick=function(dt){try{dtTick(dt);}catch(e){}return _ft.apply(this,arguments);};}
 {const _fh=foeHit;foeHit=function(f,t){if(!f||!f.dk)return _fh.apply(this,arguments);const old=FOE.dmg;FOE.dmg=old*f.dk;try{return _fh.apply(this,arguments);}finally{FOE.dmg=old;}};}
-{const _fd=foeDamage;foeDamage=function(f){const was=f&&f.alive&&f.ruin;const r=_fd.apply(this,arguments);try{if(was&&!f.alive){addXp('hunt',f.boss?40:10);if(f.boss)uiToast('👑 Tướng giữ mộ gục xuống!','gold');}}catch(e){}return r;};}
+/* ĐÁNH CHUNG: những người cùng ở trong một di tích chia nhau MÁU của lính canh và ĐỢT canh.
+   Mỗi máy tự dựng lính của mình (vị trí không soi gương), nhưng đòn ai đánh trúng lính số mấy thì máy người kia cũng trừ máu lính số đó;
+   ai mở đợt kế thì cả nhóm sang đợt kế; người vào sau nhận lại tình trạng đang đánh. Càng đông, lính canh càng nhiều máu. */
+DT.net={acc:{},t:0,rx:0,room:null,rate:new Map()};
+function dtSend(o){try{if(DT.net.rx||!DT.in||typeof mpOn!=='function'||!mpOn()||!MP.room)return;o.s=DT.in.id;mpEmit('dt',o);}catch(e){}}
+function dtFlush(dt){const N=DT.net;N.t+=dt;if(N.t<0.35)return;N.t=0;const ks=Object.keys(N.acc);if(!ks.length)return;const I=DT.in;if(I){const h=ks.filter(k=>+k.split(':')[0]===I.w).slice(0,6).map(k=>[+k.split(':')[1],Math.round(N.acc[k]*10)/10]);if(h.length)dtSend({k:'h',wv:I.w,h});}N.acc={};}
+function dtSub(){try{const N=DT.net;if(typeof MP!=='object'||!MP.room||!MP.roomOn||N.room===MP.room)return;N.room=MP.room;MP.unsubs.push(MP.room.on('dt',dtHear,()=>{}));}catch(e){}}
+function dtHear(m){try{const I=DT.in,d=m&&m.data;if(!I||!d||m.isMe||typeof d!=='object'||d.s!==I.id)return;const s=DT.sites.find(x=>x.id===I.id),r=MP.rp&&MP.rp.get(m.peer);if(!s||!r||Math.hypot(r.x-s.x,r.z-s.z)>DT.RW+40)return;
+    const N=DT.net,now=Date.now(),rt=N.rate.get(m.peer)||[now,0];if(now-rt[0]>1000){rt[0]=now;rt[1]=0;}if(++rt[1]>10)return;N.rate.set(m.peer,rt);const mine=()=>(G.foes||[]).filter(f=>f.ruin===s.id&&f.alive),wipe=()=>{for(const f of G.foes||[])if(f.ruin===s.id){f.alive=false;f.gone=1;try{G.sc.remove(f.o);}catch(e){}}};
+    N.rx=1;try{
+      if(d.k==='h'&&d.wv===I.w&&Array.isArray(d.h)){for(const e of d.h.slice(0,6)){if(!Array.isArray(e)||!(e[1]>0)||!(e[1]<=600))continue;const f=mine().find(f=>f.ri===e[0]);if(!f)continue;if(f.hp-e[1]>0){f.hp-=+e[1];f.state='chase';try{puff(f.x,f.y+20,f.z,'#c0392b',3);}catch(er){}}else{f.hp=0.01;foeDamage(f,1e6);}}}
+      else if(d.k==='w'&&Number.isInteger(d.wv)&&d.wv>I.w&&d.wv<=DT.W.length&&!I.done){wipe();if(d.wv===DT.W.length){I.w=DT.W.length-1;I.done=true;uiToast('🏺 Cả nhóm đã hạ hết lính canh. Rương cổ ở giữa thành đã mở được.','gold');}else dtWave(s,d.wv,true);}
+      else if(d.k==='q'&&!I.done){N.rx=0;dtSend({k:'st',wv:I.w,hp:[0,1,2,3,4,5].map(i=>{const f=mine().find(f=>f.ri===i);return f?Math.round(f.hp/f.hp0*100)/100:0;})});}
+      else if(d.k==='st'&&now-(I.t0||0)<8000&&Number.isInteger(d.wv)&&d.wv>=I.w&&d.wv<DT.W.length&&Array.isArray(d.hp)&&!I.joined){I.joined=1;if(d.wv>I.w){wipe();dtWave(s,d.wv,true);}for(const f of mine()){const k=+d.hp[f.ri];if(k>=0&&k<1){if(k<=0){f.alive=false;f.gone=1;try{G.sc.remove(f.o);}catch(e){}}else f.hp=Math.min(f.hp,Math.max(1,Math.round(f.hp0*k)));}}uiToast('🤝 Bạn nhập vào trận đang đánh trong di tích.','');}
+    }finally{N.rx=0;}}catch(e){DT.net.rx=0;}}
+{const _fd=foeDamage;foeDamage=function(f,dmg){const was=f&&f.alive&&f.ruin,wn=was&&S.war?S.war.n:0;const h0=was?f.hp:0;const r=_fd.apply(this,arguments);try{if(was&&S.war)S.war.n=wn;if(was&&!DT.net.rx&&DT.in&&f.ri!=null){const lost=h0-Math.max(0,f.hp);if(lost>0){const k=DT.in.w+':'+f.ri;DT.net.acc[k]=(DT.net.acc[k]||0)+lost;}}if(was&&!f.alive){addXp('hunt',f.boss?40:10);if(f.boss)uiToast('👑 Tướng giữ mộ gục xuống!','gold');}}catch(e){}return r;};}
 function dtNear(){const I=DT.in;for(const s of DT.sites){if(I&&I.id===s.id){const dc=Math.hypot(s.x-P.x,s.z-P.z),g=dtGate(s,-36),dg=Math.hypot(g[0]-P.x,g[1]-P.z);if(dc<56)return {type:'ruin',part:'chest',s,d:dc,b:{x:s.x,y:hAt(s.x,s.z)+34,z:s.z}};if(dg<44)return {type:'ruin',part:'exit',s,d:dg,b:{x:g[0],y:hAt(g[0],g[1])+30,z:g[1]}};}
     else{const g=dtGate(s,14),dg=Math.hypot(g[0]-P.x,g[1]-P.z);if(dg<62)return {type:'ruin',part:'gate',s,d:dg,b:{x:g[0],y:hAt(g[0],g[1])+40,z:g[1]}};}}return null;}
 {const _ft=findTarget;findTarget=function(){const r=_ft.apply(this,arguments);try{if(!S||!DT.sites.length||G.work||G.sit||G.build)return r;if(r&&(r.type==='animal'||r.type==='foe'||r.type==='npc'||r.type==='drop'))return r;const g=dtNear();if(g&&(!r||g.d<58))return g;}catch(e){}return r;};}
