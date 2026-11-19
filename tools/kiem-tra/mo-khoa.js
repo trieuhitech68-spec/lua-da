@@ -57,7 +57,7 @@ const r=await p.evaluate(()=>{const o={},T=[];const _t=uiToast;uiToast=function(
         MP.myPeer='aa';DT.net.hostT=0;const before=sent.length;MP.rp.get('pp').x=f.x+50;MP.rp.get('pp').z=f.z;const x0=f.x;for(let i=0;i<4;i++)foesTick(0.2);o.coHostChase=f.x>x0+20;o.coHostSend=sent.slice(before).some(e=>e[1].k==='p'&&e[1].f.length>=1);
         MP.rp.get('pp').x=s.x+30;MP.rp.get('pp').z=s.z;MP.myPeer=_mp;S.p.hp=100;}
       // người vào sau nhận tình trạng trận
-      at(-36);actStart(dtNear());at(14);actStart(dtNear());dtHear({peer:'pp',by:'b1',data:{s:s.id,k:'st',wv:1,hp:[0.5,0,0,0,0,0]}});o.coJoin=DT.in.w===1&&fs().length===1&&fs()[0].hp<=Math.round(fs()[0].hp0*0.5);
+      at(-36);actStart(dtNear());at(14);actStart(dtNear());DT.net.rate.clear();dtHear({peer:'pp',by:'b1',data:{s:s.id,k:'st',wv:1,hp:[0.5,0,0,0,0,0]}});o.coJoin=DT.in.w===1&&fs().length===1&&fs()[0].hp<=Math.round(fs()[0].hp0*0.5);
       at(-36);actStart(dtNear());mpOn=_on;mpEmit=_em;MP.room=_room;MP.rp=bak;S.dt[s.id]=Date.now();}
     // cổ vật đổi điểm thuộc tính
     invAdd('covat',3);const p0=heroPts();dtOffer();o.pts=heroPts()-p0;at(60);}
