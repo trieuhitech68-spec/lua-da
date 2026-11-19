@@ -16,15 +16,32 @@ function dlN(x,z,s){const ix=Math.floor(x),iz=Math.floor(z),fx=x-ix,fz=z-iz,u=fx
 function dlFbm(x,z,o,s){let v=0,a=0.5,f=1,t=0;for(let i=0;i<o;i++){v+=dlN(x*f,z*f,s+i*17)*a;t+=a;a*=0.5;f*=2.03;}return v/t;}
 function dlRidge(x,z,o,s){let v=0,a=0.5,f=1,t=0;for(let i=0;i<o;i++){const n=1-Math.abs(dlN(x*f,z*f,s+i*29));v+=n*n*a;t+=a;a*=0.5;f*=2.1;}return v/t;}
 const dlSS=(a,b,x)=>{let t=(x-a)/(b-a);t=t<0?0:t>1?1:t;return t*t*(3-2*t);};
+/* ---------- CÁC MIỀN CỦA ĐẠI LỤC ----------
+   Đại lục không còn một kiểu từ đầu tới cuối: nhiệt độ giảm dần lên phía bắc (z âm), độ ẩm đổi theo mảng lớn → năm miền, chuyển tiếp mềm:
+     bac  Miền lạnh phương Bắc : núi đồi cao hơn, rừng thông – bạch dương, không có chuối, cọ, tre.
+     nd   Rừng nhiệt đới       : núi đá vôi dựng đứng từng cụm, rừng cổ thụ, chuối, cọ, tre, sen.
+     sv   Thảo nguyên khô      : đất phẳng, đồi bàn đỉnh bằng rải rác, cỏ cao, cây thảo nguyên, lô hội.
+     tre  Đồi tre trúc         : đồi lượn sóng, tre mọc thành rừng.
+     hoa  Đồng cỏ hoa          : đồng cỏ thoáng nhiều hoa, lúa dại, bạch dương, tổ ong.
+   Ngoài các miền đó là miền ôn hoà (rừng hỗn hợp như trước). DLC: [bac, nd, sv, tre, hoa] trọng số 0..1 tại điểm vừa hỏi. */
+const DLC=[0,0,0,0,0],DLZ=[['bac','❄️','Miền lạnh phương Bắc'],['nd','🌴','Rừng nhiệt đới'],['sv','🌾','Thảo nguyên khô'],['tre','🎋','Đồi tre trúc'],['hoa','🌼','Đồng cỏ hoa']];
+function dlClimTW(x,z){const s=DL.seed;return [Math.max(-1,Math.min(1,z/(DL.R*0.7)))*0.8+dlFbm(x/16000+5,z/16000-3,2,s+601)*0.45,dlFbm(x/13000-8,z/13000+12,3,s+607)*1.3];}
+function dlClimW(T,W){const b=dlSS(-0.36,-0.56,T),hot=dlSS(0.18,0.38,T),mid=(1-b)*(1-hot);DLC[0]=b;DLC[1]=hot*dlSS(0.02,0.2,W);DLC[2]=hot*dlSS(-0.02,-0.2,W);DLC[3]=mid*dlSS(0.2,0.36,W);DLC[4]=mid*dlSS(-0.16,-0.32,W);return DLC;}
+function dlClim(x,z){const tw=dlClimTW(x,z);return dlClimW(tw[0],tw[1]);}
+function dlZoneAt(x,z){const c=dlClim(x,z);let bi=-1,bv=0.5;for(let i=0;i<5;i++)if(c[i]>bv){bv=c[i];bi=i;}return bi<0?{id:'on',ic:'🌳',n:'Miền ôn hoà'}:{id:DLZ[bi][0],ic:DLZ[bi][1],n:DLZ[bi][2]};}
 function dlBase(x,z){const s=DL.seed,R=DL.R;
   /* lục địa: lớn dần từ tâm, mép vỡ thành vịnh, bán đảo, đảo ven bờ */
   const r=Math.hypot(x,z)/R,cont=1-dlSS(0.62,1.0,r+dlFbm(x/9000+3,z/9000-7,4,s+1)*0.33);
   if(cont<=0.02)return -40-20*(1-cont);
   /* nền: đồng bằng nhấp nhô + đồi */
-  let h=14+dlFbm(x/2600,z/2600,4,s+11)*26+dlFbm(x/700+5,z/700+9,3,s+23)*10+dlFbm(x/170,z/170,2,s+31)*2.5;
-  const hill=dlSS(0.05,0.5,dlFbm(x/4200+13,z/4200-4,3,s+41));h+=hill*(40+dlFbm(x/900,z/900,3,s+43)*45);
+  const cl=dlClim(x,z),wB=cl[0],wN=cl[1],wS=cl[2],wT=cl[3];
+  let h=14+dlFbm(x/2600,z/2600,4,s+11)*26*(1-0.5*wS)+dlFbm(x/700+5,z/700+9,3,s+23)*10*(1-0.45*wS)+dlFbm(x/170,z/170,2,s+31)*2.5;
+  const hill=dlSS(0.05,0.5,dlFbm(x/4200+13,z/4200-4,3,s+41));h+=hill*(40+dlFbm(x/900,z/900,3,s+43)*45)*(1+0.4*wB-0.7*wS);
+  /* đồi tre: đồi lượn sóng */if(wT>0.03)h+=wT*(6+dlFbm(x/520+7,z/520-3,2,s+97)*22);
+  /* thảo nguyên: đồi bàn đỉnh bằng rải rác */if(wS>0.03){const ms=dlSS(0.3,0.38,dlFbm(x/1500+17,z/1500+5,3,s+101));if(ms>0)h+=wS*ms*(55+dlFbm(x/300,z/300,2,s+103)*8);}
+  /* nhiệt đới: núi đá vôi dựng đứng từng cụm */if(wN>0.03){const km=dlSS(0.05,0.3,dlFbm(x/3400-11,z/3400+7,2,s+107));if(km>0){const tk=dlSS(0.12,0.3,dlFbm(x/380+1,z/380+2,2,s+109));if(tk>0)h+=wN*km*tk*(90+dlFbm(x/130,z/130,2,s+113)*40);}}
   /* dãy núi: vài vành đai lớn; trong vành đai là sống núi sắc */
-  const belt=dlSS(0.18,0.5,dlFbm(x/7500-21,z/7500+15,3,s+53));if(belt>0){const rg=dlRidge(x/2300+2,z/2300-5,5,s+59);h+=belt*(90+rg*rg*1250);}
+  const belt=dlSS(0.18,0.5,dlFbm(x/7500-21,z/7500+15,3,s+53));if(belt>0){const rg=dlRidge(x/2300+2,z/2300-5,5,s+59);h+=belt*(90+rg*rg*1250)*(1+0.3*wB);}
   /* vách tầng từ độ cao 230 (cùng công thức với nuicao.js) */
   if(h>230){const n=dlFbm(x/900+31,z/900-17,2,s+67)*60,st=150,q=(h+n)/st,f=q-Math.floor(q),sv=(Math.floor(q)+dlSS(0.3,0.7,f))*st-n,k=dlSS(230,520,h)*0.6;h=h*(1-k)+sv*k;}
   /* sông: đường số không của một lớp nhiễu lớn, khoét thung lũng xuống dưới mực nước; càng lên núi lòng sông càng hẹp rồi tắt */
@@ -44,7 +61,7 @@ function dlH(x,z){const TS=DL.TS,tx=Math.floor(x/TS),tz=Math.floor(z/TS),t=dlTil
 /* mực nước: biển, sông, hồ đều ở mực 0 (sông là thung lũng khoét xuống dưới 0) */
 function dlW(x,z){return dlH(x,z)<0?0:-999;}
 function dlInit(seed){DL.seed=(seed|0)||1;DL.tiles.clear();DL.tick=0;DL.made=0;}
-if(typeof module!=='undefined')module.exports={DL,dlBase,dlTile,dlH,dlW,dlInit};
+if(typeof module!=='undefined')module.exports={DL,dlBase,dlTile,dlH,dlW,dlInit,dlClim,dlZoneAt};
 /* ===================== đợt 2: NỐI VÀO GAME (thử nghiệm) =====================
    Nhân vật "đại lục" (S.dl) dùng mặt đất của đại lục thay cho bản đồ cũ. Bật thử bằng cách đặt localStorage 'ld-dl'='1' trước khi tạo nhân vật.
    Toạ độ trong game là toạ độ quanh "điểm neo" (S.dl.ox, S.dl.oz) của nhân vật trên đại lục, để mọi phần khác của game vẫn chạy như cũ.
@@ -91,7 +108,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   if(typeof wIn==='function'){const _wi=wIn;wIn=function(x,z,k){if(!DL.on)return _wi.apply(this,arguments);return Math.hypot(x,z)<WR*(k||1);};}
   {const _ng=newGame;newGame=function(o){const r=_ng.apply(this,arguments);try{if(S&&localStorage.getItem('ld-dl')!=='0'&&!(G.nworld==='mp')&&!S.dl){/* MẶC ĐỊNH: nhân vật mới chơi một mình sống trên đại lục (tắt: mở trang với ?dailuc=0) */dlStart(null);/* LƯU NGAY: các lớp tạo nhân vật bên trong đã lưu một bản CHƯA có đại lục; không lưu đè thì bị văng ra sớm là vào lại thành nhân vật bản đồ cũ */S._new=1;try{if(typeof saveNow==='function')saveNow();else save();}finally{delete S._new;}}}catch(e){console.warn('đại lục',e);}return r;};}
   /* các hàm dưới đây nằm trong khối riêng (chế độ nghiêm ngặt không tự đưa ra ngoài): gắn lên window để phần máy chủ (mp.js) và bài thử gọi được */
-  setTimeout(()=>{try{Object.assign(window,{dlNb,dlStart,dlShift,dlRebuild,dlKey,dlAnchor,dlRing,dlSeedAt,dlMapDraw,dlMapZoom,dlMapSharp,dlProvName,dlSafeZone});}catch(e){}},0);
+  setTimeout(()=>{try{Object.assign(window,{dlBiome,dlZoneAt,dlClim,dlBase,dlNb,dlStart,dlShift,dlRebuild,dlKey,dlAnchor,dlRing,dlSeedAt,dlMapDraw,dlMapZoom,dlMapSharp,dlProvName,dlSafeZone});}catch(e){}},0);
   /* đưa nhân vật (S vừa tạo) lên đại lục; uid có thì chọn tỉnh theo mã người chơi */
   function dlStart(uid){S.dl={ox:0,oz:0};S.wv=3;S.wv0=3;worldCfg(3);/* mỗi nhân vật mới một chỗ BẤT KỲ trên đại lục: chọn ngẫu nhiên trong các tỉnh đất tốt (đồng bằng, gần nước) */let pk=(Math.random()*1e9)|0;const a=dlAnchor(S.seed,pk);S.seed0=S.seed;S.dl={ox:a.ox,oz:a.oz};S.land=dlKey(a.ox,a.oz);S.seed=dlSeedAt(a.ox,a.oz);S.dlNew=1;worldCfg(3);}
   /* khoáng sản cho đại lục: bản đồ cũ đặt mỏ theo các vùng vẽ tay (dãy núi, bãi muối…), đại lục không có các vùng đó nên gần như không có quặng.
@@ -109,24 +126,36 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   const dlWet=(gx,gz,d)=>dlH(gx+d,gz)<0||dlH(gx-d,gz)<0||dlH(gx,gz+d)<0||dlH(gx,gz-d)<0;
   function dlBiome(x,z,h0){const h=h0==null?hAt(x,z):h0;if(h<-0.4)return 'water';if(h>450)return 'peak';const sl=slopeAt(x,z);if(h>260||sl>0.8)return 'rock';const gx=x+DL.ox,gz=z+DL.oz;
     if(h<9&&dlWet(gx,gz,110)){/* sát nước: biển, hồ lớn thì là bãi cát; sông, lạch thì là bờ */let big=0;if(dlH(gx+600,gz)<-6)big++;if(dlH(gx-600,gz)<-6)big++;if(dlH(gx,gz+600)<-6)big++;if(dlH(gx,gz-600)<-6)big++;return big>=2?'beach':'bank';}
-    const m=dlMoistG(gx,gz)+dlJunG(gx,gz)*0.35-dlSavG(gx,gz)*0.5+(h>140?-0.05:0);return m>0.06?'forest':(m>-0.1?'edge':'meadow');}
+    const c=dlClim(gx,gz),m=dlMoistG(gx,gz)+dlJunG(gx,gz)*0.35-dlSavG(gx,gz)*0.5+(h>140?-0.05:0)+c[0]*0.06+c[1]*0.22-c[2]*0.45+c[3]*0.12-c[4]*0.2;return m>0.06?'forest':(m>-0.1?'edge':'meadow');}
   {const _b=biome;biome=function(x,z){if(!DL.on)return _b(x,z);if(wdAt(x,z)>0.4)return 'water';return dlBiome(x,z);};}
   {const _m=moist;moist=function(x,z){return DL.on?dlMoistG(x+DL.ox,z+DL.oz):_m(x,z);};}
-  {const _m=savannaK;savannaK=function(x,z){return DL.on?dlSavG(x+DL.ox,z+DL.oz):_m(x,z);};}
-  {const _m=jungleK;jungleK=function(x,z){return DL.on?dlJunG(x+DL.ox,z+DL.oz):_m(x,z);};}
+  {const _m=savannaK;savannaK=function(x,z){if(!DL.on)return _m(x,z);const gx=x+DL.ox,gz=z+DL.oz;return Math.max(dlSavG(gx,gz)*0.6,dlClim(gx,gz)[2]);};}
+  {const _m=jungleK;jungleK=function(x,z){if(!DL.on)return _m(x,z);const gx=x+DL.ox,gz=z+DL.oz;return Math.max(dlJunG(gx,gz),dlClim(gx,gz)[1]);};}
   {const _m=denseK;denseK=function(x,z){return DL.on?dlDenseG(x+DL.ox,z+DL.oz):_m(x,z);};}
   /* các "vùng mới" của bản đồ cũ (cao nguyên thông, thung lũng tre…) nằm theo tâm cửa sổ: đại lục không dùng */
   {const _z=z4At;z4At=function(x,z){if(DL.on){_z4.id=null;_z4.k=0;_z4.Z=null;return _z4;}return _z(x,z);};}
   function dlResCells(specs,base){const C=650,H=WSIZE/2-40,A0=Math.PI*Math.pow(WR*0.95,2),s0=DL.seed|0,isTree=t=>/^(pine|oak|birch|dead|savannaTree)$/.test(t);
-    const SP=[];for(const [t,n,want,tries] of specs){if(!RT[t])continue;const n2=n*2.6*WRES,/* số lượt thử cho cả cửa sổ: 3,2 lượt cho mỗi món muốn có; loài hiếm (world.js cho số lượt thử riêng) được thử nhiều hơn, tối đa 14 lượt */tot=n2*(tries?Math.max(3.2,Math.min(14,tries/n2*0.08)):3.2);SP.push({t,want:t==='copperRock'?null:want,per:tot*C*C/A0*(/^(pine|oak|birch|young|pineY|birchY|pineG|oakG)$/.test(t)?0.72:1)/* cây lớn nặng máy: bớt lại để tổng số cây ngang bản trước */,r:(RT[t].r||4)+4,pass:!!RT[t].pass,tree:isTree(t)});}
-    if(RT.lotus)SP.push({t:'lotus',lotus:1,per:1.6,r:14,pass:true,tree:false});
+    /* hệ số theo miền cho từng loài [bac, nd, sv, tre, hoa] (không ghi = 1) */
+    const ZM={pine:[1.8,0.05,0,0.5,0.5],pineY:[1.8,0.05,0,0.5,0.5],pineG:[2,0,0,0.5,0.5],birch:[1.5,0.1,0.2,1,1.6],birchY:[1.5,0.1,0.2,1,1.6],oak:[0.35,1.3,0.25,0.7,0.6],oakG:[0.3,2.2,0.2,0.7,0.6],young:[1,1,0.3,1,1],
+      banana:[0,6,0.3,1.5,1],palm:[0,5,1,1,1],bamboo:[0,4,0.2,14,1],savannaTree:[0,0.3,4,0.3,0.6],tallgrass:[0.6,0.8,3,1,1.2],fern:[0.7,2,0.1,1.6,0.7],mushroom:[1.5,1.2,0.2,1,1],mushroomR:[1.5,1.2,0.2,1,1],
+      berry:[1.4,1,0.4,1,1.5],ginger:[0,2.5,0.3,1.5,1],turmeric:[0,2.5,0.5,1.2,1],aloe:[0,1,6,1,1],bones:[1,1,3,1,1],dead:[1.2,0.6,3,1,1],deadLog:[1,1.5,0.3,1,1],flax:[0.7,1,0.6,1,1.5],lotus:[0.3,2,0.5,1,1],reedBed:[0.8,2,0.5,1,1],
+      gourdwild:[0.3,2,0.6,1,1],beehive:[0.5,1.6,0.6,1,2.2],scree:[1.5,1,1.2,1,1],boulder:[1.5,1,1.5,1,1],rock:[1.2,1,1.4,1,1],mint:[1,1.2,0.4,1.5,1],wildgrain:[0.6,0.8,1,1,2],
+      flowerR:[0.6,0.8,0.5,1,3.2],flowerY:[0.6,0.8,0.6,1,3.2],flowerW:[0.8,0.8,0.4,1,3.2],flowerP:[0.6,1,0.4,1,3.2]};
+    const SP=[];for(const [t,n,want,tries] of specs){if(!RT[t])continue;const n2=n*2.6*WRES,/* số lượt thử cho cả cửa sổ: 3,2 lượt cho mỗi món muốn có; loài hiếm (world.js cho số lượt thử riêng) được thử nhiều hơn, tối đa 14 lượt */tot=n2*(tries?Math.max(3.2,Math.min(14,tries/n2*0.08)):3.2);const zm=ZM[t]||null,M=zm?Math.max(1,...zm):1;SP.push({t,zm,M,want:t==='copperRock'?null:want,per:M*tot*C*C/A0*(/^(pine|oak|birch|young|pineY|birchY|pineG|oakG)$/.test(t)?0.72:1)/* cây lớn nặng máy: bớt lại để tổng số cây ngang bản trước */,r:(RT[t].r||4)+4,pass:!!RT[t].pass,tree:isTree(t)});}
+    if(RT.lotus)SP.push({t:'lotus',lotus:1,zm:ZM.lotus,M:2,per:3.2,r:14,pass:true,tree:false});
+    /* loài chỉ mọc dày ở MIỀN của nó (zi: số thứ tự miền): cọ, chuối, tre ở nhiệt đới; rừng tre; cây và cỏ thảo nguyên */
+    const ex=(t,zi,n,want)=>{if(RT[t])SP.push({t,zi,want,per:n*2.6*WRES*3.2*C*C/A0,r:(RT[t].r||4)+4,pass:!!RT[t].pass,tree:false});};
+    ex('palm',1,70,b=>b==='bank'?0.5:b==='edge'?0.14:b==='meadow'?0.1:b==='forest'?0.04:0);ex('banana',1,90,b=>b==='forest'?0.25:b==='edge'?0.3:0);ex('bamboo',1,60,b=>b==='forest'?0.15:b==='edge'?0.2:0);
+    ex('bamboo',3,420,b=>b==='forest'?0.75:b==='edge'?0.6:b==='meadow'?0.25:b==='bank'?0.4:0);ex('savannaTree',2,130,b=>b==='meadow'?0.5:b==='edge'?0.3:0);ex('tallgrass',2,260,b=>b==='meadow'?0.7:b==='edge'?0.3:0);
     const i0=Math.ceil((DL.ox-H)/C),i1=Math.floor((DL.ox+H)/C)-1,j0=Math.ceil((DL.oz-H)/C),j1=Math.floor((DL.oz+H)/C)-1;let made=0;
     const put=(t,x,z,s,ry)=>{const q={i:RES.length,t,x,z,ry,s:s*(RT[t].sc||1),hp:RT[t].hp,st:0,rg:0};RES.push(q);const k=rKey(x,z);if(!RGRID.has(k))RGRID.set(k,[]);RGRID.get(k).push(q.i);made++;return q;};
-    for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const R=rng(((dlHash(i,j,s0+977)*4294967296)>>>0)||1),loc=[];
+    const TW=new Map(),tw=(a,b)=>{const k=a*8192+b;let v=TW.get(k);if(!v){v=dlClimTW(a*C,b*C);TW.set(k,v);}return v;};
+    for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const R=rng(((dlHash(i,j,s0+977)*4294967296)>>>0)||1),loc=[],c00=tw(i,j),c10=tw(i+1,j),c01=tw(i,j+1),c11=tw(i+1,j+1);
       for(const sp of SP){let n=Math.floor(sp.per);if(R()<sp.per-n)n++;
-        for(let k=0;k<n;k++){/* mỗi lượt thử luôn rút đúng 5 số: kết quả của lượt này không kéo lệch các lượt sau */const u1=R(),u2=R(),u3=R(),u4=R(),u5=R(),gx=(i+0.015+u1*0.97)*C,gz=(j+0.015+u2*0.97)*C,x=gx-DL.ox,z=gz-DL.oz,h=hAt(x,z);
-          if(sp.lotus){if(h>-0.8||h<-8||u3>0.4)continue;}
-          else{if(h<2)continue;const b=dlBiome(x,z,h);if(b==='water'||!sp.want)continue;const w=sp.want(b,x,z,h);if(!w||u3>w)continue;}
+        for(let k=0;k<n;k++){/* mỗi lượt thử luôn rút đúng 5 số: kết quả của lượt này không kéo lệch các lượt sau */const u1=R(),u2=R(),u3=R(),u4=R(),u5=R(),fx=0.015+u1*0.97,fz=0.015+u2*0.97,gx=(i+fx)*C,gz=(j+fz)*C,x=gx-DL.ox,z=gz-DL.oz,h=hAt(x,z);
+          /* miền tại điểm này (nội suy từ bốn góc ô, rung nhẹ cho ranh giới miền không thành đường thẳng) → hệ số loài */let zk=1;if(sp.zm||sp.zi!=null){const T=(c00[0]*(1-fx)+c10[0]*fx)*(1-fz)+(c01[0]*(1-fx)+c11[0]*fx)*fz+(u5-0.5)*0.06,W=(c00[1]*(1-fx)+c10[1]*fx)*(1-fz)+(c01[1]*(1-fx)+c11[1]*fx)*fz+(u4-0.5)*0.06,cw=dlClimW(T,W);if(sp.zi!=null)zk=cw[sp.zi];else{let m=1;for(let q=0;q<5;q++)m+=cw[q]*(sp.zm[q]-1);zk=Math.max(0,m)/sp.M;}if(zk<=0)continue;}
+          if(sp.lotus){if(h>-0.8||h<-8||u3>0.4*zk)continue;}
+          else{if(h<2)continue;const b=dlBiome(x,z,h);if(b==='water'||!sp.want)continue;const w=sp.want(b,x,z,h);if(!w||u3>w*zk)continue;}
           let ok=true;for(let q=0;q<loc.length;q++){const o=loc[q],dx=o[0]-gx,dz=o[1]-gz,rr=sp.r+o[2]*0.8;if(dx*dx+dz*dz<rr*rr){ok=false;break;}}if(!ok)continue;loc.push([gx,gz,sp.r-4]);
           /* phần riêng của tỉnh (không ảnh hưởng tới các lượt khác): bãi trống quanh chỗ bắt đầu, lòng suối, món đã đặt sẵn quanh chỗ bắt đầu */
           const sd=Math.hypot(x-SPAWN[0],z-SPAWN[1]);if(sd<60||(sd<230&&!sp.pass))continue;if(!sp.lotus&&wdAt(x,z)>0)continue;
@@ -195,7 +224,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
       const px=X(P.x+DL.ox),pz=Z(P.z+DL.oz);c.fillStyle='#fff';c.strokeStyle='#000';c.lineWidth=1.5;c.beginPath();c.arc(px,pz,4.5,0,7);c.fill();c.stroke();c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.moveTo(px,pz);c.lineTo(px+Math.sin(P.ry||0)*11,pz+Math.cos(P.ry||0)*11);c.stroke();}catch(e){}}
   function dlMapZoom(f,gx,gz){const v=DL.mv||(DL.mv={z:1,cx:0,cz:0}),nz=Math.max(1,Math.min(48,v.z*f));if(gx!=null){const kk=1-v.z/nz;v.cx+=(gx-v.cx)*kk;v.cz+=(gz-v.cz)*kk;}v.z=nz;dlMapDraw();}
   if(typeof mapHtml==='function'){const _mh=mapHtml;mapHtml=function(){let h=_mh.apply(this,arguments);try{if(DL.on){if(!DL.mv)DL.mv={z:6,cx:P.x+DL.ox,cz:P.z+DL.oz};
-        h=`<div class="landbox dl-map"><b>🌏 Đại lục · ${esc('Tỉnh '+dlProvName(DL.ox,DL.oz))}</b><div class="dl-mw"><canvas id="dlmap"></canvas><div class="dl-mb"><button class="btn sm" data-a="dlz" data-v="in">＋</button><button class="btn sm" data-a="dlz" data-v="out">−</button><button class="btn sm" data-a="dlz" data-v="me" title="Về chỗ mình">◎</button><button class="btn sm" data-a="dlz" data-v="all" title="Cả đại lục">🌏</button></div></div>
+        h=`<div class="landbox dl-map"><b>🌏 Đại lục · ${esc('Tỉnh '+dlProvName(DL.ox,DL.oz))} · ${(z=>z.ic+' '+esc(z.n))(dlZoneAt(DL.ox+P.x,DL.oz+P.z))}</b><div class="dl-mw"><canvas id="dlmap"></canvas><div class="dl-mb"><button class="btn sm" data-a="dlz" data-v="in">＋</button><button class="btn sm" data-a="dlz" data-v="out">−</button><button class="btn sm" data-a="dlz" data-v="me" title="Về chỗ mình">◎</button><button class="btn sm" data-a="dlz" data-v="all" title="Cả đại lục">🌏</button></div></div>
           <span class="small muted">Kéo để dời, lăn chuột hoặc chụm hai ngón để phóng. Khung vàng: tỉnh đang đứng · chấm trắng: bạn · 🏠 nơi bắt đầu · 🚩 số lãnh thổ · chấm cam: nhà người khác. Chạm vào bản đồ trong tỉnh đang đứng để cắm cờ 📍 dẫn đường.</span></div>
           <details class="dl-old"><summary>Lãnh địa, tài nguyên và bản đồ chi tiết của tỉnh</summary>${h.replace(/ Cổng sang vùng khác có dấu ⛩️ trên bản đồ: [^<]*/,'')}</details>`;setTimeout(dlMapDraw,60);}}catch(e){}return h;};}
   (function(){try{const st=document.createElement('style');st.textContent='.dl-map .dl-mw{position:relative;margin:8px 0 6px}.dl-map #dlmap{width:100%;aspect-ratio:1/1;max-height:72vh;display:block;border-radius:12px;touch-action:none;cursor:grab;background:#26547a}.dl-map .dl-mb{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px}.dl-map .dl-mb .btn{min-width:38px;padding:6px 0;font-size:17px;font-weight:700;color:#fff;background:rgba(30,24,18,.86);border:1px solid rgba(255,210,122,.5)}.dl-old{margin-top:8px}.dl-old>summary{cursor:pointer;padding:8px 4px;opacity:.85}';document.head.appendChild(st);
@@ -224,7 +253,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
       if(S.army&&typeof S.army.hx==='number'){S.army.hx-=dx;S.army.hz-=dz;}
       S.dl={ox:nox,oz:noz};S.seed=dlSeedAt(nox,noz);S.land=dlKey(nox,noz);S.wx=null;G.walkTo=null;G.act=null;try{if(typeof AQ==='object'&&AQ.on)aqStop();}catch(e){}
       /* cách nhanh: dựng lại vùng mới ngay trong trang (không tải lại, giữ bộ vẽ, mô hình, shader). Cứ 6 lần thì tải lại trang một lần để dọn bộ nhớ đồ hoạ; lỗi giữa chừng cũng quay về cách tải lại. */
-      if(!DL.noIn&&(DL.inN|0)<6){/* không che màn hình: khung vẽ giữ nguyên hình đang thấy trong lúc dựng vùng mới (1-2 giây), chỉ hiện một dòng báo nhỏ */try{dlChip('🧭 Đang sang Tỉnh '+dlProvName(nox,noz)+'…');}catch(e){}if(typeof saveNow==='function')saveNow();else save();DL.inN=(DL.inN|0)+1;G.ldLeaving=1;/* giữ màn hố đen tới khi dựng xong */setTimeout(()=>{let ok=false;try{ok=dlRebuild();}catch(e){console.warn('dựng lại tại chỗ',e);}if(ok){DL.busy=0;G.ldLeaving=0;try{dlChip('📍 Tỉnh '+dlProvName(S.dl.ox,S.dl.oz),1800);}catch(e){}DL.doneMs=Math.round(performance.now()-DL.shiftAt);DL.shiftAt=0;try{ldHoleOff();}catch(e){}try{save();}catch(e){}}else{DL.noIn=1;try{dlChip('');ldHole('Đang nạp vùng đất kế tiếp…');}catch(e){}try{sessionStorage.setItem('ld-cont','1');sessionStorage.setItem('ld-cont-n','vùng đất kế tiếp');sessionStorage.removeItem('ldtt-autoh');}catch(e){}G.ldLeaving=2;location.reload();}},120);return true;}
+      if(!DL.noIn&&(DL.inN|0)<6){/* không che màn hình: khung vẽ giữ nguyên hình đang thấy trong lúc dựng vùng mới (1-2 giây), chỉ hiện một dòng báo nhỏ */try{dlChip('🧭 Đang sang Tỉnh '+dlProvName(nox,noz)+'…');}catch(e){}if(typeof saveNow==='function')saveNow();else save();DL.inN=(DL.inN|0)+1;G.ldLeaving=1;/* giữ màn hố đen tới khi dựng xong */setTimeout(()=>{let ok=false;try{ok=dlRebuild();}catch(e){console.warn('dựng lại tại chỗ',e);}if(ok){DL.busy=0;G.ldLeaving=0;try{dlChip('📍 Tỉnh '+dlProvName(S.dl.ox,S.dl.oz)+' · '+(z=>z.ic+' '+z.n)(dlZoneAt(S.dl.ox+P.x,S.dl.oz+P.z)),2600);}catch(e){}DL.doneMs=Math.round(performance.now()-DL.shiftAt);DL.shiftAt=0;try{ldHoleOff();}catch(e){}try{save();}catch(e){}}else{DL.noIn=1;try{dlChip('');ldHole('Đang nạp vùng đất kế tiếp…');}catch(e){}try{sessionStorage.setItem('ld-cont','1');sessionStorage.setItem('ld-cont-n','vùng đất kế tiếp');sessionStorage.removeItem('ldtt-autoh');}catch(e){}G.ldLeaving=2;location.reload();}},120);return true;}
       try{ldHole('Đang nạp vùng đất kế tiếp…');sessionStorage.setItem('ld-cont-n','vùng đất kế tiếp');}catch(e){}
       G.ldLeaving=1;if(typeof saveNow==='function')saveNow();else save();G.ldLeaving=2;try{sessionStorage.setItem('ld-cont','1');sessionStorage.removeItem('ldtt-autoh');}catch(e){}
       const go=()=>{if(G.ldGone)return;G.ldGone=1;try{location.reload();}catch(e){}};
