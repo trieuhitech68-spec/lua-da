@@ -34,7 +34,7 @@ function mkHtml(){const lv=heroLv(),gi=MKG.filter(g=>lv>=g[0]).length-1,nx=MK.fi
 if(typeof ptHtml==='function'){const _p=ptHtml;ptHtml=function(){let h=_p.apply(this,arguments);try{const i=h.lastIndexOf('</div>');h=h.slice(0,i)+mkHtml()+h.slice(i);}catch(e){}return h;};}
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-mk]');if(!b||!S||!mkAdmin())return;e.stopImmediatePropagation();const v=b.dataset.mk;
   if(v==='lv'){const t=heroLv()+5,need=30*(t-1)*(t-1)-heroXp(),ks=Object.keys(SKILL);if(need>0)for(const k of ks)S.sk[k]=(S.sk[k]||0)+Math.ceil(need/ks.length);uiToast('🛠️ Nhân vật lên cấp '+heroLv()+'.','gold');}
-  else if(v==='mat'){for(const k of ['wood','stone','fiber','stick','plank','rope','meatCooked','hide','bone','flint','clay','bronze','iron','covat','bikip'])if(ITEMS[k])invAdd(k,k==='covat'||k==='bikip'?3:40);uiToast('🛠️ Đã thêm vật liệu thử vào túi.','');}
+  else if(v==='mat'){for(const k of ['wood','stone','fiber','stick','plank','rope','meatCooked','hide','bone','flint','clay','bronze','iron','covat','bikip','buaho','vongdong'])if(ITEMS[k])invAdd(k,k==='buaho'||k==='vongdong'?1:k==='covat'||k==='bikip'?3:40);uiToast('🛠️ Đã thêm vật liệu thử vào túi.','');}
   else if(v==='kn'){S.knL=S.knL||{};for(const k of KNS)S.knL[k.id]=1;uiToast('🛠️ Đã học hết chiêu.','');}else if(v==='dt'){DT.force=!DT.force;uiToast(DT.force?'🛠️ Di tích mở ngay bây giờ.':'🛠️ Di tích mở theo giờ.','');}
   try{save();uiHotbar();ptDraw();}catch(er){}},true);
 /* ---------- 2. HỌC CHIÊU ---------- */
@@ -70,7 +70,16 @@ function dtState(s){const w=dtWin(s),took=S.dt&&S.dt[s.id]===w[1]&&w[0],alive=(G
     if(!st.fought){const n=3+Math.floor(heroLv()/10);DT.run={id:s.id,w:st.w};for(let i=0;i<n;i++){const a=i/n*6.283+0.5;try{const f=foeSpawn(s.x+Math.cos(a)*84,s.z+Math.sin(a)*84,'guard');if(f){f.ruin=s.id;f.n='Lính canh cổ';f.hp=Math.round(FOE.hp*(1.3+heroLv()/40));f.state='chase';}}catch(e){}}uiToast(`🏛️ Bước vào ${DT.T[s.ty][0]}: ${n} lính canh cổ trỗi dậy! Hạ hết rồi mở rương.`,'bad');try{sfx('roar');}catch(e){}return;}
     if(st.alive){uiToast('Còn '+st.alive+' lính canh cổ. Hạ hết đã.','bad');return;}
     const first=!S.dtN,got={covat:1+(Math.random()<0.35?1:0)};if(first||Math.random()<0.35)got.bikip=1;const R=[['jade',1],['gold',1],['bronze',2],['iron',1],['copper',2]].filter(e=>ITEMS[e[0]]);if(R.length){const e=R[Math.floor(Math.random()*R.length)];got[e[0]]=e[1];}
+    if(first||Math.random()<0.12){const have=k=>invCount(k)>0||dtWorn(k),rare=['buaho','vongdong'].filter(k=>ITEMS[k]),need=rare.filter(k=>!have(k));if(!first||Math.random()<0.5){const pick=(need.length?need:rare)[Math.floor(Math.random()*(need.length?need.length:rare.length))];if(pick)got[pick]=1;}}
     S.dt=S.dt||{};S.dt[s.id]=st.w;S.dtN=(S.dtN||0)+1;DT.run=null;give(got,[s.x,hAt(s.x,s.z)+26,s.z]);try{sfx('level');addXp('hunt',20);cnt('cnt','ruin');}catch(e){}uiToast('🏺 Mở rương cổ: '+Object.entries(got).map(([k,v])=>v+' '+ITEMS[k].n.toLowerCase()).join(', ')+'. 3 cổ vật đổi được 1 điểm thuộc tính (màn Nhân vật → Thuộc tính).','gold');save();return;}return _as.apply(this,arguments);};}
+/* ĐỒ CỔ HIẾM chỉ rơi trong rương di tích (12% mỗi rương, chưa có món nào thì ưu tiên món đó): đeo vào có tác dụng thật.
+     Bùa hộ mệnh cổ (đeo cổ): chịu đòn nhẹ hơn 6% · Vòng đồng cổ (đeo tay): đánh mạnh hơn 8% */
+try{Object.assign(ITEMS,{buaho:{n:'Bùa hộ mệnh cổ',t:'wear',warm:0,slot:'neck',rare:1,ds:'Miếng ngọc khắc hình chim Lạc, lấy từ rương di tích. Đeo vào chịu đòn nhẹ hơn 6%.'},vongdong:{n:'Vòng đồng cổ',t:'wear',warm:0,slot:'acc',rare:1,ds:'Vòng tay đồng thau chạm sóng nước, lấy từ rương di tích. Đeo vào đánh mạnh hơn 8%.'}});
+  if(typeof EMO==='object')Object.assign(EMO,{buaho:'🧿',vongdong:'⭕'});if(typeof M2V==='object')Object.assign(M2V,{buaho:200,vongdong:200});if(typeof WEAR_NECK==='object')WEAR_NECK.buaho=['#2f7a5a',2];}catch(e){}
+const dtWorn=id=>{try{const w=S&&S.wear;if(!w)return false;for(const k in w){const v=w[k];if(v===id||(v&&v.id===id))return true;}}catch(e){}return false;};
+{const _hd=heroDef;heroDef=function(){let v=_hd.apply(this,arguments);try{if(dtWorn('buaho'))v=Math.min(0.85,v+0.06);}catch(e){}return v;};}
+{const k=()=>dtWorn('vongdong')?1.08:1;const _ad=animalDamage;animalDamage=function(a,dmg){return _ad.call(this,a,dmg*k());};const _fd=foeDamage;foeDamage=function(f,dmg){return _fd.call(this,f,dmg*k());};}
+if(typeof nvmQ==='function'){const _q=nvmQ;nvmQ=function(id){try{if(ITEMS[id]&&ITEMS[id].rare)return 4;}catch(e){}return _q.apply(this,arguments);};}
 /* cổ vật → điểm thuộc tính */
 {const _hp=heroPts;heroPts=function(){let v=_hp.apply(this,arguments);try{v+=(heroS().cv|0);}catch(e){}return v;};}
 function dtOffer(){const h=heroS();if((h.cv|0)>=12){uiToast('Đã đổi đủ 12 điểm từ cổ vật.','');return;}if(invCount('covat')<3){uiToast('Cần 3 cổ vật (lấy trong di tích cổ).','bad');return;}invTake('covat',3);h.cv=(h.cv|0)+1;try{sfx('level');}catch(e){}uiToast('🏺 Dâng 3 cổ vật: +1 điểm thuộc tính.','gold');save();}
