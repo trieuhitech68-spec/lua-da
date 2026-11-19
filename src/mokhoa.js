@@ -38,7 +38,12 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
   else if(v==='kn'){S.knL=S.knL||{};for(const k of KNS)S.knL[k.id]=1;uiToast('🛠️ Đã học hết chiêu.','');}else if(v==='dt'){DT.force=!DT.force;uiToast(DT.force?'🛠️ Di tích mở ngay bây giờ.':'🛠️ Di tích mở theo giờ.','');}
   try{save();uiHotbar();ptDraw();}catch(er){}},true);
 /* ---------- 2. HỌC CHIÊU ---------- */
-const KNC={pow:{meatCooked:3,stick:4},dash:{fiber:8,hide:1},rally:{meatCooked:6,hide:2},heal:{fiber:6,mugwort:2},roar:{bone:5,hide:4},spin:{bikip:1,bone:4}};
+/* hai chiêu mới: Thủ thế (học bằng vật liệu thường) và Cuồng nộ (cần bí kíp + cổ vật từ di tích) */
+try{if(!KNS.some(k=>k.id==='guard'))KNS.push({id:'guard',lv:12,ic:'🛡️',n:'Thủ thế',d:'5 giây chịu đòn nhẹ hơn một nửa.',st:15,cd:25,key:'KeyJ'},{id:'fury',lv:30,ic:'🔥',n:'Cuồng nộ',d:'8 giây đánh mạnh hơn 60%.',st:30,cd:60,key:'KeyK'});}catch(e){}
+{const _ku=knUse;knUse=function(id){const c0=KN.cd[id]||0;const r=_ku.apply(this,arguments);try{if((KN.cd[id]||0)!==c0){if(id==='guard')KN.guard=G.t+5;else if(id==='fury')KN.fury=G.t+8;}}catch(e){}return r;};}
+{const _hd=heroDef;heroDef=function(){let v=_hd.apply(this,arguments);try{if((KN.guard||0)>G.t)v=Math.min(0.92,v+(1-v)*0.5);}catch(e){}return v;};}
+{const k=()=>(KN.fury||0)>G.t?1.6:1;const _ad=animalDamage;animalDamage=function(a,dmg){return _ad.call(this,a,dmg*k());};const _fd=foeDamage;foeDamage=function(f,dmg){return _fd.call(this,f,dmg*k());};}
+const KNC={guard:{hide:4,bone:3},fury:{bikip:2,covat:1},pow:{meatCooked:3,stick:4},dash:{fiber:8,hide:1},rally:{meatCooked:6,hide:2},heal:{fiber:6,mugwort:2},roar:{bone:5,hide:4},spin:{bikip:1,bone:4}};
 function knLearned(k){if(mkFree())return knLv()>=k.lv||mkAdmin();if(!S)return false;if(!S.knL||typeof S.knL!=='object'){/* nhân vật cũ: chiêu đã đủ cấp coi như đã học */S.knL={};for(const q of KNS)if(knLv()>=q.lv)S.knL[q.id]=1;}return !!S.knL[k.id];}
 function knCost(k){const c=Object.assign({},KNC[k.id]||{meatCooked:4});for(const i in c)if(!ITEMS[i])delete c[i];return c;}
 function knLearn(id){const k=KNS.find(x=>x.id===id);if(!k||!S)return;if(knLearned(k)){uiToast('Chiêu này bạn đã học rồi.','');return;}if(knLv()<k.lv){uiToast(`${k.n}: cần nhân vật cấp ${k.lv} mới học được.`,'bad');return;}const c=knCost(k);if(!canPay(c)){uiToast('Thiếu lễ vật học chiêu: '+Object.entries(c).map(([i,v])=>v+' '+ITEMS[i].n.toLowerCase()).join(', ')+(c.bikip?'. Thẻ tre bí kíp chỉ có trong di tích cổ.':'.'),'bad');try{sfx('no');}catch(e){}return;}

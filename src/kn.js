@@ -19,7 +19,7 @@ const KNS=[
  {id:'spin',lv:20,ic:'🌀',n:'Quét vòng',d:'Đánh mọi kẻ địch trong 5 m quanh mình.',st:25,cd:15,key:'KeyH'}];
 const knLv=()=>typeof heroLv==='function'?heroLv():1;
 const knHas=k=>typeof knLearned==='function'?knLearned(k):knLv()>=k.lv;/* chiêu phải HỌC (mokhoa.js); chưa nạp phần đó thì theo cấp như cũ */
-function knUse(id){const k=KNS.find(x=>x.id===id);if(!k||!S||!G.on||G.sleeping)return;if(!knHas(k)){uiToast(`${k.n}: học được khi nhân vật đạt cấp ${k.lv}.`,'');return;}const left=(KN.cd[id]||0)-G.t;if(left>0){uiToast(`${k.n} còn hồi ${Math.ceil(left)} giây.`,'');return;}
+function knUse(id){const k=KNS.find(x=>x.id===id);if(!k||!S||!G.on||G.sleeping)return;if(!knHas(k)){uiToast(knLv()>=k.lv?`${k.n}: chưa học. Mở 🧍 Nhân vật → Kỹ năng để học.`:`${k.n}: học được khi nhân vật đạt cấp ${k.lv}.`,'');return;}const left=(KN.cd[id]||0)-G.t;if(left>0){uiToast(`${k.n} còn hồi ${Math.ceil(left)} giây.`,'');return;}
   if(S.p.stam<k.st){uiToast('Không đủ thể lực.','bad');sfx('no');return;}
   if(id==='heal'){if(invCount('fiber')<2){uiToast('Cần 2 sợi cỏ để băng bó.','bad');sfx('no');return;}invTake('fiber',2);S.p.hp=Math.min(100,S.p.hp+30);try{delete S.st.bleed;}catch(e){}uiHotbar();}
   else if(id==='pow'){KN.pow=G.t+10;}
@@ -39,7 +39,7 @@ setInterval(()=>{try{if(!S||!G.on)return;if(!S.kn||typeof S.kn!=='object')S.kn={
 function knUi(force){const acts=document.querySelector('#game .acts');if(!acts)return;
   if(!document.getElementById('knSw')){acts.insertAdjacentHTML('beforeend','<button id="knSw" class="rbtn sm kn-sw" aria-label="Đổi trang nút">⇄<i>Kỹ năng</i></button>');KNS.forEach(k=>acts.insertAdjacentHTML('beforeend',`<button class="rbtn kn-b" data-kn="${k.id}" aria-label="${k.n}"><span>${k.ic}</span><i>${k.n}</i><em></em></button>`));}
   acts.classList.toggle('kn-p2',KN.page===1);const sw=document.getElementById('knSw');const any=KNS.some(knHas);sw.hidden=false;const lb=KN.page?'Hành động':'Kỹ năng';if(sw.dataset.l!==lb){sw.dataset.l=lb;sw.innerHTML='⇄<i>'+lb+'</i>';}sw.classList.toggle('kn-new',any&&!KN.page&&!S.knSeen);
-  acts.querySelectorAll('.kn-b').forEach(b=>{const k=KNS.find(x=>x.id===b.dataset.kn),has=knHas(k),left=Math.max(0,(KN.cd[k.id]||0)-G.t),em=b.querySelector('em');b.classList.toggle('kn-lock',!has);b.classList.toggle('kn-cd',left>0);const t=!has?'cấp '+k.lv:left>0?String(Math.ceil(left)):'';if(em.textContent!==t)em.textContent=t;b.classList.toggle('on',(k.id==='pow'&&KN.pow>G.t)||(k.id==='dash'&&KN.dash>G.t)||(k.id==='rally'&&KN.rally>G.t));});}
+  acts.querySelectorAll('.kn-b').forEach(b=>{const k=KNS.find(x=>x.id===b.dataset.kn),has=knHas(k),left=Math.max(0,(KN.cd[k.id]||0)-G.t),em=b.querySelector('em');b.classList.toggle('kn-lock',!has);b.classList.toggle('kn-cd',left>0);const t=!has?(knLv()>=k.lv?'học':'cấp '+k.lv):left>0?String(Math.ceil(left)):'';if(em.textContent!==t)em.textContent=t;b.classList.toggle('on',(k.id==='pow'&&KN.pow>G.t)||(k.id==='dash'&&KN.dash>G.t)||(k.id==='rally'&&KN.rally>G.t));});}
 function knPage(p){KN.page=p==null?1-KN.page:p;if(KN.page&&S)S.knSeen=1;sfx('pick');knUi(true);}
 document.addEventListener('click',e=>{const t=e.target&&e.target.closest&&e.target.closest('#knSw,.kn-b,[data-a="dropn"]');if(!t||!S)return;e.stopImmediatePropagation();e.preventDefault();
   if(t.id==='knSw'){knPage();return;}if(t.dataset.kn){knUse(t.dataset.kn);return;}
