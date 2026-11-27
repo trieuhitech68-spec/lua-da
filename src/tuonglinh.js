@@ -88,3 +88,12 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 if(typeof m2MyStats==='function'&&typeof m2ValLb==='function'){const _ms=m2MyStats;m2MyStats=function(){const s=_ms.apply(this,arguments);try{s.tl=Math.round(ptData().score);}catch(e){}return s;};
   const _vl=m2ValLb;m2ValLb=function(uid,d){const v=_vl.apply(this,arguments);try{if(v&&d)v.tl=mpNum(d.tl,0,1e7)?Math.floor(d.tl):0;}catch(e){}return v;};
   if(typeof M2LB!=='undefined'&&!M2LB.some(x=>x[0]==='tl'))M2LB.unshift(['tl','👑 Thế lực','']);}
+
+/* ---------- LUYỆN QUÂN Ở TRẠI LÍNH ----------
+   Trước: lính, tướng chỉ lên cấp khi đánh nhau thật; làng yên bình thì đạo quân mãi cấp 1. Các game cùng thể loại (trại lính, bãi tập) đều cho luyện theo thời gian.
+   Giờ: có Trại lính thì mỗi giờ trong game, lính không bị thương thêm 1 kinh nghiệm, tướng thêm 1 kinh nghiệm, chỉ tới cấp LQ_CAP; cao hơn phải ra trận. */
+const LQ_CAP=5;
+{const _fh=folkHourly;folkHourly=function(gh){const r=_fh.apply(this,arguments);try{if(!S||!S.folk||typeof qhHas!=='function'||!qhHas('qh_linh'))return r;
+    for(const f of S.folk){if(f.job!=='soldier'||f.wd||f.cap>0||danLv(f)>=LQ_CAP)continue;danXp(f,1);}
+    for(const g of tgList())if((g.lv||1)<LQ_CAP)tgXp(g,1);}catch(e){}return r;};}
+{const _th=tgHtml;tgHtml=function(){let h=_th.apply(this,arguments);try{if(qhHas('qh_linh'))h+=`<span class="small muted">🏹 Trại lính tự luyện quân: lính và tướng dưới cấp ${LQ_CAP} thêm kinh nghiệm mỗi giờ trong game. Muốn cao hơn phải ra trận.</span>`;}catch(e){}return h;};}

@@ -43,3 +43,15 @@ if(typeof accLS==='function'){const _al=accLS;accLS=function(k,v){try{if(typeof 
       if(v===undefined){if(LTH2.raw&&LTH2.rawId===id)return LTH2.raw;}
       else if(v===null){lidbDel(k);if(LTH2.rawId===id)LTH2.raw=null;try{localStorage.removeItem('ld-lsT#'+id);}catch(e){}}
       else{if(LTH2.rawId===id)LTH2.raw=null;try{localStorage.setItem('ld-lsT#'+id,String(Date.now()));}catch(e){}}}}catch(e){}return _al.apply(this,arguments);};}
+
+/* ---------- BẢN LƯU TRÊN MÁY BỊ XOÁ, BẢN GHI NỀN CÒN: KHÔNG TẢI ĐÈ BẢN CŨ TRÊN MÁY CHỦ ----------
+   Chạy thử (mở thẳng tệp HTML, tải lại trang): 2/3 lần trình duyệt xoá sạch ngăn lưu chính (localStorage) nhưng bản ghi nền (IndexedDB) vẫn giữ bản mới;
+   game không thấy nhân vật trên máy nên tải bản cũ trên máy chủ về → nhân vật cấp 11 trở về cấp 1. Giờ bấm «Chơi»: nếu bản ghi nền của nhân vật đó mới hơn
+   bản trên máy và mới hơn bản trên máy chủ thì chép bản ghi nền vào máy trước, coi như bản mới nhất (máy chủ sẽ nhận bản này ở lần đẩy kế tiếp). */
+function lidbGet(k){return new Promise(res=>{try{if(!LIDB.ok)return res(null);const rq=LIDB.db.transaction('s','readonly').objectStore('s').get(k);rq.onsuccess=()=>res(rq.result||null);rq.onerror=()=>res(null);}catch(e){res(null);}});}
+addEventListener('click',e=>{try{const b=e.target&&e.target.closest&&e.target.closest('[data-a="chplay"]');if(!b||b._lidbOk||!LIDB.ok||typeof SKEY==='undefined')return;const id=b.dataset.id;if(!id)return;
+  e.stopImmediatePropagation();e.preventDefault();const k=SKEY+'#'+id;
+  lidbGet(k).then(v=>{try{if(v&&typeof v.raw==='string'&&v.raw.length>20){const lsT=+(localStorage.getItem('ld-lsT#'+id)||0)||0,has=localStorage.getItem(k)!=null,C=(typeof ACC==='object'&&ACC.cloud&&ACC.cloud[id])||null;
+      if((!has||v.ts>lsT)&&(!C||v.ts>(C.ts||0)+1000)){const o=JSON.parse(v.raw);if(o&&o.v===1){localStorage.setItem(k,v.raw);localStorage.setItem('ld-lsT#'+id,String(v.ts));
+          try{const sl=slotsLocal();sl[id]=Object.assign({},sl[id]||{},slotMeta(o),{ts:v.ts});slotsWrite(sl);}catch(er){}if(C&&typeof accRev==='function')accRev(id,Math.max(accRev(id),C.rev|0));LIDB.rec=(LIDB.rec|0)+1;}}}}catch(er){}
+    b._lidbOk=1;b.click();setTimeout(()=>{b._lidbOk=0;},3000);});}catch(er){}},true);

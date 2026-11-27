@@ -7,7 +7,7 @@
      · dlTile(tx,tz) một MẢNH 64×64 ô (1920 đơn vị mỗi chiều): mảng độ cao + mực nước, tính khi cần, nhớ tối đa DL.cap mảnh gần đây nhất.
      · dlH / dlW     độ cao / mực nước tại điểm, lấy từ mảnh (nội suy như hAt cũ nên mặt đất liền nhau qua mép mảnh).
    Các đợt sau: lưới mặt đất theo mảnh, cây đá theo mảnh, thú - làng theo mảnh, bản đồ, nhiều người chơi. */
-const DL={seed:1,R:60000,HS:30,TN:64,cap:320,tiles:new Map(),tick:0,made:0};
+const DL={seed:1,R:60000,HS:30,TN:64,cap:460,tiles:new Map(),tick:0,made:0};
 DL.TS=DL.HS*DL.TN;
 /* nhiễu giá trị có đạo hàm mượt, tự chứa (không phụ thuộc bộ nhiễu của thế giới cũ) */
 function dlHash(ix,iz,s){let h=(Math.imul(ix,374761393)^Math.imul(iz,668265263)^Math.imul(s,2147483647))|0;h=Math.imul(h^(h>>>13),1274126177);h^=h>>>16;return (h>>>0)/4294967296;}
@@ -60,6 +60,17 @@ function dlTile(tx,tz){const key=tx+','+tz;let t=DL.tiles.get(key);if(t){t.u=++D
 function dlH(x,z){const TS=DL.TS,tx=Math.floor(x/TS),tz=Math.floor(z/TS),t=dlTile(tx,tz),N=DL.TN+1,fx=(x-tx*TS)/DL.HS,fz=(z-tz*TS)/DL.HS;let i=Math.floor(fx),j=Math.floor(fz);if(i>=DL.TN)i=DL.TN-1;if(j>=DL.TN)j=DL.TN-1;const u=fx-i,v=fz-j,H=t.H,a=H[j*N+i],b=H[j*N+i+1],c=H[(j+1)*N+i],d=H[(j+1)*N+i+1];return a+(b-a)*u+((c+(d-c)*u)-(a+(b-a)*u))*v;}
 /* mực nước: biển, sông, hồ đều ở mực 0 (sông là thung lũng khoét xuống dưới 0) */
 function dlW(x,z){return dlH(x,z)<0?0:-999;}
+/* độ cao tại điểm lưới: điểm trùng đúng nút của một mảnh ĐÃ TÍNH sẵn thì đọc thẳng (giá trị như dlBase), không thì tính như cũ. Không tự tạo mảnh mới. */
+function dlGH(X,Z){const TS=DL.TS,HS=DL.HS,tx=Math.floor(X/TS),tz=Math.floor(Z/TS),fi=(X-tx*TS)/HS,fj=(Z-tz*TS)/HS,ri=Math.round(fi),rj=Math.round(fj);
+  if(Math.abs(fi-ri)<1e-6&&Math.abs(fj-rj)<1e-6){const t=DL.tiles.get(tx+','+tz);if(t){t.u=++DL.tick;return t.H[rj*(DL.TN+1)+ri];}}return dlBase(X,Z);}
+/* TÍNH TRƯỚC tỉnh kế bên: đi tới gần ranh giới (còn ~300 m) thì tranh thủ lúc rảnh tính sẵn các mảnh địa hình của tỉnh phía trước, mỗi nhịp vài mảnh,
+   để lúc sang tỉnh phần dựng độ cao chỉ còn đọc lại (trước phải tính lại toàn bộ ~270 nghìn điểm, đứng hình thêm gần 0,3 giây). */
+const DLPW={k:null,q:[]};
+setInterval(()=>{try{if(!DL.on||typeof G!=='object'||!G.on||DL.busy||!S||!S.dl)return;const A=dlA(),h=A/2,mg=Math.min(2500,h*0.6);let dx=0,dz=0;if(P.x>h-mg)dx=A;else if(P.x<-h+mg)dx=-A;if(P.z>h-mg)dz=A;else if(P.z<-h+mg)dz=-A;
+    if(!dx&&!dz){DLPW.k=null;DLPW.q.length=0;return;}const nox=S.dl.ox+dx,noz=S.dl.oz+dz,k=nox+','+noz;
+    if(DLPW.k!==k){DLPW.k=k;DLPW.q.length=0;const TS=DL.TS,W=WSIZE/2+TS;for(let tz=Math.floor((noz-W)/TS);tz<=Math.floor((noz+W)/TS);tz++)for(let tx=Math.floor((nox-W)/TS);tx<=Math.floor((nox+W)/TS);tx++)if(!DL.tiles.has(tx+','+tz))DLPW.q.push([tx,tz]);
+      /* gần người chơi trước */DLPW.q.sort((a,b)=>Math.hypot(b[0]*TS-S.dl.ox-P.x,b[1]*TS-S.dl.oz-P.z)-Math.hypot(a[0]*TS-S.dl.ox-P.x,a[1]*TS-S.dl.oz-P.z));}
+    const t0=performance.now();while(DLPW.q.length&&performance.now()-t0<20){const e=DLPW.q.pop();dlTile(e[0],e[1]);}}catch(e){}},150);
 /* chỉ xoá các mảnh đã tính khi ĐỔI hạt giống hoặc đổi cỡ mảnh: trước cứ mỗi lần dựng lại vùng (sang tỉnh) là xoá sạch, phải tính lại cả những mảnh vừa dùng */
 function dlInit(seed){const s=(seed|0)||1,k=s+':'+DL.HS+':'+DL.TN;if(DL.ik===k)return;DL.ik=k;DL.seed=s;DL.tiles.clear();DL.tick=0;DL.made=0;}
 if(typeof module!=='undefined')module.exports={DL,dlBase,dlTile,dlH,dlW,dlInit,dlClim,dlZoneAt};
@@ -161,7 +172,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
      (bản chung hỏi câu đó hai lần cho MỌI ô, rồi còn dựng lưới "vùng mới" của bản đồ cũ mà đại lục không dùng). */
   {const _hb=heightsBuild;heightsBuild=function(){if(!DL.on)return _hb.apply(this,arguments);riversSurface();HG=new Float32Array(HN*HN);WG=new Float32Array(HN*HN);try{if(typeof W4==='object')W4.ZG=null;}catch(e){}const C=400,has=RBK&&RBK.size?RBK:null;
       for(let j=0;j<HN;j++){const z=-WOZ+j*HSTEP,bz=Math.floor(z/C);let bx0=1e9,near=false;for(let i=0;i<HN;i++){const x=-WSIZE/2+i*HSTEP,k=j*HN+i;if(has){const bx=Math.floor(x/C);if(bx!==bx0){bx0=bx;near=has.has(bx+','+bz);}}
-          if(near){const h=rawH(x,z);HG[k]=h;const q=riverQ(x,z);let w=h<0?0:-999;if(q.r>=0&&q.d<q.w*0.5+HSTEP&&q.s>0.5)w=Math.max(w,q.s);WG[k]=w;}else{const h=baseH(x,z);HG[k]=h;WG[k]=h<0?0:-999;}}}};}
+          if(near){const h=rawH(x,z);HG[k]=h;const q=riverQ(x,z);let w=h<0?0:-999;if(q.r>=0&&q.d<q.w*0.5+HSTEP&&q.s>0.5)w=Math.max(w,q.s);WG[k]=w;}else{const h=dlGH(x+DL.ox,z+DL.oz);HG[k]=h;WG[k]=h<0?0:-999;}}}};}
   /* lưới sinh cảnh: tính MỘT lần mỗi lần dựng vùng (trước hai lần) và tính thưa gấp đôi (một điểm cho mỗi khối 2×2 ô, bám toạ độ đại lục) */
   {const _bg=biomeGridBuild;biomeGridBuild=function(){if(!DL.on)return _bg.apply(this,arguments);const key=DL.ox+','+DL.oz+':'+(DL.bgN|0);if(DL.bgKey===key&&typeof BG!=='undefined'&&BG&&BG.length===HN*HN)return;DL.bgKey=key;BG=new Uint8Array(HN*HN);
       for(let j=0;j<HN;j+=2)for(let i=0;i<HN;i+=2){const x=-WSIZE/2+i*HSTEP,z=-WOZ+j*HSTEP,c=Math.max(0,BCODE.indexOf(biome(x,z))),k=j*HN+i;BG[k]=c;if(i+1<HN)BG[k+1]=c;if(j+1<HN){BG[k+HN]=c;if(i+1<HN)BG[k+HN+1]=c;}}};}
@@ -246,8 +257,8 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
      Lúc đang kéo, phóng thì vẽ tạm bằng ảnh vừa có (mượt), dừng tay 0,12 giây mới tính lại nét. */
   DL.mv=null;
   const DL_ZC=[[52,92,84],[30,128,52],[178,160,84],[120,158,64],[156,172,96]];
-  function dlMV(){if(!DL.mv)DL.mv={z:1,cx:0,cz:0};const v=DL.mv,full=DL.R*2.1;v.z=Math.max(1,Math.min(48,v.z));const span=full/v.z,lim=full/2-span/2;v.cx=Math.max(-lim,Math.min(lim,v.cx));v.cz=Math.max(-lim,Math.min(lim,v.cz));return {span,x0:v.cx-span/2,z0:v.cz-span/2};}
-  function dlMapSharp(){try{const cv=document.getElementById('dlmap');if(!cv||!DL.on)return;const V=dlMV(),n=180,off=DL.mapC||(DL.mapC=document.createElement('canvas'));off.width=off.height=n;const oc=off.getContext('2d'),im=oc.createImageData(n,n),d=im.data;
+  function dlMV(){if(!DL.mv)DL.mv={z:1,cx:0,cz:0};const v=DL.mv,full=DL.R*2.1;v.z=Math.max(1,Math.min(220,v.z));const span=full/v.z,lim=full/2-span/2;v.cx=Math.max(-lim,Math.min(lim,v.cx));v.cz=Math.max(-lim,Math.min(lim,v.cz));return {span,x0:v.cx-span/2,z0:v.cz-span/2};}
+  function dlMapSharp(){try{const cv=document.getElementById('dlmap');if(!cv||!DL.on)return;const V=dlMV(),n=Math.max(180,Math.min(360,Math.round((cv.width||300)*0.6))),off=DL.mapC||(DL.mapC=document.createElement('canvas'));off.width=off.height=n;const oc=off.getContext('2d'),im=oc.createImageData(n,n),d=im.data;
       for(let j=0;j<n;j++)for(let i=0;i<n;i++){const h=dlBase(V.x0+(i+0.5)/n*V.span,V.z0+(j+0.5)/n*V.span),k=(j*n+i)*4;let r,g,b;if(h<-20){r=38;g=84;b=120;}else if(h<0){r=64;g=124;b=156;}else if(h<8){r=188;g=178;b=132;}else if(h<230){if(h<90){r=66;g=112;b=50;}else{r=50;g=90;b=42;}/* nhuộm theo miền để nhìn bản đồ là thấy đại lục chia vùng */const cw=dlClim(V.x0+(i+0.5)/n*V.span,V.z0+(j+0.5)/n*V.span);for(let q=0;q<5;q++){const w=cw[q]*0.75;if(w>0){const C=DL_ZC[q];r+=(C[0]-r)*w;g+=(C[1]-g)*w;b+=(C[2]-b)*w;}}}else if(h<760){r=118;g=112;b=102;}else{r=236;g=240;b=246;}d[k]=r;d[k+1]=g;d[k+2]=b;d[k+3]=255;}
       oc.putImageData(im,0,0);DL.mapV={x0:V.x0,z0:V.z0,span:V.span};dlMapDraw();}catch(e){}}
   function dlMapDraw(){try{const cv=document.getElementById('dlmap');if(!cv||!DL.on)return;const pr=Math.min(2,devicePixelRatio||1),W=Math.max(200,Math.round(cv.clientWidth||340));if(cv.width!==Math.round(W*pr)){cv.width=cv.height=Math.round(W*pr);}const c=cv.getContext('2d');c.setTransform(pr,0,0,pr,0,0);
@@ -255,7 +266,10 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
       if(DL.mapC&&DL.mapV){const m=DL.mapV;c.imageSmoothingEnabled=true;c.drawImage(DL.mapC,X(m.x0),Z(m.z0),m.span*k,m.span*k);}
       if(!DL.mapV||DL.mapV.x0!==V.x0||DL.mapV.z0!==V.z0||DL.mapV.span!==V.span){clearTimeout(DL.mapT);DL.mapT=setTimeout(dlMapSharp,DL.mapV?120:0);}
       /* phóng đủ gần: phủ ảnh chi tiết của tỉnh đang đứng */
-      if(DL.mv.z>=5){try{const b=mapBase();if(b)c.drawImage(b,X(DL.ox-WSIZE/2),Z(DL.oz-WOZ),WSIZE*k,WSIZE*k);}catch(e){}}
+      if(DL.mv.z>=5){try{const b=mapBase();if(b)c.drawImage(b,X(DL.ox-WSIZE/2),Z(DL.oz-WOZ),WSIZE*k,WSIZE*k);}catch(e){}
+        /* phóng gần hơn nữa (khung nhìn nằm trọn trong vùng đã nạp): vẽ lại đúng khung đang nhìn ở độ nét màn hình, thay cho ảnh cả tỉnh bị kéo giãn mờ */
+        try{const lx=V.x0-DL.ox,lz=V.z0-DL.oz;if(DL.mv.z>=9&&lx>=-WSIZE/2&&lz>=-WOZ&&lx+V.span<=WSIZE/2&&lz+V.span<=WSIZE-WOZ){const key=[Math.round(lx),Math.round(lz),Math.round(V.span)].join(',');const D=DL.mdet;
+            if(D&&D.key===key)c.drawImage(D.cv,0,0,W,W);else{if(D&&D.cv&&D.span){const s=W/V.span;c.drawImage(D.cv,(D.lx-lx)*s,(D.lz-lz)*s,D.span*s,D.span*s);}clearTimeout(DL.mdetT);DL.mdetT=setTimeout(()=>{try{if(!document.getElementById('dlmap'))return;const N=Math.max(240,Math.min(480,Math.round(W*pr*0.75)));DL.mdet={key,lx,lz,span:V.span,cv:mapRender(lx,lz,V.span,N)};dlMapDraw();}catch(e){}},160);}}}catch(e){}}
       /* lưới tỉnh + tên tỉnh */
       c.strokeStyle='rgba(255,255,255,.18)';c.lineWidth=1;const i0=Math.floor(V.x0/A)-1,i1=Math.ceil((V.x0+V.span)/A)+1,j0=Math.floor(V.z0/A)-1,j1=Math.ceil((V.z0+V.span)/A)+1;
       for(let i=i0;i<=i1;i++){const p=X((i+0.5)*A);c.beginPath();c.moveTo(p,0);c.lineTo(p,W);c.stroke();}for(let j=j0;j<=j1;j++){const p=Z((j+0.5)*A);c.beginPath();c.moveTo(0,p);c.lineTo(W,p);c.stroke();}
@@ -268,12 +282,15 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
           c.fillStyle='#ff9a3a';for(const u in MP.players||{}){if(u===MP.uid||(typeof mpSeeDot==='function'&&!mpSeeDot(u)))continue;const fl=MP.players[u].fl||{};for(const q in fl){const o=dec(q),f=fl[q];if(!o||!f)continue;c.beginPath();c.arc(X(o[0]+f[0]),Z(o[1]+f[1]),3,0,7);c.fill();}}
           if(DL.mv.z>=5)for(const u in MP.claims||{}){const q=MP.claims[u];c.strokeStyle=u===MP.uid?'#f2c55a':'rgba(240,230,210,.8)';c.lineWidth=1.5;c.beginPath();c.arc(X(q.x+DL.ox),Z(q.z+DL.oz),q.r*k,0,7);c.stroke();}}}catch(e){}
       /* trong tỉnh đang đứng: nhà cửa, làng, trại, cờ, thú cưỡi */
-      if(DL.mv.z>=6){c.fillStyle='#7a2e12';for(const b of S.builds||[]){const d=pieceDef(b.k);if(!d||d.kind==='edge'||d.kind==='roof'||d.kind==='corner')continue;const a=X(b.x+DL.ox),z=Z(b.z+DL.oz);if(a<0||z<0||a>W||z>W)continue;c.fillRect(a-1.5,z-1.5,3,3);}}
+      if(DL.mv.z>=40&&typeof mapResDraw==='function')mapResDraw(c,X,Z,k,DL.ox,DL.oz,V.x0,V.z0,V.x0+V.span,V.z0+V.span);
+      if(DL.mv.z>=14&&typeof mapBuildsDraw==='function')mapBuildsDraw(c,X,Z,k,DL.ox,DL.oz,V.x0,V.z0,V.x0+V.span,V.z0+V.span);
+      else if(DL.mv.z>=6){c.fillStyle='#7a2e12';for(const b of S.builds||[]){const d=pieceDef(b.k);if(!d||d.kind==='edge'||d.kind==='roof'||d.kind==='corner')continue;const a=X(b.x+DL.ox),z=Z(b.z+DL.oz);if(a<0||z<0||a>W||z>W)continue;c.fillRect(a-1.5,z-1.5,3,3);}}
       if(G.village)ico('🛖',G.village.x+DL.ox,G.village.z+DL.oz);if(G.camp)ico('⚔️',G.camp.x+DL.ox,G.camp.z+DL.oz,13);if(S.mark)ico('📍',S.mark.x+DL.ox,S.mark.z+DL.oz);
       try{for(const m of S.mounts||[])if(m.x!=null&&G.mnt!==m&&(m.land||'c')===(S.land||'c'))ico(m.k==='elephant'?'🐘':'🐎',m.x+DL.ox,m.z+DL.oz,13);}catch(e){}
       if(S.dlSafe)ico('🏠',S.dlSafe.x,S.dlSafe.z);
-      const px=X(P.x+DL.ox),pz=Z(P.z+DL.oz);c.fillStyle='#fff';c.strokeStyle='#000';c.lineWidth=1.5;c.beginPath();c.arc(px,pz,4.5,0,7);c.fill();c.stroke();c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.moveTo(px,pz);c.lineTo(px+Math.sin(P.ry||0)*11,pz+Math.cos(P.ry||0)*11);c.stroke();}catch(e){}}
-  function dlMapZoom(f,gx,gz){const v=DL.mv||(DL.mv={z:1,cx:0,cz:0}),nz=Math.max(1,Math.min(48,v.z*f));if(gx!=null){const kk=1-v.z/nz;v.cx+=(gx-v.cx)*kk;v.cz+=(gz-v.cz)*kk;}v.z=nz;dlMapDraw();}
+      const px=X(P.x+DL.ox),pz=Z(P.z+DL.oz);c.fillStyle='#fff';c.strokeStyle='#000';c.lineWidth=1.5;c.beginPath();c.arc(px,pz,4.5,0,7);c.fill();c.stroke();c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.moveTo(px,pz);c.lineTo(px+Math.sin(P.ry||0)*11,pz+Math.cos(P.ry||0)*11);c.stroke();
+      /* thước đo (1 m = 20 đơn vị) */{const m=[5,10,20,50,100,200,500,1000,2000,5000].find(m=>m*20*k>50)||5000,L=m*20*k;c.fillStyle='rgba(0,0,0,.55)';c.fillRect(11,W-15,L+2,5);c.fillStyle='#fff';c.fillRect(12,W-14,L,3);c.textAlign='left';c.textBaseline='alphabetic';c.font='600 11px system-ui';c.fillText(m>=1000?(m/1000)+' km':m+' m',12,W-20);}}catch(e){}}
+  function dlMapZoom(f,gx,gz){const v=DL.mv||(DL.mv={z:1,cx:0,cz:0}),nz=Math.max(1,Math.min(220,v.z*f));if(gx!=null){const kk=1-v.z/nz;v.cx+=(gx-v.cx)*kk;v.cz+=(gz-v.cz)*kk;}v.z=nz;dlMapDraw();}
   if(typeof mapHtml==='function'){const _mh=mapHtml;mapHtml=function(){let h=_mh.apply(this,arguments);try{if(DL.on){if(!DL.mv)DL.mv={z:6,cx:P.x+DL.ox,cz:P.z+DL.oz};
         h=`<div class="landbox dl-map"><b>🌏 Đại lục · ${esc('Tỉnh '+dlProvName(DL.ox,DL.oz))} · ${(z=>z.ic+' '+esc(z.n))(dlZoneAt(DL.ox+P.x,DL.oz+P.z))}</b><div class="dl-zl small">❄️ Lạnh phương Bắc · 🌴 Nhiệt đới · 🌾 Thảo nguyên · 🎋 Đồi tre · 🌼 Đồng hoa · 🌳 Ôn hoà</div><div class="dl-mw"><canvas id="dlmap"></canvas><div class="dl-mb"><button class="btn sm" data-a="dlz" data-v="in">＋</button><button class="btn sm" data-a="dlz" data-v="out">−</button><button class="btn sm" data-a="dlz" data-v="me" title="Về chỗ mình">◎</button><button class="btn sm" data-a="dlz" data-v="all" title="Cả đại lục">🌏</button></div></div>
           <span class="small muted">Kéo để dời, lăn chuột hoặc chụm hai ngón để phóng. Khung vàng: tỉnh đang đứng · chấm trắng: bạn · 🏠 nơi bắt đầu · 🚩 số lãnh thổ · chấm cam: nhà người khác. Chạm vào bản đồ trong tỉnh đang đứng để cắm cờ 📍 dẫn đường.</span></div>
@@ -304,7 +321,8 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
       if(S.army&&typeof S.army.hx==='number'){S.army.hx-=dx;S.army.hz-=dz;}
       S.dl={ox:nox,oz:noz};S.seed=dlSeedAt(nox,noz);S.land=dlKey(nox,noz);/* thú cưỡi (ngựa, voi) ở đại lục dùng chung một hệ toạ độ đã dời ở trên: ghi lại tỉnh mới, không thì con đang cưỡi bị coi là ở tỉnh cũ và người chơi rớt xuống đất */try{for(const m of S.mounts||[])if(m&&m.x!=null)m.land=S.land;if(G.mnt){G.mnt.x=+P.x.toFixed(1);G.mnt.z=+P.z.toFixed(1);S.mntOn=G.mnt.id;}}catch(e){}S.wx=null;G.walkTo=null;G.act=null;try{if(typeof AQ==='object'&&AQ.on)aqStop();}catch(e){}
       /* cách nhanh: dựng lại vùng mới ngay trong trang (không tải lại, giữ bộ vẽ, mô hình, shader). Cứ 6 lần thì tải lại trang một lần để dọn bộ nhớ đồ hoạ; lỗi giữa chừng cũng quay về cách tải lại. */
-      if(!DL.noIn&&(DL.inN|0)<6){/* không che màn hình: khung vẽ giữ nguyên hình đang thấy trong lúc dựng vùng mới (1-2 giây), chỉ hiện một dòng báo nhỏ */try{dlCard(nox,noz);}catch(e){}if(typeof saveNow==='function')saveNow();else save();DL.inN=(DL.inN|0)+1;G.ldLeaving=1;/* giữ màn hố đen tới khi dựng xong */setTimeout(()=>{let ok=false;try{ok=dlRebuild();}catch(e){console.warn('dựng lại tại chỗ',e);}if(ok){DL.busy=0;G.ldLeaving=0;try{dlCardOff();}catch(e){}DL.doneMs=Math.round(performance.now()-DL.shiftAt);DL.shiftAt=0;try{ldHoleOff();}catch(e){}try{save();}catch(e){}}else{DL.noIn=1;try{dlCardOff(1);ldHole('Đang nạp vùng đất kế tiếp…');}catch(e){}try{sessionStorage.setItem('ld-cont','1');sessionStorage.setItem('ld-cont-n','vùng đất kế tiếp');sessionStorage.removeItem('ldtt-autoh');}catch(e){}G.ldLeaving=2;location.reload();}},320);return true;}
+      /* trước: cứ 6 lần tải lại trang (vì cảnh cũ rò ~150 MB mỗi lần). Đã chặn rò (dlRebuild tháo cảnh cũ): đo 6 lần liền bộ nhớ lên xuống 385–790 MB rồi trả lại → giờ 30 lần mới tải lại */
+      if(!DL.noIn&&(DL.inN|0)<30){/* không che màn hình: khung vẽ giữ nguyên hình đang thấy trong lúc dựng vùng mới (1-2 giây), chỉ hiện một dòng báo nhỏ */try{dlCard(nox,noz);}catch(e){}if(typeof saveNow==='function')saveNow();else save();DL.inN=(DL.inN|0)+1;G.ldLeaving=1;/* giữ màn hố đen tới khi dựng xong */setTimeout(()=>{let ok=false;try{ok=dlRebuild();}catch(e){console.warn('dựng lại tại chỗ',e);}if(ok){DL.busy=0;G.ldLeaving=0;try{dlCardOff();}catch(e){}DL.doneMs=Math.round(performance.now()-DL.shiftAt);DL.shiftAt=0;try{ldHoleOff();}catch(e){}try{save();}catch(e){}}else{DL.noIn=1;try{dlCardOff(1);ldHole('Đang nạp vùng đất kế tiếp…');}catch(e){}try{sessionStorage.setItem('ld-cont','1');sessionStorage.setItem('ld-cont-n','vùng đất kế tiếp');sessionStorage.removeItem('ldtt-autoh');}catch(e){}G.ldLeaving=2;location.reload();}},320);return true;}
       try{ldHole('Đang nạp vùng đất kế tiếp…');sessionStorage.setItem('ld-cont-n','vùng đất kế tiếp');}catch(e){}
       G.ldLeaving=1;if(typeof saveNow==='function')saveNow();else save();G.ldLeaving=2;try{sessionStorage.setItem('ld-cont','1');sessionStorage.removeItem('ldtt-autoh');}catch(e){}
       const go=()=>{if(G.ldGone)return;G.ldGone=1;try{location.reload();}catch(e){}};
@@ -343,6 +361,8 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
     try{uiHud(true);uiHotbar();}catch(e){}
     /* bỏ cảnh cũ: trả bộ nhớ đồ hoạ của mọi lưới trong cảnh cũ. Khuôn dùng chung (thú, người) còn giữ dữ liệu nên lần vẽ sau tự nạp lại; lưới mặt đất cũ thì bỏ hẳn. */
     try{const seen=new Set();old.traverse(m=>{const g=m.geometry;if(g&&g.dispose&&!seen.has(g)){seen.add(g);try{g.dispose();}catch(e){}}});for(const o of olds){if(o&&o.parent)o.parent.remove(o);}}catch(e){}
+    /* tháo rời hẳn cảnh cũ: còn một vật lẻ nào bị giữ lại (bộ vẽ, danh sách tạm) thì qua .parent nó kéo theo CẢ thế giới cũ → mỗi lần sang tỉnh rò thêm ~150 MB (đo được), nên trước phải tải lại trang sau 6 lần */
+    try{old.clear();old.userData={};old.background=null;old.environment=null;}catch(e){}/* chỉ cắt ở cấp ngoài cùng: mô hình dùng lại (khuôn thú, người) giữ nguyên cây con */
     try{if(typeof mpLandRefresh==='function')mpLandRefresh();}catch(e){}
     DL.lastMs=Math.round(performance.now()-t0);return G.on===true;}
   setInterval(()=>{try{if(DL.on&&typeof G==='object'&&G.on&&!G.ldLeaving&&!DL.busy&&P.model&&G.animals&&G.animals.length){const el=document.getElementById('ldhole');if(el&&!el.classList.contains('out')){ldHoleOff();if(DL.shiftAt){DL.doneMs=Math.round(performance.now()-DL.shiftAt);DL.shiftAt=0;}}}}catch(e){}},200);

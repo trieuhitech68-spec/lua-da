@@ -132,6 +132,12 @@ echo "47. Tướng lĩnh, quân số theo tướng, sở trường, thăng sao, 
 OUT=$(timeout 500 node tuong-linh.js 2>&1); echo "$OUT" | grep -q "^TG-DAT" && ok "tướng lĩnh, phát triển" || bad "tướng lĩnh: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-800)"
 echo "48. Lính của người khác đang đứng yên: lính, lính gác, chó, linh thú, Tự làm không tự lao vào đánh; lính bị thương nghỉ 10 phút hay tạm đổi việc thì tướng vẫn còn"
 OUT=$(timeout 600 node mang/tuong-bi-thuong.js 2>&1); echo "$OUT" | grep -q "^TBT-DAT" && ok "không tự đánh lính hàng xóm, tướng không mất" || bad "lính hàng xóm, tướng: $(echo "$OUT" | tail -1 | cut -c1-700)"
-echo "49. Giả lập 10 người chơi cùng một thế giới: vào game, sinh tồn, phát triển, liên minh, quân đội, xâm chiếm, lưu và mở lại (≈15 phút; báo cáo chi tiết ở \$TMPDIR/ld-muoi-nguoi.json)"
-OUT=$(timeout 3000 node mang/muoi-nguoi.js 10 40 2>&1); echo "$OUT" | grep "^Tổng:" | sed "s/^/   /"; echo "$OUT" | grep -q "^MN-DAT" && ok "10 người chơi" || bad "10 người chơi: $(echo "$OUT" | grep "^MN-HONG" | cut -c1-900)"
+echo "49. Giả lập 20 người chơi cùng một thế giới, chạy 2 đợt 10 người (máy thử chỉ chịu ~10 trình duyệt): vào game, Tự làm, lãnh thổ, kinh tế (chế tạo, xây, nâng cấp, nghiên cứu, bản đồ), 3 liên minh, quân đội, luyện quân, hai cuộc chiến, lưu và mở lại (≈30 phút)"
+for D in "1:0,1,2,3,4,5,6,7,8,9" "2:10,11,12,13,14,15,16,17,18,19"; do n=${D%%:*}; [ $n = 1 ] && EX="DBOUT=$TMP/ld-mn-db.json" || EX="DBIN=$TMP/ld-mn-db.json"
+  OUT=$(env SUB=${D#*:} $EX timeout 3000 node mang/muoi-nguoi.js 20 40 2>&1); echo "$OUT" | grep "^Tổng:" | sed "s/^/   đợt $n: /"; echo "$OUT" | grep -q "^MN-DAT" && ok "20 người chơi · đợt $n" || bad "20 người chơi · đợt $n: $(echo "$OUT" | grep "^MN-HONG" | cut -c1-900)"; done
+echo "50. Bản đồ phóng sâu: bản đồ tỉnh ×28, đại lục ×220; nhà đúng hình, đúng hướng, cây đá từng cái, thước đo"
+OUT=$(timeout 600 node ban-do.js 2>&1); echo "$OUT" | grep -q "^BD-DAT" && ok "bản đồ tỉnh" || bad "bản đồ tỉnh: $(echo "$OUT" | tail -1 | cut -c1-500)"
+OUT=$(DL=1 timeout 600 node ban-do.js 2>&1); echo "$OUT" | grep -q "^BD-DAT" && ok "bản đồ đại lục" || bad "bản đồ đại lục: $(echo "$OUT" | tail -1 | cut -c1-500)"
+echo "51. Ngăn lưu chính bị trình duyệt xoá mà bản ghi nền còn: bấm Chơi lấy bản ghi nền, không tải đè bản cũ trên máy chủ"
+OUT=$(timeout 500 node luu-nen.js 2>&1); echo "$OUT" | grep -q "^LN-DAT" && ok "khôi phục từ bản ghi nền" || bad "bản ghi nền: $(echo "$OUT" | tail -2 | tr '\n' ' ' | cut -c1-500)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

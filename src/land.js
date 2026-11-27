@@ -17,7 +17,7 @@ function inFlat(x,z){for(const f of (S.flat||[]))if(Math.hypot(x-f.x,z-f.z)<f.r)
       TNRM[n*3]*=1-k;TNRM[n*3+1]=TNRM[n*3+1]*(1-k)+k;TNRM[n*3+2]*=1-k;}}};}
 // dựng lại các khối địa hình chạm vào khu vừa san
 function landRebuild(f){terrainColors();const S2=TCS*HSTEP;for(let cj=0;cj<TCN;cj++)for(let ci=0;ci<TCN;ci++){const x0=-WSIZE/2+ci*S2,z0=-WOZ+cj*S2;
-    if(f.x+f.r*1.3<x0||f.x-f.r*1.3>x0+S2||f.z+f.r*1.3<z0||f.z-f.r*1.3>z0+S2)continue;const c=TCH[cj*TCN+ci];if(!c)continue;[1,2,4].forEach((st,li)=>{const me=c.L[li];const old=me.geometry;me.geometry=terrainChunk(ci,cj,st);old.dispose();});}
+    if(f.x+f.r*1.3<x0||f.x-f.r*1.3>x0+S2||f.z+f.r*1.3<z0||f.z-f.r*1.3>z0+S2)continue;const c=TCH[cj*TCN+ci];if(!c)continue;[1,2,4].forEach((st,li)=>{const me=c.L[li];if(me._ok===false)return;/* mức chưa dựng: để terrainLod dựng khi cần (dùng địa hình mới) */const old=me.geometry;me.geometry=terrainChunk(ci,cj,st);old.dispose();});}
   try{if(typeof grassInit==='function')grassInit();}catch(e){}}
 function landCheck(r){const x=P.x,z=P.z;if(wdAt(x,z)>0.2)return 'Không san nền dưới nước.';if(slopeAt(x,z)>0.9)return 'Dốc quá, chọn chỗ bằng hơn.';
   if(typeof inCave==='function'&&inCave(x,z))return 'Trong hang đã có nền sẵn.';

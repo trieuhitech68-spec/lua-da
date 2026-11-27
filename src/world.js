@@ -125,9 +125,14 @@ function terrainChunk(ci,cj,step){const T=THREE,n=TCS/step+1,pos=[],nor=[],col=[
   for(let m=0;m<edge.length;m++){const a=edge[m],b2=edge[(m+1)%edge.length],sa=base+m,sb=base+(m+1)%edge.length;idx.push(a,sa,b2,b2,sa,sb);}
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('normal',new T.Float32BufferAttribute(nor,3));g.setAttribute('color',new T.Float32BufferAttribute(col,3));g.setAttribute('splat',new T.Float32BufferAttribute(spl,4));g.setIndex(idx);g.computeBoundingSphere();/* nạp lên card hình xong thì bỏ bản sao trong bộ nhớ máy (300 tấm mặt đất ~46 MB, không ai đọc lại) */{const drop=function(){this.array=null;};for(const k in g.attributes)g.attributes[k].onUpload(drop);g.index.onUpload(drop);}return g;}
 function terrainMesh(){const T=THREE;terrainColors();const m=new T.MeshStandardMaterial({vertexColors:true,roughness:0.96,metalness:0,side:T.DoubleSide});terrainSplatMat(m);
-  const grp=new T.Group();TCH=[];for(let cj=0;cj<TCN;cj++)for(let ci=0;ci<TCN;ci++){const L=[1,2,4].map(st=>{const me=new T.Mesh(terrainChunk(ci,cj,st),m);me.receiveShadow=true;me.visible=st===4;grp.add(me);return me;});
-    TCH.push({L,x:-WSIZE/2+(ci+0.5)*TCS*HSTEP,z:-WOZ+(cj+0.5)*TCS*HSTEP,cur:2});}grp.userData.mat=m;grp.material=m;return grp;}
-function terrainLod(){if(!TCH.length)return;const cx=G.cam.position.x,cz=G.cam.position.z,S2=TCS*HSTEP,q=G.q|0;for(const c of TCH){const d=Math.hypot(c.x-cx,c.z-cz)/S2;const l=d<1.15+q*0.25?0:d<2.6+q*0.4?1:2;if(l!==c.cur){c.L[c.cur].visible=false;c.L[l].visible=true;c.cur=l;}}}
+  /* chỉ dựng NGAY mức thô (bước 4) cho mọi mảnh; hai mức chi tiết dựng dần trong terrainLod khi máy quay tới gần (trước dựng cả ba mức cho 64 mảnh một lúc:
+     ~0,6 giây đứng hình mỗi lần vào game / sang tỉnh trên đại lục). me._ok: mức này đã có lưới thật. */
+  const grp=new T.Group(),E0=new T.BufferGeometry();TCH=[];for(let cj=0;cj<TCN;cj++)for(let ci=0;ci<TCN;ci++){const L=[1,2,4].map(st=>{const me=new T.Mesh(st===4?terrainChunk(ci,cj,st):E0,m);me._ok=st===4;me.receiveShadow=true;me.visible=st===4;grp.add(me);return me;});
+    TCH.push({L,ci,cj,x:-WSIZE/2+(ci+0.5)*TCS*HSTEP,z:-WOZ+(cj+0.5)*TCS*HSTEP,cur:2});}grp.userData.mat=m;grp.material=m;return grp;}
+function terrainLod(){if(!TCH.length)return;const cx=G.cam.position.x,cz=G.cam.position.z,S2=TCS*HSTEP,q=G.q|0;let bud=1;/* mỗi khung hình dựng thêm tối đa một lưới chi tiết (mảnh ngay dưới máy quay thì dựng luôn); chưa dựng thì tạm hiện mức thô hơn đã có */
+  for(const c of TCH){const d=Math.hypot(c.x-cx,c.z-cz)/S2;let l=d<1.15+q*0.25?0:d<2.6+q*0.4?1:2;
+    if(!c.L[l]._ok){if(bud>0||d<0.8){bud--;const me=c.L[l];me.geometry=terrainChunk(c.ci,c.cj,[1,2,4][l]);me._ok=true;}else{while(l<2&&!c.L[l]._ok)l++;}}
+    if(l!==c.cur){c.L[c.cur].visible=false;c.L[l].visible=true;c.cur=l;}}}
 function waterMat(){const T=THREE,m=new T.MeshStandardMaterial({color:'#2e6f8f',roughness:0.12,metalness:0.15,transparent:true,opacity:0.78,depthWrite:false});
   m.onBeforeCompile=sh=>{sh.uniforms.time=K3.GU?K3.GU.time:{value:0};sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vWp;').replace('#include <worldpos_vertex>','#include <worldpos_vertex>\n  vWp=(modelMatrix*vec4(transformed,1.0)).xyz;');
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float time;varying vec3 vWp;').replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
