@@ -16,6 +16,8 @@ bash tools/kiem-tra/chay-het.sh
 | 10 | `trang-bi.js` | Quét **mọi** vũ khí (sức đánh khi cầm đúng bằng chỉ số), mọi món loại cung (giương và bắn ra tên, lực theo chỉ số), mọi món mặc (dựng lại hình người không lỗi), mọi công thức (không dùng món không tồn tại). Món mới thêm tự được quét. |
 | 11 | `tong-quat.js` | Rà toàn bộ nội dung: dữ liệu công thức/công trình/tài nguyên/thú/nhiệm vụ/hướng dẫn/việc nhờ/nghiên cứu/đập đồ không trỏ tới món không tồn tại; **chế tạo thật** mọi công thức, **dựng thật** mọi công trình qua từng công đoạn, ăn uống mọi món; kế hoạch Tự làm của mọi nhiệm vụ; mở mọi bảng và thẻ. Thứ mới thêm tự được quét. |
 | 12 | `vo-nghe.js` | Liên hoàn cộng dồn tới ×5, đòn kết ×1,6 gây choáng, chí mạng của dao, chảy máu của giáo, phá giáp của rìu, tuyệt kỹ của từng loại vũ khí, Tam tiễn trừ đúng số tên; đòn của lính không được hưởng liên hoàn. |
+| 48 | `mang/tuong-bi-thuong.js` | Hai người chơi không chiến tranh: dẫn lính đi ngang nhà hàng xóm thì lính **không** tự lao vào đánh lính đang đứng yên của họ; lính bị hạ (nghỉ thương 10 phút) hoặc tạm đổi việc thì **tướng không bị xoá**. |
+| 49 | `mang/muoi-nguoi.js [người] [giây]` | **10 trình duyệt chơi chung một thế giới** (máy chủ giả, dữ liệu chuyền qua lại thật): vào game → Tự làm đầu game → lãnh thổ, làng, dân → liên minh (lập, xin, nhận, từ chối, rời, góp cấp) → quân đội (chiêu mộ, tướng, đội hình) → xâm chiếm (tuyên chiến, cướp phá, công phá điểm giàu, hạ cờ, giảng hoà) → lưu và mở lại. Báo cáo từng bước ra `$TMPDIR/ld-muoi-nguoi.json`. |
 | – | `dong-tac.js <tên> "<dáng:công cụ,...>"` | Chụp bảng từng pha của các động tác để soát bằng mắt (ví dụ `h3chop2:axe,h3gather2`). |
 
 Quy ước khi thêm thứ mới:

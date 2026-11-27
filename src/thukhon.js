@@ -15,7 +15,7 @@ function tkHome(p){let h=null;try{h=homePos();}catch(e){}return h||{x:p.hx!=null
 const tkNight=()=>{const h=S.hour;return h>=21||h<5;};
 /* thú dữ / kẻ địch gần nhà hoặc gần con chó */
 function tkThreat(p,home){let best=null,bd=1e9;for(const a of G.animals||[]){if(!a.alive||a.tame>0)continue;const D=ANIMALS[a.kind];if(!D)continue;const bad=a.angry||a.state==='chase'||(D.aggro&&D.aggro!=='never'&&D.aggro!=='defend'&&(D.dmg||0)>=9);if(!bad)continue;const dh=Math.hypot(a.x-home.x,a.z-home.z),dd=Math.hypot(a.x-p.x,a.z-p.z);if(dh>300&&dd>170)continue;if(dd<bd){bd=dd;best=a;}}
-  for(const f of G.foes||[]){if(!f.alive)continue;const dh=Math.hypot(f.x-home.x,f.z-home.z),dd=Math.hypot(f.x-p.x,f.z-p.z);if(dh>340&&dd>170)continue;if(dd<bd){bd=dd;best=f;}}return best;}
+  for(const f of G.foes||[]){if(!f.alive||!lthAuto(f))continue;const dh=Math.hypot(f.x-home.x,f.z-home.z),dd=Math.hypot(f.x-p.x,f.z-p.z);if(dh>340&&dd>170)continue;if(dd<bd){bd=dd;best=f;}}return best;}
 function tkPrey(p,home){let best=null,bd=1e9;for(const a of G.animals||[]){if(!a.alive||a.tame>0||a.boss)continue;const D=ANIMALS[a.kind];if(!D||D.aggro!=='never'||(D.hp||9)>2)continue;if(Math.hypot(a.x-home.x,a.z-home.z)>650)continue;const dd=Math.hypot(a.x-p.x,a.z-p.z);if(dd<bd){bd=dd;best=a;}}return best;}
 /* cất mồi: giỏ / rương gần nhà còn chỗ → túi của chủ nếu chủ ở gần → rơi mất */
 function tkStore(home,items){let where='';const L=[];for(const b of S.builds){if(b.prog!=null||b.k==='trough')continue;const d=pieceDef(b.k);if(d&&d.store&&S.store[b.id]&&Math.hypot(b.x-home.x,b.z-home.z)<240)L.push(b);}

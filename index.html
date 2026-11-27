@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261121014237">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261127021109">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -14598,7 +14598,7 @@ function aqCost(x,z,ctx){if(!wIn(x,z,1.02))return Infinity;const wd=wdAt(x,z);le
 /* chỗ có thú dữ đứng gần (trong 520) hoặc nằm trong vùng đã đánh dấu "thú dữ giữ vùng": tự làm không săn, không xẻ thịt ở đó (trước: săn thỏ ngay trong vùng hổ chúa rồi bị vồ chết lúc đang xẻ thịt) */
 function aqDangerAt(x,z){try{if(!AQ._dg||G.t-AQ._dgT>1||G.t<AQ._dgT){AQ._dg=aqPred();AQ._dgT=G.t;}for(const p of AQ._dg)if(Math.hypot(p.x-x,p.z-z)<520)return true;for(const b of AQ.bad||[])if(b.t>G.t&&Math.hypot(b.x-x,b.z-z)<420)return true;}catch(e){}return false;}
 function aqPred(){const out=[];for(const a of G.animals||[]){if(!a.alive||a.tame)continue;const D=ANIMALS[a.kind]||{};if(a.angry||(D.aggro&&D.aggro!=='never'&&D.aggro!=='defend'&&(D.dmg||0)>=9))out.push({x:a.x,z:a.z,a});}
-  if(G.foes)for(const f of G.foes)if(f.alive)out.push({x:f.x,z:f.z,a:f});return out;}
+  if(G.foes)for(const f of G.foes)if(f.alive&&lthAuto(f))out.push({x:f.x,z:f.z,a:f});return out;}
 function aqCtx(x0,z0,x1,z1,swim){const col=[];for(const s of (typeof SCOL!=='undefined'?SCOL:[])){if(s.x+s.r<x0||s.x-s.r>x1||s.z+s.r<z0||s.z-s.r>z1)continue;col.push(s);}
   AQ.bad=AQ.bad.filter(b=>G.t<b.t);const bk=new Set();try{BYID.forEach(b=>{if(b.x<x0-80||b.x>x1+80||b.z<z0-80||b.z>z1+80)return;const i=Math.floor(b.x/80),j=Math.floor(b.z/80);for(let u=-1;u<=1;u++)for(let v=-1;v<=1;v++)bk.add((i+u)+','+(j+v));});}catch(e){}
   return {col,pred:aqPred().filter(p=>Math.hypot(p.x-P.x,p.z-P.z)<1600),bad:AQ.bad,swim:!!swim,bk};}
@@ -16549,7 +16549,7 @@ function danCapture(foe){const bed=freeBed();if(!bed)return false;slotsTake(S.in
     if(f.loy>=100){f.cap=0;cnt('cnt','submit');uiToast(`🤝 ${f.n} đã quy phục, thành người của bộ tộc bạn.`,'gold');sfx('level');}
     else if(f.loy<=0){S.folk=S.folk.filter(o=>o!==f);if(f._o)G.sc.remove(f._o);uiToast(`${f.n} bị bỏ đói, đã trốn về bộ lạc cũ.`,'bad');}}save();return r;};}
 /* ---------- làm việc theo cấp, sở trường · giữ cổng · làm lính ---------- */
-function danEnemy(ax,az,r){let best=null,bd=r;if(G.foes)for(const e of G.foes){if(!e.alive)continue;const d=Math.hypot(e.x-ax,e.z-az);if(d<bd){bd=d;best={e,foe:1};}}
+function danEnemy(ax,az,r){let best=null,bd=r;if(G.foes)for(const e of G.foes){if(!e.alive||!lthAuto(e))continue;const d=Math.hypot(e.x-ax,e.z-az);if(d<bd){bd=d;best={e,foe:1};}}
   for(const a of G.animals){if(!a.alive||a.state!=='chase'||!a.o||!a.o.visible||a.tame>0)continue;const d=Math.hypot(a.x-ax,a.z-az);if(d<bd){bd=d;best={e:a,foe:0};}}return best;}
 function danGate(home){let best=null,bd=700;for(const b of S.builds){if(b.prog!=null||!/gate/i.test(b.k))continue;const d=Math.hypot(b.x-home.x,b.z-home.z);if(d<bd){bd=d;best=b;}}return best||home;}
 function danStrike(f,t){if(t.foe)foeDamage(t.e,danDmg(f));else animalDamage(t.e,danDmg(f));danXp(f,1);}
@@ -16565,7 +16565,7 @@ function danPost(f,dt){if(!f._o)folkSpawn(f);const home=folkHome(f),sol=f.job===
     if(st==='work'&&f._t>0)f._t-=dt*(0.1*(danLv(f)-1)+(f.job===danSp(f)?0.4:0));
     if(f._pst==='work'&&st==='back')danXp(f,1);f._pst=st;
     // canh gác: đánh cả kẻ cướp lại gần nhà
-    if(f.job==='guard'&&G.foes&&G.foes.length&&!(S.hour>=20||S.hour<6)){const home=folkHome(f);let e=null,bd=280;for(const o of G.foes){if(!o.alive)continue;const d=Math.hypot(o.x-home.x,o.z-home.z);if(d<bd){bd=d;e=o;}}
+    if(f.job==='guard'&&G.foes&&G.foes.length&&!(S.hour>=20||S.hour<6)){const home=folkHome(f);let e=null,bd=280;for(const o of G.foes){if(!o.alive||!lthAuto(o))continue;const d=Math.hypot(o.x-home.x,o.z-home.z);if(d<bd){bd=d;e=o;}}
       if(e){const d=Math.hypot(e.x-f.x,e.z-f.z);if(d>e.r+16){f.x+=(e.x-f.x)/d*Math.min(d,60*dt);f.z+=(e.z-f.z)/d*Math.min(d,60*dt);}else{f._gt=(f._gt||0)-dt;if(f._gt<=0){f._gt=1.1;foeDamage(e,danDmg(f));danXp(f,1);}}}}}};}
 /* ---------- bảng ---------- */
 function danCard(f){const sp=DAN_SP[danSp(f)],lv=danLv(f);return `<div class="dan-info"><span class="dan-lv">Cấp ${lv}</span><span>${sp[0]} ${sp[1]}</span><span class="muted">đòn ${danDmg(f).toFixed(1)} · làm nhanh +${Math.round((0.1*(lv-1)+(f.job===danSp(f)?0.4:0))*100)}%</span>${f.cap?`<span class="dan-cap">Tù binh · trung thành ${Math.round(f.loy||0)}/100</span>`:''}</div>${f.cap?`<div class="hero-bar"><i style="width:${clamp(f.loy||0,0,100)}%"></i></div>`:''}`;}
@@ -19895,7 +19895,7 @@ AUJ.capture=function(j){const c=gC('cnt:capture');if(j.c0==null)j.c0=c;if(c>j.c0
   if(!hasTool('spear')&&!hasTool('club')){if(++j.g>6)return aqFail('Không có vũ khí.');aqPush({k:'get',id:'spear',n:1,tries:0},j);return AQ_RUN;}
   /* an toàn: chỉ tự đánh chiến binh ĐI LẺ (không có đồng bọn trong 13 m) và không quá mạnh; thấy từ hai tên trở lên áp sát là rút. Chạy thử: lao vào trại 4 chiến binh là chết ngay. */
   {let nearF=0;for(const f of G.foes||[])if(f.alive&&!f.peace&&!(f.lone&&!f.prov&&f!==j.a)&&aqD(f.x,f.z)<230)nearF++;if(nearF>=2){j.a=null;if(++j.rt>2)return aqFail('Chiến binh đi theo toán, quá nguy hiểm để tự đánh. Việc này cần bạn tự chỉ huy: mang lính, mặc giáp, nhử từng tên ra.');aqPush({k:'camp'},j);aqSay('🤖 Đông chiến binh quá: rút về trại.','bad');return AQ_RUN;}}
-  if(!j.a||!j.a.alive){let best=null,bs=1e9;const lone=f=>!(G.foes||[]).some(o=>o!==f&&o.alive&&!o.lone&&Math.hypot(o.x-f.x,o.z-f.z)<260),lvMax=Math.max(2,Math.floor(heroLv()/2)+1);for(const f of G.foes||[]){if(!f.alive||j.sk.has(f)||f.peace||(f.lv||1)>lvMax||!lone(f))continue;const d=aqD(f.x,f.z);if(d>5000)continue;const s=d+(f.lv||1)*400-(f.lone?1500:0);if(s<bs){bs=s;best=f;}}
+  if(!j.a||!j.a.alive){let best=null,bs=1e9;const lone=f=>!(G.foes||[]).some(o=>o!==f&&o.alive&&!o.lone&&Math.hypot(o.x-f.x,o.z-f.z)<260),lvMax=Math.max(2,Math.floor(heroLv()/2)+1);for(const f of G.foes||[]){if(!f.alive||f.rf||j.sk.has(f)||f.peace||(f.lv||1)>lvMax||!lone(f))continue;const d=aqD(f.x,f.z);if(d>5000)continue;const s=d+(f.lv||1)*400-(f.lone?1500:0);if(s<bs){bs=s;best=f;}}
     if(!best&&(G.foes||[]).some(f=>f.alive&&!f.peace&&aqD(f.x,f.z)<5000))return aqFail('Chiến binh quanh đây đều đi theo toán hoặc quá mạnh, tự đánh là mất mạng. Việc này cần bạn tự chỉ huy: mang lính, mặc giáp, nhử từng tên ra.');
     if(!best){if(G.camp&&aqD(G.camp.x,G.camp.z)>500&&!j.cg){j.cg=1;return aqGoto(j,G.camp.x,G.camp.z,380,'Tới trại chiến binh Núi Đá',{far:1});}return aqFail('Không thấy chiến binh bộ lạc nào trong vòng 250 m.');}j.a=best;}
   const a=j.a,d=aqD(a.x,a.z)-(a.r||8);j.lab='Đánh gục để trói bắt '+(a.n||'chiến binh').toLowerCase()+(a.lv?' (cấp '+a.lv+')':'');if(d>REACH+4){if(d>220)return aqGoto(j,a.x,a.z,160,j.lab,{far:1});AQ.dir=aqSafeDir(a.x-P.x,a.z-P.z)||[a.x-P.x,a.z-P.z];AQ.run=S.p.stam>20;return AQ_RUN;}
@@ -20035,7 +20035,7 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
       Giờ: có tới BA tên ở gần, mình có vũ khí và còn trên 45 máu thì đánh trả tên gần nhất; từ bốn tên trở lên thì lánh về trại.
       (Trước chỉ đánh khi có đúng một tên: gặp toán hai ba tên là chỉ né, mà né không thoát nên bị đuổi tới chết.) */
 {const _sf=aqSafety;aqSafety=function(){try{if(AQ.on&&AQ.jobs.length&&!G.sleeping&&S&&S.p&&G.foes&&G.foes.length&&!aqHasUrgent('fight')&&S.p.hp>45&&(AQ.noFoeT||0)<G.t&&aqCfg().fight&&!AQ.jobs.some(j=>j.k==='capture')){
-      let near=null,nd=1e9,cnt=0;for(const f of G.foes){if(!f||!f.alive||(f.lone&&!f.prov))continue;const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<340)cnt++;if(d<nd){nd=d;near=f;}}
+      let near=null,nd=1e9,cnt=0;for(const f of G.foes){if(!f||!f.alive||(f.lone&&!f.prov)||!lthAuto(f))continue;const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<340)cnt++;if(d<nd){nd=d;near=f;}}
       if(near&&cnt<=3&&nd<210&&(hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'))){const top=AQ.jobs[AQ.jobs.length-1];if(top.k==='flee'){AQ.jobs.pop();}const t2=AQ.jobs[AQ.jobs.length-1];if(t2){if(G.work)workStop('');G.act=null;aqPush({k:'fight',a:near,t0:G.t,urgent:1},t2);aqSay('🤖 Một '+((near.n||'chiến binh').toLowerCase())+' xông tới: đánh trả.','bad');}}}}catch(e){}
   return _sf.apply(this,arguments);};}
 /* quả mọng nước cũng đỡ khát một chút (người đi rừng vẫn ăn quả, nhai thân chuối khi hết nước) */
@@ -20280,7 +20280,7 @@ function ltStarCost(p){const n=(p.st||0)+1,c={meatCooked:5*n,bone:3*n,hide:2*n};
 function ltModel(p){const K=LT_K[p.k];const o=animalModel(p.k);try{o.scale.multiplyScalar(K.sc*(1+0.04*(p.st||0)));o.traverse(m=>{if(m.isMesh)m.castShadow=true;});}catch(e){}return o;}
 function ltSync(){const p=ltAct();if(!G.sc)return;if(LT.o&&(!p||LT.id!==p.id+':'+(p.st||0))){G.sc.remove(LT.o);LT.o=null;LT.id=null;}if(p&&!LT.o){LT.o=ltModel(p);LT.id=p.id+':'+(p.st||0);LT.x=P.x-30;LT.z=P.z-20;G.sc.add(LT.o);try{seasonPatchAll(LT.o);}catch(e){}}}
 function ltTarget(){let best=null,bd=300;const t=G.act&&(G.act.a||null);for(const a of G.animals||[]){if(!a.alive||a.tame)continue;if(!(a.angry||a===t))continue;const d=Math.hypot(a.x-P.x,a.z-P.z);if(d<bd){bd=d;best={e:a};}}
-  for(const f of G.foes||[]){if(!f.alive)continue;if(f.lone&&!f.prov&&f!==t)continue;const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<Math.min(bd,f===t?300:200)){bd=d;best={e:f,foe:1};}}return best;}
+  for(const f of G.foes||[]){if(!f.alive)continue;if(f.lone&&!f.prov&&f!==t)continue;if(f!==t&&!lthAuto(f))continue;const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<Math.min(bd,f===t?300:200)){bd=d;best={e:f,foe:1};}}return best;}
 function ltTick(dt){const p=ltAct();if(!p||!LT.o||G.paused)return;const K=LT_K[p.k],tg=G.mnt?null:ltTarget();let tx,tz,sp;if(tg){tx=tg.e.x;tz=tg.e.z;sp=210;}else{tx=P.x-Math.sin(P.ry||0)*34+Math.cos(P.ry||0)*22;tz=P.z-Math.cos(P.ry||0)*34-Math.sin(P.ry||0)*22;sp=Math.max(120,(P.speed||0)*1.15);}
   const dx=tx-LT.x,dz=tz-LT.z,d=Math.hypot(dx,dz);let mv=false;if(d>600&&!tg){LT.x=tx;LT.z=tz;}else if(d>(tg?(tg.e.r||8)+12:10)){const s=Math.min(d,sp*dt);LT.x+=dx/d*s;LT.z+=dz/d*s;LT.ry=Math.atan2(dx,dz);mv=true;}
   else if(tg){LT.ry=Math.atan2(dx,dz);LT.atk-=dt;if(LT.atk<=0){LT.atk=1.4;let dmg=ltDmg(p);if(p.k==='tiger'&&Math.random()<0.2)dmg*=2;try{if(tg.foe)foeDamage(tg.e,dmg);else animalDamage(tg.e,dmg);}catch(e){}ltXp(p,2+(tg.e.alive?0:6));}}
@@ -21289,6 +21289,9 @@ function lthPack(){const L=[];for(const f of S.folk||[]){if(L.length>=10)break;i
 {const _v=mpValPlayer;mpValPlayer=function(id,d){const v=_v.apply(this,arguments);try{if(v){v.fk=[];if(d&&Array.isArray(d.fk))for(const e of d.fk.slice(0,10))if(Array.isArray(e)&&e.length===4&&mpNum(e[0],-2e4,2e4)&&mpNum(e[1],-2e4,2e4)&&mpNum(e[2],0,4)&&mpNum(e[3],1,10))v.fk.push([e[0],e[1],e[2]|0,e[3]|0]);}}catch(e){}return v;};}
 function lthWhy(uid){if(typeof mpSameClan==='function'&&mpSameClan(uid))return 'Đây là người của đồng minh.';if((typeof heroLv==='function'?heroLv():1)<PVP_MINLV)return 'Cần nhân vật cấp '+PVP_MINLV+' mới đánh người của làng khác được.';const p=MP.players[uid],now=pvpNow();if(p){if((p.hl||1)<PVP_MINLV)return 'Chủ làng là người mới (dưới cấp '+PVP_MINLV+'): đang được bảo vệ.';if(p.sh>now)return 'Chủ làng đang có khiên bảo vệ.';}return null;}
 function lthOf(uid){return (G.foes||[]).filter(f=>f.rf===uid);}
+/* lính, dân, tù binh của người chơi khác đang đứng yên: lính của mình, lính gác, chó canh nhà, linh thú, Tự làm KHÔNG tự chọn làm mục tiêu
+   (trước đây dẫn lính đi ngang nhà hàng xóm là lính tự lao vào giết sạch lính của họ dù không chiến tranh). Họ đã xông ra (bị đánh, chiến tranh) thì đánh như thường. */
+function lthAuto(f){return !(f&&f.rf&&(f.calm||f.civ));}
 function lthRouse(uid){LTH.hot[uid]=G.t;let n=0;for(const f of lthOf(uid))if(f.alive&&!f.civ&&f.calm){f.calm=0;n++;}if(n){uiToast(`🛡️ ${n} lính của ${mpName(uid)} xông ra!`,'bad');sfx('hurt');}return n;}
 function lthTick(){if(!S||!G.on||!pvpOn()||landFar())return;const now=Date.now();
   for(const uid in MP.players){if(uid===MP.uid)continue;const p=MP.players[uid],L=p&&p.fk;if(!L||!L.length){continue;}let dm=1e9;for(const e of L)dm=Math.min(dm,Math.hypot(e[0]-P.x,e[1]-P.z));const mine=lthOf(uid);
@@ -22906,7 +22909,9 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
 const TG={MAXLV:30,MAXST:5,SP:{spear:['🗡️','Bộ binh','lính giáo'],bow:['🏹','Cung thủ','cung thủ'],shield:['🛡️','Thủ vệ','lính khiên'],cav:['🐎','Kỵ binh','kỵ binh, tượng binh']},
   TAC:{can:['⚖️','Cân bằng','Không cộng không trừ.',0],cong:['⚔️','Tấn công','Lính đánh mạnh hơn 15%, bạn chịu đòn nặng hơn 5%.',3],thu:['🛡️','Phòng thủ','Bạn chịu đòn nhẹ hơn 12%, lính đánh yếu đi 8%.',3],vay:['🏹','Vây bắn','Cung thủ mạnh hơn 25%, lính cận chiến yếu đi 5%.',6]}};
 function tgS(){if(!S.tg||typeof S.tg!=='object'||!Array.isArray(S.tg.list))S.tg={list:[]};return S.tg;}
-function tgList(){const T=tgS(),sol=new Map((S.folk||[]).filter(f=>f.job==='soldier').map(f=>[qdUid(f),f]));/* lọc TẠI CHỖ: nơi khác đang giữ đúng mảng này để thêm tướng, tạo mảng mới thì tướng vừa phong bị rơi mất */for(let i=T.list.length-1;i>=0;i--)if(!sol.has(T.list[i].uid))T.list.splice(i,1);return T.list;}
+/* Chỉ xoá tướng khi người đó không còn trong làng. Lính bị thương nghỉ 10 phút (linhthay.js đổi việc sang rảnh) hay tạm đi làm việc khác thì VẪN GIỮ tướng
+   (trước đây bị xoá luôn, mất lễ vật và kinh nghiệm); về lại làm lính là chỉ huy tiếp. Trả về các tướng đang làm lính; danh sách lưu đủ nằm ở tgS().list. */
+function tgList(){const T=tgS(),all=new Map();for(const f of S.folk||[])if(f.uid)all.set(f.uid,f);for(let i=T.list.length-1;i>=0;i--)if(!all.has(T.list[i].uid))T.list.splice(i,1);return T.list.filter(g=>{const f=all.get(g.uid);return f&&f.job==='soldier';});}
 function tgOf(f){try{const u=f&&f.uid;return u?tgList().find(g=>g.uid===u)||null:null;}catch(e){return null;}}
 function tgMan(g){return (S.folk||[]).find(f=>f.uid===g.uid)||null;}
 function tgSlots(){let n=0;try{if(qhHas('qh_linh'))n=1;if(n&&qhHas('qh_chihuy'))n++;if(n)n+=Math.floor((typeof heroLv==='function'?heroLv():1)/10);}catch(e){}return Math.min(6,n);}
@@ -22920,7 +22925,7 @@ function tgNeed(g){return 40*(g.lv||1);}
 function tgXp(g,n){if((g.lv||1)>=TG.MAXLV)return;g.xp=(g.xp||0)+n;while(g.xp>=tgNeed(g)&&g.lv<TG.MAXLV){g.xp-=tgNeed(g);g.lv++;const m=tgMan(g);uiToast(`🎖️ Tướng ${m?esc(m.n):''} lên cấp ${g.lv}: chỉ huy được ${tgCap(g)} lính.`,'gold');try{sfx('level');}catch(e){}}}
 function tgPromoCost(n){return {meatCooked:8*(n+1),hide:3*(n+1),spear:1};}
 function tgStarCost(g){const n=(g.st|0)+1,c={meatCooked:6*n,hide:3*n,bone:3*n};if(n>=3&&ITEMS.bronze)c.bronze=n-1;return c;}
-function tgPromote(uid){const L=tgList(),f=(S.folk||[]).find(x=>x.job==='soldier'&&qdUid(x)===+uid);if(!f)return;if(tgOf(f)){uiToast('Người này đã là tướng.','');return;}if(L.length>=tgSlots()){uiToast(tgSlots()?'Hết suất tướng. Dựng Nhà chỉ huy hoặc lên thêm 10 cấp nhân vật để có thêm suất.':'Cần dựng Trại lính mới phong tướng được.','bad');try{sfx('no');}catch(e){}return;}
+function tgPromote(uid){tgList();const L=tgS().list,f=(S.folk||[]).find(x=>x.job==='soldier'&&qdUid(x)===+uid);if(!f)return;if(tgOf(f)){uiToast('Người này đã là tướng.','');return;}if(L.length>=tgSlots()){uiToast(tgSlots()?'Hết suất tướng. Dựng Nhà chỉ huy hoặc lên thêm 10 cấp nhân vật để có thêm suất.':'Cần dựng Trại lính mới phong tướng được.','bad');try{sfx('no');}catch(e){}return;}
   const need=5*(L.length+1),hl=typeof heroLv==='function'?heroLv():1;if(hl<need){uiToast('Phong tướng thứ '+(L.length+1)+' cần nhân vật cấp '+need+'.','bad');return;}const c=tgPromoCost(L.length);if(!canPay(c)){uiToast('Thiếu lễ vật phong tướng: '+Object.entries(c).map(([k,v])=>v+' '+(ITEMS[k]?ITEMS[k].n.toLowerCase():k)).join(', ')+'.','bad');try{sfx('no');}catch(e){}return;}
   pay(c);const arm=qdHorse(f)?'cav':qdArm(f);L.push({uid:qdUid(f),lv:1,xp:0,st:0,sp:arm});try{cnt('cnt','general');sfx('level');uiHotbar();}catch(e){}uiToast(`🎖️ ${esc(f.n)} được phong làm tướng (${TG.SP[arm][1]}). Quân số tối đa giờ là ${tgArmyCap()}.`,'gold');save();}
 function tgStar(uid){const g=tgList().find(x=>x.uid===+uid);if(!g||(g.st|0)>=TG.MAXST)return;const n=(g.st|0)+1;if((g.lv||1)<5*n){uiToast('Thăng '+n+' sao cần tướng cấp '+(5*n)+'.','bad');return;}const c=tgStarCost(g);if(!canPay(c)){uiToast('Thiếu vật liệu thăng sao: '+Object.entries(c).map(([k,v])=>v+' '+(ITEMS[k]?ITEMS[k].n.toLowerCase():k)).join(', ')+'.','bad');try{sfx('no');}catch(e){}return;}pay(c);g.st=n;try{sfx('level');uiHotbar();}catch(e){}uiToast(`⭐ Tướng lên ${n} sao: chỉ huy được ${tgCap(g)} lính.`,'gold');save();}
@@ -23154,7 +23159,7 @@ function tkHome(p){let h=null;try{h=homePos();}catch(e){}return h||{x:p.hx!=null
 const tkNight=()=>{const h=S.hour;return h>=21||h<5;};
 /* thú dữ / kẻ địch gần nhà hoặc gần con chó */
 function tkThreat(p,home){let best=null,bd=1e9;for(const a of G.animals||[]){if(!a.alive||a.tame>0)continue;const D=ANIMALS[a.kind];if(!D)continue;const bad=a.angry||a.state==='chase'||(D.aggro&&D.aggro!=='never'&&D.aggro!=='defend'&&(D.dmg||0)>=9);if(!bad)continue;const dh=Math.hypot(a.x-home.x,a.z-home.z),dd=Math.hypot(a.x-p.x,a.z-p.z);if(dh>300&&dd>170)continue;if(dd<bd){bd=dd;best=a;}}
-  for(const f of G.foes||[]){if(!f.alive)continue;const dh=Math.hypot(f.x-home.x,f.z-home.z),dd=Math.hypot(f.x-p.x,f.z-p.z);if(dh>340&&dd>170)continue;if(dd<bd){bd=dd;best=f;}}return best;}
+  for(const f of G.foes||[]){if(!f.alive||!lthAuto(f))continue;const dh=Math.hypot(f.x-home.x,f.z-home.z),dd=Math.hypot(f.x-p.x,f.z-p.z);if(dh>340&&dd>170)continue;if(dd<bd){bd=dd;best=f;}}return best;}
 function tkPrey(p,home){let best=null,bd=1e9;for(const a of G.animals||[]){if(!a.alive||a.tame>0||a.boss)continue;const D=ANIMALS[a.kind];if(!D||D.aggro!=='never'||(D.hp||9)>2)continue;if(Math.hypot(a.x-home.x,a.z-home.z)>650)continue;const dd=Math.hypot(a.x-p.x,a.z-p.z);if(dd<bd){bd=dd;best=a;}}return best;}
 /* cất mồi: giỏ / rương gần nhà còn chỗ → túi của chủ nếu chủ ở gần → rơi mất */
 function tkStore(home,items){let where='';const L=[];for(const b of S.builds){if(b.prog!=null||b.k==='trough')continue;const d=pieceDef(b.k);if(d&&d.store&&S.store[b.id]&&Math.hypot(b.x-home.x,b.z-home.z)<240)L.push(b);}

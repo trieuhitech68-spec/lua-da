@@ -9,6 +9,9 @@ function lthPack(){const L=[];for(const f of S.folk||[]){if(L.length>=10)break;i
 {const _v=mpValPlayer;mpValPlayer=function(id,d){const v=_v.apply(this,arguments);try{if(v){v.fk=[];if(d&&Array.isArray(d.fk))for(const e of d.fk.slice(0,10))if(Array.isArray(e)&&e.length===4&&mpNum(e[0],-2e4,2e4)&&mpNum(e[1],-2e4,2e4)&&mpNum(e[2],0,4)&&mpNum(e[3],1,10))v.fk.push([e[0],e[1],e[2]|0,e[3]|0]);}}catch(e){}return v;};}
 function lthWhy(uid){if(typeof mpSameClan==='function'&&mpSameClan(uid))return 'Đây là người của đồng minh.';if((typeof heroLv==='function'?heroLv():1)<PVP_MINLV)return 'Cần nhân vật cấp '+PVP_MINLV+' mới đánh người của làng khác được.';const p=MP.players[uid],now=pvpNow();if(p){if((p.hl||1)<PVP_MINLV)return 'Chủ làng là người mới (dưới cấp '+PVP_MINLV+'): đang được bảo vệ.';if(p.sh>now)return 'Chủ làng đang có khiên bảo vệ.';}return null;}
 function lthOf(uid){return (G.foes||[]).filter(f=>f.rf===uid);}
+/* lính, dân, tù binh của người chơi khác đang đứng yên: lính của mình, lính gác, chó canh nhà, linh thú, Tự làm KHÔNG tự chọn làm mục tiêu
+   (trước đây dẫn lính đi ngang nhà hàng xóm là lính tự lao vào giết sạch lính của họ dù không chiến tranh). Họ đã xông ra (bị đánh, chiến tranh) thì đánh như thường. */
+function lthAuto(f){return !(f&&f.rf&&(f.calm||f.civ));}
 function lthRouse(uid){LTH.hot[uid]=G.t;let n=0;for(const f of lthOf(uid))if(f.alive&&!f.civ&&f.calm){f.calm=0;n++;}if(n){uiToast(`🛡️ ${n} lính của ${mpName(uid)} xông ra!`,'bad');sfx('hurt');}return n;}
 function lthTick(){if(!S||!G.on||!pvpOn()||landFar())return;const now=Date.now();
   for(const uid in MP.players){if(uid===MP.uid)continue;const p=MP.players[uid],L=p&&p.fk;if(!L||!L.length){continue;}let dm=1e9;for(const e of L)dm=Math.min(dm,Math.hypot(e[0]-P.x,e[1]-P.z));const mine=lthOf(uid);

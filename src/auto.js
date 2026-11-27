@@ -34,7 +34,7 @@ function aqCost(x,z,ctx){if(!wIn(x,z,1.02))return Infinity;const wd=wdAt(x,z);le
 /* chỗ có thú dữ đứng gần (trong 520) hoặc nằm trong vùng đã đánh dấu "thú dữ giữ vùng": tự làm không săn, không xẻ thịt ở đó (trước: săn thỏ ngay trong vùng hổ chúa rồi bị vồ chết lúc đang xẻ thịt) */
 function aqDangerAt(x,z){try{if(!AQ._dg||G.t-AQ._dgT>1||G.t<AQ._dgT){AQ._dg=aqPred();AQ._dgT=G.t;}for(const p of AQ._dg)if(Math.hypot(p.x-x,p.z-z)<520)return true;for(const b of AQ.bad||[])if(b.t>G.t&&Math.hypot(b.x-x,b.z-z)<420)return true;}catch(e){}return false;}
 function aqPred(){const out=[];for(const a of G.animals||[]){if(!a.alive||a.tame)continue;const D=ANIMALS[a.kind]||{};if(a.angry||(D.aggro&&D.aggro!=='never'&&D.aggro!=='defend'&&(D.dmg||0)>=9))out.push({x:a.x,z:a.z,a});}
-  if(G.foes)for(const f of G.foes)if(f.alive)out.push({x:f.x,z:f.z,a:f});return out;}
+  if(G.foes)for(const f of G.foes)if(f.alive&&lthAuto(f))out.push({x:f.x,z:f.z,a:f});return out;}
 function aqCtx(x0,z0,x1,z1,swim){const col=[];for(const s of (typeof SCOL!=='undefined'?SCOL:[])){if(s.x+s.r<x0||s.x-s.r>x1||s.z+s.r<z0||s.z-s.r>z1)continue;col.push(s);}
   AQ.bad=AQ.bad.filter(b=>G.t<b.t);const bk=new Set();try{BYID.forEach(b=>{if(b.x<x0-80||b.x>x1+80||b.z<z0-80||b.z>z1+80)return;const i=Math.floor(b.x/80),j=Math.floor(b.z/80);for(let u=-1;u<=1;u++)for(let v=-1;v<=1;v++)bk.add((i+u)+','+(j+v));});}catch(e){}
   return {col,pred:aqPred().filter(p=>Math.hypot(p.x-P.x,p.z-P.z)<1600),bad:AQ.bad,swim:!!swim,bk};}

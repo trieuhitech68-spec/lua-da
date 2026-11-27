@@ -38,7 +38,7 @@ AUJ.treat=function(j){if(G.work)return AQ_RUN;if(j.T0==null)j.T0=G.t;if(j.cf)j.c
       Giờ: có tới BA tên ở gần, mình có vũ khí và còn trên 45 máu thì đánh trả tên gần nhất; từ bốn tên trở lên thì lánh về trại.
       (Trước chỉ đánh khi có đúng một tên: gặp toán hai ba tên là chỉ né, mà né không thoát nên bị đuổi tới chết.) */
 {const _sf=aqSafety;aqSafety=function(){try{if(AQ.on&&AQ.jobs.length&&!G.sleeping&&S&&S.p&&G.foes&&G.foes.length&&!aqHasUrgent('fight')&&S.p.hp>45&&(AQ.noFoeT||0)<G.t&&aqCfg().fight&&!AQ.jobs.some(j=>j.k==='capture')){
-      let near=null,nd=1e9,cnt=0;for(const f of G.foes){if(!f||!f.alive||(f.lone&&!f.prov))continue;const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<340)cnt++;if(d<nd){nd=d;near=f;}}
+      let near=null,nd=1e9,cnt=0;for(const f of G.foes){if(!f||!f.alive||(f.lone&&!f.prov)||!lthAuto(f))continue;const d=Math.hypot(f.x-P.x,f.z-P.z);if(d<340)cnt++;if(d<nd){nd=d;near=f;}}
       if(near&&cnt<=3&&nd<210&&(hasTool('spear')||hasTool('club')||hasTool('knife')||hasTool('axe'))){const top=AQ.jobs[AQ.jobs.length-1];if(top.k==='flee'){AQ.jobs.pop();}const t2=AQ.jobs[AQ.jobs.length-1];if(t2){if(G.work)workStop('');G.act=null;aqPush({k:'fight',a:near,t0:G.t,urgent:1},t2);aqSay('🤖 Một '+((near.n||'chiến binh').toLowerCase())+' xông tới: đánh trả.','bad');}}}}catch(e){}
   return _sf.apply(this,arguments);};}
 /* quả mọng nước cũng đỡ khát một chút (người đi rừng vẫn ăn quả, nhai thân chuối khi hết nước) */

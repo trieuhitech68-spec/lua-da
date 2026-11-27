@@ -35,7 +35,7 @@ function danCapture(foe){const bed=freeBed();if(!bed)return false;slotsTake(S.in
     if(f.loy>=100){f.cap=0;cnt('cnt','submit');uiToast(`🤝 ${f.n} đã quy phục, thành người của bộ tộc bạn.`,'gold');sfx('level');}
     else if(f.loy<=0){S.folk=S.folk.filter(o=>o!==f);if(f._o)G.sc.remove(f._o);uiToast(`${f.n} bị bỏ đói, đã trốn về bộ lạc cũ.`,'bad');}}save();return r;};}
 /* ---------- làm việc theo cấp, sở trường · giữ cổng · làm lính ---------- */
-function danEnemy(ax,az,r){let best=null,bd=r;if(G.foes)for(const e of G.foes){if(!e.alive)continue;const d=Math.hypot(e.x-ax,e.z-az);if(d<bd){bd=d;best={e,foe:1};}}
+function danEnemy(ax,az,r){let best=null,bd=r;if(G.foes)for(const e of G.foes){if(!e.alive||!lthAuto(e))continue;const d=Math.hypot(e.x-ax,e.z-az);if(d<bd){bd=d;best={e,foe:1};}}
   for(const a of G.animals){if(!a.alive||a.state!=='chase'||!a.o||!a.o.visible||a.tame>0)continue;const d=Math.hypot(a.x-ax,a.z-az);if(d<bd){bd=d;best={e:a,foe:0};}}return best;}
 function danGate(home){let best=null,bd=700;for(const b of S.builds){if(b.prog!=null||!/gate/i.test(b.k))continue;const d=Math.hypot(b.x-home.x,b.z-home.z);if(d<bd){bd=d;best=b;}}return best||home;}
 function danStrike(f,t){if(t.foe)foeDamage(t.e,danDmg(f));else animalDamage(t.e,danDmg(f));danXp(f,1);}
@@ -51,7 +51,7 @@ function danPost(f,dt){if(!f._o)folkSpawn(f);const home=folkHome(f),sol=f.job===
     if(st==='work'&&f._t>0)f._t-=dt*(0.1*(danLv(f)-1)+(f.job===danSp(f)?0.4:0));
     if(f._pst==='work'&&st==='back')danXp(f,1);f._pst=st;
     // canh gác: đánh cả kẻ cướp lại gần nhà
-    if(f.job==='guard'&&G.foes&&G.foes.length&&!(S.hour>=20||S.hour<6)){const home=folkHome(f);let e=null,bd=280;for(const o of G.foes){if(!o.alive)continue;const d=Math.hypot(o.x-home.x,o.z-home.z);if(d<bd){bd=d;e=o;}}
+    if(f.job==='guard'&&G.foes&&G.foes.length&&!(S.hour>=20||S.hour<6)){const home=folkHome(f);let e=null,bd=280;for(const o of G.foes){if(!o.alive||!lthAuto(o))continue;const d=Math.hypot(o.x-home.x,o.z-home.z);if(d<bd){bd=d;e=o;}}
       if(e){const d=Math.hypot(e.x-f.x,e.z-f.z);if(d>e.r+16){f.x+=(e.x-f.x)/d*Math.min(d,60*dt);f.z+=(e.z-f.z)/d*Math.min(d,60*dt);}else{f._gt=(f._gt||0)-dt;if(f._gt<=0){f._gt=1.1;foeDamage(e,danDmg(f));danXp(f,1);}}}}}};}
 /* ---------- bảng ---------- */
 function danCard(f){const sp=DAN_SP[danSp(f)],lv=danLv(f);return `<div class="dan-info"><span class="dan-lv">Cấp ${lv}</span><span>${sp[0]} ${sp[1]}</span><span class="muted">đòn ${danDmg(f).toFixed(1)} · làm nhanh +${Math.round((0.1*(lv-1)+(f.job===danSp(f)?0.4:0))*100)}%</span>${f.cap?`<span class="dan-cap">Tù binh · trung thành ${Math.round(f.loy||0)}/100</span>`:''}</div>${f.cap?`<div class="hero-bar"><i style="width:${clamp(f.loy||0,0,100)}%"></i></div>`:''}`;}

@@ -130,4 +130,8 @@ OUT=$(timeout 500 node mang/dai-luc-moi.js 2>&1); echo "$OUT" | grep -q "^MDM-DA
 OUT=$(timeout 500 node mang/thay-nhau.js 2>&1); echo "$OUT" | grep -q "^TN-DAT" && ok "đại lục: sang tỉnh khác thấy nhà và người, người mới được xếp gần nhau" || bad "đại lục thấy nhau: $(echo "$OUT" | tail -3 | tr '\n' ';' | cut -c1-700)"
 echo "47. Tướng lĩnh, quân số theo tướng, sở trường, thăng sao, chiến thuật; nghiên cứu 10 bậc có ngưỡng cấp; bảng Phát triển"
 OUT=$(timeout 500 node tuong-linh.js 2>&1); echo "$OUT" | grep -q "^TG-DAT" && ok "tướng lĩnh, phát triển" || bad "tướng lĩnh: $(echo "$OUT" | tail -2 | tr '\n' ';' | cut -c1-800)"
+echo "48. Lính của người khác đang đứng yên: lính, lính gác, chó, linh thú, Tự làm không tự lao vào đánh; lính bị thương nghỉ 10 phút hay tạm đổi việc thì tướng vẫn còn"
+OUT=$(timeout 600 node mang/tuong-bi-thuong.js 2>&1); echo "$OUT" | grep -q "^TBT-DAT" && ok "không tự đánh lính hàng xóm, tướng không mất" || bad "lính hàng xóm, tướng: $(echo "$OUT" | tail -1 | cut -c1-700)"
+echo "49. Giả lập 10 người chơi cùng một thế giới: vào game, sinh tồn, phát triển, liên minh, quân đội, xâm chiếm, lưu và mở lại (≈15 phút; báo cáo chi tiết ở \$TMPDIR/ld-muoi-nguoi.json)"
+OUT=$(timeout 3000 node mang/muoi-nguoi.js 10 40 2>&1); echo "$OUT" | grep "^Tổng:" | sed "s/^/   /"; echo "$OUT" | grep -q "^MN-DAT" && ok "10 người chơi" || bad "10 người chơi: $(echo "$OUT" | grep "^MN-HONG" | cut -c1-900)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL
