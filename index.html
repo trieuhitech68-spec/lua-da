@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261127063000">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261127110411">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -22879,15 +22879,19 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
      được quy đổi toạ độ nên vẫn nằm đúng chỗ trên đại lục; trạng thái cây đá đã chặt, bản đồ đã khám phá được nhớ riêng theo từng điểm neo. */
   function dlSeedAt(ox,oz){const s0=(S.seed0||S.seed)|0;return ((Math.imul(s0,31)^Math.imul(Math.round(ox/DL.TS),73856093)^Math.imul(Math.round(oz/DL.TS),19349663))>>>0)%2000000000+1;}
   const DL_PER=['res','disc','fogm','khu','rlm','war','plants','boats','recruited'];
-  function dlShift(){try{if(!DL.on||DL.busy||!S||!S.dl)return false;DL.shiftAt=performance.now();dlResOut();const A=dlA(),dx=Math.round((S.dl.ox+P.x)/A)*A-S.dl.ox,dz=Math.round((S.dl.oz+P.z)/A)*A-S.dl.oz;if(!dx&&!dz)return false;DL.busy=1;
-      const k0=S.dl.ox+','+S.dl.oz,nox=S.dl.ox+dx,noz=S.dl.oz+dz,k1=nox+','+noz;S.dlA=S.dlA||{};const keep={};for(const k of DL_PER)if(S[k]!==undefined)keep[k]=S[k];S.dlA[k0]=keep;const nx=S.dlA[k1]||{};
+  /* ĐỔI TOẠ ĐỘ KHI SANG TỈNH (tách riêng để luồng phụ tính sẵn tỉnh kế bên dùng ĐÚNG đoạn mã này): cất trạng thái riêng của tỉnh cũ, lấy của tỉnh mới,
+     dời mọi thứ của người chơi theo (dx,dz) cho toạ độ đại lục giữ nguyên, ghi tỉnh mới. */
+  function dlMoveState(dx,dz){const k0=S.dl.ox+','+S.dl.oz,nox=S.dl.ox+dx,noz=S.dl.oz+dz,k1=nox+','+noz;S.dlA=S.dlA||{};const keep={};for(const k of DL_PER)if(S[k]!==undefined)keep[k]=S[k];S.dlA[k0]=keep;const nx=S.dlA[k1]||{};
       for(const k of DL_PER){if(nx[k]!==undefined)S[k]=nx[k];else if(typeof LD_DEF==='object'&&LD_DEF[k])S[k]=LD_DEF[k]();else delete S[k];}delete S.dlA[k1];
       const mv=o=>{if(o&&typeof o.x==='number'&&typeof o.z==='number'){o.x=+(o.x-dx).toFixed(1);o.z=+(o.z-dz).toFixed(1);}};
       P.x-=dx;P.z-=dz;if(S.p){S.p.x=+P.x.toFixed(1);S.p.z=+P.z.toFixed(1);}
       for(const b of S.builds||[])mv(b);for(const f of S.flat||[])mv(f);for(const g of S.dig||[])mv(g);for(const t of S.tun||[]){t.ax-=dx;t.az-=dz;t.bx-=dx;t.bz-=dz;}for(const f of S.folk||[]){mv(f);if(typeof f.hx==='number'){f.hx-=dx;f.hz-=dz;}}
       for(const q of S.pets||[]){mv(q);if(typeof q.hx==='number'){q.hx=+(q.hx-dx).toFixed(1);q.hz=+(q.hz-dz).toFixed(1);}}for(const m of S.mounts||[])mv(m);mv(S.mark);
       if(S.army&&typeof S.army.hx==='number'){S.army.hx-=dx;S.army.hz-=dz;}
-      S.dl={ox:nox,oz:noz};S.seed=dlSeedAt(nox,noz);S.land=dlKey(nox,noz);/* thú cưỡi (ngựa, voi) ở đại lục dùng chung một hệ toạ độ đã dời ở trên: ghi lại tỉnh mới, không thì con đang cưỡi bị coi là ở tỉnh cũ và người chơi rớt xuống đất */try{for(const m of S.mounts||[])if(m&&m.x!=null)m.land=S.land;if(G.mnt){G.mnt.x=+P.x.toFixed(1);G.mnt.z=+P.z.toFixed(1);S.mntOn=G.mnt.id;}}catch(e){}S.wx=null;G.walkTo=null;G.act=null;try{if(typeof AQ==='object'&&AQ.on)aqStop();}catch(e){}
+      S.dl={ox:nox,oz:noz};S.seed=dlSeedAt(nox,noz);S.land=dlKey(nox,noz);try{for(const m of S.mounts||[])if(m&&m.x!=null)m.land=S.land;}catch(e){}}
+  window.dlMoveState=dlMoveState;
+  function dlShift(){try{if(!DL.on||DL.busy||!S||!S.dl)return false;DL.shiftAt=performance.now();dlResOut();const A=dlA(),dx=Math.round((S.dl.ox+P.x)/A)*A-S.dl.ox,dz=Math.round((S.dl.oz+P.z)/A)*A-S.dl.oz;if(!dx&&!dz)return false;DL.busy=1;
+      const nox=S.dl.ox+dx,noz=S.dl.oz+dz;dlMoveState(dx,dz);/* thú cưỡi (ngựa, voi) ở đại lục dùng chung một hệ toạ độ đã dời ở trên: ghi lại tỉnh mới, không thì con đang cưỡi bị coi là ở tỉnh cũ và người chơi rớt xuống đất */try{for(const m of S.mounts||[])if(m&&m.x!=null)m.land=S.land;if(G.mnt){G.mnt.x=+P.x.toFixed(1);G.mnt.z=+P.z.toFixed(1);S.mntOn=G.mnt.id;}}catch(e){}S.wx=null;G.walkTo=null;G.act=null;try{if(typeof AQ==='object'&&AQ.on)aqStop();}catch(e){}
       /* cách nhanh: dựng lại vùng mới ngay trong trang (không tải lại, giữ bộ vẽ, mô hình, shader). Cứ 6 lần thì tải lại trang một lần để dọn bộ nhớ đồ hoạ; lỗi giữa chừng cũng quay về cách tải lại. */
       /* trước: cứ 6 lần tải lại trang (vì cảnh cũ rò ~150 MB mỗi lần). Đã chặn rò (dlRebuild tháo cảnh cũ): đo 6 lần liền bộ nhớ lên xuống 385–790 MB rồi trả lại → giờ 30 lần mới tải lại */
       if(!DL.noIn&&(DL.inN|0)<30){/* không che màn hình: khung vẽ giữ nguyên hình đang thấy trong lúc dựng vùng mới (1-2 giây), chỉ hiện một dòng báo nhỏ */try{dlCard(nox,noz);}catch(e){}if(typeof saveNow==='function')saveNow();else save();DL.inN=(DL.inN|0)+1;G.ldLeaving=1;/* giữ màn hố đen tới khi dựng xong */setTimeout(()=>{let ok=false;try{ok=dlRebuild();}catch(e){console.warn('dựng lại tại chỗ',e);}if(ok){DL.busy=0;G.ldLeaving=0;try{dlCardOff();}catch(e){}DL.doneMs=Math.round(performance.now()-DL.shiftAt);DL.shiftAt=0;try{ldHoleOff();}catch(e){}try{save();}catch(e){}}else{DL.noIn=1;try{dlCardOff(1);ldHole('Đang nạp vùng đất kế tiếp…');}catch(e){}try{sessionStorage.setItem('ld-cont','1');sessionStorage.setItem('ld-cont-n','vùng đất kế tiếp');sessionStorage.removeItem('ldtt-autoh');}catch(e){}G.ldLeaving=2;location.reload();}},320);return true;}
@@ -23747,6 +23751,47 @@ addEventListener('click',e=>{try{const b=e.target&&e.target.closest&&e.target.cl
       if((!has||v.ts>lsT)&&(!C||v.ts>(C.ts||0)+1000)){const o=JSON.parse(v.raw);if(o&&o.v===1){localStorage.setItem(k,v.raw);localStorage.setItem('ld-lsT#'+id,String(v.ts));
           try{const sl=slotsLocal();sl[id]=Object.assign({},sl[id]||{},slotMeta(o),{ts:v.ts});slotsWrite(sl);}catch(er){}if(C&&typeof accRev==='function')accRev(id,Math.max(accRev(id),C.rev|0));LIDB.rec=(LIDB.rec|0)+1;}}}}catch(er){}
     b._lidbOk=1;b.click();setTimeout(()=>{b._lidbOk=0;},3000);});}catch(er){}},true);
+/* ===================== LUỒNG PHỤ: TÍNH SẴN TỈNH KẾ BÊN (đại lục liền mạch, đợt 1) =====================
+   Trước: qua ranh giới tỉnh, luồng chính phải tính lại độ cao, mực nước, sinh cảnh, màu đất của cả vùng nạp (~1 giây đứng hình trên máy thử).
+   Giờ: đi tới gần ranh giới thì một LUỒNG PHỤ (Web Worker) chạy CHÍNH mã game này, tính sẵn các mảng đó cho tỉnh phía trước, song song với lúc chơi;
+   qua ranh giới thì luồng chính nhận lại kết quả thay vì tự tính. Chạy thử so từng điểm: kết quả giống hệt (0 điểm khác trên 333 nghìn điểm).
+   An toàn: chỉ dùng khi đúng tỉnh và đúng dữ liệu đầu vào (san nền, đào hố, nền của người khác) như lúc luồng phụ tính; sai lệch gì thì tự tính như cũ.
+   Luồng phụ tự tắt sau mỗi lần tính để không giữ thêm bộ nhớ. Tắt hẳn: localStorage 'ld-lp' = '0'. */
+const LP={w:null,busy:0,ready:null,k:null,err:0,used:0,miss:'',t0:0,ms:0};
+function lpOn(){try{if(typeof Worker==='undefined'||typeof Blob==='undefined'||self.__LP)return false;if(localStorage.getItem('ld-lp')==='0')return false;return LP.err<3;}catch(e){return false;}}
+/* dữ liệu đầu vào ngoài toạ độ tỉnh mà các bước tính dùng tới */
+function lpSig(){try{return JSON.stringify([S.seed,S.seed0||0,S.wv||0,S.flat||[],S.dig||[],S.tun||[],(typeof DB==='object'&&DB&&DB.flats)||[],(typeof DAO==='object'&&DAO&&DAO.rdig)||[]]);}catch(e){return 'x'+Math.random();}}
+/* phần giả cho luồng phụ: không có trang, không có bộ nhớ trình duyệt; mọi thứ giao diện trả về một vật "gì cũng được" */
+const LP_PRE=`(()=>{const mk=()=>{const f=function(){};const px=new Proxy(f,{get(t,k){if(k===Symbol.toPrimitive)return ()=>0;if(k==='then')return undefined;if(k===Symbol.iterator)return function*(){};if(k==='length')return 0;return px;},apply(){return px;},construct(){return px;},set(){return true;},has(){return true;}});return px;};
+  const any=mk();self.window=self;self.document=any;self.localStorage=self.sessionStorage=(()=>{const m=new Map();return {getItem:k=>m.has(k)?m.get(k):null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k),clear:()=>m.clear(),key:i=>[...m.keys()][i],get length(){return m.size;}};})();
+  self.innerWidth=390;self.innerHeight=844;self.devicePixelRatio=1;self.requestAnimationFrame=()=>0;self.cancelAnimationFrame=()=>0;self.matchMedia=()=>({matches:false,addEventListener(){}});self.alert=self.confirm=()=>false;self.getComputedStyle=()=>any;self.screen={width:390,height:844};
+  self.HTMLElement=self.Element=self.Node=function(){};self.Image=function(){return any;};self.__LP=1;
+  importScripts(self.__TURL);if(THREE.ColorManagement)THREE.ColorManagement.legacyMode=false;/* như K3init trên luồng chính: màu tuyến tính */
+  self.onmessage=e=>{const d=e.data,o={id:d.id};try{S=JSON.parse(d.S);P.x=d.px;P.z=d.pz;try{DB.flats=d.dbf;}catch(er){}try{DAO.rdig=d.rdig;}catch(er){}
+      G.on=false;worldCfg(3);/* nạp hạt giống đại lục trước (dlSeedAt cần) */dlMoveState(d.dx,d.dz);worldCfg(3);o.k=S.dl.ox+','+S.dl.oz;o.sig=lpSig();
+      noiseInit(S.seed);heightsBuild();o.HG=HG.slice(0);o.WG=WG.slice(0);o.ZG=W4.ZG?W4.ZG.slice(0):null;o.ZK=W4.ZK?W4.ZK.slice(0):null;
+      biomeGridBuild();o.BG=BG.slice(0);regionsBuild();trailsBuild();decorPlan();caveFlatten();biomeGridBuild();terrainColors();
+      o.TCOL=TCOL;o.TNRM=TNRM;o.TSPL=TSPL;o.T3={brooks:T3.brooks,BW:T3.BW,BD:T3.BD,TQ:T3.TQ};}catch(er){o.err=String(er&&er.message||er)+' @ '+String(er&&er.stack||'').split('\\n').slice(1,3).join(' | ');}
+    const tr=[];for(const k of ['HG','WG','ZG','ZK','BG','TCOL','TNRM','TSPL'])if(o[k]&&o[k].buffer)tr.push(o[k].buffer);if(o.T3)for(const k of ['BW','BD','TQ'])if(o.T3[k]&&o.T3[k].buffer)tr.push(o.T3[k].buffer);postMessage(o,tr);};})();`;
+function lpCode(){if(LP.code)return LP.code;let main='';try{main=[...document.scripts].filter(s=>!s.src).map(s=>s.textContent).sort((a,b)=>b.length-a.length)[0]||'';}catch(e){}
+  if(main.length<100000)return null;let turl=TURLS[0];try{const s=[...document.scripts].find(s=>/three(\.min)?\.js/.test(s.src||''));if(s)turl=s.src;}catch(e){}
+  LP.code=URL.createObjectURL(new Blob(['self.__TURL='+JSON.stringify(turl)+';\n'+LP_PRE+'\n'+main],{type:'text/javascript'}));return LP.code;}
+function lpStop(){try{if(LP.w)LP.w.terminate();}catch(e){}LP.w=null;LP.busy=0;}
+/* nhờ luồng phụ tính tỉnh lệch (dx,dz) so với tỉnh đang đứng */
+function lpAsk(dx,dz){if(!lpOn()||LP.busy||!DL.on||!S||!S.dl)return;const k=(S.dl.ox+dx)+','+(S.dl.oz+dz);if(LP.k===k&&LP.ready)return;const url=lpCode();if(!url){LP.err=9;return;}
+  LP.busy=1;LP.k=k;LP.ready=null;LP.t0=performance.now();const id=(LP.id=(LP.id|0)+1);
+  try{LP.w=new Worker(url);LP.w.onerror=ev=>{LP.err++;LP.miss='luồng phụ lỗi: '+(ev&&ev.message||'');lpStop();};
+    LP.w.onmessage=ev=>{const r=ev.data;lpStop();if(r.id!==id)return;if(r.err){LP.err++;LP.miss='luồng phụ: '+r.err;return;}LP.ms=Math.round(performance.now()-LP.t0);LP.ready=r;};
+    let s='';try{s=typeof ldPack==='function'?ldPack(S):JSON.stringify(S,(k,v)=>k&&k[0]==='_'?undefined:v);}catch(e){}
+    LP.w.postMessage({id,S:s,px:P.x,pz:P.z,dx,dz,dbf:(typeof DB==='object'&&DB&&DB.flats)||[],rdig:(typeof DAO==='object'&&DAO&&DAO.rdig)||[]});}catch(e){LP.err++;LP.miss='không mở được luồng phụ: '+e.message;lpStop();}}
+/* lúc dựng lại vùng khi sang tỉnh (DL.busy): kết quả có sẵn, đúng tỉnh, đúng đầu vào thì dùng */
+function lpTake(part){try{if(!DL.on||!DL.busy)return null;const r=LP.ready;if(!r)return null;if(r.k!==DL.ox+','+DL.oz){LP.miss='khác tỉnh';return null;}const sg=lpSig();if(r.sig!==sg){let i=0;while(i<sg.length&&sg[i]===r.sig[i])i++;LP.miss='đầu vào đã đổi @'+i+': '+r.sig.slice(Math.max(0,i-60),i+40)+' ≠ '+sg.slice(Math.max(0,i-60),i+40);LP.ready=null;return null;}if(!r[part])return null;return r;}catch(e){return null;}}
+{const _hb=heightsBuild;heightsBuild=function(){const r=lpTake('HG');if(r){riversSurface();HG=r.HG;WG=r.WG;try{if(typeof W4==='object'){W4.ZG=r.ZG;W4.ZK=r.ZK;}}catch(e){}r.HG=null;LP.used++;return;}return _hb.apply(this,arguments);};}
+{const _bg=biomeGridBuild;biomeGridBuild=function(){const r=lpTake('BG');if(r){BG=r.BG;DL.bgKey=DL.ox+','+DL.oz+':'+(DL.bgN|0);r.BG=null;return;}return _bg.apply(this,arguments);};}
+{const _tc=terrainColors;terrainColors=function(){const r=lpTake('TCOL');if(r){TGX=DL.ox;TGZ=DL.oz;TCOL=r.TCOL;TNRM=r.TNRM;TSPL=r.TSPL;try{Object.assign(T3,r.T3);}catch(e){}LP.ready=null;return;}return _tc.apply(this,arguments);};}
+/* đi tới gần ranh giới (cùng vùng tính trước địa hình của dailuc.js) thì nhờ luồng phụ */
+setInterval(()=>{try{if(!lpOn()||typeof DL!=='object'||!DL.on||typeof G!=='object'||!G.on||DL.busy||!S||!S.dl)return;const A=dlA(),h=A/2,mg=Math.min(2500,h*0.6);let dx=0,dz=0;
+    if(P.x>h-mg)dx=A;else if(P.x<-h+mg)dx=-A;if(P.z>h-mg)dz=A;else if(P.z<-h+mg)dz=-A;if(!dx&&!dz)return;lpAsk(dx,dz);}catch(e){}},1000);
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
