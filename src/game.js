@@ -116,6 +116,12 @@ const LORX=/^(tree|savannaTree|bamboo|palm|banana)/,BIGCH=900;const RCH=1150,BIG
 // nhóm hình chỉ dựng thật khi lần đầu có phần tử cần hiện (xem resInstances)
 function resLazy(mk){let real=null;const dummy={visible:true},get=()=>{if(!real){real=mk();real.G.visible=dummy.visible;}return real;};
   return {get G(){return real?real.G:dummy;},get nOn(){return real?real.nOn:0;},get ims(){return real?real.ims:[];},get cap(){return real?real.cap:0;},set(){const a=get();return a.set.apply(a,arguments);},setM(){const a=get();return a.setM.apply(a,arguments);},hide(i){if(real)real.hide(i);},flush(){if(real)real.flush();},dispose(){if(real)real.dispose();}};}
+/* cụm cây đá dựng muộn: ghi lại lệnh đặt / ẩn / đổi ma trận, khi dựng thật thì chạy lại theo đúng thứ tự (kết quả như dựng ngay) */
+function resDefer(mk,sph){let real=null,ops=[];const dummy={visible:true};const get=()=>{if(!real){real=mk();real.G.visible=dummy.visible;for(const o of ops)real[o[0]].apply(real,o[1]);ops=null;real.flush();}return real;};
+  return {defer:1,sph,get built(){return !!real;},build:get,get lo(){return real?real.lo:undefined;},get hi(){return real?real.hi:undefined;},get G(){return real?real.G:dummy;},get nOn(){return real?real.nOn:0;},get ims(){return real?real.ims:[];},get cap(){return real?real.cap:0;},
+    set(...a){if(real)return real.set(...a);ops.push(['set',a]);},setM(...a){if(real)return real.setM(...a);ops.push(['setM',a]);},hide(i){if(real)return real.hide(i);ops.push(['hide',[i]]);},flush(){if(real)real.flush();},dispose(){if(real)real.dispose();}};}
+function resDeferRun(){clearTimeout(G.rdT);const step=()=>{try{const L=[];RI.forEach(v=>{if(v.api&&v.api.defer&&!v.api.built)L.push(v);});if(!L.length)return;L.sort((a,b)=>Math.hypot(a.sph.x-P.x,a.sph.z-P.z)-Math.hypot(b.sph.x-P.x,b.sph.z-P.z));
+      const t0=performance.now();for(const v of L){v.api.build();if(performance.now()-t0>10)break;}G.rdT=setTimeout(step,40);}catch(e){console.warn('dựng cây đá muộn',e);}};G.rdT=setTimeout(step,60);}
 function resInstances(){const groups=new Map(),protos=new Map();const lazyLo=!G.impDone&&!!(window.SBM&&SBM.v6bake&&SBM.treeLo);G.loQ=[];const ck=(x,z,c)=>Math.floor((x+WSIZE/2)/c)+','+Math.floor((z+WOZ)/c);
   const use=(spec,q,main)=>{const sk=spec.join('|'),big=BIGRX.test(sk),k=sk+'@'+ck(q.x,q.z,big?BIGCH:700);let e=groups.get(k);if(!e){e={sk,spec,qs:[],big,main:0};groups.set(k,e);}if(main)e.main=1;e.qs.push(q);return k;};
   RES.forEach(q=>{const D=RT[q.t];q.y=q.wy!=null?q.wy:hAt(q.x,q.z)-1.2;q.gk=use(D.m,q,1);if(D.stump)q.sk=use(D.stump,q,0);if(D.empty)q.ek=use(D.empty,q,0);});
@@ -126,14 +132,23 @@ function resInstances(){const groups=new Map(),protos=new Map();const lazyLo=!G.
        (quá nửa số nhóm hình, hàng chục MB). Giờ chỉ dựng khi lần đầu có cây bị chặt / bụi bị hái ở khu đó. */
     if(!e.main){let cx=0,cy=0,cz=0,ms=1;e.qs.forEach(q=>{cx+=q.x;cy+=q.y;cz+=q.z;ms=Math.max(ms,q.s);});cx/=e.qs.length;cy/=e.qs.length;cz/=e.qs.length;let r=0;e.qs.forEach(q=>{r=Math.max(r,Math.hypot(q.x-cx,q.y-cy,q.z-cz));});
       const sph={x:cx,y:cy,z:cz,r:r+60*ms+10},n=e.qs.length,sk=e.sk;RI.set(k,{api:resLazy(()=>{const pr=proto(sk,false);sph.r=r+pr.mr*ms+10;const a=instGroup(pr.parts,n,{shadow:false,sphere:sph});G.sc.add(a.G);try{seasonPatchAll(a.G);}catch(er){}return a;}),n:0,sph,small:true});return;}
-    const pr=proto(e.sk,false);let cx=0,cy=0,cz=0,ms=1;e.qs.forEach(q=>{cx+=q.x;cy+=q.y;cz+=q.z;ms=Math.max(ms,q.s);});cx/=e.qs.length;cy/=e.qs.length;cz/=e.qs.length;let r=0;e.qs.forEach(q=>{r=Math.max(r,Math.hypot(q.x-cx,q.y-cy,q.z-cz));});
+    let cx=0,cy=0,cz=0,ms=1;e.qs.forEach(q=>{cx+=q.x;cy+=q.y;cz+=q.z;ms=Math.max(ms,q.s);});cx/=e.qs.length;cy/=e.qs.length;cz/=e.qs.length;let r=0;e.qs.forEach(q=>{r=Math.max(r,Math.hypot(q.x-cx,q.y-cy,q.z-cz));});
+    /* SANG TỈNH (dựng lại tại chỗ): cụm ở xa người chơi chưa dựng ngay — ghi lại các lệnh đặt/ẩn, dựng dần sau đó (cụm gần trước), đỡ ~0,3 giây đứng hình */
+    if(G._reuse&&typeof DL==='object'&&DL.on&&Math.hypot(cx-P.x,cz-P.z)-r>1200){const sph={x:cx,y:cy,z:cz,r:r+60*ms+10},small=!e.big,sk=e.sk,n=e.qs.length;
+      const big=e.big;RI.set(k,{api:resDefer(()=>{const pr=proto(sk,false);sph.r=r+pr.mr*ms+10;let a=instGroup(pr.parts,n,{shadow:!small,sphere:sph});G.sc.add(a.G);
+          /* giống hệt nhánh dựng ngay: cây lớn có thêm bản hình đơn giản cho ở xa */
+          if(big&&LORX.test(sk)&&lazyLo)G.loQ.push({k,sk,n,sph,hi:a});
+          else if(big&&LORX.test(sk)&&window.SBM&&SBM.treeLo){const lo=instGroup(proto(sk,true).parts,n,{shadow:false,sphere:sph});lo.G.visible=false;G.sc.add(lo.G);const hi=a;
+            a={G:hi.G,lo,hi,get nOn(){return hi.nOn;},set(...x){hi.set(...x);lo.set(...x);},setM(i,m){hi.setM(i,m);lo.setM(i,m);},hide(i){hi.hide(i);lo.hide(i);},flush(){hi.flush();lo.flush();}};}
+          return a;},sph),n:0,sph,small});return;}
+    const pr=proto(e.sk,false);
     const sph={x:cx,y:cy,z:cz,r:r+pr.mr*ms+10},small=!e.big;let api=instGroup(pr.parts,e.qs.length,{shadow:!small,sphere:sph});G.sc.add(api.G);
     if(e.big&&LORX.test(e.sk)&&lazyLo)G.loQ.push({k,sk:e.sk,n:e.qs.length,sph,hi:api});
     else if(e.big&&LORX.test(e.sk)&&window.SBM&&SBM.treeLo){const lo=instGroup(proto(e.sk,true).parts,e.qs.length,{shadow:false,sphere:sph});lo.G.visible=false;G.sc.add(lo.G);const hi=api;
       api={G:hi.G,lo,hi,get nOn(){return hi.nOn;},set(...a){hi.set(...a);lo.set(...a);},setM(i,m){hi.setM(i,m);lo.setM(i,m);},hide(i){hi.hide(i);lo.hide(i);},flush(){hi.flush();lo.flush();}};}
     RI.set(k,{api,n:0,sph,small});});
   RES.forEach(q=>{q.gi=RI.get(q.gk).n++;if(q.sk)q.si=RI.get(q.sk).n++;if(q.ek)q.ei=RI.get(q.ek).n++;const m=S.res[q.i];if(m){q.st=m[0];q.rg=m[1]||0;q.hp=q.st?0:RT[q.t].hp;}resShow(q);});
-  RI.forEach(v=>v.api.flush());G.loProto=proto;}
+  RI.forEach(v=>v.api.flush());G.loProto=proto;if(RI.size)resDeferRun();}
 // cây ở xa (ảnh giả): nướng bản đồ ảnh SAU khi đã vào game (trước đây nướng ảnh 4096² lúc tải → chờ lâu nhất).
 // Trong lúc chờ, cây xa vẫn hiện bằng mô hình đầy đủ nên không bị "mọc" thêm cây.
 function treeLoLater(){if(!G.loQ||!G.loQ.length||!G.on){G.loQ=null;return;}const t0=performance.now();try{SBM.v6bake();}catch(e){console.warn('ảnh cây xa',e);}G.impDone=1;const M=new THREE.Matrix4();

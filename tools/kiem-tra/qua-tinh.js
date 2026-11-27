@@ -31,8 +31,8 @@ const {chromium}=require('playwright');const path=require('path');const MAXB=+pr
           jt:window.__JT||[],maxBlock:L.reduce((m,e)=>Math.max(m,e[1]),0),blocks:L.filter(e=>e[1]>200).map(e=>e[1]),walls:__W.map(id=>S.builds.find(b=>b.id===id)).filter(Boolean).map(b=>[Math.round(b.x+DL.ox),Math.round(b.z+DL.oz)])});}
         if(performance.now()-t0>120000){clearInterval(iv);res({timeout:1,land:S.land,busy:DL.busy,on:G.on,lv:G.ldLeaving,noIn:DL.noIn,phase,last:DL.lastMs});}}catch(e){clearInterval(iv);res({err:e.message});}},40);}),r0);
   /* kết quả nhận từ luồng phụ phải giống hệt tự tính lại ngay tại chỗ */
-  const ss=await p.evaluate(()=>{if(typeof LP!=='object')return null;const o={used:LP.used,miss:LP.miss};const h=a=>{let s=0;if(!a)return 0;for(let i=0;i<a.length;i+=3)s=(s*31+Math.round(a[i]*1000))|0;return s;};const A={HG:h(HG),WG:h(WG),BG:h(BG),TCOL:h(TCOL),TNRM:h(TNRM),TSPL:h(TSPL)};
-    try{noiseInit(S.seed);heightsBuild();DL.bgKey=null;biomeGridBuild();regionsBuild();trailsBuild();decorPlan();caveFlatten();biomeGridBuild();terrainColors();}catch(e){o.err=e.message;}const B={HG:h(HG),WG:h(WG),BG:h(BG),TCOL:h(TCOL),TNRM:h(TNRM),TSPL:h(TSPL)};o.khac=Object.keys(A).filter(k=>A[k]!==B[k]);return o;});
+  const ss=await p.evaluate(()=>{if(typeof LP!=='object')return null;const o={used:LP.used,miss:LP.miss};const h=a=>{let s=0;if(!a)return 0;for(let i=0;i<a.length;i+=3)s=(s*31+Math.round(a[i]*1000))|0;return s;};const rs=()=>{let s=0;for(const q of RES)s=(s*31+Math.round(q.x*10)+Math.round(q.z*10)*7+q.t.length*13+Math.round((q.s||0)*1000)+Math.round((q.ry||0)*1000))|0;return s+':'+RES.length;};o.usedRes=LP.usedRes|0;o.pReuse=LP.pReuse|0;o.vill=typeof LPV==='object'?[LPV.n,LPV.proto.size,LPV.bad.size]:null;o.pIn=!!(P.model&&P.model.parent===G.sc&&P.blob.parent===G.sc);let dn=0,dt=0;RI.forEach(v=>{if(v.api&&v.api.defer){dt++;if(v.api.built)dn++;}});o.defer=[dn,dt];const A={HG:h(HG),WG:h(WG),BG:h(BG),TCOL:h(TCOL),TNRM:h(TNRM),TSPL:h(TSPL),RES:rs()};
+    try{noiseInit(S.seed);heightsBuild();DL.bgKey=null;biomeGridBuild();regionsBuild();trailsBuild();decorPlan();caveFlatten();biomeGridBuild();terrainColors();}catch(e){o.err=e.message;}try{resGen(S.seed);}catch(e){o.err2=e.message;}const B={HG:h(HG),WG:h(WG),BG:h(BG),TCOL:h(TCOL),TNRM:h(TNRM),TSPL:h(TSPL),RES:rs()};o.khac=Object.keys(A).filter(k=>A[k]!==B[k]);return o;});
   const nap1=await p.evaluate(()=>+sessionStorage.getItem('qt-nap')).catch(()=>-1);
   const bad=[];if(r.err||r.timeout)bad.push('không chạy hết: '+JSON.stringify(r));else{
     if(r.land===r.land0)bad.push('không qua được tỉnh');
@@ -41,6 +41,6 @@ const {chromium}=require('playwright');const path=require('path');const MAXB=+pr
     if(r.maxX>r.ring[1]-4||r.minX<r.ring[0]+4)bad.push('lọt qua tường: x '+r.minX+'..'+r.maxX+' trong vòng '+r.ring[0]+'..'+r.ring[1]);
     if(nap1!==nap0)bad.push('trang bị tải lại khi qua tỉnh');if(MAXB&&r.maxBlock>MAXB)bad.push('đứng hình '+r.maxBlock+' ms (mốc '+MAXB+')');}
   if(logs.length)bad.push('lỗi: '+logs.slice(0,2).join(' | '));
-  if(ss&&ss.khac&&ss.khac.length)bad.push('dữ liệu từ luồng phụ khác tự tính: '+ss.khac.join(','));
+  if(ss&&ss.pIn===false)bad.push('hình người chơi không có trong cảnh mới');if(ss&&ss.defer&&ss.defer[0]<ss.defer[1])bad.push('còn cụm cây đá chưa dựng sau 12 giây: '+ss.defer.join('/'));if(ss&&ss.khac&&ss.khac.length)bad.push('dữ liệu từ luồng phụ khác tự tính: '+ss.khac.join(','));
   console.log(JSON.stringify({r0,lp0,ss,r:Object.assign({},r,{walls:undefined}),nap:[nap0,nap1]}));
   console.log(bad.length?'QT-HONG '+bad.join('; '):'QT-DAT đứng hình dài nhất '+r.maxBlock+' ms');await b.close();process.exit(bad.length?1:0);})();

@@ -216,7 +216,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
           const q=put(sp.t,x,z,sp.tree?0.62+u4*0.7:0.85+u4*0.35,u5*6.283);if(sp.lotus)q.wy=0.4;}}}
     DL.resMade=made;}
   {const _rg=resGen;resGen=function(seed){if(!DL.on)return _rg.apply(this,arguments);let r,specs=null;RESREC=[];try{r=_rg.apply(this,arguments);}finally{specs=RESREC;RESREC=null;}
-      try{const t0=performance.now(),base=RES.length;DL.resBase=base;dlResCells(specs||[],base);
+      try{const t0=performance.now(),base=RES.length;DL.resBase=base;/* luồng phụ đã rải sẵn cây đá theo ô của tỉnh này (luongphu.js) thì nhận lại, không thì tự rải */if(!(typeof lpResCells==='function'&&lpResCells(base)))dlResCells(specs||[],base);if(self.__LP)self.__LPRES=RES.slice(base).map(q=>Object.assign({},q));
         /* khoáng sản, đất sét, muối: đổi loài theo TOẠ ĐỘ ĐẠI LỤC của từng món (trước theo số thứ tự nên mỗi tỉnh một khác) */
         const sd=DL.seed|0,re=(q,t,u)=>{if(!RT[t])return;q.t=t;q.s=(0.85+u*0.35)*(RT[t].sc||1);q.hp=RT[t].hp;};
         for(let n=base;n<RES.length;n++){const q=RES[n],gx=Math.round(q.x+DL.ox),gz=Math.round(q.z+DL.oz),u=dlHash(gx,gz,sd+11),u2=dlHash(gx,gz,sd+3),t=q.t;

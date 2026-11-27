@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261127110411">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261127112233">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -2241,6 +2241,12 @@ const LORX=/^(tree|savannaTree|bamboo|palm|banana)/,BIGCH=900;const RCH=1150,BIG
 // nhóm hình chỉ dựng thật khi lần đầu có phần tử cần hiện (xem resInstances)
 function resLazy(mk){let real=null;const dummy={visible:true},get=()=>{if(!real){real=mk();real.G.visible=dummy.visible;}return real;};
   return {get G(){return real?real.G:dummy;},get nOn(){return real?real.nOn:0;},get ims(){return real?real.ims:[];},get cap(){return real?real.cap:0;},set(){const a=get();return a.set.apply(a,arguments);},setM(){const a=get();return a.setM.apply(a,arguments);},hide(i){if(real)real.hide(i);},flush(){if(real)real.flush();},dispose(){if(real)real.dispose();}};}
+/* cụm cây đá dựng muộn: ghi lại lệnh đặt / ẩn / đổi ma trận, khi dựng thật thì chạy lại theo đúng thứ tự (kết quả như dựng ngay) */
+function resDefer(mk,sph){let real=null,ops=[];const dummy={visible:true};const get=()=>{if(!real){real=mk();real.G.visible=dummy.visible;for(const o of ops)real[o[0]].apply(real,o[1]);ops=null;real.flush();}return real;};
+  return {defer:1,sph,get built(){return !!real;},build:get,get lo(){return real?real.lo:undefined;},get hi(){return real?real.hi:undefined;},get G(){return real?real.G:dummy;},get nOn(){return real?real.nOn:0;},get ims(){return real?real.ims:[];},get cap(){return real?real.cap:0;},
+    set(...a){if(real)return real.set(...a);ops.push(['set',a]);},setM(...a){if(real)return real.setM(...a);ops.push(['setM',a]);},hide(i){if(real)return real.hide(i);ops.push(['hide',[i]]);},flush(){if(real)real.flush();},dispose(){if(real)real.dispose();}};}
+function resDeferRun(){clearTimeout(G.rdT);const step=()=>{try{const L=[];RI.forEach(v=>{if(v.api&&v.api.defer&&!v.api.built)L.push(v);});if(!L.length)return;L.sort((a,b)=>Math.hypot(a.sph.x-P.x,a.sph.z-P.z)-Math.hypot(b.sph.x-P.x,b.sph.z-P.z));
+      const t0=performance.now();for(const v of L){v.api.build();if(performance.now()-t0>10)break;}G.rdT=setTimeout(step,40);}catch(e){console.warn('dựng cây đá muộn',e);}};G.rdT=setTimeout(step,60);}
 function resInstances(){const groups=new Map(),protos=new Map();const lazyLo=!G.impDone&&!!(window.SBM&&SBM.v6bake&&SBM.treeLo);G.loQ=[];const ck=(x,z,c)=>Math.floor((x+WSIZE/2)/c)+','+Math.floor((z+WOZ)/c);
   const use=(spec,q,main)=>{const sk=spec.join('|'),big=BIGRX.test(sk),k=sk+'@'+ck(q.x,q.z,big?BIGCH:700);let e=groups.get(k);if(!e){e={sk,spec,qs:[],big,main:0};groups.set(k,e);}if(main)e.main=1;e.qs.push(q);return k;};
   RES.forEach(q=>{const D=RT[q.t];q.y=q.wy!=null?q.wy:hAt(q.x,q.z)-1.2;q.gk=use(D.m,q,1);if(D.stump)q.sk=use(D.stump,q,0);if(D.empty)q.ek=use(D.empty,q,0);});
@@ -2251,14 +2257,23 @@ function resInstances(){const groups=new Map(),protos=new Map();const lazyLo=!G.
        (quá nửa số nhóm hình, hàng chục MB). Giờ chỉ dựng khi lần đầu có cây bị chặt / bụi bị hái ở khu đó. */
     if(!e.main){let cx=0,cy=0,cz=0,ms=1;e.qs.forEach(q=>{cx+=q.x;cy+=q.y;cz+=q.z;ms=Math.max(ms,q.s);});cx/=e.qs.length;cy/=e.qs.length;cz/=e.qs.length;let r=0;e.qs.forEach(q=>{r=Math.max(r,Math.hypot(q.x-cx,q.y-cy,q.z-cz));});
       const sph={x:cx,y:cy,z:cz,r:r+60*ms+10},n=e.qs.length,sk=e.sk;RI.set(k,{api:resLazy(()=>{const pr=proto(sk,false);sph.r=r+pr.mr*ms+10;const a=instGroup(pr.parts,n,{shadow:false,sphere:sph});G.sc.add(a.G);try{seasonPatchAll(a.G);}catch(er){}return a;}),n:0,sph,small:true});return;}
-    const pr=proto(e.sk,false);let cx=0,cy=0,cz=0,ms=1;e.qs.forEach(q=>{cx+=q.x;cy+=q.y;cz+=q.z;ms=Math.max(ms,q.s);});cx/=e.qs.length;cy/=e.qs.length;cz/=e.qs.length;let r=0;e.qs.forEach(q=>{r=Math.max(r,Math.hypot(q.x-cx,q.y-cy,q.z-cz));});
+    let cx=0,cy=0,cz=0,ms=1;e.qs.forEach(q=>{cx+=q.x;cy+=q.y;cz+=q.z;ms=Math.max(ms,q.s);});cx/=e.qs.length;cy/=e.qs.length;cz/=e.qs.length;let r=0;e.qs.forEach(q=>{r=Math.max(r,Math.hypot(q.x-cx,q.y-cy,q.z-cz));});
+    /* SANG TỈNH (dựng lại tại chỗ): cụm ở xa người chơi chưa dựng ngay — ghi lại các lệnh đặt/ẩn, dựng dần sau đó (cụm gần trước), đỡ ~0,3 giây đứng hình */
+    if(G._reuse&&typeof DL==='object'&&DL.on&&Math.hypot(cx-P.x,cz-P.z)-r>1200){const sph={x:cx,y:cy,z:cz,r:r+60*ms+10},small=!e.big,sk=e.sk,n=e.qs.length;
+      const big=e.big;RI.set(k,{api:resDefer(()=>{const pr=proto(sk,false);sph.r=r+pr.mr*ms+10;let a=instGroup(pr.parts,n,{shadow:!small,sphere:sph});G.sc.add(a.G);
+          /* giống hệt nhánh dựng ngay: cây lớn có thêm bản hình đơn giản cho ở xa */
+          if(big&&LORX.test(sk)&&lazyLo)G.loQ.push({k,sk,n,sph,hi:a});
+          else if(big&&LORX.test(sk)&&window.SBM&&SBM.treeLo){const lo=instGroup(proto(sk,true).parts,n,{shadow:false,sphere:sph});lo.G.visible=false;G.sc.add(lo.G);const hi=a;
+            a={G:hi.G,lo,hi,get nOn(){return hi.nOn;},set(...x){hi.set(...x);lo.set(...x);},setM(i,m){hi.setM(i,m);lo.setM(i,m);},hide(i){hi.hide(i);lo.hide(i);},flush(){hi.flush();lo.flush();}};}
+          return a;},sph),n:0,sph,small});return;}
+    const pr=proto(e.sk,false);
     const sph={x:cx,y:cy,z:cz,r:r+pr.mr*ms+10},small=!e.big;let api=instGroup(pr.parts,e.qs.length,{shadow:!small,sphere:sph});G.sc.add(api.G);
     if(e.big&&LORX.test(e.sk)&&lazyLo)G.loQ.push({k,sk:e.sk,n:e.qs.length,sph,hi:api});
     else if(e.big&&LORX.test(e.sk)&&window.SBM&&SBM.treeLo){const lo=instGroup(proto(e.sk,true).parts,e.qs.length,{shadow:false,sphere:sph});lo.G.visible=false;G.sc.add(lo.G);const hi=api;
       api={G:hi.G,lo,hi,get nOn(){return hi.nOn;},set(...a){hi.set(...a);lo.set(...a);},setM(i,m){hi.setM(i,m);lo.setM(i,m);},hide(i){hi.hide(i);lo.hide(i);},flush(){hi.flush();lo.flush();}};}
     RI.set(k,{api,n:0,sph,small});});
   RES.forEach(q=>{q.gi=RI.get(q.gk).n++;if(q.sk)q.si=RI.get(q.sk).n++;if(q.ek)q.ei=RI.get(q.ek).n++;const m=S.res[q.i];if(m){q.st=m[0];q.rg=m[1]||0;q.hp=q.st?0:RT[q.t].hp;}resShow(q);});
-  RI.forEach(v=>v.api.flush());G.loProto=proto;}
+  RI.forEach(v=>v.api.flush());G.loProto=proto;if(RI.size)resDeferRun();}
 // cây ở xa (ảnh giả): nướng bản đồ ảnh SAU khi đã vào game (trước đây nướng ảnh 4096² lúc tải → chờ lâu nhất).
 // Trong lúc chờ, cây xa vẫn hiện bằng mô hình đầy đủ nên không bị "mọc" thêm cây.
 function treeLoLater(){if(!G.loQ||!G.loQ.length||!G.on){G.loQ=null;return;}const t0=performance.now();try{SBM.v6bake();}catch(e){console.warn('ảnh cây xa',e);}G.impDone=1;const M=new THREE.Matrix4();
@@ -22784,7 +22799,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
           const q=put(sp.t,x,z,sp.tree?0.62+u4*0.7:0.85+u4*0.35,u5*6.283);if(sp.lotus)q.wy=0.4;}}}
     DL.resMade=made;}
   {const _rg=resGen;resGen=function(seed){if(!DL.on)return _rg.apply(this,arguments);let r,specs=null;RESREC=[];try{r=_rg.apply(this,arguments);}finally{specs=RESREC;RESREC=null;}
-      try{const t0=performance.now(),base=RES.length;DL.resBase=base;dlResCells(specs||[],base);
+      try{const t0=performance.now(),base=RES.length;DL.resBase=base;/* luồng phụ đã rải sẵn cây đá theo ô của tỉnh này (luongphu.js) thì nhận lại, không thì tự rải */if(!(typeof lpResCells==='function'&&lpResCells(base)))dlResCells(specs||[],base);if(self.__LP)self.__LPRES=RES.slice(base).map(q=>Object.assign({},q));
         /* khoáng sản, đất sét, muối: đổi loài theo TOẠ ĐỘ ĐẠI LỤC của từng món (trước theo số thứ tự nên mỗi tỉnh một khác) */
         const sd=DL.seed|0,re=(q,t,u)=>{if(!RT[t])return;q.t=t;q.s=(0.85+u*0.35)*(RT[t].sc||1);q.hp=RT[t].hp;};
         for(let n=base;n<RES.length;n++){const q=RES[n],gx=Math.round(q.x+DL.ox),gz=Math.round(q.z+DL.oz),u=dlHash(gx,gz,sd+11),u2=dlHash(gx,gz,sd+3),t=q.t;
@@ -23771,7 +23786,7 @@ const LP_PRE=`(()=>{const mk=()=>{const f=function(){};const px=new Proxy(f,{get
       G.on=false;worldCfg(3);/* nạp hạt giống đại lục trước (dlSeedAt cần) */dlMoveState(d.dx,d.dz);worldCfg(3);o.k=S.dl.ox+','+S.dl.oz;o.sig=lpSig();
       noiseInit(S.seed);heightsBuild();o.HG=HG.slice(0);o.WG=WG.slice(0);o.ZG=W4.ZG?W4.ZG.slice(0):null;o.ZK=W4.ZK?W4.ZK.slice(0):null;
       biomeGridBuild();o.BG=BG.slice(0);regionsBuild();trailsBuild();decorPlan();caveFlatten();biomeGridBuild();terrainColors();
-      o.TCOL=TCOL;o.TNRM=TNRM;o.TSPL=TSPL;o.T3={brooks:T3.brooks,BW:T3.BW,BD:T3.BD,TQ:T3.TQ};}catch(er){o.err=String(er&&er.message||er)+' @ '+String(er&&er.stack||'').split('\\n').slice(1,3).join(' | ');}
+      o.TCOL=TCOL;o.TNRM=TNRM;o.TSPL=TSPL;o.T3={brooks:T3.brooks,BW:T3.BW,BD:T3.BD,TQ:T3.TQ};self.__LPRES=null;try{resGen(S.seed);}catch(er){}o.RES=self.__LPRES;o.resBase=DL.resBase;}catch(er){o.err=String(er&&er.message||er)+' @ '+String(er&&er.stack||'').split('\\n').slice(1,3).join(' | ');}
     const tr=[];for(const k of ['HG','WG','ZG','ZK','BG','TCOL','TNRM','TSPL'])if(o[k]&&o[k].buffer)tr.push(o[k].buffer);if(o.T3)for(const k of ['BW','BD','TQ'])if(o.T3[k]&&o.T3[k].buffer)tr.push(o.T3[k].buffer);postMessage(o,tr);};})();`;
 function lpCode(){if(LP.code)return LP.code;let main='';try{main=[...document.scripts].filter(s=>!s.src).map(s=>s.textContent).sort((a,b)=>b.length-a.length)[0]||'';}catch(e){}
   if(main.length<100000)return null;let turl=TURLS[0];try{const s=[...document.scripts].find(s=>/three(\.min)?\.js/.test(s.src||''));if(s)turl=s.src;}catch(e){}
@@ -23788,10 +23803,28 @@ function lpAsk(dx,dz){if(!lpOn()||LP.busy||!DL.on||!S||!S.dl)return;const k=(S.d
 function lpTake(part){try{if(!DL.on||!DL.busy)return null;const r=LP.ready;if(!r)return null;if(r.k!==DL.ox+','+DL.oz){LP.miss='khác tỉnh';return null;}const sg=lpSig();if(r.sig!==sg){let i=0;while(i<sg.length&&sg[i]===r.sig[i])i++;LP.miss='đầu vào đã đổi @'+i+': '+r.sig.slice(Math.max(0,i-60),i+40)+' ≠ '+sg.slice(Math.max(0,i-60),i+40);LP.ready=null;return null;}if(!r[part])return null;return r;}catch(e){return null;}}
 {const _hb=heightsBuild;heightsBuild=function(){const r=lpTake('HG');if(r){riversSurface();HG=r.HG;WG=r.WG;try{if(typeof W4==='object'){W4.ZG=r.ZG;W4.ZK=r.ZK;}}catch(e){}r.HG=null;LP.used++;return;}return _hb.apply(this,arguments);};}
 {const _bg=biomeGridBuild;biomeGridBuild=function(){const r=lpTake('BG');if(r){BG=r.BG;DL.bgKey=DL.ox+','+DL.oz+':'+(DL.bgN|0);r.BG=null;return;}return _bg.apply(this,arguments);};}
-{const _tc=terrainColors;terrainColors=function(){const r=lpTake('TCOL');if(r){TGX=DL.ox;TGZ=DL.oz;TCOL=r.TCOL;TNRM=r.TNRM;TSPL=r.TSPL;try{Object.assign(T3,r.T3);}catch(e){}LP.ready=null;return;}return _tc.apply(this,arguments);};}
+{const _tc=terrainColors;terrainColors=function(){const r=lpTake('TCOL');if(r){TGX=DL.ox;TGZ=DL.oz;TCOL=r.TCOL;TNRM=r.TNRM;TSPL=r.TSPL;try{Object.assign(T3,r.T3);}catch(e){}LP.resRd={k:r.k,sig:r.sig,RES:r.RES,resBase:r.resBase};LP.ready=null;return;}return _tc.apply(this,arguments);};}
 /* đi tới gần ranh giới (cùng vùng tính trước địa hình của dailuc.js) thì nhờ luồng phụ */
 setInterval(()=>{try{if(!lpOn()||typeof DL!=='object'||!DL.on||typeof G!=='object'||!G.on||DL.busy||!S||!S.dl)return;const A=dlA(),h=A/2,mg=Math.min(2500,h*0.6);let dx=0,dz=0;
     if(P.x>h-mg)dx=A;else if(P.x<-h+mg)dx=-A;if(P.z>h-mg)dz=A;else if(P.z<-h+mg)dz=-A;if(!dx&&!dz)return;lpAsk(dx,dz);}catch(e){}},1000);
+/* cây đá rải theo ô đại lục (phần nặng nhất của sinh cây đá): nhận bản luồng phụ đã rải. Chỉ nhận khi đúng tỉnh, đúng đầu vào và đúng điểm bắt đầu trong danh sách
+   (luồng phụ rải sau đúng những bước như luồng chính, nên các món sinh trước đó trùng khớp từng món). */
+function lpResCells(base){try{const r=LP.resRd;if(!r||!DL.busy||!r.RES||r.k!==DL.ox+','+DL.oz||r.resBase!==base||r.sig!==lpSig())return false;LP.resRd=null;
+    for(const s of r.RES){const q=Object.assign({},s);q.i=RES.length;RES.push(q);const k=rKey(q.x,q.z);if(!RGRID.has(k))RGRID.set(k,[]);RGRID.get(k).push(q.i);}DL.resMade=r.RES.length;LP.usedRes=(LP.usedRes|0)+1;return true;}catch(e){return false;}}
+/* SANG TỈNH (dựng lại tại chỗ): dùng lại đúng hình người chơi, bóng dưới chân, đèn cầm tay đang có (đổi sang cảnh mới), giữ nguyên hướng máy quay.
+   Trước: mỗi lần sang tỉnh dựng lại cả hình người (~0,2 giây), tạo thêm một ảnh bóng mới (bộ nhớ đồ hoạ tăng dần) và xoay máy quay về một hướng cố định,
+   nhìn như bị đưa sang chỗ khác. */
+{const _pi=playerInit;playerInit=function(){try{if(G._reuse&&typeof DL==='object'&&DL.on&&P.model&&P.rig&&P.blob&&P.light&&S&&S.p){for(const o of [P.model,P.blob,P.light]){if(o.parent)o.parent.remove(o);G.sc.add(o);}
+      P.x=S.p.x;P.z=S.p.z;P.y=groundY(P.x,P.z);LP.pReuse=(LP.pReuse|0)+1;return;}}catch(e){}return _pi.apply(this,arguments);};}
+/* NGƯỜI LÀNG, NGƯỜI Ở TRẠI DÙNG CHUNG HÌNH theo (hạt giống, vai): dựng một hình mẫu rồi nhân bản khung xương dùng chung hình và chất liệu (cách chunghinh.js làm cho thú).
+   Đo: mỗi người dựng mới 46–72 ms → làng ~0,57 giây, trại ~0,3 giây mỗi lần sang tỉnh. Người lính đổi màu áo chỉ khi áo là chất liệu riêng (quandoan.js) nên không ảnh hưởng. */
+const LPV={proto:new Map(),bad:new Set(),n:0};
+/* bọc thẳng hàm dựng người gốc (làng, trại cướp, thổ dân, lính gác của người khác đều gọi nó); bộ dựng hình nạp sau thư viện 3D nên chờ có rồi mới bọc */
+function lpVillWrap(){try{if(!(window.SBM&&typeof SBM.villager==='function')||SBM.villager._lp||typeof chhClone!=='function')return;const _v=SBM.villager;
+    const w=function(){try{const k=JSON.stringify([].slice.call(arguments));if(LPV.bad.has(k))return _v.apply(this,arguments);let p=LPV.proto.get(k);
+        if(!p){p=_v.apply(this,arguments);if(!p||!p.isObject3D||!chhOk(p)){LPV.bad.add(k);return p;}if(LPV.proto.size>240)LPV.proto.clear();LPV.proto.set(k,p);}LPV.n++;return chhClone(p);}catch(e){return _v.apply(this,arguments);}};
+    w._lp=1;SBM.villager=w;}catch(e){}}
+setInterval(lpVillWrap,500);
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
