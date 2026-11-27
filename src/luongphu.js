@@ -5,7 +5,7 @@
    An toàn: chỉ dùng khi đúng tỉnh và đúng dữ liệu đầu vào (san nền, đào hố, nền của người khác) như lúc luồng phụ tính; sai lệch gì thì tự tính như cũ.
    Luồng phụ tự tắt sau mỗi lần tính để không giữ thêm bộ nhớ. Tắt hẳn: localStorage 'ld-lp' = '0'. */
 const LP={w:null,busy:0,ready:null,k:null,err:0,used:0,miss:'',t0:0,ms:0};
-function lpOn(){try{if(typeof Worker==='undefined'||typeof Blob==='undefined'||self.__LP)return false;if(localStorage.getItem('ld-lp')==='0')return false;return LP.err<3;}catch(e){return false;}}
+function lpOn(){try{if(typeof Worker==='undefined'||typeof Blob==='undefined'||self.__LP)return false;if(localStorage.getItem('ld-lp')==='0')return false;/* máy ít bộ nhớ (trình duyệt báo dưới 4 GB): không mở thêm luồng phụ, qua tỉnh theo cách cũ */if(navigator.deviceMemory&&navigator.deviceMemory<4)return false;return LP.err<3;}catch(e){return false;}}
 /* dữ liệu đầu vào ngoài toạ độ tỉnh mà các bước tính dùng tới */
 function lpSig(){try{return JSON.stringify([S.seed,S.seed0||0,S.wv||0,S.flat||[],S.dig||[],S.tun||[],(typeof DB==='object'&&DB&&DB.flats)||[],(typeof DAO==='object'&&DAO&&DAO.rdig)||[]]);}catch(e){return 'x'+Math.random();}}
 /* phần giả cho luồng phụ: không có trang, không có bộ nhớ trình duyệt; mọi thứ giao diện trả về một vật "gì cũng được" */

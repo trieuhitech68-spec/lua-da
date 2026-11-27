@@ -20,6 +20,7 @@ bash tools/kiem-tra/chay-het.sh
 | 49 | `mang/muoi-nguoi.js [người ≤20] [giây]` (chọn người bằng `SUB=0,1,…`; `DBOUT`/`DBIN` nối nhiều đợt trên cùng thế giới) | **20 người chơi chung một thế giới, 2 đợt 10 trình duyệt**; thêm giai đoạn Kinh tế (chế tạo thật, xây theo công đoạn, nâng cấp, nghiên cứu, bản đồ phóng sâu), liên minh thứ ba, bị đuổi khỏi liên minh, luyện quân, hai cuộc chiến cùng lúc. Trước đây: (máy chủ giả, dữ liệu chuyền qua lại thật): vào game → Tự làm đầu game → lãnh thổ, làng, dân → liên minh (lập, xin, nhận, từ chối, rời, góp cấp) → quân đội (chiêu mộ, tướng, đội hình) → xâm chiếm (tuyên chiến, cướp phá, công phá điểm giàu, hạ cờ, giảng hoà) → lưu và mở lại. Báo cáo từng bước ra `$TMPDIR/ld-muoi-nguoi.json`. |
 | 50 | `ban-do.js` (`DL=1`: đại lục) | Bản đồ tỉnh phóng ×28, đại lục ×220, có ảnh chi tiết theo độ nét màn hình; truyền thư mục để chụp ảnh từng mức phóng. |
 | 51 | `luu-nen.js` | Trình duyệt xoá ngăn lưu chính nhưng còn bản ghi nền: bấm Chơi phải lấy bản ghi nền, không tải đè bản cũ trên máy chủ. |
+| 52 | `qua-tinh.js` (`MAXBLOCK=ms`) | Đại lục: vòng tường đè ranh giới tỉnh, ruộng và thuyền sát ranh giới, cây trồng cất trong tỉnh khác (bản lưu cũ). Đi bộ qua: không bị dời chỗ, tường còn và vẫn chặn, ruộng / thuyền không mất, không tải lại trang; dữ liệu luồng phụ tính sẵn (luongphu.js) giống hệt tự tính; in khoảng đứng hình dài nhất. |
 | – | `dong-tac.js <tên> "<dáng:công cụ,...>"` | Chụp bảng từng pha của các động tác để soát bằng mắt (ví dụ `h3chop2:axe,h3gather2`). |
 
 Quy ước khi thêm thứ mới:
