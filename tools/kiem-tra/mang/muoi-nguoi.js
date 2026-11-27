@@ -232,7 +232,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     const r6=await ev(leadB,()=>({zone:MP.clans[MP.uid].zone,zcd:S.pvp.zcd>Date.now(),t:SIM.toasts.filter(t=>/cờ/i.test(t)).slice(-2)}));
     rec(leadB.name,'Xâm chiếm','bị hạ cờ thì mất đất chung, chờ mới cắm lại được',r6.zcd===true&&!r6.zone,r6);
     // điểm chiến tranh hai bên nhìn giống nhau
-    const pa=await ev(leadA,b=>[pvpWarPts(MP.uid,b),pvpWarPts(b,MP.uid)],leadB.uid),pb=await ev(leadB,a=>[pvpWarPts(a,MP.uid),pvpWarPts(MP.uid,a)],leadA.uid);
+    /* điểm gửi qua máy chủ theo nhịp ~20 giây: chờ tối đa 45 giây cho hai bên khớp */let pa,pb;for(let k=0;k<10;k++){await ev(leadA,()=>{RL.mp.putT=0;try{rlMpTick();}catch(e){}});await ev(leadB,()=>{RL.mp.putT=0;try{rlMpTick();}catch(e){}});await sleep(4500);pa=await ev(leadA,b=>[pvpWarPts(MP.uid,b),pvpWarPts(b,MP.uid)],leadB.uid);pb=await ev(leadB,a=>[pvpWarPts(a,MP.uid),pvpWarPts(MP.uid,a)],leadA.uid);if(JSON.stringify(pa)===JSON.stringify(pb))break;}
     rec('Hai liên minh','Xâm chiếm','bảng điểm chiến tranh hai bên khớp nhau',JSON.stringify(pa)===JSON.stringify(pb),{A:pa,B:pb});
     // giảng hoà
     const hw=await ev(leadA,b=>{pvpWarSet(b,false);return (MP.clans[MP.uid].war||[]).includes(b);},leadB.uid);await sleep(5000);const hb=await ev(leadB,a=>pvpAtWar(a),leadA.uid);
