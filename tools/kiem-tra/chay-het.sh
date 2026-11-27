@@ -141,5 +141,5 @@ OUT=$(DL=1 timeout 600 node ban-do.js 2>&1); echo "$OUT" | grep -q "^BD-DAT" && 
 echo "51. Ngăn lưu chính bị trình duyệt xoá mà bản ghi nền còn: bấm Chơi lấy bản ghi nền, không tải đè bản cũ trên máy chủ"
 OUT=$(timeout 500 node luu-nen.js 2>&1); echo "$OUT" | grep -q "^LN-DAT" && ok "khôi phục từ bản ghi nền" || bad "bản ghi nền: $(echo "$OUT" | tail -2 | tr '\n' ' ' | cut -c1-500)"
 echo "52. Qua tỉnh trên đại lục: vòng tường đè ranh giới, ruộng và thuyền sát ranh giới, bản lưu cũ; không dời chỗ, tường vẫn chặn, không mất gì, không tải lại trang; dữ liệu luồng phụ giống hệt tự tính"
-OUT=$(MAXBLOCK=1500 timeout 600 node qua-tinh.js 2>&1); echo "$OUT" | grep -q "^QT-DAT" && ok "qua tỉnh liền mạch: $(echo "$OUT" | grep -o 'đứng hình dài nhất [0-9]* ms')" || bad "qua tỉnh: $(echo "$OUT" | tail -1 | cut -c1-700)"
+OUT=$(MAXBLOCK=600 timeout 600 node qua-tinh.js 2>&1); echo "$OUT" | grep -q "^QT-DAT" && ok "qua tỉnh liền mạch: $(echo "$OUT" | grep -o 'đứng hình dài nhất [0-9]* ms')" || bad "qua tỉnh: $(echo "$OUT" | tail -1 | cut -c1-700)"
 echo; [ $FAIL = 0 ] && echo "TẤT CẢ ĐẠT" || echo "CÓ BƯỚC HỎNG: sửa xong mới đẩy lên"; exit $FAIL

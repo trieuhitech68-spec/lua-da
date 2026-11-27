@@ -235,12 +235,17 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   {const _h=hAt;hAt=function(x,z){const h=_h(x,z);return h===-60&&DL.on?dlH(x+DL.ox,z+DL.oz):h;};}
   /* VÀNH ĐẤT XA: mặt đất thô quanh vùng nạp (ra thêm ~4 mảnh mỗi phía) để đứng ở mép vùng vẫn thấy núi đồi nối tiếp chứ không phải biển giả.
      Dựng một lần lúc vào game (vài chục nghìn tam giác, gộp một lưới), tô màu theo độ cao và độ dốc. */
-  function dlRing(){try{if(!DL.on||!G.sc||typeof THREE==='undefined')return;if(DL.ring){G.sc.remove(DL.ring);DL.ring.geometry.dispose();DL.ring=null;}const T=THREE,TS=DL.TS,half=WSIZE/2,n0=Math.round(half/TS),ext=4,st=4,m=DL.TN/st,hs=DL.HS*st,pos=[],col=[],idx=[];
+  /* dữ liệu vành đất xa (độ cao, màu, pháp tuyến): tách riêng để luồng phụ tính sẵn cho tỉnh kế bên (luongphu.js) */
+  function dlRingData(){const T=THREE,TS=DL.TS,half=WSIZE/2,n0=Math.round(half/TS),ext=4,st=4,m=DL.TN/st,hs=DL.HS*st,pos=[],col=[],idx=[];
       const C=(h,sl,x,z)=>{if(h<1.5)return [0.60,0.54,0.38];if(h>820)return [0.86,0.88,0.92];if(sl>0.55||h>300)return [0.34,0.32,0.29];/* mảng rừng ở xa: chỗ ẩm thì xanh đậm, như tán cây nhìn từ xa */const f=dlSS(-0.05,0.25,dlFbm(x/1400+9,z/1400-3,3,DL.seed+91)),g=h>180?[0.17,0.27,0.11]:[0.19,0.36,0.11];return [g[0]*(1-f)+0.085*f,g[1]*(1-f)+0.19*f,g[2]*(1-f)+0.06*f];};
       for(let tz=-n0-ext;tz<n0+ext;tz++)for(let tx=-n0-ext;tx<n0+ext;tx++){if(tx>=-n0&&tx<n0&&tz>=-n0&&tz<n0)continue;const x0=tx*TS,z0=tz*TS,b=pos.length/3;
         for(let j=0;j<=m;j++)for(let i=0;i<=m;i++){const x=x0+i*hs,z=z0+j*hs,h=dlBase(x+DL.ox,z+DL.oz),hx=dlBase(x+hs+DL.ox,z+DL.oz),hz=dlBase(x+DL.ox,z+hs+DL.oz),sl=Math.max(Math.abs(hx-h),Math.abs(hz-h))/hs,c=C(h,sl,x+DL.ox,z+DL.oz);pos.push(x,h<-6?-6:h,z);col.push(c[0],c[1],c[2]);}
         for(let j=0;j<m;j++)for(let i=0;i<m;i++){const a=b+j*(m+1)+i,c2=a+m+1;idx.push(a,c2,a+1,a+1,c2,c2+1);}}
-      const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('color',new T.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
+      const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
+      return {k:DL.ox+','+DL.oz,pos:g.getAttribute('position').array,col:new Float32Array(col),idx:new Uint32Array(idx),nor:g.getAttribute('normal').array};}
+  window.dlRingData=dlRingData;
+  function dlRing(){try{if(!DL.on||!G.sc||typeof THREE==='undefined')return;if(DL.ring){G.sc.remove(DL.ring);DL.ring.geometry.dispose();DL.ring=null;}const T=THREE;const d=(typeof lpRingTake==='function'&&lpRingTake())||dlRingData();
+      const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(d.pos,3));g.setAttribute('color',new T.BufferAttribute(d.col,3));g.setAttribute('normal',new T.BufferAttribute(d.nor,3));g.setIndex(new T.BufferAttribute(d.idx,1));
       const me=new T.Mesh(g,new T.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0}));me.receiveShadow=false;me.castShadow=false;me.frustumCulled=false;me.userData.noSea=1;G.sc.add(me);DL.ring=me;
       /* biển quanh vành đất */const w=new T.Mesh(new T.PlaneGeometry((n0+ext)*TS*2+20000,(n0+ext)*TS*2+20000),new T.MeshStandardMaterial({color:0x2f6f8f,roughness:0.35,metalness:0.1,transparent:true,opacity:0.9}));w.rotation.x=-Math.PI/2;w.position.y=-0.4;w.frustumCulled=false;if(DL.sea)G.sc.remove(DL.sea);G.sc.add(w);DL.sea=w;}catch(e){console.warn('vành đất xa',e);}}
   {const _si=sceneInit;sceneInit=function(){const r=_si.apply(this,arguments);try{if(DL.on)dlRing();if(DL.on&&S.dlNew){S.dlNew=0;/* mỗi người một chỗ đặt chân quanh bến của tỉnh, khỏi dồn vào một điểm */for(let k=0;k<60;k++){const a=Math.random()*6.283,d=260+Math.random()*900,x=SPAWN[0]+Math.cos(a)*d,z=SPAWN[1]+Math.sin(a)*d,h=hAt(x,z);if(!(h>6&&wdAt(x,z)<=0&&slopeAt(x,z)<0.3))continue;

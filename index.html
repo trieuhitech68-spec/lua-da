@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261127113026">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261127132025">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -2247,7 +2247,7 @@ function resDefer(mk,sph){let real=null,ops=[];const dummy={visible:true};const 
     set(...a){if(real)return real.set(...a);ops.push(['set',a]);},setM(...a){if(real)return real.setM(...a);ops.push(['setM',a]);},hide(i){if(real)return real.hide(i);ops.push(['hide',[i]]);},flush(){if(real)real.flush();},dispose(){if(real)real.dispose();}};}
 function resDeferRun(){clearTimeout(G.rdT);const step=()=>{try{const L=[];RI.forEach(v=>{if(v.api&&v.api.defer&&!v.api.built)L.push(v);});if(!L.length)return;L.sort((a,b)=>Math.hypot(a.sph.x-P.x,a.sph.z-P.z)-Math.hypot(b.sph.x-P.x,b.sph.z-P.z));
       const t0=performance.now();for(const v of L){v.api.build();if(performance.now()-t0>10)break;}G.rdT=setTimeout(step,40);}catch(e){console.warn('dựng cây đá muộn',e);}};G.rdT=setTimeout(step,60);}
-function resInstances(){const groups=new Map(),protos=new Map();const lazyLo=!G.impDone&&!!(window.SBM&&SBM.v6bake&&SBM.treeLo);G.loQ=[];const ck=(x,z,c)=>Math.floor((x+WSIZE/2)/c)+','+Math.floor((z+WOZ)/c);
+function resInstances(){const groups=new Map(),protos=(typeof DL==='object'&&DL.on)?(G.resProtos||(G.resProtos=new Map())):new Map();/* đại lục: giữ hình mẫu cây đá giữa các lần sang tỉnh (trước mỗi lần dựng lại ~0,14 giây) */const lazyLo=!G.impDone&&!!(window.SBM&&SBM.v6bake&&SBM.treeLo);G.loQ=[];const ck=(x,z,c)=>Math.floor((x+WSIZE/2)/c)+','+Math.floor((z+WOZ)/c);
   const use=(spec,q,main)=>{const sk=spec.join('|'),big=BIGRX.test(sk),k=sk+'@'+ck(q.x,q.z,big?BIGCH:700);let e=groups.get(k);if(!e){e={sk,spec,qs:[],big,main:0};groups.set(k,e);}if(main)e.main=1;e.qs.push(q);return k;};
   RES.forEach(q=>{const D=RT[q.t];q.y=q.wy!=null?q.wy:hAt(q.x,q.z)-1.2;q.gk=use(D.m,q,1);if(D.stump)q.sk=use(D.stump,q,0);if(D.empty)q.ek=use(D.empty,q,0);});
   const proto=(sk,lo)=>{const key=sk+(lo?'#lo':'');let pr=protos.get(key);if(pr)return pr;const spec=sk.split('|').map(v=>/^\d+$/.test(v)?+v:v);let lg=null;if(lo&&window.SBM&&SBM.treeLo&&LORX.test(sk)){try{lg=spec[0]==='tree'?SBM.treeLo(spec[1],1,spec[2]):SBM.treeLo(spec[0],1,2);}catch(e){}}let parts=protoParts(lo?(lg||stubModel(spec)):model(spec));if(!lo&&(BIGRX.test(sk)||/^banana/.test(sk)))parts.forEach(pt=>pt.mat=occMat(pt.mat));
@@ -2259,7 +2259,7 @@ function resInstances(){const groups=new Map(),protos=new Map();const lazyLo=!G.
       const sph={x:cx,y:cy,z:cz,r:r+60*ms+10},n=e.qs.length,sk=e.sk;RI.set(k,{api:resLazy(()=>{const pr=proto(sk,false);sph.r=r+pr.mr*ms+10;const a=instGroup(pr.parts,n,{shadow:false,sphere:sph});G.sc.add(a.G);try{seasonPatchAll(a.G);}catch(er){}return a;}),n:0,sph,small:true});return;}
     let cx=0,cy=0,cz=0,ms=1;e.qs.forEach(q=>{cx+=q.x;cy+=q.y;cz+=q.z;ms=Math.max(ms,q.s);});cx/=e.qs.length;cy/=e.qs.length;cz/=e.qs.length;let r=0;e.qs.forEach(q=>{r=Math.max(r,Math.hypot(q.x-cx,q.y-cy,q.z-cz));});
     /* SANG TỈNH (dựng lại tại chỗ): cụm ở xa người chơi chưa dựng ngay — ghi lại các lệnh đặt/ẩn, dựng dần sau đó (cụm gần trước), đỡ ~0,3 giây đứng hình */
-    if(G._reuse&&typeof DL==='object'&&DL.on&&Math.hypot(cx-P.x,cz-P.z)-r>1200){const sph={x:cx,y:cy,z:cz,r:r+60*ms+10},small=!e.big,sk=e.sk,n=e.qs.length;
+    if(G._reuse&&typeof DL==="object"&&DL.on&&Math.hypot(cx-P.x,cz-P.z)-r>500){const sph={x:cx,y:cy,z:cz,r:r+60*ms+10},small=!e.big,sk=e.sk,n=e.qs.length;
       const big=e.big;RI.set(k,{api:resDefer(()=>{const pr=proto(sk,false);sph.r=r+pr.mr*ms+10;let a=instGroup(pr.parts,n,{shadow:!small,sphere:sph});G.sc.add(a.G);
           /* giống hệt nhánh dựng ngay: cây lớn có thêm bản hình đơn giản cho ở xa */
           if(big&&LORX.test(sk)&&lazyLo)G.loQ.push({k,sk,n,sph,hi:a});
@@ -22818,12 +22818,17 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
   {const _h=hAt;hAt=function(x,z){const h=_h(x,z);return h===-60&&DL.on?dlH(x+DL.ox,z+DL.oz):h;};}
   /* VÀNH ĐẤT XA: mặt đất thô quanh vùng nạp (ra thêm ~4 mảnh mỗi phía) để đứng ở mép vùng vẫn thấy núi đồi nối tiếp chứ không phải biển giả.
      Dựng một lần lúc vào game (vài chục nghìn tam giác, gộp một lưới), tô màu theo độ cao và độ dốc. */
-  function dlRing(){try{if(!DL.on||!G.sc||typeof THREE==='undefined')return;if(DL.ring){G.sc.remove(DL.ring);DL.ring.geometry.dispose();DL.ring=null;}const T=THREE,TS=DL.TS,half=WSIZE/2,n0=Math.round(half/TS),ext=4,st=4,m=DL.TN/st,hs=DL.HS*st,pos=[],col=[],idx=[];
+  /* dữ liệu vành đất xa (độ cao, màu, pháp tuyến): tách riêng để luồng phụ tính sẵn cho tỉnh kế bên (luongphu.js) */
+  function dlRingData(){const T=THREE,TS=DL.TS,half=WSIZE/2,n0=Math.round(half/TS),ext=4,st=4,m=DL.TN/st,hs=DL.HS*st,pos=[],col=[],idx=[];
       const C=(h,sl,x,z)=>{if(h<1.5)return [0.60,0.54,0.38];if(h>820)return [0.86,0.88,0.92];if(sl>0.55||h>300)return [0.34,0.32,0.29];/* mảng rừng ở xa: chỗ ẩm thì xanh đậm, như tán cây nhìn từ xa */const f=dlSS(-0.05,0.25,dlFbm(x/1400+9,z/1400-3,3,DL.seed+91)),g=h>180?[0.17,0.27,0.11]:[0.19,0.36,0.11];return [g[0]*(1-f)+0.085*f,g[1]*(1-f)+0.19*f,g[2]*(1-f)+0.06*f];};
       for(let tz=-n0-ext;tz<n0+ext;tz++)for(let tx=-n0-ext;tx<n0+ext;tx++){if(tx>=-n0&&tx<n0&&tz>=-n0&&tz<n0)continue;const x0=tx*TS,z0=tz*TS,b=pos.length/3;
         for(let j=0;j<=m;j++)for(let i=0;i<=m;i++){const x=x0+i*hs,z=z0+j*hs,h=dlBase(x+DL.ox,z+DL.oz),hx=dlBase(x+hs+DL.ox,z+DL.oz),hz=dlBase(x+DL.ox,z+hs+DL.oz),sl=Math.max(Math.abs(hx-h),Math.abs(hz-h))/hs,c=C(h,sl,x+DL.ox,z+DL.oz);pos.push(x,h<-6?-6:h,z);col.push(c[0],c[1],c[2]);}
         for(let j=0;j<m;j++)for(let i=0;i<m;i++){const a=b+j*(m+1)+i,c2=a+m+1;idx.push(a,c2,a+1,a+1,c2,c2+1);}}
-      const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('color',new T.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
+      const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
+      return {k:DL.ox+','+DL.oz,pos:g.getAttribute('position').array,col:new Float32Array(col),idx:new Uint32Array(idx),nor:g.getAttribute('normal').array};}
+  window.dlRingData=dlRingData;
+  function dlRing(){try{if(!DL.on||!G.sc||typeof THREE==='undefined')return;if(DL.ring){G.sc.remove(DL.ring);DL.ring.geometry.dispose();DL.ring=null;}const T=THREE;const d=(typeof lpRingTake==='function'&&lpRingTake())||dlRingData();
+      const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(d.pos,3));g.setAttribute('color',new T.BufferAttribute(d.col,3));g.setAttribute('normal',new T.BufferAttribute(d.nor,3));g.setIndex(new T.BufferAttribute(d.idx,1));
       const me=new T.Mesh(g,new T.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0}));me.receiveShadow=false;me.castShadow=false;me.frustumCulled=false;me.userData.noSea=1;G.sc.add(me);DL.ring=me;
       /* biển quanh vành đất */const w=new T.Mesh(new T.PlaneGeometry((n0+ext)*TS*2+20000,(n0+ext)*TS*2+20000),new T.MeshStandardMaterial({color:0x2f6f8f,roughness:0.35,metalness:0.1,transparent:true,opacity:0.9}));w.rotation.x=-Math.PI/2;w.position.y=-0.4;w.frustumCulled=false;if(DL.sea)G.sc.remove(DL.sea);G.sc.add(w);DL.sea=w;}catch(e){console.warn('vành đất xa',e);}}
   {const _si=sceneInit;sceneInit=function(){const r=_si.apply(this,arguments);try{if(DL.on)dlRing();if(DL.on&&S.dlNew){S.dlNew=0;/* mỗi người một chỗ đặt chân quanh bến của tỉnh, khỏi dồn vào một điểm */for(let k=0;k<60;k++){const a=Math.random()*6.283,d=260+Math.random()*900,x=SPAWN[0]+Math.cos(a)*d,z=SPAWN[1]+Math.sin(a)*d,h=hAt(x,z);if(!(h>6&&wdAt(x,z)<=0&&slopeAt(x,z)<0.3))continue;
@@ -23790,8 +23795,15 @@ const LP_PRE=`(()=>{const mk=()=>{const f=function(){};const px=new Proxy(f,{get
       G.on=false;worldCfg(3);/* nạp hạt giống đại lục trước (dlSeedAt cần) */dlMoveState(d.dx,d.dz);worldCfg(3);o.k=S.dl.ox+','+S.dl.oz;o.sig=lpSig();
       noiseInit(S.seed);heightsBuild();o.HG=HG.slice(0);o.WG=WG.slice(0);o.ZG=W4.ZG?W4.ZG.slice(0):null;o.ZK=W4.ZK?W4.ZK.slice(0):null;
       biomeGridBuild();o.BG=BG.slice(0);regionsBuild();trailsBuild();decorPlan();caveFlatten();biomeGridBuild();terrainColors();
-      o.TCOL=TCOL;o.TNRM=TNRM;o.TSPL=TSPL;o.T3={brooks:T3.brooks,BW:T3.BW,BD:T3.BD,TQ:T3.TQ};self.__LPRES=null;try{resGen(S.seed);}catch(er){}o.RES=self.__LPRES;o.resBase=DL.resBase;}catch(er){o.err=String(er&&er.message||er)+' @ '+String(er&&er.stack||'').split('\\n').slice(1,3).join(' | ');}
-    const tr=[];for(const k of ['HG','WG','ZG','ZK','BG','TCOL','TNRM','TSPL'])if(o[k]&&o[k].buffer)tr.push(o[k].buffer);if(o.T3)for(const k of ['BW','BD','TQ'])if(o.T3[k]&&o.T3[k].buffer)tr.push(o.T3[k].buffer);postMessage(o,tr);};})();`;
+      o.TCOL=TCOL;o.TNRM=TNRM;o.TSPL=TSPL;o.T3={brooks:T3.brooks,BW:T3.BW,BD:T3.BD,TQ:T3.TQ};try{o.ring=dlRingData();}catch(er){}try{o.dep=t3DepthTex().image.data;}catch(er){}self.__LPRES=null;try{resGen(S.seed);}catch(er){}o.RES=self.__LPRES;o.resBase=DL.resBase;
+      /* DỰ ĐOÁN hình người, thú tỉnh này sẽ cần: chạy đúng mã sinh làng, trại, thú nhưng chỉ GHI LẠI lời gọi dựng hình (trả về hình rỗng) */
+      try{const rec=[],R0={};const rig=()=>new Proxy({},{get(t,k){if(typeof k!=='string')return undefined;if(!(k in t))t[k]=new THREE.Object3D();return t[k];}});
+        const stub=()=>{const g=new THREE.Group();g.userData.rig=rig();return g;};G.sc=new THREE.Scene();G.animals=[];G.foes=[];G.npcs=[];
+        animalModel=function(){rec.push(['a',[].slice.call(arguments)]);return stub();};
+        model=function(){return stub();};let tlRan=0;try{const _tl=tlInit;tlInit=function(){tlRan=1;return _tl.apply(this,arguments);};}catch(er){}
+        const sb=window.SBM||{};window.SBM=new Proxy(sb,{get(t,k){if(k==='villager')return function(){rec.push(['v',[].slice.call(arguments)]);return stub();};if(k==='animal')return function(){return stub();};return t[k];}});
+        for(const f of [()=>villageInit(),()=>villageGrow(),()=>campInit(),()=>{if(!tlRan)tlInit();},()=>animalsInit()]){try{f();}catch(er){o.predE=(o.predE||[]).concat(String(er&&er.message).slice(0,80));}}o.pred=rec;}catch(er){o.predErr=String(er&&er.message);}}catch(er){o.err=String(er&&er.message||er)+' @ '+String(er&&er.stack||'').split('\\n').slice(1,3).join(' | ');}
+    const tr=[];for(const k of ['HG','WG','ZG','ZK','BG','TCOL','TNRM','TSPL'])if(o[k]&&o[k].buffer)tr.push(o[k].buffer);if(o.T3)for(const k of ['BW','BD','TQ'])if(o.T3[k]&&o.T3[k].buffer)tr.push(o.T3[k].buffer);if(o.ring)for(const k of ['pos','col','idx','nor'])if(o.ring[k]&&o.ring[k].buffer)tr.push(o.ring[k].buffer);if(o.dep&&o.dep.buffer)tr.push(o.dep.buffer);postMessage(o,tr);};})();`;
 function lpCode(){if(LP.code)return LP.code;let main='';try{main=[...document.scripts].filter(s=>!s.src).map(s=>s.textContent).sort((a,b)=>b.length-a.length)[0]||'';}catch(e){}
   if(main.length<100000)return null;let turl=TURLS[0];try{const s=[...document.scripts].find(s=>/three(\.min)?\.js/.test(s.src||''));if(s)turl=s.src;}catch(e){}
   LP.code=URL.createObjectURL(new Blob(['self.__TURL='+JSON.stringify(turl)+';\n'+LP_PRE+'\n'+main],{type:'text/javascript'}));return LP.code;}
@@ -23800,14 +23812,14 @@ function lpStop(){try{if(LP.w)LP.w.terminate();}catch(e){}LP.w=null;LP.busy=0;}
 function lpAsk(dx,dz){if(!lpOn()||LP.busy||!DL.on||!S||!S.dl)return;const k=(S.dl.ox+dx)+','+(S.dl.oz+dz);if(LP.k===k&&LP.ready)return;const url=lpCode();if(!url){LP.err=9;return;}
   LP.busy=1;LP.k=k;LP.ready=null;LP.t0=performance.now();const id=(LP.id=(LP.id|0)+1);
   try{LP.w=new Worker(url);LP.w.onerror=ev=>{LP.err++;LP.miss='luồng phụ lỗi: '+(ev&&ev.message||'');lpStop();};
-    LP.w.onmessage=ev=>{const r=ev.data;lpStop();if(r.id!==id)return;if(r.err){LP.err++;LP.miss='luồng phụ: '+r.err;return;}LP.ms=Math.round(performance.now()-LP.t0);LP.ready=r;};
+    LP.w.onmessage=ev=>{const r=ev.data;lpStop();if(r.id!==id)return;if(r.err){LP.err++;LP.miss='luồng phụ: '+r.err;return;}LP.ms=Math.round(performance.now()-LP.t0);LP.ready=r;try{lpPoolPlan(r.pred||[]);}catch(e){}};
     let s='';try{s=typeof ldPack==='function'?ldPack(S):JSON.stringify(S,(k,v)=>k&&k[0]==='_'?undefined:v);}catch(e){}
     LP.w.postMessage({id,S:s,px:P.x,pz:P.z,dx,dz,dbf:(typeof DB==='object'&&DB&&DB.flats)||[],rdig:(typeof DAO==='object'&&DAO&&DAO.rdig)||[]});}catch(e){LP.err++;LP.miss='không mở được luồng phụ: '+e.message;lpStop();}}
 /* lúc dựng lại vùng khi sang tỉnh (DL.busy): kết quả có sẵn, đúng tỉnh, đúng đầu vào thì dùng */
 function lpTake(part){try{if(!DL.on||!DL.busy)return null;const r=LP.ready;if(!r)return null;if(r.k!==DL.ox+','+DL.oz){LP.miss='khác tỉnh';return null;}const sg=lpSig();if(r.sig!==sg){let i=0;while(i<sg.length&&sg[i]===r.sig[i])i++;LP.miss='đầu vào đã đổi @'+i+': '+r.sig.slice(Math.max(0,i-60),i+40)+' ≠ '+sg.slice(Math.max(0,i-60),i+40);LP.ready=null;return null;}if(!r[part])return null;return r;}catch(e){return null;}}
 {const _hb=heightsBuild;heightsBuild=function(){const r=lpTake('HG');if(r){riversSurface();HG=r.HG;WG=r.WG;try{if(typeof W4==='object'){W4.ZG=r.ZG;W4.ZK=r.ZK;}}catch(e){}r.HG=null;LP.used++;return;}return _hb.apply(this,arguments);};}
 {const _bg=biomeGridBuild;biomeGridBuild=function(){const r=lpTake('BG');if(r){BG=r.BG;DL.bgKey=DL.ox+','+DL.oz+':'+(DL.bgN|0);r.BG=null;return;}return _bg.apply(this,arguments);};}
-{const _tc=terrainColors;terrainColors=function(){const r=lpTake('TCOL');if(r){TGX=DL.ox;TGZ=DL.oz;TCOL=r.TCOL;TNRM=r.TNRM;TSPL=r.TSPL;try{Object.assign(T3,r.T3);}catch(e){}LP.resRd={k:r.k,sig:r.sig,RES:r.RES,resBase:r.resBase};LP.ready=null;return;}return _tc.apply(this,arguments);};}
+{const _tc=terrainColors;terrainColors=function(){const r=lpTake('TCOL');if(r){TGX=DL.ox;TGZ=DL.oz;TCOL=r.TCOL;TNRM=r.TNRM;TSPL=r.TSPL;try{Object.assign(T3,r.T3);}catch(e){}LP.resRd={k:r.k,sig:r.sig,RES:r.RES,resBase:r.resBase};LP.ringRd=r.ring||null;LP.depRd=r.dep?{k:r.k,d:r.dep}:null;LP.ready=null;return;}return _tc.apply(this,arguments);};}
 /* đi tới gần ranh giới (cùng vùng tính trước địa hình của dailuc.js) thì nhờ luồng phụ */
 setInterval(()=>{try{if(!lpOn()||typeof DL!=='object'||!DL.on||typeof G!=='object'||!G.on||DL.busy||!S||!S.dl)return;const A=dlA(),h=A/2,mg=Math.min(2500,h*0.6);let dx=0,dz=0;
     if(P.x>h-mg)dx=A;else if(P.x<-h+mg)dx=-A;if(P.z>h-mg)dz=A;else if(P.z<-h+mg)dz=-A;if(!dx&&!dz)return;lpAsk(dx,dz);}catch(e){}},1000);
@@ -23829,6 +23841,30 @@ function lpVillWrap(){try{if(!(window.SBM&&typeof SBM.villager==='function')||SB
         if(!p){p=_v.apply(this,arguments);if(!p||!p.isObject3D||!chhOk(p)){LPV.bad.add(k);return p;}if(LPV.proto.size>240)LPV.proto.clear();LPV.proto.set(k,p);}LPV.n++;return chhClone(p);}catch(e){return _v.apply(this,arguments);}};
     w._lp=1;SBM.villager=w;}catch(e){}}
 setInterval(lpVillWrap,500);
+
+/* ---------- HÌNH NGƯỜI, THÚ DỰNG SẴN ----------
+   Luồng phụ báo tỉnh tới sẽ cần những hình nào (lời gọi dựng người SBM.villager, dựng thú animalModel). Trong lúc người chơi còn đi tới ranh giới,
+   luồng chính dựng sẵn từng ít một (mỗi nhịp tối đa ~8 ms, không khựng) cất vào kho; sang tỉnh, mã sinh làng / trại / thú gọi dựng hình thì lấy ngay từ kho.
+   Hình trong kho là hình mới tinh chưa ai dùng, dựng bằng đúng hàm của game, nên giống hệt dựng tại chỗ. Người ở trại vốn chọn ngẫu nhiên một trong
+   90 kiểu (hạt giống 900–989): kho gom chung một ngăn cho cả khoảng đó. */
+const LPP={pool:new Map(),todo:[],n:0,hit:0,miss:0,T:null};
+const lpPKey=(t,a)=>{try{if(t==='v'){const b=a.slice();if(typeof b[0]==='number'&&b[0]>=900&&b[0]<990)b[0]='rnd';return 'v'+JSON.stringify(b);}return 'a'+JSON.stringify(a);}catch(e){return null;}};
+function lpPoolPlan(pred){const need=new Map();for(const [t,a] of pred){const k=lpPKey(t,a);if(!k)continue;const e=need.get(k)||{t,a,n:0};e.n++;need.set(k,e);}
+  /* kho chỉ giữ đồ cho lần sang tỉnh sắp tới */for(const [k,L] of LPP.pool)if(!need.has(k))LPP.pool.delete(k);LPP.todo=[];
+  for(const [k,e] of need){const have=(LPP.pool.get(k)||[]).length;for(let i=have;i<e.n;i++)LPP.todo.push([k,e.t,e.a]);}lpPoolRun();}
+function lpPoolRun(){clearTimeout(LPP.T);const step=()=>{try{if(!LPP.todo.length)return;if(typeof DL==='object'&&DL.busy){LPP.T=setTimeout(step,200);return;}const t0=performance.now();
+      while(LPP.todo.length&&performance.now()-t0<8){const [k,t,a]=LPP.todo.shift();let o=null;try{o=t==='v'?(window.SBM&&SBM.villager?LPP.rawV.apply(null,a):null):LPP.rawA.apply(null,a);}catch(e){}
+        if(o&&o.isObject3D){if(!LPP.pool.has(k))LPP.pool.set(k,[]);LPP.pool.get(k).push(o);LPP.n++;}}if(LPP.todo.length)LPP.T=setTimeout(step,45);}catch(e){}};LPP.T=setTimeout(step,45);}
+function lpPoolTake(t,a){const k=lpPKey(t,a),L=k&&LPP.pool.get(k);if(L&&L.length){LPP.hit++;return L.pop();}return null;}
+{const _am=animalModel;LPP.rawA=function(){return _am.apply(this,arguments);};animalModel=function(){const o=lpPoolTake('a',[].slice.call(arguments));if(o)return o;LPP.miss++;return _am.apply(this,arguments);};}
+/* người: bọc sau lớp "chung hình" (lpVillWrap) để kho chứa hình đã nhân bản sẵn */
+setInterval(()=>{try{if(!(window.SBM&&typeof SBM.villager==='function')||SBM.villager._lpp||!SBM.villager._lp)return;const _v=SBM.villager;LPP.rawV=function(){return _v.apply(this,arguments);};
+    const w=function(){const o=lpPoolTake('v',[].slice.call(arguments));if(o)return o;LPP.miss++;return _v.apply(this,arguments);};w._lp=1;w._lpp=1;SBM.villager=w;}catch(e){}},500);
+/* vành đất xa quanh vùng nạp: luồng phụ đã tính sẵn (độ cao, màu, pháp tuyến) thì nhận lại */
+function lpRingTake(){try{const r=LP.ringRd;if(!r||!DL.busy||r.k!==DL.ox+','+DL.oz)return null;LP.ringRd=null;LP.usedRing=(LP.usedRing|0)+1;return r;}catch(e){return null;}}
+/* ảnh độ sâu nước (biển, sông): dữ liệu luồng phụ đã tính từ đúng lưới độ cao này */
+if(typeof t3DepthTex==='function'){const _dt=t3DepthTex;t3DepthTex=function(){try{const r=LP.depRd;if(r&&DL.busy&&r.k===DL.ox+','+DL.oz&&r.d.length===HN*HN*4){LP.depRd=null;const T=THREE,t=new T.DataTexture(r.d,HN,HN,T.RGBAFormat,T.UnsignedByteType);
+      t.wrapS=t.wrapT=T.ClampToEdgeWrapping;t.magFilter=t.minFilter=T.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;LP.usedDep=(LP.usedDep|0)+1;return t;}}catch(e){}return _dt.apply(this,arguments);};}
 /* ===================== NÓI CHUYỆN BẰNG GIỌNG (MICRÔ) · THẾ GIỚI CHUNG =====================
    WebRTC ngang hàng, chỉ âm thanh. Báo hiệu (offer/answer/ICE) đi qua room.emit chủ đề 'vc' của mp.js, mỗi tin ghi người nhận {to:peer}.
    Người có mã peer nhỏ hơn gọi trước (tránh hai bên cùng gọi); bên kia muốn nối thì gửi 'rq' nhờ gọi.
