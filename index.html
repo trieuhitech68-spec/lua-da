@@ -2,7 +2,7 @@
 <html lang="vi"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2a1608">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Lửa Đá">
-<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261127235749">
+<link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="icon" type="image/png" href="/icons/icon-192.png"><meta name="ld-ver" content="20261128020257">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#160f0a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Lửa Đá: Từ Hai Bàn Tay Trắng</title>
@@ -23789,7 +23789,7 @@ function lpSig(){try{return JSON.stringify([S.seed,S.seed0||0,S.wv||0,S.flat||[]
 const LP_PRE=`(()=>{const mk=()=>{const f=function(){};const px=new Proxy(f,{get(t,k){if(k===Symbol.toPrimitive)return ()=>0;if(k==='then')return undefined;if(k===Symbol.iterator)return function*(){};if(k==='length')return 0;return px;},apply(){return px;},construct(){return px;},set(){return true;},has(){return true;}});return px;};
   const any=mk();self.window=self;self.document=any;self.localStorage=self.sessionStorage=(()=>{const m=new Map();return {getItem:k=>m.has(k)?m.get(k):null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k),clear:()=>m.clear(),key:i=>[...m.keys()][i],get length(){return m.size;}};})();
   self.innerWidth=390;self.innerHeight=844;self.devicePixelRatio=1;self.requestAnimationFrame=()=>0;self.cancelAnimationFrame=()=>0;self.matchMedia=()=>({matches:false,addEventListener(){}});self.alert=self.confirm=()=>false;self.getComputedStyle=()=>any;self.screen={width:390,height:844};
-  self.HTMLElement=self.Element=self.Node=function(){};self.Image=function(){return any;};self.__LP=1;
+  self.HTMLElement=self.Element=self.Node=function(){};self.Image=function(){return any;};self.__LP=1;/* luồng phụ chỉ tính dữ liệu: không in gì ra màn hình gỡ lỗi (phần dự đoán chạy thử mã dựng hình nên có lỗi vô hại); lỗi thật gửi về qua tin nhắn */const nop=()=>{};self.console={log:nop,warn:nop,error:nop,info:nop,debug:nop,time:nop,timeEnd:nop,trace:nop,group:nop,groupEnd:nop,table:nop};
   importScripts(self.__TURL);if(THREE.ColorManagement)THREE.ColorManagement.legacyMode=false;/* như K3init trên luồng chính: màu tuyến tính */
   self.onmessage=e=>{const d=e.data,o={id:d.id};try{S=JSON.parse(d.S);P.x=d.px;P.z=d.pz;try{DB.flats=d.dbf;}catch(er){}try{DAO.rdig=d.rdig;}catch(er){}
       G.on=false;worldCfg(3);/* nạp hạt giống đại lục trước (dlSeedAt cần) */dlMoveState(d.dx,d.dz);worldCfg(3);o.k=S.dl.ox+','+S.dl.oz;o.sig=lpSig();
