@@ -244,7 +244,7 @@ if(typeof window!=='undefined'&&typeof baseH==='function'){
       const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
       return {k:DL.ox+','+DL.oz,pos:g.getAttribute('position').array,col:new Float32Array(col),idx:new Uint32Array(idx),nor:g.getAttribute('normal').array};}
   window.dlRingData=dlRingData;
-  function dlRing(){try{if(!DL.on||!G.sc||typeof THREE==='undefined')return;if(DL.ring){G.sc.remove(DL.ring);DL.ring.geometry.dispose();DL.ring=null;}const T=THREE;const d=(typeof lpRingTake==='function'&&lpRingTake())||dlRingData();
+  function dlRing(){try{if(!DL.on||!G.sc||typeof THREE==='undefined')return;if(DL.ring){G.sc.remove(DL.ring);DL.ring.geometry.dispose();DL.ring=null;}const T=THREE,TS=DL.TS,n0=Math.round(WSIZE/2/TS),ext=4;const d=(typeof lpRingTake==='function'&&lpRingTake())||dlRingData();
       const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(d.pos,3));g.setAttribute('color',new T.BufferAttribute(d.col,3));g.setAttribute('normal',new T.BufferAttribute(d.nor,3));g.setIndex(new T.BufferAttribute(d.idx,1));
       const me=new T.Mesh(g,new T.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0}));me.receiveShadow=false;me.castShadow=false;me.frustumCulled=false;me.userData.noSea=1;G.sc.add(me);DL.ring=me;
       /* biển quanh vành đất */const w=new T.Mesh(new T.PlaneGeometry((n0+ext)*TS*2+20000,(n0+ext)*TS*2+20000),new T.MeshStandardMaterial({color:0x2f6f8f,roughness:0.35,metalness:0.1,transparent:true,opacity:0.9}));w.rotation.x=-Math.PI/2;w.position.y=-0.4;w.frustumCulled=false;if(DL.sea)G.sc.remove(DL.sea);G.sc.add(w);DL.sea=w;}catch(e){console.warn('vành đất xa',e);}}
